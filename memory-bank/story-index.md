@@ -52,6 +52,8 @@ Traditional → Simplified search. That's step 4.
   not built until opened", "+ after a stop offers nearby places"). Both pass alone every time, and CI retries once. If
   it grows, run WebKit with fewer workers.
 - The airport method tiles break "Manageable" mid-word at desktop width. Cosmetic, desktop only.
+- MapLibre GL JS 6 (July 2026) is ESM-only; the page pins 5.24 from cdnjs. Moving to 6 is an engine change, not a
+  version bump.
 - The engine's lantern look came from the first destination. Whether a destination pack may re-theme it is open
   (`DESIGN.md`, Do's and Don'ts).
 
@@ -75,6 +77,10 @@ Traditional → Simplified search. That's step 4.
   their trip (clone, add their own keys, describe the trip to the agent, build, publish behind a password). No trip
   pages go on Pages, not even the demo. Pages sites are public even from a private repo, so real trips keep a
   password-gated host (ht-ml.app today). The `publish-htmlapp` skill refuses to push a real trip to Pages.
+- **Google's terms vs the data cache:** Google allows storing place IDs, and coordinates for 30 days, and expects Places
+  content on a Google map. The pipeline stores fetched details in trip files, and the MapLibre fallback shows them.
+  Get a legal read before the public guide recommends the current flow
+  ([ADR-20260930-google-keys](./standards/decisions/ADR-20260930-google-keys.md)).
 - **CI supply chain:** pin GitHub Actions to commit SHAs.
 - **History:** the pre-push scan blocks any pushed commit that adds a real trip's details. Rewrite such a commit before
   the first push.

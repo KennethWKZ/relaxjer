@@ -53,7 +53,21 @@ test('every relative link in the docs resolves', () => {
 });
 
 // top-level folders whose paths the docs name in backticks; a placeholder (<slug>, NN, *, {a,b}, …) isn't checked
-const REPO_DIRS = ['engine', 'tests', 'pipeline', 'destinations', 'examples', 'memory-bank', 'knowledge', '.claude', '.agents', '.husky', 'scripts'];
+const REPO_DIRS = [
+	'engine',
+	'tests',
+	'pipeline',
+	'destinations',
+	'examples',
+	'memory-bank',
+	'knowledge',
+	'guides',
+	'site',
+	'.claude',
+	'.agents',
+	'.husky',
+	'scripts',
+];
 test('every backticked repo path in the docs exists', () => {
 	const missing = [];
 	for (const f of docs) {

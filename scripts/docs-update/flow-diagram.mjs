@@ -1,0 +1,104 @@
+// Writes site/assets/flow-light.svg and flow-dark.svg: how a trip becomes a page, for the README and the landing page.
+// One layout, two themes (GitHub shows the right one through <picture>). Edit this file, not the SVGs, then run
+//   node scripts/docs-update/flow-diagram.mjs
+// Drawn to the diagram-design rules (4 px grid, orthogonal connectors, one accent) in DESIGN.md's colours.
+import { mkdirSync, writeFileSync } from 'node:fs';
+import path from 'node:path';
+
+const OUT = path.join(import.meta.dirname, '..', '..', 'site', 'assets');
+const THEMES = {
+	light: { paper: '#ffffff', ink: '#15161a', muted: '#464a53', soft: '#545963', rule: '#dfe2e8', accent: '#c42a1f', tint: '#fbeceb', you: '#f3f4f7' },
+	dark: { paper: '#0d1117', ink: '#eef0f4', muted: '#bcc1cb', soft: '#969ca8', rule: '#2a313d', accent: '#ff6a5c', tint: '#2a1614', you: '#151a23' },
+};
+const SANS = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+const MONO = 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+
+// columns 180 wide, 48 apart; rows 80 tall, 96 apart
+const X = [32, 260, 488, 716];
+const Y = [40, 216];
+const W = 180;
+const H = 80;
+const NODES = [
+	{ id: 'req', col: 0, row: 0, tag: 'YOU', name: 'Your requirements', sub: 'requirements.md', mono: true, kind: 'you' },
+	{ id: 'intake', col: 1, row: 0, tag: 'SKILL', name: 'trip-intake', sub: 'words → trip data' },
+	{ id: 'sync', col: 2, row: 0, tag: 'SKILL', name: 'data-sync', sub: 'pnpm resync', mono: true },
+	{ id: 'build', col: 3, row: 0, tag: 'SKILL', name: 'build-page', sub: 'one HTML file', kind: 'focal' },
+	{ id: 'verify', col: 3, row: 1, tag: 'SKILL', name: 'verify-page', sub: 'tests + 390 px pass' },
+	{ id: 'publish', col: 2, row: 1, tag: 'SKILL', name: 'publish-htmlapp', sub: 'behind a password' },
+	{ id: 'phones', col: 1, row: 1, tag: 'GROUP', name: "The group's phones", sub: 'installed, offline', kind: 'you' },
+	{ id: 'retro', col: 0, row: 1, tag: 'SKILL', name: 'trip-retro', sub: 'lessons → knowledge/', mono: true },
+];
+
+function svg(t, theme) {
+	const node = (n) => {
+		const x = X[n.col];
+		const y = Y[n.row];
+		const fill = n.kind === 'focal' ? t.tint : n.kind === 'you' ? t.you : t.paper;
+		const stroke = n.kind === 'focal' ? t.accent : n.kind === 'you' ? t.soft : t.ink;
+		const tagW = Math.ceil((n.tag.length * 6 + 16) / 4) * 4;
+		return `
+  <g>
+    <rect x="${x}" y="${y}" width="${W}" height="${H}" rx="6" fill="${t.paper}"/>
+    <rect x="${x}" y="${y}" width="${W}" height="${H}" rx="6" fill="${fill}" stroke="${stroke}" stroke-width="${n.kind === 'focal' ? 1.2 : 1}"/>
+    <rect x="${x + 8}" y="${y + 8}" width="${tagW}" height="16" rx="2" fill="none" stroke="${stroke}" stroke-opacity="0.45" stroke-width="0.8"/>
+    <text x="${x + 8 + tagW / 2}" y="${y + 20}" fill="${stroke}" font-size="8" font-weight="600" letter-spacing="0.08em" text-anchor="middle" font-family="${MONO}">${n.tag}</text>
+    <text x="${x + 16}" y="${y + 48}" fill="${t.ink}" font-size="16" font-weight="600" font-family="${SANS}">${esc(n.name)}</text>
+    <text x="${x + 16}" y="${y + 68}" fill="${t.muted}" font-size="12" font-family="${n.mono ? MONO : SANS}">${esc(n.sub)}</text>
+  </g>`;
+	};
+	const arrow = (d, opts = {}) =>
+		`<path d="${d}" fill="none" stroke="${opts.accent ? t.accent : t.muted}" stroke-width="1.2"${opts.dashed ? ' stroke-dasharray="5,4"' : ''} marker-end="url(#${theme}-arrow${opts.accent ? '-accent' : ''})"/>`;
+	const midRow = (r) => Y[r] + H / 2;
+	const arrows = [
+		arrow(`M ${X[0] + W} ${midRow(0)} H ${X[1]}`),
+		arrow(`M ${X[1] + W} ${midRow(0)} H ${X[2]}`),
+		arrow(`M ${X[2] + W} ${midRow(0)} H ${X[3]}`, { accent: true }),
+		arrow(`M ${X[3] + 88} ${Y[0] + H} V ${Y[1]}`, { accent: true }),
+		arrow(`M ${X[3]} ${midRow(1)} H ${X[2] + W}`),
+		arrow(`M ${X[2]} ${midRow(1)} H ${X[1] + W}`),
+		arrow(`M ${X[1]} ${midRow(1)} H ${X[0] + W}`),
+		arrow(`M ${X[0] + 88} ${Y[1]} V ${Y[0] + H}`, { dashed: true }),
+	].join('\n  ');
+	const label = `
+  <rect x="${X[0] + 96}" y="${Y[0] + H + 36}" width="84" height="16" rx="2" fill="${t.paper}"/>
+  <text x="${X[0] + 100}" y="${Y[0] + H + 48}" fill="${t.soft}" font-size="12" font-family="${SANS}">next trip</text>`;
+	const legendY = 336;
+	const legend = [
+		[32, t.paper, t.ink, 'a skill any AI agent runs'],
+		[272, t.you, t.soft, 'you and your group'],
+		[496, t.tint, t.accent, 'the one page it builds'],
+	]
+		.map(
+			([x, fill, stroke, text]) =>
+				`<rect x="${x}" y="${legendY + 12}" width="16" height="12" rx="2" fill="${fill}" stroke="${stroke}" stroke-width="1"/>
+  <text x="${x + 24}" y="${legendY + 22}" fill="${t.muted}" font-size="12" font-family="${SANS}">${text}</text>`,
+		)
+		.join('\n  ');
+	return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 928 384" width="928" height="384" role="img" aria-labelledby="flow-${theme}-title flow-${theme}-desc">
+  <title id="flow-${theme}-title">How a trip becomes a page</title>
+  <desc id="flow-${theme}-desc">RelaxJer's loop: your requirements go through the trip-intake, data-sync, build-page, verify-page and publish-htmlapp skills to one password-protected page on the group's phones; a trip retro turns lessons into knowledge for the next trip.</desc>
+  <!-- generated by scripts/docs-update/flow-diagram.mjs; edit that, not this -->
+  <defs>
+    <marker id="${theme}-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="${t.muted}"/></marker>
+    <marker id="${theme}-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="${t.accent}"/></marker>
+  </defs>
+  <rect width="100%" height="100%" fill="${t.paper}"/>
+  ${arrows}
+  ${label}
+  ${NODES.map(node).join('')}
+  <line x1="32" y1="${legendY}" x2="896" y2="${legendY}" stroke="${t.rule}" stroke-width="0.8"/>
+  <text x="896" y="${legendY + 22}" fill="${t.soft}" font-size="12" text-anchor="end" font-family="${SANS}">dashed: into the next trip</text>
+  ${legend}
+</svg>
+`;
+}
+
+function esc(s) {
+	return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+mkdirSync(OUT, { recursive: true });
+for (const [theme, t] of Object.entries(THEMES)) {
+	writeFileSync(path.join(OUT, `flow-${theme}.svg`), svg(t, theme));
+	console.log(`wrote site/assets/flow-${theme}.svg`);
+}

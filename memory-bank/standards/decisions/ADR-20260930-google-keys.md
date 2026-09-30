@@ -12,7 +12,9 @@ status: accepted
 
 Every user creates their own Google Cloud project and two keys: a browser key for the page and a server key for the
 pipeline. They're kept outside the repo, and the build embeds the browser key only when asked (`--keys <file>`). Without
-keys the page still works on MapLibre + OpenStreetMap. Decided by Kenneth on 2026-09-30.
+keys the page still works on MapLibre + OpenStreetMap. Decided by Kenneth on 2026-09-30. Amended on 2026-10-01 (Kenneth):
+Google Maps is the **recommended** setup, never a requirement, and [`guides/google-maps.md`](../../../guides/google-maps.md)
+walks a planner through it.
 
 ## Context
 
@@ -37,9 +39,11 @@ ships that data, or tells thousands of people to cache it, is not.
 - **Committed examples carry no Google-derived fields** (`gpid`, ratings, reviews, Google photos). A contract test
   enforces it.
 - **Without keys the page still works:** MapLibre + OpenStreetMap map, the offline transit planner, hand-entered or
-  open-data places. Google is an upgrade, not a requirement.
+  open-data places. Google is recommended (better hours, place detail and search in Asia), never required.
 - What each user caches for their own trip is their responsibility under their own agreement with Google. The docs state
   the terms, and the pipeline offers a "refresh before the trip" run (`pnpm resync`) rather than long-lived caches.
+- **Setup is a guide, not a skill's memory:** `guides/google-maps.md` holds the steps, the costs, the guardrails and the
+  comparison with the free map. Skills and the landing page link to it.
 
 ## Alternatives
 
@@ -57,6 +61,12 @@ ships that data, or tells thousands of people to cache it, is not.
   machine. gitleaks and `tests/repo/hygiene.test.mjs` block Google key patterns in anything committable.
 - **Cost:** each user pays their own usage: small for a family trip, and within Google's monthly credit for most. The
   docs recommend a budget alert and API quotas.
+
+- **Terms risk, open:** Google's terms allow storing place IDs, and coordinates for 30 days, but not most other Places
+  content, and they expect Places content on a Google map. The pipeline stores fetched details in the trip's files,
+  and a page built without a key (or falling back to MapLibre) shows them on a non-Google map. For a private family
+  page that stays each user's call; for the framework's own guidance it needs a legal read before the repo goes public
+  (story index, "Decisions before the repo goes public").
 
 ## Read when
 

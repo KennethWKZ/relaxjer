@@ -1,6 +1,7 @@
 ---
 paths:
   - 'engine/src/**'
+  - 'site/**'
   - 'DESIGN.md'
   - 'PRODUCT.md'
 ---

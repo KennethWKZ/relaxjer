@@ -42,6 +42,9 @@ relaxjer/
     support/              harness: staged build, static server, fixtures, page probes, contract
   knowledge/              lessons that cross trips and countries (engine, UX, hosting, data hygiene)
   memory-bank/            project context, standards, decisions (ADRs), story index
+  guides/                 how-to for planners (Google Maps setup, …); linked from the README and the landing page
+  site/                   the landing page for GitHub Pages (static HTML; never a trip page)
+  scripts/                repo tooling (the ADR index, the README flow diagram)
   .agents/skills/         skills any agent can load (Claude Code sees them through .claude/skills/)
   .claude/                agents/, rules/, hooks/, settings.json (Claude Code only)
   AGENTS.md, CLAUDE.md    how an agent works here

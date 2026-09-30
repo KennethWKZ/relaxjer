@@ -52,17 +52,14 @@ requirements. No demo content may survive: its hotel, stalls and prices are inve
 - `trips/<slug>/never-publish.txt`: one literal per line, for anything private the release gate can't derive (a
   nickname, a booking code).
 
-## 4. Keys (optional)
+## 4. Google keys (recommended)
 
-The page works without Google (MapLibre + OpenStreetMap). If the planner wants Google, walk them through
-`memory-bank/standards/decisions/ADR-20260930-google-keys.md`:
+Recommend Google Maps, and walk the planner through [`guides/google-maps.md`](../../../guides/google-maps.md) one step at
+a time: the project and billing, three APIs, a restricted browser key and Map ID, a restricted server key, the key
+files in `~/.config/relaxjer/`, then a budget alert and quotas. Show them the guide's comparison table if they're
+unsure; the page works without Google too.
 
-1. Their own Google Cloud project, with a budget alert and API quotas.
-2. A **browser key**: Maps JavaScript API + Places API only, restricted by HTTP referrer to their host and `localhost`.
-   It goes in `~/.config/relaxjer/google.json` (mode 600) with their Map ID.
-3. A **server key**: Places API (New) + Routes API only. It goes in `~/.config/relaxjer/google-places.key` (mode 600).
-
-Ask them to confirm both restrictions in the Cloud console before the first build. **Never ask for a key in the chat,
+Ask them to confirm both keys' restrictions in the Cloud console before the first build. **Never ask for a key in the chat,
 and never write one yourself.** They paste it into the file.
 
 ## 5. Check
