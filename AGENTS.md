@@ -22,6 +22,8 @@ pnpm verify                      # lint + format check + tier 0 (what CI and pre
 pnpm lint / pnpm format          # ESLint --fix / Prettier --write
 pnpm build --trip trips/<slug> --keys ~/.config/relaxjer/google.json   # a real trip; omit --keys for the demo
 pnpm test:release                # the push gate: no real-trip details in engine/
+pnpm resync --trip trips/<slug> [--write]   # refresh a trip's data (Google, weather, links), see pipeline/README.md
+pnpm test:pipeline               # the pipeline's offline tests (needs uv)
 pnpm parity --live /path/to/legacy-trip-repo --trip trips/<slug>        # renders the same as the live page?
 pnpm release                     # bump version + CHANGELOG from the commits (commit-and-tag-version)
 TRIP_DIR=<trip folder> pnpm test                                        # contract on a real trip (local only)

@@ -34,7 +34,8 @@ jobs:
           node-version-file: .node-version
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm verify # lint + format check + fast tests
+      - uses: astral-sh/setup-uv@v6 # the data pipeline's offline tests (pipeline/)
+      - run: pnpm verify # lint + format check + fast tests + pipeline tests
 
   e2e:
     runs-on: ubuntu-latest

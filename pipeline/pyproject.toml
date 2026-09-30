@@ -1,0 +1,12 @@
+[project]
+name = "relaxjer-pipeline"
+version = "0.0.0"
+description = "Refreshes a RelaxJer trip's data from Google (the user's own key), Open-Meteo and OpenStreetMap"
+requires-python = ">=3.12"
+dependencies = [
+	"opencc==1.4.2", # Traditional → Simplified Chinese for names
+	"pillow==12.3.0", # images step
+]
+
+[tool.uv]
+package = false

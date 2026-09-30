@@ -22,3 +22,8 @@ node_modules/
 # OS / editor
 .DS_Store
 .eslintcache
+
+# Python (the data pipeline)
+__pycache__/
+*.pyc
+.venv/

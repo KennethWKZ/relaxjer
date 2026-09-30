@@ -33,6 +33,10 @@ test('real trips, keys, caches and builds are gitignored', () => {
 		'.cache/pages/trip.html',
 		'test-results/x/trace.zip',
 		'playwright-report/index.html',
+		'pipeline/.venv/bin/python',
+		'pipeline/lib/__pycache__/trip.cpython-313.pyc',
+		'trips/hokkaido-2027/.cache/google-cache.json',
+		'trips/hokkaido-2027/pipeline.json',
 	];
 	assert.deepEqual(
 		mustIgnore.filter((p) => !ignored(p)),

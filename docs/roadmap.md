@@ -12,7 +12,7 @@ first trip the same as its live page.
 | 3 ✅ | Pay the hard-coding debt (this also opens the push gate, `tests/release`) (below) into a trip schema + the `tw` destination pack; migrate the demo off `LEGACY_SLOTS` | Every `test.fail()` in `known-debt.spec.mjs` and `costs.spec.mjs` removed. Done 2026-09-30: trip settings in `docs/trip-format.md`; the push gate passes; parity on the real Taipei trip differs only where the two share bugs were fixed |
 | 3b ✅ | Generic day roles (arrival, last day, flight-only day, free-time day from the data, any trip length) and the `tw` destination pack (tax refund, lucky draw, taxi meter, bike share) | A 4-day test trip builds and passes the trip-agnostic e2e; live parity unchanged |
 | 4 | i18n: inline `Z(zh, en)` → locale files; per-trip UI languages (primary, secondary) + the destination's native layer with romanization | A second language pair renders from config alone |
-| 5 | Move the pipeline (`pipeline/`, Python + uv) with Google mocked in tests; decide the Google-terms stance first (below) | Pipeline tests green offline |
+| 5 ✅ | Move the pipeline (`pipeline/`, Python via uv) with Google mocked in tests; decide the Google-terms stance first (ADR 0003: each user's own key) | Pipeline tests green offline. Done 2026-10-01: `pnpm resync --trip trips/<slug>`; on the same inputs byte-identical to the old scripts except 3 fixed bugs (two places a regex skipped, the hotel's Google id overwritten by the inn next door, a drink list that reshuffled with Python's hash seed) |
 | 6 | `.claude/`: skills (trip-intake, destination-pack, data-sync, build-page, verify-page, publish-htmlapp, trip-retro), agents (destination researcher, data curator, UX verifier read-only, release checker), hooks (block secrets/trips, fast tests after engine edits, load knowledge), rules; seed `knowledge/` from the brief's lessons | An agent plans the demo trip end to end from a requirements file |
 | 6b | Landing page on GitHub Pages (`site/`): what it is, how to plan a trip with it, links to the docs; built and checked like any UI change | Live at kennethwkz.github.io/relaxjer |
 | 7 | A second destination (`jp`, Hokkaido or Tokyo) and a second demo trip | Both demos green on the same engine |
@@ -95,8 +95,8 @@ build of the same data: identical data, markup, embedded data and map export; CS
 names; 1,455 of 1,463 screens pixel-identical in iPhone WebKit, Android Chromium and desktop Chromium, both languages,
 before and during the trip (the 8 others are the repeated-share fix); saved state (checklist, language, rate, added
 stops, flight delay) carries over; the Google map loads. Then republished and checked on the live URL in 3 browsers.
-taipei-travel still runs the data scripts until the pipeline moves (step 5); `trips/taipei-2026/sync-from-legacy.mjs`
-copies their output across.
+Since step 5 (2026-10-01) the data refresh runs here too (`pnpm resync --trip trips/taipei-2026`); taipei-travel is
+only a fallback until the trip ends, then archived.
 
 ## Parity with the live Taipei page
 

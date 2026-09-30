@@ -20,7 +20,9 @@
 	"homepage": "https://github.com/KennethWKZ/relaxjer#readme",
 	"scripts": {
 		"build": "node engine/build.mjs",
+		"resync": "uv run --project pipeline pipeline/resync.py",
 		"test": "node --test \"tests/repo/*.test.mjs\" \"tests/contract/*.test.mjs\" \"tests/unit/*.test.mjs\"",
+		"test:pipeline": "uv run --quiet --project pipeline python -m unittest discover -s pipeline/tests -t pipeline",
 		"test:e2e": "playwright test",
 		"test:e2e:short": "node tests/support/short-trip.mjs && TRIP_DIR=.cache/trips/short-trip playwright test --grep-invert @demo",
 		"test:all": "pnpm test && pnpm test:e2e && pnpm test:e2e:short",
@@ -30,7 +32,7 @@
 		"lint:check": "eslint --max-warnings=0 .",
 		"format": "prettier --write .",
 		"format:check": "prettier --check .",
-		"verify": "pnpm lint:check && pnpm format:check && pnpm test",
+		"verify": "pnpm lint:check && pnpm format:check && pnpm test && pnpm test:pipeline",
 		"prepare": "husky",
 		"release": "commit-and-tag-version"
 	},
