@@ -131,6 +131,10 @@ The build prints whether a key went in. Build the demo, and any page you share o
 
 ## Google's terms, in short
 
+> **Not legally reviewed.** RelaxJer's data refresh keeps some Places content in your trip's files longer than Google's
+> terms allow, and nobody has had this flow checked by a lawyer. If you use it, you do so under your own agreement with
+> Google and at your own risk (the [MIT licence](../LICENSE) gives no warranty).
+
 Read [Google's policies for Places content](https://developers.google.com/maps/documentation/places/web-service/policies)
 and the [Maps Platform terms](https://cloud.google.com/maps-platform/terms). Two points matter for a trip page:
 

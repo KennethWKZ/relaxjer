@@ -78,10 +78,12 @@ Traditional → Simplified search. That's step 4.
   their trip (clone, add their own keys, describe the trip to the agent, build, publish behind a password). No trip
   pages go on Pages, not even the demo. Pages sites are public even from a private repo, so real trips keep a
   password-gated host (ht-ml.app today). The `publish-htmlapp` skill refuses to push a real trip to Pages.
-- **Google's terms vs the data cache:** Google allows storing place IDs, and coordinates for 30 days, and expects Places
+- ~~Google's terms vs the data cache~~: Google allows storing place IDs, and coordinates for 30 days, and expects Places
   content on a Google map. The pipeline stores fetched details in trip files, and the MapLibre fallback shows them.
-  Get a legal read before the public guide recommends the current flow
-  ([ADR-20260930-google-keys](./standards/decisions/ADR-20260930-google-keys.md)).
+  **Published without a legal read**, decided 2026-10-01 for a self-learning, non-commercial project: the guide says up
+  front that the flow isn't legally reviewed and that each user runs it under their own Google agreement
+  (`guides/google-maps.md`, [ADR-20260930-google-keys](./standards/decisions/ADR-20260930-google-keys.md)). Get the
+  legal read before anything commercial.
 - ~~CI supply chain~~: **every GitHub Action is pinned to a commit SHA**, the release named in a comment (`ci.yml`, `pages.yml`), done 2026-10-01.
 - **History:** the pre-push scan blocks any pushed commit that adds a real trip's details. Rewrite such a commit before
   the first push.
