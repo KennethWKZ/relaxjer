@@ -443,14 +443,14 @@ Every control is a plain, heavy-lettered rectangle with a 44 px floor (48–52 p
 ### Inputs / Fields
 
 - **Search field:** Mist Grey fill, 12 px radius, 44 px, no border, a leading search icon in Ink 3. Input text is 1.0625rem so iOS never zooms.
-- **Segmented control:** Mist Grey track (3 px padding, 11 px radius), 44 px options. The pressed option fills with ink and paper text, the same as a pressed filter button. Used for the language switch.
+- **Segmented control:** Mist Grey track (3 px padding, 11 px radius), 44 px options. The pressed option fills with ink and paper text, the same as a pressed filter button. Used for the push-back minutes.
 - **Filter buttons:** paper with a hairline border. Pressed inverts to ink. Day filters take the day colour's border and invert to the day's pair when pressed.
 - **Checkboxes:** custom boxes that fill with `good` and draw the tick in 200 ms.
 - **Focus:** the global 3 px Focus Blue ring.
 
 ### Navigation
 
-- **Header:** translucent glass bar with the brush brand (the trip dates hidden below 440 px), an Install button with its word (安装 / Install, until the page is on the home screen), search, theme and a 中 / EN segmented switch whose chosen option fills with ink, a search row, then the tab strip. Below 600 px the theme switch leaves the header for the Sections sheet, where it has a label (主题：浅色 / Theme: Light); only conventional glyphs stay icon-only.
+- **Header:** translucent glass bar with the brush brand (the trip dates hidden below 440 px), an Install button with its word (安装 / Install, until the page is on the home screen), search, theme and one language button that names the other language (EN while reading Chinese, 中 while reading English, on a Mist Grey fill), a search row, then the tab strip. Below 600 px the theme switch leaves the header for the Sections sheet, where it has a label (主题：浅色 / Theme: Light); only conventional glyphs stay icon-only.
 - **Day tabs:** 44 px tall, at least 48 px wide, 10 px radius, Fog Grey. Each shows the date number (1rem at 750) and weekday (0.6875rem) under a short 3 px bar in the day colour. The current tab fills (a day with its lantern pair, a section with ink) and adds a second cue: 800 weight and a 3 px bar in its own ink along the bottom, so it never differs by hue alone. Tabs sit 8 px apart. The strip scrolls sideways with no visible scrollbar, so each edge with more tabs behind it fades out over 32 px.
 - **Now stripe:** a 3 px stripe under the sticky header takes the colour of the day in view (`--now`), fading over 240 ms, and falls back to `rule` between days.
 - **Sections button:** a floating 52 px ink button, bottom right, that opens the sections sheet.
@@ -466,7 +466,7 @@ A Fog Grey 18 px card. It leads with the countdown at display scale and a unit i
 
 ### Motion
 
-Easing is `--ease-out` for anything that moves. Presses take effect at once on touch-down and ease back over 160 ms on release. Tab colours, toasts, the Back pill, the sections button and the day bar take 200 ms. The now stripe takes 240 ms and dialogs 220 ms. The landing flash fades out over 900 ms, and the landing ring (3 px, the day colour mixed 55 % with ink, so a gold day still reaches 3:1) holds for 1.5 s, then fades over 0.8 s. A tab jump lands instantly, and the ring marks the target's heading or lantern so the reader sees where they arrived. Reduced motion drops all transitions to 1 ms, keeps only opacity fades on the toast, results and dialogs, keeps the landing ring as a static outline for the same 2.4 s, removes the full-screen map entrance, and freezes the location pulse.
+Easing is `--ease-out` for anything that moves; the landing ring is the exception, holding and then fading linearly. Presses take effect at once on touch-down and ease back over 160 ms on release. Tab colours, toasts, the Back pill, the sections button and the day bar take 200 ms. The now stripe takes 240 ms and dialogs 220 ms. The landing flash fades out over 900 ms, and the landing ring (3 px, the day colour mixed 55 % with ink, so a gold day still reaches 3:1) holds for 1.5 s, then fades over 0.8 s. A tab jump lands instantly, and the ring marks the target's heading or lantern so the reader sees where they arrived. Reduced motion drops all transitions to 1 ms, keeps only opacity fades on the toast, results and dialogs, keeps the landing ring as a static outline for the same 2.4 s, removes the full-screen map entrance, and freezes the location pulse.
 
 ## Do's and Don'ts
 
@@ -480,7 +480,7 @@ Easing is `--ease-out` for anything that moves. Presses take effect at once on t
 - **Do** keep lantern ink at 4.5:1 or better against the paper it actually sits on, in both themes, including the lit base of a night lantern.
 - **Do** land jumps instantly and ring the target for 1.5 s, and keep the Back pill available to undo the jump.
 - **Do** set type in rem so the phone's text-size setting and `-apple-system-body` scale it.
-- **Do** honour `prefers-reduced-motion`, `prefers-reduced-transparency` (glass becomes solid paper) and `prefers-contrast: more` (glass becomes solid paper with an ink edge, and link buttons and tabs get a 1 px ink edge).
+- **Do** honour `prefers-reduced-motion`, `prefers-reduced-transparency` (glass becomes solid paper) and `prefers-contrast: more` (glass becomes solid paper with a 1 px Ink 3 (`ink-3`) edge, and link buttons and tabs get the same edge).
 
 ### Don't:
 

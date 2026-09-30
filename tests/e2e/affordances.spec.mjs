@@ -59,7 +59,7 @@ test('the day strip fades the edge that has more days [14]', async ({ page }) =>
 	await expect.poll(cue).toEqual({ more: true, l: true, r: false });
 });
 
-test('selected tab and language show more than a colour change [16]', async ({ page }) => {
+test('the selected tab shows more than a colour change, and the language button names the other language [16]', async ({ page }) => {
 	await openTrip(page);
 	const tab = await page
 		.locator('.tab[aria-current="true"]')
@@ -67,17 +67,11 @@ test('selected tab and language show more than a colour change [16]', async ({ p
 		.evaluate((e) => ({ w: +getComputedStyle(e).fontWeight, shadow: getComputedStyle(e).boxShadow }));
 	expect(tab.w).toBeGreaterThanOrEqual(750);
 	expect(tab.shadow).not.toBe('none');
-	const [on, off] = await Promise.all(
-		['true', 'false'].map((p) =>
-			page
-				.locator(`.seg [data-lang][aria-pressed="${p}"]`)
-				.first()
-				.evaluate((e) => getComputedStyle(e).backgroundColor),
-		),
-	);
-	const ink = await page.evaluate(() => getComputedStyle(document.body).color);
-	expect(on, 'the chosen language is filled with ink').toBe(ink);
-	expect(off).not.toBe(on);
+	const btn = page.locator('#langBtn');
+	await expect(btn, 'reading English: the button offers 中').toHaveText('中');
+	await btn.click();
+	await expect(page.locator('html')).toHaveAttribute('lang', 'zh-Hans');
+	await expect(btn).toHaveText('EN');
 });
 
 test('lantern buttons are filled, and tappable chips differ from static tags [6, 8]', async ({ page }) => {

@@ -109,8 +109,10 @@ export async function openAllDetails(page) {
 
 /** Switches the UI language through the page's own control. */
 export async function switchLang(page, lang) {
-	await page.locator(`.seg [data-lang="${lang}"]`).first().click();
-	await expect(page.locator('html')).toHaveAttribute('lang', lang === 'en' ? 'en' : 'zh-Hans');
+	const want = lang === 'en' ? 'en' : 'zh-Hans';
+	// the header's one language button names the other language, so it's only there to click when we need a change
+	if ((await page.locator('html').getAttribute('lang')) !== want) await page.locator(`#langBtn[data-lang="${lang}"]`).click();
+	await expect(page.locator('html')).toHaveAttribute('lang', want);
 	await settle(page);
 }
 

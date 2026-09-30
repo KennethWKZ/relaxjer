@@ -51,7 +51,14 @@ function render() {
 	applyShifts();
 	const now = tpNow();
 	document.documentElement.lang = lang === 'en' ? 'en' : 'zh-Hans';
-	$$('.seg [data-lang]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.lang === lang)));
+	// one button that names the other language: 中 while reading English, EN while reading Chinese
+	const lb = $('#langBtn');
+	const other = lang === 'en' ? 'zh' : 'en';
+	lb.dataset.lang = other;
+	lb.lang = other === 'en' ? 'en' : 'zh-Hans';
+	lb.textContent = other === 'en' ? 'EN' : '中';
+	lb.setAttribute('aria-label', other === 'en' ? 'English · 改用英文' : '中文 · Switch to Chinese');
+	lb.title = lb.getAttribute('aria-label');
 	$('#brand-dates').textContent = Time.rangeLabel(TRIP.start, TRIP.end, lang);
 	$('#q').placeholder = L(TRIP.searchHint);
 	$('#searchBtn').setAttribute('aria-label', Z('搜索', 'Search'));

@@ -2834,14 +2834,12 @@ details.wgroup > summary .chev {
 		font-size: 1.5rem;
 	}
 }
-/* the install button takes a 44px slot until the page is installed: tighten the row so the trip name still fits */
-@media (max-width: 440px) {
-	.bar-row:has(.home-hd:not([hidden])) {
-		gap: 4px;
-	}
-	.bar-row:has(.home-hd:not([hidden])) .brand-name {
-		font-size: 1.375rem;
-	}
+/* the language button names the other language; a soft fill says it's a control, not a label */
+.lang-btn {
+	background: var(--paper-3);
+	color: var(--ink);
+	font-size: var(--fs-sm);
+	font-weight: 750;
 }
 .stop-eat {
 	grid-column: 1 / -1;
