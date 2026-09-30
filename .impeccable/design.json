@@ -1,6 +1,6 @@
 {
 	"schemaVersion": 2,
-	"generatedAt": "2026-09-30T21:57:41.000Z",
+	"generatedAt": "2026-10-01T00:00:00.000Z",
 	"title": "Design System: RelaxJer trip page",
 	"extensions": {
 		"colorMeta": {
@@ -1071,7 +1071,7 @@
 				"name": "ease-out",
 				"value": "cubic-bezier(0.23, 1, 0.32, 1)",
 				"cssVar": "--ease-out",
-				"purpose": "Default easing for everything that moves: presses, fades, slides, the landing glow."
+				"purpose": "Default easing for everything that moves: press release, fades, slides. (The landing ring is keyed linear; see landing-ring.)"
 			},
 			{
 				"name": "ease-in-out",
@@ -1082,7 +1082,7 @@
 			{
 				"name": "duration-press",
 				"value": "160ms",
-				"purpose": "Press feedback: scale 0.94 (icon), 0.96 (tabs, links, pills, segments), 0.97 (go button, route legs); background-colour swaps on buttons."
+				"purpose": "Press feedback: scale 0.94 (icon), 0.96 (tabs, links, pills, segments), 0.97 (go button, route legs); background-colour swaps on buttons. The press-in is instant on touch-down (:is(button, a, summary):active sets transition-duration 0s); only the release eases back over 160ms."
 			},
 			{
 				"name": "duration-state",
@@ -1110,9 +1110,9 @@
 				"purpose": "Highlighter tint (hl at 55%) on the exact element a search or link jump lands on, then fades."
 			},
 			{
-				"name": "landing-glow",
-				"value": "animation: landed 1000ms var(--ease-out) both",
-				"purpose": "After a tab jump (which lands instantly), the target section title or lantern shows a 3 px ring in its day colour at 55% that fades to transparent. Class removed after 1100 ms."
+				"name": "landing-ring",
+				"value": "animation: landed 2300ms linear both; keyframes hold box-shadow 0 0 0 3px var(--land) from 0% to 65%, then fade to transparent; --land: color-mix(in srgb, var(--c, var(--ink)) 55%, var(--ink))",
+				"purpose": "After a tab jump (which lands instantly), the target section title or lantern holds a 3 px ring for about 1.5 s, then fades over about 0.8 s. The day colour is mixed with ink (darker by day, lighter at night) so even a gold lantern reaches 3:1. Class removed after 2400 ms."
 			},
 			{
 				"name": "location-pulse",
@@ -1122,7 +1122,7 @@
 			{
 				"name": "reduced-motion",
 				"value": "@media (prefers-reduced-motion: reduce)",
-				"purpose": "html scroll-behavior auto; all transitions forced to 1ms; toast, results and dialogs keep only a 150ms opacity fade with no transform; landing glow removed; full-screen map entrance removed; location pulse frozen at 0.35 opacity, scale 1.8; scroll-spy jumps use behavior auto instead of smooth."
+				"purpose": "html scroll-behavior auto; all transitions forced to 1ms; toast, results and dialogs keep only a 150ms opacity fade with no transform; landing ring kept as a static 3px outline in --land for the same 2.4 s; full-screen map entrance removed; location pulse frozen at 0.35 opacity, scale 1.8; scroll-spy jumps use behavior auto instead of smooth."
 			},
 			{
 				"name": "site-lantern-settle",
@@ -1149,7 +1149,7 @@
 			{
 				"name": "phone",
 				"value": "max-width: 599px",
-				"purpose": "Compaction: icon-only secondary buttons (labels kept for screen readers), wish 2.125rem, blocks 16px apart, hanging cards 12px padding, sections button a 52px square."
+				"purpose": "Compaction: the map pin and directions links become 44px icon squares (labels kept for screen readers) while the website link keeps its word; the theme switch leaves the header for the Sections sheet with its label (主题：浅色 / Theme: Light); wish 2.125rem, blocks 16px apart, hanging cards 12px padding, sections button a 52px square."
 			},
 			{
 				"name": "tablet",
@@ -1176,9 +1176,10 @@
 			"floatingTargetMin": "52px",
 			"rootFont": "font: -apple-system-body; font-size: max(100%, 1rem)",
 			"reducedTransparency": "glass header and day bar become solid paper",
-			"highContrast": "prefers-contrast: more sets --rule #8a8f99 and --ink-3 #464a53 on :root (light only; the dark blocks outrank it)",
+			"highContrast": "prefers-contrast: more sets --rule #8a8f99 and --ink-3 #464a53 on :root (light only; the dark blocks outrank it); the glass header and day bar become solid paper with no backdrop filter and a 1px --ink-3 bottom edge; link buttons (.mlink) and tabs get an inset 1px --ink-3 edge.",
 			"disabledBusy": "button:disabled at 55% opacity and still readable; aria-busy buttons at 80% on paper-3, with a label that says what is happening.",
-			"focusOnLantern": ".lantern :focus-visible draws the 3px ring in --ci."
+			"focusOnLantern": ".lantern :focus-visible draws the 3px ring in --ci.",
+			"iconOnly": "Only conventional glyphs go icon-only (map pin, directions, search, close). Install keeps its word (安装 / Install); the website link keeps its word because its generic glyph does not say \"website\"."
 		},
 		"surfaces": {
 			"site": {
@@ -1262,15 +1263,15 @@
 			"refersTo": "button-go",
 			"description": "The one primary action on a card.",
 			"html": "<button class=\"ds-go\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 6 9 17l-5-5\"/></svg>Open checklist</button>",
-			"css": ".ds-go{display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:0 18px;border:0;border-radius:12px;background:var(--ink,#15161a);color:var(--paper,#fff);font:700 17px/1.2 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;cursor:pointer;transition:transform 160ms var(--ease-out,cubic-bezier(0.23,1,0.32,1))}.ds-go:active{transform:scale(0.97)}.ds-go:focus-visible{outline:3px solid var(--focus,#1f5fd1);outline-offset:2px}"
+			"css": ".ds-go{display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:0 18px;border:0;border-radius:12px;background:var(--ink,#15161a);color:var(--paper,#fff);font:700 17px/1.2 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;cursor:pointer;transition:transform 160ms var(--ease-out,cubic-bezier(0.23,1,0.32,1))}.ds-go:active{transform:scale(0.97);transition-duration:0s}.ds-go:focus-visible{outline:3px solid var(--focus,#1f5fd1);outline-offset:2px}"
 		},
 		{
 			"name": "Link Button",
 			"kind": "button",
 			"refersTo": "button-link",
-			"description": "Map, route and site links under every stop.",
+			"description": "Map, route and site links under every stop. Below 600px the map pin and directions become 44px icon squares; the website link keeps its word.",
 			"html": "<a class=\"ds-mlink\" href=\"#\"><svg viewBox=\"0 0 24 24\" width=\"15\" height=\"15\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z\"/><circle cx=\"12\" cy=\"10\" r=\"2.5\"/></svg>Map</a>",
-			"css": ".ds-mlink{display:inline-flex;align-items:center;gap:5px;min-height:44px;padding:4px 12px;border-radius:9px;background:var(--paper-2,#f3f4f7);color:var(--link,#1d5bc4);text-decoration:none;font:700 15px/1.2 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;transition:transform 160ms var(--ease-out,cubic-bezier(0.23,1,0.32,1)),background-color 160ms ease}.ds-mlink:hover{background:var(--paper-3,#e7e9ee)}.ds-mlink:active{transform:scale(0.96);background:var(--paper-3,#e7e9ee)}.ds-mlink:focus-visible{outline:3px solid var(--focus,#1f5fd1);outline-offset:2px;border-radius:6px}"
+			"css": ".ds-mlink{display:inline-flex;align-items:center;gap:5px;min-height:44px;padding:4px 12px;border-radius:9px;background:var(--paper-2,#f3f4f7);color:var(--link,#1d5bc4);text-decoration:none;font:700 15px/1.2 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;transition:transform 160ms var(--ease-out,cubic-bezier(0.23,1,0.32,1)),background-color 160ms ease}.ds-mlink:hover{background:var(--paper-3,#e7e9ee)}.ds-mlink:active{transform:scale(0.96);background:var(--paper-3,#e7e9ee);transition-duration:0s}.ds-mlink:focus-visible{outline:3px solid var(--focus,#1f5fd1);outline-offset:2px;border-radius:6px}@media (prefers-contrast:more){.ds-mlink{box-shadow:inset 0 0 0 1px var(--ink-3,#464a53)}}"
 		},
 		{
 			"name": "Search Field",
@@ -1286,7 +1287,7 @@
 			"refersTo": "day-tab",
 			"description": "Header strip: one tab per day in its lantern colour; the current tab fills with its pair and adds 800 weight and a 3px ink bar along the bottom.",
 			"html": "<nav class=\"ds-tabs\"><a class=\"ds-tab\" href=\"#\">Overview</a><a class=\"ds-tab ds-day ds-cur\" style=\"--c:#d9352b;--ci:#fff\" href=\"#\"><b>13</b><small>Sat</small></a><a class=\"ds-tab ds-day\" style=\"--c:#2466c8;--ci:#fff\" href=\"#\"><b>14</b><small>Sun</small></a><a class=\"ds-tab ds-day\" style=\"--c:#ec6a1c;--ci:#1c0d02\" href=\"#\"><b>15</b><small>Mon</small></a></nav>",
-			"css": ".ds-tabs{display:flex;gap:8px;padding:4px 0 8px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}.ds-tab{position:relative;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;min-width:48px;height:44px;padding:0 11px;border-radius:10px;background:var(--paper-2,#f3f4f7);color:var(--ink-2,#464a53);text-decoration:none;font-size:15px;font-weight:650;line-height:1.1;transition:background-color 200ms ease,color 200ms ease,transform 160ms var(--ease-out,cubic-bezier(0.23,1,0.32,1))}.ds-tab:hover{background:var(--paper-3,#e7e9ee)}.ds-tab:active{transform:scale(0.96)}.ds-tab:focus-visible{outline:3px solid var(--focus,#1f5fd1);outline-offset:2px}.ds-day{padding-top:3px}.ds-day::before{content:'';position:absolute;top:5px;left:50%;width:18px;height:3px;margin-left:-9px;border-radius:2px;background:var(--c)}.ds-day b{font-size:16px;font-weight:750}.ds-day small{font-size:11px;opacity:.85}.ds-cur{background:var(--c);color:var(--ci);font-weight:800;box-shadow:inset 0 -3px 0 currentColor}.ds-cur:hover{background:var(--c)}.ds-cur::before{background:currentColor;opacity:.5}"
+			"css": ".ds-tabs{display:flex;gap:8px;padding:4px 0 8px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}.ds-tab{position:relative;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;min-width:48px;height:44px;padding:0 11px;border-radius:10px;background:var(--paper-2,#f3f4f7);color:var(--ink-2,#464a53);text-decoration:none;font-size:15px;font-weight:650;line-height:1.1;transition:background-color 200ms ease,color 200ms ease,transform 160ms var(--ease-out,cubic-bezier(0.23,1,0.32,1))}.ds-tab:hover{background:var(--paper-3,#e7e9ee)}.ds-tab:active{transform:scale(0.96);transition-duration:0s}.ds-tab:focus-visible{outline:3px solid var(--focus,#1f5fd1);outline-offset:2px}.ds-day{padding-top:3px}.ds-day::before{content:'';position:absolute;top:5px;left:50%;width:18px;height:3px;margin-left:-9px;border-radius:2px;background:var(--c)}.ds-day b{font-size:16px;font-weight:750}.ds-day small{font-size:11px;opacity:.85}.ds-tab.ds-cur{background:var(--c);color:var(--ci);font-weight:800;box-shadow:inset 0 -3px 0 currentColor}.ds-tab.ds-cur:hover{background:var(--c)}.ds-cur::before{background:currentColor;opacity:.5}@media (prefers-contrast:more){.ds-tab{box-shadow:inset 0 0 0 1px var(--ink-3,#464a53)}}"
 		},
 		{
 			"name": "Chip",
@@ -1332,9 +1333,9 @@
 			"name": "Sticky Bar Now Stripe",
 			"kind": "nav",
 			"refersTo": "section-tab-current",
-			"description": "Glass header whose 3px bottom stripe takes the colour of the day in view (--now), rule between days.",
-			"html": "<header class=\"ds-bar\" style=\"--now:#2466c8\"><span class=\"ds-brand\">示范行</span><span class=\"ds-seg\"><button aria-pressed=\"true\">中</button><button>EN</button></span></header>",
-			"css": ".ds-bar{position:relative;display:flex;align-items:center;gap:8px;min-height:52px;padding:6px 16px;background:rgba(255,255,255,.82);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);box-shadow:0 1px 0 rgba(21,22,26,.08);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}.ds-bar::after{content:'';position:absolute;left:0;right:0;bottom:-3px;height:3px;background:var(--now,#dfe2e8);transition:background-color 240ms ease}.ds-brand{margin-right:auto;font:400 26px/1 'Ma Shan Zheng','STKaiti','KaiTi',serif;letter-spacing:.02em}.ds-seg{display:inline-flex;padding:3px;gap:2px;background:var(--paper-3,#e7e9ee);border-radius:11px}.ds-seg button{min-width:44px;height:44px;padding:0 10px;border:0;border-radius:8px;background:transparent;color:var(--ink-2,#464a53);font:700 15px/1 inherit;font-family:inherit;cursor:pointer;transition:background-color 160ms ease,color 160ms ease}.ds-seg button[aria-pressed='true']{background:var(--ink,#15161a);color:var(--paper,#fff)}.ds-seg button:focus-visible{outline:3px solid var(--focus,#1f5fd1);outline-offset:2px}"
+			"description": "Glass header whose 3px bottom stripe takes the colour of the day in view (--now), rule between days. Brush brand, an Install button with its word (until the page is on the home screen), search, theme (moved to the Sections sheet below 600px) and a 中 / EN segmented switch whose chosen option fills with ink and paper text. Under prefers-contrast: more the glass becomes solid paper with a 1px ink edge.",
+			"html": "<header class=\"ds-bar\" style=\"--now:#2466c8\"><span class=\"ds-brand\">示范行</span><button class=\"ds-hbtn\"><svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 4v11m-4-4 4 4 4-4M5 20h14\"/></svg>Install</button><span class=\"ds-seg\"><button aria-pressed=\"true\">中</button><button>EN</button></span></header>",
+			"css": ".ds-bar{position:relative;display:flex;align-items:center;gap:8px;min-height:52px;padding:6px 16px;background:rgba(255,255,255,.82);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);box-shadow:0 1px 0 rgba(21,22,26,.08);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}.ds-bar::after{content:'';position:absolute;left:0;right:0;bottom:-3px;height:3px;background:var(--now,#dfe2e8);transition:background-color 240ms ease}.ds-brand{margin-right:auto;font:400 26px/1 'Ma Shan Zheng','STKaiti','KaiTi',serif;letter-spacing:.02em}.ds-hbtn{display:inline-flex;align-items:center;gap:4px;height:44px;padding:0 10px 0 8px;border:0;border-radius:10px;background:transparent;color:var(--ink,#15161a);font:750 15px/1 inherit;font-family:inherit;white-space:nowrap;cursor:pointer;transition:transform 160ms var(--ease-out,cubic-bezier(0.23,1,0.32,1))}.ds-hbtn:active{transform:scale(0.94);transition-duration:0s}.ds-hbtn:focus-visible{outline:3px solid var(--focus,#1f5fd1);outline-offset:2px}.ds-seg{display:inline-flex;padding:3px;gap:2px;background:var(--paper-3,#e7e9ee);border-radius:11px}.ds-seg button{min-width:44px;height:44px;padding:0 10px;border:0;border-radius:8px;background:transparent;color:var(--ink-2,#464a53);font:700 15px/1 inherit;font-family:inherit;cursor:pointer;transition:background-color 160ms ease,color 160ms ease,transform 160ms var(--ease-out,cubic-bezier(0.23,1,0.32,1))}.ds-seg button:active{transform:scale(0.96);transition-duration:0s}.ds-seg button[aria-pressed='true']{background:var(--ink,#15161a);color:var(--paper,#fff)}.ds-seg button:focus-visible{outline:3px solid var(--focus,#1f5fd1);outline-offset:2px}@media (prefers-contrast:more){.ds-bar{background:var(--paper,#fff);-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none;border-bottom:1px solid var(--ink-3,#464a53)}}"
 		},
 		{
 			"name": "Step String (landing page)",
@@ -1353,7 +1354,7 @@
 			"Brush lettering for the brand, the day's wish and the seal glyph only; system sans for everything operated.",
 			"A lantern string runs down every schedule; fixed anchors are red diamond knots with a brush-lettered seal.",
 			"Flat paper-grey containers; shadows only on things that float and on lanterns.",
-			"Motion is short, press-scale feedback and state fades; jumps land instantly and glow once."
+			"Motion is short, press-scale feedback and state fades; jumps land instantly and a ring holds on the target."
 		],
 		"rules": [
 			{
@@ -1409,9 +1410,9 @@
 			"**Do** mark every number that is not the plan's own as an estimate: a \"(估)\" / \"≈\" in text, a dashed 22 % tint on charts.",
 			"**Do** show a decision's rule with go / wait / skip marks in `good` / `warn` / `bad` tints, and the fallback beside it.",
 			"**Do** keep lantern ink at 4.5:1 or better against the paper it actually sits on, in both themes, including the lit base of a night lantern.",
-			"**Do** land jumps instantly and glow the target once, and keep the Back pill available to undo the jump.",
+			"**Do** land jumps instantly and ring the target for 1.5 s, and keep the Back pill available to undo the jump.",
 			"**Do** set type in rem so the phone's text-size setting and `-apple-system-body` scale it.",
-			"**Do** honour `prefers-reduced-motion`, `prefers-reduced-transparency` (glass becomes solid paper) and `prefers-contrast: more`."
+			"**Do** honour `prefers-reduced-motion`, `prefers-reduced-transparency` (glass becomes solid paper) and `prefers-contrast: more` (glass becomes solid paper with an ink edge, and link buttons and tabs get a 1 px ink edge)."
 		],
 		"donts": [
 			"**Don't** open with a stock hero photo, use a teal accent, or build a grid of identical icon cards.",

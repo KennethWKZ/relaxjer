@@ -110,7 +110,7 @@ exist for them. This file extends [`frontend.md`](./frontend.md). The rules are 
 From the 2026-10-01 audit of `DESIGN.md` and `engine/src/style.css`. The contrast figures are token arithmetic, not
 measured pixels: confirm each in a browser before fixing it. Each fix is an engine change, so it follows
 [`engine.md`](./engine.md): `pnpm test:all`, parity, and a pass at 390 px and desktop in Chromium and WebKit. The story
-index tracks them as step 6c. The "Fixed" rows landed in `b429157` and the "Strengthened" rows in the commit that follows it, all measured by `tests/e2e/affordances.spec.mjs` (rule 17's instant press-in is checked by eye).
+index tracks them as step 6c. The "Fixed" rows landed in `b429157` and the "Strengthened" rows in `6ff9719`, all measured by `tests/e2e/affordances.spec.mjs` (rule 17's instant press-in is checked by eye).
 
 | Keep, strengthen or fix | What                                                                                                                                                                                                                                                             | Rule   |
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
