@@ -472,6 +472,7 @@ Easing is `--ease-out` for anything that moves. Presses take 160 ms (scale). Tab
 
 ### Do:
 
+- **Do** make every control signal what it does before and after a tap, per `memory-bank/standards/patterns/affordances.md` (targets, states, feedback, scroll and disclosure cues).
 - **Do** give every day-owned element the day's `--c` / `--ci` pair, and nothing else a lantern colour.
 - **Do** keep every tap target at 44 px or more, and the main floating actions at 52 px.
 - **Do** mark every number that is not the plan's own as an estimate: a "(估)" / "≈" in text, a dashed 22 % tint on charts.

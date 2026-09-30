@@ -33,6 +33,9 @@ Claude Code's own verification runs through the `verify-page` skill and the read
 
 ## Rules
 
+Every interactive element also follows [`affordances.md`](./affordances.md): how a control signals what it does, its
+states and its feedback, as 25 testable rules with sources.
+
 - **Phones first.** Design at 390 px, then check desktop. One column (`--col`, 46rem); wide screens get margin, not
   more columns.
 - **The operated layer stays plain.** Times, prices, instructions and buttons use the system sans at the existing type

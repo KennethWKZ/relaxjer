@@ -38,8 +38,18 @@ WebKit for iPhone behaviour.
 
 - **Widths:** 390 × 844 and 1280 × 800.
 - **Themes and languages:** light and dark; both UI languages (English runs longer).
-- **Look for:** anything wider than the screen, squeezed or clipped text, targets under 44 px, colour-only meaning,
-  shifting layout, page or console errors.
+- **Look for:** anything wider than the screen, squeezed or clipped text, colour-only meaning, shifting layout, page
+  or console errors.
+- **Affordances** (`memory-bank/standards/patterns/affordances.md`), measured:
+  - targets at least 44 px, with 8 px between them (rules 1, 3);
+  - every `summary` has a chevron (11);
+  - a sideways scroller shows there is more (14);
+  - selected states use two cues (16);
+  - the focus ring reaches 3:1 on every surface, lanterns included (19);
+  - labels at 4.5:1, icons and borders at 3:1 (24).
+
+  Then the squint test, by eye (25).
+
 - **Compare:** a screenshot next to the same part of the page before the change, and fix alignment, spacing and style
   drift (`DESIGN.md`).
 

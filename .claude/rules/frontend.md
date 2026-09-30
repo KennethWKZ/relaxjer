@@ -18,4 +18,6 @@ shows.
 - 390 px first; 44 px targets; `rem` type; both themes; both UI languages; reduced motion, transparency and contrast.
 - Check it in a real browser at 390 px and desktop, in Chromium and WebKit, and walk the group's journeys
   (`verify-page`; the `ux-verifier` agent).
+- Controls follow `memory-bank/standards/patterns/affordances.md`: 44 px targets, no ghost buttons, chevrons on
+  disclosures, a cue on sideways scrollers, two cues for a selected state, a focus ring at 3:1 on every surface.
 - Never describe people by family relationship.

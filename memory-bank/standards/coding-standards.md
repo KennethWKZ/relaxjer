@@ -31,13 +31,14 @@ links to it. Content lives in one place (see [`../project/conventions.md`](../pr
 
 ## Patterns
 
-| When you're…                                            | Read                                               |
-| ------------------------------------------------------- | -------------------------------------------------- |
-| changing the engine, a section, a core module or a pack | [`patterns/engine.md`](./patterns/engine.md)       |
-| writing or changing a test                              | [`patterns/testing.md`](./patterns/testing.md)     |
-| writing trip data (a real trip or the demo)             | [`patterns/trip-data.md`](./patterns/trip-data.md) |
-| touching the pipeline or a pipeline step                | [`patterns/pipeline.md`](./patterns/pipeline.md)   |
-| changing anything the page shows                        | [`patterns/frontend.md`](./patterns/frontend.md)   |
+| When you're…                                                 | Read                                                   |
+| ------------------------------------------------------------ | ------------------------------------------------------ |
+| changing the engine, a section, a core module or a pack      | [`patterns/engine.md`](./patterns/engine.md)           |
+| writing or changing a test                                   | [`patterns/testing.md`](./patterns/testing.md)         |
+| writing trip data (a real trip or the demo)                  | [`patterns/trip-data.md`](./patterns/trip-data.md)     |
+| touching the pipeline or a pipeline step                     | [`patterns/pipeline.md`](./patterns/pipeline.md)       |
+| changing anything the page shows                             | [`patterns/frontend.md`](./patterns/frontend.md)       |
+| adding or changing a control (button, link, tab, disclosure) | [`patterns/affordances.md`](./patterns/affordances.md) |
 
 ## Comments
 

@@ -23,7 +23,9 @@ Follow the `verify-page` skill (`.agents/skills/verify-page/SKILL.md`). Read `PR
    - targets under 44 px;
    - contrast in both themes;
    - token drift (a colour, radius or size not in the system);
-   - motion without a reduced-motion path.
+   - motion without a reduced-motion path;
+   - the measured affordance rules in `memory-bank/standards/patterns/affordances.md` (1, 3, 11, 14, 16, 19, 24),
+     reported by rule number.
 5. Walk the journeys at 390 px as a senior would. Pin the trip clock with
    `localStorage <storageKey>now = "YYYY-MM-DD HH:MM"`, and count taps and long scrolls:
    - what's next;
