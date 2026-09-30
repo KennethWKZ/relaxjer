@@ -91,7 +91,7 @@ body {
 	-webkit-font-smoothing: antialiased;
 }
 ::selection {
-	background: color-mix(in srgb, var(--l3) 32%, transparent);
+	background: color-mix(in srgb, var(--link) 24%, transparent);
 }
 a {
 	color: var(--link);
@@ -185,7 +185,7 @@ svg.i {
 }
 .brand {
 	font-family: var(--font-brush);
-	font-size: 1.75rem;
+	font-size: 1.625rem;
 	line-height: 1;
 	color: var(--ink);
 	text-decoration: none;

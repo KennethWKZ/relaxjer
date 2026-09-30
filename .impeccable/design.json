@@ -1,6 +1,6 @@
 {
 	"schemaVersion": 2,
-	"generatedAt": "2026-09-30T20:53:11.123Z",
+	"generatedAt": "2026-09-30T21:57:41.000Z",
 	"title": "Design System: RelaxJer trip page",
 	"extensions": {
 		"colorMeta": {
@@ -1046,11 +1046,6 @@
 				"purpose": "Dialogs over the scrim."
 			},
 			{
-				"name": "segment-pressed",
-				"value": "0 1px 3px rgba(0, 0, 0, 0.12)",
-				"purpose": "Selected option in the segmented control."
-			},
-			{
 				"name": "knot-now",
 				"value": "0 0 0 5px color-mix(in srgb, var(--c) 28%, transparent)",
 				"purpose": "Halo on the current stop's knot."
@@ -1058,12 +1053,17 @@
 			{
 				"name": "focus-ring",
 				"value": "outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 6px",
-				"purpose": "Global :focus-visible treatment."
+				"purpose": "Global :focus-visible treatment. On a lantern the ring is drawn in the day ink (--ci), since blue vanishes on lantern paper."
 			},
 			{
 				"name": "glass-blur",
 				"value": "backdrop-filter: blur(20px) saturate(180%)",
 				"purpose": "Header glass (day bar: blur(16px) saturate(170%)). Solid paper under prefers-reduced-transparency or without backdrop-filter support."
+			},
+			{
+				"name": "site-phone-frame",
+				"value": "0 24px 60px -24px rgba(12, 14, 20, 0.45); night: 0 0 0 1px rgba(238, 240, 244, 0.12), 0 24px 60px -24px rgba(0, 0, 0, 0.8)",
+				"purpose": "Landing page only: the overlapping hero phone frames. A device shadow, never a component shadow."
 			}
 		],
 		"motion": [
@@ -1123,6 +1123,11 @@
 				"name": "reduced-motion",
 				"value": "@media (prefers-reduced-motion: reduce)",
 				"purpose": "html scroll-behavior auto; all transitions forced to 1ms; toast, results and dialogs keep only a 150ms opacity fade with no transform; landing glow removed; full-screen map entrance removed; location pulse frozen at 0.35 opacity, scale 1.8; scroll-spy jumps use behavior auto instead of smooth."
+			},
+			{
+				"name": "site-lantern-settle",
+				"value": "animation: settle 1100ms var(--ease-out) both; keyframes rotate -2.4deg, 1.1deg, -0.4deg, 0; transform-origin on the knot; +90ms per step",
+				"purpose": "Landing page only: each step lantern settles once on its string the first time it scrolls into view (IntersectionObserver adds .sway). Not run without the script or under reduced motion; the lanterns hang still."
 			}
 		],
 		"breakpoints": [
@@ -1163,14 +1168,91 @@
 				":root[data-theme='dark']",
 				"@media (prefers-color-scheme: dark) :root:not([data-theme='light'])"
 			],
-			"dayColourVars": "--c / --ci per day element, --now on the sticky bar, --lc on metro line badges"
+			"dayColourVars": "--c / --ci per day element, --now on the sticky bar, --lc on metro line badges",
+			"siteTheme": "site/ follows prefers-color-scheme only (no theme button); the same night tokens."
 		},
 		"accessibility": {
 			"tapTargetMin": "44px",
 			"floatingTargetMin": "52px",
 			"rootFont": "font: -apple-system-body; font-size: max(100%, 1rem)",
 			"reducedTransparency": "glass header and day bar become solid paper",
-			"highContrast": "prefers-contrast: more sets --rule #8a8f99 and --ink-3 #464a53 on :root (light only; the dark blocks outrank it)"
+			"highContrast": "prefers-contrast: more sets --rule #8a8f99 and --ink-3 #464a53 on :root (light only; the dark blocks outrank it)",
+			"disabledBusy": "button:disabled at 55% opacity and still readable; aria-busy buttons at 80% on paper-3, with a label that says what is happening.",
+			"focusOnLantern": ".lantern :focus-visible draws the 3px ring in --ci."
+		},
+		"surfaces": {
+			"site": {
+				"files": [
+					"site/index.html",
+					"site/assets/site.css",
+					"site/assets/site.js"
+				],
+				"stepColours": {
+					"1": "lantern-1",
+					"2": "lantern-2",
+					"3": "lantern-3",
+					"4": "lantern-4",
+					"unused": [
+						"lantern-5",
+						"lantern-6",
+						"lantern-7"
+					],
+					"vars": "--c / --ci per step (--l1..--l4 / --l1-ink..--l4-ink)"
+				},
+				"stepString": {
+					"stretch": "2px, color-mix(in srgb, var(--c) 55%, transparent), per step",
+					"knot": "14px paper ring, 2.5px solid var(--c)",
+					"cord": "20px x 2px, --c at 55%, knot to lantern"
+				},
+				"lantern": "Engine paper fibre (fractalNoise, soft-light, 22%) and bamboo rings (9px inset, 1.5px --ci at 22%) verbatim; engine day/night shadows and night glow; padding 22px 20px 18px.",
+				"hang": "Paper card under each lantern: 1px rule border, no top border, bottom corners 12px, padding 18px 20px 20px, inset 12px each side.",
+				"brushFont": {
+					"file": "site/assets/fonts/ma-shan-zheng-subset.woff2",
+					"licence": "SIL OFL (site/assets/fonts/OFL.txt)",
+					"scope": "only the glyphs the page letters; re-subset for any new brushed glyph",
+					"display": "hero brand clamp(4rem, 13vw, 7.5rem), line-height 0.95"
+				},
+				"deviceRadii": {
+					"hero": "34px frame / 25px screen, padding 10px",
+					"hero-below-520px": "28px / 21px, padding 8px",
+					"shot": "22px / 17px, padding 6px",
+					"note": "Device radii, not the component scale."
+				},
+				"factRows": "dl grid: key minmax(0, 7.5rem) in ink-3 at 750 (0.9375rem), value at 650, 14px rows split by rule; lead number 1.4375rem 800 tabular; stacks below 420px.",
+				"comparisonTable": "Hairline rows, 2px ink rule under the head, label-size subheads in ink-3; recommended column color-mix(in srgb, var(--l2) 7%, transparent) with an --l2 head rule, always beside the word \"recommended\".",
+				"flowAccent": {
+					"light": "#c2530f (lantern-3 deepened; 4.6:1 on white, lantern-3 is 3.2:1)",
+					"dark": "#ec6a1c (lantern-3)",
+					"never": "seal"
+				},
+				"breakpoints": [
+					{
+						"name": "site-wide",
+						"value": "min-width: 900px",
+						"purpose": "Hero two-up; what-you-get three-up."
+					},
+					{
+						"name": "site-flow",
+						"value": "min-width: 960px",
+						"purpose": "Flow diagram shown whole; below it scrolls sideways with a 40px edge fade."
+					},
+					{
+						"name": "site-nav",
+						"value": "max-width: 559px",
+						"purpose": "Secondary nav links hidden."
+					},
+					{
+						"name": "site-phone",
+						"value": "max-width: 520px",
+						"purpose": "Smaller phone frames; tighter table cells."
+					},
+					{
+						"name": "site-facts",
+						"value": "max-width: 420px",
+						"purpose": "Fact keys stack above values."
+					}
+				]
+			}
 		}
 	},
 	"components": [
@@ -1202,9 +1284,9 @@
 			"name": "Day Tabs",
 			"kind": "nav",
 			"refersTo": "day-tab",
-			"description": "Header strip: one tab per day in its lantern colour; the current day fills with its pair.",
+			"description": "Header strip: one tab per day in its lantern colour; the current tab fills with its pair and adds 800 weight and a 3px ink bar along the bottom.",
 			"html": "<nav class=\"ds-tabs\"><a class=\"ds-tab\" href=\"#\">Overview</a><a class=\"ds-tab ds-day ds-cur\" style=\"--c:#d9352b;--ci:#fff\" href=\"#\"><b>13</b><small>Sat</small></a><a class=\"ds-tab ds-day\" style=\"--c:#2466c8;--ci:#fff\" href=\"#\"><b>14</b><small>Sun</small></a><a class=\"ds-tab ds-day\" style=\"--c:#ec6a1c;--ci:#1c0d02\" href=\"#\"><b>15</b><small>Mon</small></a></nav>",
-			"css": ".ds-tabs{display:flex;gap:6px;padding:4px 0 8px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}.ds-tab{position:relative;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;min-width:48px;height:44px;padding:0 11px;border-radius:10px;background:var(--paper-2,#f3f4f7);color:var(--ink-2,#464a53);text-decoration:none;font-size:15px;font-weight:650;line-height:1.1;transition:background-color 200ms ease,color 200ms ease,transform 160ms var(--ease-out,cubic-bezier(0.23,1,0.32,1))}.ds-tab:hover{background:var(--paper-3,#e7e9ee)}.ds-tab:active{transform:scale(0.96)}.ds-tab:focus-visible{outline:3px solid var(--focus,#1f5fd1);outline-offset:2px}.ds-day{padding-top:3px}.ds-day::before{content:'';position:absolute;top:5px;left:50%;width:18px;height:3px;margin-left:-9px;border-radius:2px;background:var(--c)}.ds-day b{font-size:16px;font-weight:750}.ds-day small{font-size:11px;opacity:.85}.ds-cur{background:var(--c);color:var(--ci)}.ds-cur:hover{background:var(--c)}.ds-cur::before{background:currentColor;opacity:.5}"
+			"css": ".ds-tabs{display:flex;gap:8px;padding:4px 0 8px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}.ds-tab{position:relative;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;min-width:48px;height:44px;padding:0 11px;border-radius:10px;background:var(--paper-2,#f3f4f7);color:var(--ink-2,#464a53);text-decoration:none;font-size:15px;font-weight:650;line-height:1.1;transition:background-color 200ms ease,color 200ms ease,transform 160ms var(--ease-out,cubic-bezier(0.23,1,0.32,1))}.ds-tab:hover{background:var(--paper-3,#e7e9ee)}.ds-tab:active{transform:scale(0.96)}.ds-tab:focus-visible{outline:3px solid var(--focus,#1f5fd1);outline-offset:2px}.ds-day{padding-top:3px}.ds-day::before{content:'';position:absolute;top:5px;left:50%;width:18px;height:3px;margin-left:-9px;border-radius:2px;background:var(--c)}.ds-day b{font-size:16px;font-weight:750}.ds-day small{font-size:11px;opacity:.85}.ds-cur{background:var(--c);color:var(--ci);font-weight:800;box-shadow:inset 0 -3px 0 currentColor}.ds-cur:hover{background:var(--c)}.ds-cur::before{background:currentColor;opacity:.5}"
 		},
 		{
 			"name": "Chip",
@@ -1228,7 +1310,7 @@
 			"refersTo": "lantern",
 			"description": "A day panel: brush wish on lantern paper with fibre texture, bamboo rings and a colour-tinted shadow.",
 			"html": "<article class=\"ds-lantern\" style=\"--c:#d9352b;--ci:#fff\"><div class=\"ds-meta\">Day 1 · Sat</div><div class=\"ds-wish\">平安到</div><div class=\"ds-ltitle\">Arrive → Hotel → Night market</div><button class=\"ds-lbtn\">Copy for the group</button></article>",
-			"css": ".ds-lantern{position:relative;isolation:isolate;overflow:hidden;max-width:420px;padding:22px 18px 18px;border-radius:18px;background:var(--c);color:var(--ci);box-shadow:0 10px 24px -14px color-mix(in srgb,var(--c) 80%,#000);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}.ds-lantern::after{content:'';position:absolute;left:0;right:0;top:9px;bottom:9px;z-index:-1;border-top:1.5px solid color-mix(in srgb,var(--ci) 22%,transparent);border-bottom:1.5px solid color-mix(in srgb,var(--ci) 22%,transparent)}.ds-meta{font-size:15px;font-weight:750;opacity:.92}.ds-wish{margin-top:8px;font-family:'Ma Shan Zheng','STKaiti','KaiTi','Kaiti SC','BiauKai',serif;font-size:42px;line-height:1.12;letter-spacing:.03em}.ds-ltitle{margin-top:12px;font-size:23px;font-weight:800;letter-spacing:-.015em}.ds-lbtn{margin-top:14px;min-height:44px;padding:0 14px;border-radius:11px;border:1.5px solid color-mix(in srgb,var(--ci) 40%,transparent);background:transparent;color:var(--ci);font:700 15px/1 inherit;font-family:inherit;cursor:pointer;transition:transform 160ms var(--ease-out,cubic-bezier(0.23,1,0.32,1)),background-color 160ms ease}.ds-lbtn:active{transform:scale(.96);background:color-mix(in srgb,var(--ci) 14%,transparent)}.ds-lbtn:focus-visible{outline:3px solid var(--focus,#1f5fd1);outline-offset:2px}"
+			"css": ".ds-lantern{position:relative;isolation:isolate;overflow:hidden;max-width:420px;padding:22px 18px 18px;border-radius:18px;background:var(--c);color:var(--ci);box-shadow:0 10px 24px -14px color-mix(in srgb,var(--c) 80%,#000);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}.ds-lantern::after{content:'';position:absolute;left:0;right:0;top:9px;bottom:9px;z-index:-1;border-top:1.5px solid color-mix(in srgb,var(--ci) 22%,transparent);border-bottom:1.5px solid color-mix(in srgb,var(--ci) 22%,transparent)}.ds-meta{font-size:15px;font-weight:750;opacity:.92}.ds-wish{margin-top:8px;font-family:'Ma Shan Zheng','STKaiti','KaiTi','Kaiti SC','BiauKai',serif;font-size:42px;line-height:1.12;letter-spacing:.03em}.ds-ltitle{margin-top:12px;font-size:23px;font-weight:800;letter-spacing:-.015em}.ds-lbtn{margin-top:14px;min-height:44px;padding:0 14px;border-radius:11px;border:1.5px solid color-mix(in srgb,var(--ci) 75%,transparent);background:color-mix(in srgb,var(--ci) 10%,transparent);color:var(--ci);font:700 15px/1 inherit;font-family:inherit;cursor:pointer;transition:transform 160ms var(--ease-out,cubic-bezier(0.23,1,0.32,1)),background-color 160ms ease}.ds-lbtn:active{transform:scale(.96);background:color-mix(in srgb,var(--ci) 22%,transparent)}.ds-lbtn:focus-visible{outline:3px solid var(--ci);outline-offset:2px}"
 		},
 		{
 			"name": "Schedule String",
@@ -1252,12 +1334,20 @@
 			"refersTo": "section-tab-current",
 			"description": "Glass header whose 3px bottom stripe takes the colour of the day in view (--now), rule between days.",
 			"html": "<header class=\"ds-bar\" style=\"--now:#2466c8\"><span class=\"ds-brand\">示范行</span><span class=\"ds-seg\"><button aria-pressed=\"true\">中</button><button>EN</button></span></header>",
-			"css": ".ds-bar{position:relative;display:flex;align-items:center;gap:8px;min-height:52px;padding:6px 16px;background:rgba(255,255,255,.82);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);box-shadow:0 1px 0 rgba(21,22,26,.08);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}.ds-bar::after{content:'';position:absolute;left:0;right:0;bottom:-3px;height:3px;background:var(--now,#dfe2e8);transition:background-color 240ms ease}.ds-brand{margin-right:auto;font:400 26px/1 'Ma Shan Zheng','STKaiti','KaiTi',serif;letter-spacing:.02em}.ds-seg{display:inline-flex;padding:3px;gap:2px;background:var(--paper-3,#e7e9ee);border-radius:11px}.ds-seg button{min-width:44px;height:44px;padding:0 10px;border:0;border-radius:8px;background:transparent;color:var(--ink-2,#464a53);font:700 15px/1 inherit;font-family:inherit;cursor:pointer;transition:background-color 160ms ease,color 160ms ease}.ds-seg button[aria-pressed='true']{background:var(--paper,#fff);color:var(--ink,#15161a);box-shadow:0 1px 3px rgba(0,0,0,.12)}.ds-seg button:focus-visible{outline:3px solid var(--focus,#1f5fd1);outline-offset:2px}"
+			"css": ".ds-bar{position:relative;display:flex;align-items:center;gap:8px;min-height:52px;padding:6px 16px;background:rgba(255,255,255,.82);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);box-shadow:0 1px 0 rgba(21,22,26,.08);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}.ds-bar::after{content:'';position:absolute;left:0;right:0;bottom:-3px;height:3px;background:var(--now,#dfe2e8);transition:background-color 240ms ease}.ds-brand{margin-right:auto;font:400 26px/1 'Ma Shan Zheng','STKaiti','KaiTi',serif;letter-spacing:.02em}.ds-seg{display:inline-flex;padding:3px;gap:2px;background:var(--paper-3,#e7e9ee);border-radius:11px}.ds-seg button{min-width:44px;height:44px;padding:0 10px;border:0;border-radius:8px;background:transparent;color:var(--ink-2,#464a53);font:700 15px/1 inherit;font-family:inherit;cursor:pointer;transition:background-color 160ms ease,color 160ms ease}.ds-seg button[aria-pressed='true']{background:var(--ink,#15161a);color:var(--paper,#fff)}.ds-seg button:focus-visible{outline:3px solid var(--focus,#1f5fd1);outline-offset:2px}"
+		},
+		{
+			"name": "Step String (landing page)",
+			"kind": "custom",
+			"refersTo": "lantern",
+			"description": "site/ only: a planning step as a lantern hung by a cord from a paper-ring knot on a string in the step colour at 55%.",
+			"html": "<ol class=\"ds-string\"><li class=\"ds-step\" style=\"--c:#d9352b;--ci:#fff\"><span class=\"ds-knot\"></span><div class=\"ds-slantern\"><p class=\"ds-swish\">说行程</p><h3 class=\"ds-stitle\">Tell your agent about the trip</h3></div><div class=\"ds-hang\">Describe the trip in your own words.</div></li><li class=\"ds-step\" style=\"--c:#2466c8;--ci:#fff\"><span class=\"ds-knot\"></span><div class=\"ds-slantern\"><p class=\"ds-swish\">连地图</p><h3 class=\"ds-stitle\">Connect Google Maps</h3></div><div class=\"ds-hang\">Your own keys; about 20 minutes.</div></li></ol>",
+			"css": ".ds-string{list-style:none;margin:0;padding:0 0 0 40px;display:grid;max-width:520px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}.ds-step{position:relative;padding-bottom:32px}.ds-step:last-child{padding-bottom:0}.ds-step::before{content:'';position:absolute;left:-30px;top:-2px;bottom:0;width:2px;background:color-mix(in srgb,var(--c) 55%,transparent)}.ds-step:last-child::before{bottom:auto;height:34px}.ds-knot{position:absolute;left:-36px;top:26px;width:14px;height:14px;border-radius:50%;background:var(--paper,#fff);border:2.5px solid var(--c)}.ds-knot::after{content:'';position:absolute;left:11px;top:3.5px;width:20px;height:2px;background:color-mix(in srgb,var(--c) 55%,transparent)}.ds-slantern{position:relative;isolation:isolate;overflow:hidden;border-radius:18px;padding:22px 20px 18px;background:var(--c);color:var(--ci);box-shadow:0 10px 24px -14px color-mix(in srgb,var(--c) 80%,#000)}.ds-slantern::after{content:'';position:absolute;left:0;right:0;top:9px;bottom:9px;z-index:-1;border-top:1.5px solid color-mix(in srgb,var(--ci) 22%,transparent);border-bottom:1.5px solid color-mix(in srgb,var(--ci) 22%,transparent)}.ds-swish{margin:0;font-family:'Ma Shan Zheng','STKaiti','KaiTi','Kaiti SC','BiauKai',serif;font-size:34px;line-height:1.1;letter-spacing:.04em}.ds-stitle{margin:6px 0 0;font-size:20px;font-weight:800;letter-spacing:-.015em}.ds-hang{margin:0 12px;padding:18px 20px 20px;border:1px solid var(--rule,#dfe2e8);border-top:0;border-radius:0 0 12px 12px;background:var(--paper,#fff);color:var(--ink,#15161a);font-size:16px}"
 		}
 	],
 	"narrative": {
 		"northStar": "Sky Lanterns on a Working String",
-		"overview": "**Creative North Star: \"Sky Lanterns on a Working String\"** *(name inferred from the direction contract's thesis)*\n\nEach trip day is one sky-lantern panel. The day's goal is brush-inked on lantern paper in that day's colour, and the working plan (times, transport, budget, rain rule) is printed plainly underneath on white paper, threaded on a lantern string. The world has two layers. The lantern layer (brush lettering, lantern paper, seal stamps, strings) is atmosphere and identity. The operated layer (system sans, large tabular numbers, 44 px+ targets, plain rows) is what the group actually uses on a phone, often with seniors, in bright sunlight or a dark hotel room. The operated layer never borrows the lantern layer's ornament.\n\nThe page is dense but calm: one phone-first column, generous type (a 17 px body that follows the phone's text-size setting), and flat paper-grey containers. By day it is white paper. In dark mode it is a night sky, and each lantern glows from inside with a warm light rising from its base. The first viewport is a translucent sticky header (brush brand, search, theme, language switch) over a scrollable strip of day tabs in the lantern colours, then the Now/Next card with a monumental countdown, then the week as a list of small lanterns, then the days.\n\nIt rejects the travel-app default: stock hero photo, teal accent, identical icon cards.",
+		"overview": "**Creative North Star: \"Sky Lanterns on a Working String\"** _(name inferred from the direction contract's thesis)_\n\nEach trip day is one sky-lantern panel. The day's goal is brush-inked on lantern paper in that day's colour, and the working plan (times, transport, budget, rain rule) is printed plainly underneath on white paper, threaded on a lantern string. The world has two layers. The lantern layer (brush lettering, lantern paper, seal stamps, strings) is atmosphere and identity. The operated layer (system sans, large tabular numbers, 44 px+ targets, plain rows) is what the group actually uses on a phone, often with seniors, in bright sunlight or a dark hotel room. The operated layer never borrows the lantern layer's ornament.\n\nThe page is dense but calm: one phone-first column, generous type (a 17 px body that follows the phone's text-size setting), and flat paper-grey containers. By day it is white paper. In dark mode it is a night sky, and each lantern glows from inside with a warm light rising from its base. The first viewport is a translucent sticky header (brush brand, search, theme, language switch) over a scrollable strip of day tabs in the lantern colours, then the Now/Next card with a monumental countdown, then the week as a list of small lanterns, then the days.\n\nIt rejects the travel-app default: stock hero photo, teal accent, identical icon cards.",
 		"keyCharacteristics": [
 			"One lantern colour per trip day, cycling through seven, carried by the tab, the lantern, the string, the knots, the sticky day bar and the map pins.",
 			"Brush lettering for the brand, the day's wish and the seal glyph only; system sans for everything operated.",
@@ -1305,9 +1395,15 @@
 				"name": "The Float Earns A Shadow Rule",
 				"body": "A shadow means \"this is above the page and will move\". Content rows and containers stay flat.",
 				"section": "elevation"
+			},
+			{
+				"name": "The Step Not A Day Rule",
+				"body": "On the landing page a lantern colour means one planning step. The only borrowings are the recommended column (step 2's blue) and the flow accent (step 3's orange). Nothing else that belongs to no step takes a lantern colour.",
+				"section": "surface-site"
 			}
 		],
 		"dos": [
+			"**Do** make every control signal what it does before and after a tap, per `memory-bank/standards/patterns/affordances.md` (targets, states, feedback, scroll and disclosure cues).",
 			"**Do** give every day-owned element the day's `--c` / `--ci` pair, and nothing else a lantern colour.",
 			"**Do** keep every tap target at 44 px or more, and the main floating actions at 52 px.",
 			"**Do** mark every number that is not the plan's own as an estimate: a \"(估)\" / \"≈\" in text, a dashed 22 % tint on charts.",
@@ -1326,7 +1422,7 @@
 			"**Don't** add glows to anything but the lanterns at night.",
 			"**Don't** add a second content column for reading; wide screens get margin.",
 			"**Don't** describe people on the page by family relationship; use \"the group\" or names.",
-			"*(open question)* **Don't** assume the lantern world is permanent: a future destination pack may be allowed to re-theme the own world (paper colours, brush face, lantern ornament) while the operated layer (type scale, tap targets, fixed-time seals, states) stays unchanged. This is undecided."
+			"_(open question)_ **Don't** assume the lantern world is permanent: a future destination pack may be allowed to re-theme the own world (paper colours, brush face, lantern ornament) while the operated layer (type scale, tap targets, fixed-time seals, states) stays unchanged. This is undecided."
 		]
 	}
 }
