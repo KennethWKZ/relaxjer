@@ -82,7 +82,7 @@ has these as agents in `.claude/agents/`; other agents can take the same brief f
 ```sh
 corepack enable && pnpm install  # once; also wires .husky (pre-commit: trip/key guard, gitleaks, lint-staged, fast tests)
 pnpm test                        # tier 0: hygiene, agent config, memory-bank, trip contract, units (node:test, ~1 s)
-pnpm test:e2e                    # tier 1: Chromium + WebKit × 390 px + desktop, ~1–2 min
+pnpm test:e2e                    # tier 1: Chromium + WebKit × 390 px + desktop, ~2–3 min (3 workers locally)
 pnpm test:all                    # tier 0 + tier 1 + the 4-day short trip: before calling engine or data work done
 pnpm verify                      # lint + format check + tier 0 + pipeline tests (what CI and pre-push run)
 pnpm lint / pnpm format          # ESLint --fix / Prettier --write

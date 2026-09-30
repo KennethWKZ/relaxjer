@@ -9,6 +9,8 @@ export default defineConfig({
 	testDir: 'tests/e2e',
 	globalSetup: './tests/support/global-setup.mjs',
 	fullyParallel: true,
+	// locally three browsers at a time: the default (half the cores) keeps a laptop's fans at full tilt for the whole run
+	workers: process.env.CI ? undefined : 3,
 	forbidOnly: !!process.env.CI,
 	retries: process.env.CI ? 1 : 0,
 	// WebKit renders the 400 KB page slowly with four projects in parallel; 5 s assertions flaked there

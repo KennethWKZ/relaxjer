@@ -43,7 +43,7 @@ Tier 0 (`pnpm test`) runs on every commit, so keep it under a few seconds: no ne
 
 ```sh
 pnpm test                         # tier 0
-pnpm test:e2e                     # tier 1, ~1–2 min
+pnpm test:e2e                     # tier 1, ~2–3 min (3 workers locally; CI uses its default)
 pnpm test:all                     # both + the short trip: before calling engine or data work done
 TRIP_DIR=trips/<slug> pnpm test   # the contract on a real trip
 LEGACY_ENGINE_DIR=/path/to/legacy pnpm test:e2e    # the same specs on the legacy engine
