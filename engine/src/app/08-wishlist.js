@@ -160,11 +160,12 @@ function budgetChip(d) {
 
 function secBudget() {
 	const B = BUDGET;
-	const maxv = 12000;
 	const dayRows = DAYS.map((d) => {
 		const b = d.blocks.find((x) => x.type === 'budget');
 		return b ? { d, b } : null;
 	}).filter(Boolean);
+	const ax = Chart.axis(Math.max(0, ...dayRows.map((r) => r.b.max)));
+	const maxv = ax.top;
 	const bars = dayRows
 		.map(({ d, b }) => {
 			const l = (b.min / maxv) * 100,
@@ -184,13 +185,13 @@ function secBudget() {
       <dl class="kv">${B.rows.map((r) => `<div><dt>${fmt(r[0])}${r[4] === 'airport' && B.airportNote ? `<span class="check-sub"><a href="#airport">${esc(L(B.airportNote))}</a></span>` : ''}</dt><dd>${fmt(r[1])}<small class="dd-each">${Z('每人', 'each')} ${eachText(r[2], r[3])}</small></dd></div>`).join('')}<div class="sum"><dt>${Z('合计', 'Total')}</dt><dd>${fmt(B.total)}<small class="dd-each">${Z('每人', 'each')} ${eachText(B.totalMin, B.totalMax)}</small></dd></div></dl>
       <h3 class="sub">${icon('chart')}${Z(`每天花费（条＝${GROUP[0]}，小字＝每人，${CUR.sym}）`, `Per day (bar = all ${PAX}, small = each, ${CUR.sym})`)}</h3>
       <div class="bars">${bars}</div>
-      <div class="bar-axis"><span></span><div class="bar-axis-t"><span>0</span><span>3,000</span><span>6,000</span><span>9,000</span><span>12,000</span></div></div>
+      ${axisHTML(ax)}
       <p class="note">${esc(L(B.chartNote || ['虚线框 = 估算。', 'Dashed = estimate.']))}</p>
-      <h3 class="sub">${icon('card')}${Z('现金、信用卡和悠游卡', 'Cash, cards and EasyCard')}</h3>
+      <h3 class="sub">${icon('card')}${Pack.transitCard && MONEY.transitCard ? Z(`现金、信用卡和${Pack.transitCard[0]}`, `Cash, cards and ${Pack.transitCard[1]}`) : Z('现金和信用卡', 'Cash and cards')}</h3>
       <div class="tiers">
         <div class="tier"><p class="tier-h">${icon('money')}${Z('共同现金', 'Shared cash')}</p><p class="wear-main" style="margin-top:6px">${esc(MONEY.cash.amt)}</p><p class="xsmall" data-rm="${(numsIn(MONEY.cash.amt) || [0, 0]).join(',')}">${rmText(...(numsIn(MONEY.cash.amt) || [0, 0]))}</p><p class="xsmall">${Z('每人约', 'Each ≈')} <b>${eachText(15000, 20000)}</b></p>${list(MONEY.cash.uses)}</div>
         <div class="tier"><p class="tier-h">${icon('card')}${Z('信用卡', 'Credit card')}</p>${list(MONEY.card)}</div>
-        <div class="tier"><p class="tier-h">${icon('train')}${Z('悠游卡', 'EasyCard')}</p><p style="margin-top:6px">${fmt(MONEY.easycard)}</p><div class="links-row"><a class="mlink" href="#easycard">${icon('arrow')}${Z('买卡与加值', 'Buying & topping up')}</a></div></div>
+        ${Pack.transitCard && MONEY.transitCard ? `<div class="tier"><p class="tier-h">${icon('train')}${esc(L(Pack.transitCard))}</p><p style="margin-top:6px">${fmt(MONEY.transitCard)}</p><div class="links-row"><a class="mlink" href="#transit-card">${icon('arrow')}${Z('买卡与加值', 'Buying & topping up')}</a></div></div>` : ''}
       </div>
     </section>`;
 }
@@ -202,7 +203,7 @@ function secWeather() {
       <p class="sec-lede">${fmt(W.lede)}</p>
       <h3 class="sub">${icon('calendar')}${Z('什么时候看天气', 'When to check')}</h3>
       <dl class="kv">${W.when.map((w) => `<div><dt>${fmt(w.t)}</dt><dd class="wrap">${fmt(w.v)}</dd></div>`).join('')}</dl>
-      <div class="links-row">${ext(SITES.cwa.url, L(SITES.cwa.name), 'ext')}${ext(SITES.cwaEn.url, L(SITES.cwaEn.name), 'ext')}</div>
+      <div class="links-row">${(W.sites || []).map((k) => siteLink(k)).join('')}</div>
       <h3 class="sub">${icon('list')}${Z('每天检查', 'Check each day')}</h3>
       <div class="pills">${W.items.map((x) => `<span class="tag">${fmt(x)}</span>`).join('')}</div>
       <h3 class="sub">${icon('shirt')}${Z('怎么穿', 'Outfits')}</h3>

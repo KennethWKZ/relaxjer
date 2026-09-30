@@ -100,8 +100,8 @@ function buildPins() {
 		const g = GEO.places && GEO.places[pid];
 		if (!g || seen.has(pid)) return;
 		seen.add(pid);
-		const type = pid === 'hotel' ? 'hotel' : SNOW.shops.some((x) => x.place === pid) ? 'shop' : 'place';
-		const days = (dayOfPlace[pid] || []).filter((d) => pid !== 'hotel');
+		const type = pid === HOTEL ? 'hotel' : SNOW.shops.some((x) => x.place === pid) ? 'shop' : 'place';
+		const days = (dayOfPlace[pid] || []).filter((d) => pid !== HOTEL);
 		pins.push({ pid, type, lat: g.lat, lng: g.lng, days, name: L(PLACES[pid].name), q: PLACES[pid].maps });
 	});
 	(EXTRA.food || []).forEach((f, i) => {

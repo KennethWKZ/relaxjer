@@ -3,6 +3,8 @@
 
 export const city = ['台北', 'Taipei'];
 export const metro = ['捷运', 'MRT'];
+/** the stored-value transit card */
+export const transitCard = ['悠游卡', 'EasyCard'];
 /** a metro toilet inside the gates: the station lets you through for free */
 export const metroToiletTip = [
 	'捷运站厕所若在闸门内：向询问处要免费「临时通行票」，15分钟内同站进出，不用刷卡。',

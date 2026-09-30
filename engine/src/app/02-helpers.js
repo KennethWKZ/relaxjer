@@ -18,6 +18,9 @@ const alt = (...xs) => {
 	return v ? ` data-alt="${esc(v)}"` : '';
 };
 const altX = (shown, ...xs) => alt(...xs.filter((x) => x && String(x).trim().toLowerCase() !== String(shown).trim().toLowerCase()));
+// one side of an optional [zh, en] field, with a fallback when the trip leaves it out
+const L0 = (x, fb) => (Array.isArray(x) ? x[0] : fb);
+const L1 = (x, fb) => (Array.isArray(x) ? x[1] : fb);
 const other = (x) => (Array.isArray(x) ? x[lang === 'en' ? 0 : 1] : '');
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 /* the group may split up, so every group figure also shows a rough share each (÷ group size, to the nearest 10) */
@@ -93,6 +96,11 @@ const addrFor = (pid) => {
 	const g = GEO && GEO.places && GEO.places[pid];
 	return { zh: p.addr || (g && g.addr) || '', en: p.addrEn || (g && g.addr_en) || '' };
 };
+// a link to one of the trip's SITES by key, or nothing when the trip has no such site; `label` overrides its name
+const siteLink = (key, ic = 'ext', label) => (SITES[key] ? ext(SITES[key].url, label ? L(label) : L(SITES[key].name), ic) : '');
+// a chart axis under the bars: 0 … top in round steps
+const axisHTML = (ax) =>
+	`<div class="bar-axis"><span></span><div class="bar-axis-t">${ax.marks.map((v) => `<span>${num(v)}</span>`).join('')}</div></div>`;
 const ext = (href, label, ic = 'ext', cls = 'mlink') =>
 	`<a class="${cls}" href="${esc(href)}" target="_blank" rel="noopener">${icon(ic)}${esc(label)}</a>`;
 // same, but icon-only on phones (the label stays for screen readers): for the 地图 / 路线 / 官网 rows repeated on every card

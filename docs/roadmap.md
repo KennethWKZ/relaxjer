@@ -21,14 +21,14 @@ first trip the same as its live page.
 
 Step 3 (2026-09-30) paid: dates, group name, group size, currency, time zone, day routes, forecast spots, tickets,
 map areas, meal slots, shopping notes, the per-person share gaps (all now trip data, `docs/trip-format.md`).
-**Still in the engine** (step 3b done 2026-10-01: generic day roles and the `tw` destination pack):
+**Still in the engine** (updated 2026-10-01):
 
-- ~~day roles `d1`…`d7`~~: read from the data since 2026-10-01 (`Plan.dayRoles`, any trip length; a 4-day trip made
-  from the demo runs the trip-agnostic e2e, `pnpm test:e2e:short`). Place ids `hotel`, `tpe1`, `tpe2` are still fixed
-- ~~Taiwan-only features~~: in the `tw` pack since 2026-10-01 (`destinations/`): tax refund, lucky draw, metro name,
-  taxi meter, YouBike. Still Taiwan-shaped in the engine: the airport section (Taoyuan terminals, Airport MRT) and the
-  lucky-draw wording (the amounts come from the pack)
-- output file names `taipei-trip*.html`; the snowboard-gear section's name; a few Taiwan examples in UI copy
+- ~~day roles `d1`…`d7`~~ (`Plan.dayRoles`), ~~Taiwan-only features~~ (the `tw` pack), ~~place ids `hotel`, `tpe1`,
+  `tpe2`, the Taoyuan airport section, the required Taiwan site ids, the lucky-draw wording~~: all trip or pack data
+  since 2026-10-01 (`docs/trip-format.md`, `destinations/README.md`)
+- one hotel per trip (`TRIP.hotel`): a multi-city trip (Hokkaido) needs a hotel per day
+- UI languages fixed to Chinese + English (`Z(zh, en)`), Chinese group numerals (五人), the Traditional → Simplified
+  search: roadmap step 4
 
 The original list, for the record:
 

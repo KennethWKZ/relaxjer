@@ -881,10 +881,11 @@ const MONEY = {
 		],
 	},
 	card: [['百货和超市可以刷卡', 'Cards work in malls and supermarkets']],
-	easycard: ['每人先储值 **NT$500**，不够再加。', 'Top up **NT$500** each to start; add more when low.'],
+	transitCard: ['每人先储值 **NT$500**，不够再加。', 'Top up **NT$500** each to start; add more when low.'],
 };
 
 const WEATHER = {
+	sites: ['cwa', 'cwaEn'], // SITES keys linked under the forecast
 	lede: ['三月台北早晚凉，白天暖，常有小雨。', 'Taipei in March: cool mornings and evenings, warm days, frequent light rain.'],
 	when: [
 		{ d: '2027-03-06', t: ['出发前一周', 'A week before'], v: ['看长期预报', 'Check the long-range forecast'] },
@@ -1014,6 +1015,17 @@ const PRINCIPLE = {
 };
 
 const AIRPORT = {
+	// the airport's terminals: place ids + codes; the first is where the group lands and leaves
+	terminals: [
+		{ place: 'tpe1', code: 'T1' },
+		{ place: 'tpe2', code: 'T2' },
+	],
+	sites: ['tymetro'], // SITES keys linked under the arrival steps
+	departSites: [{ site: 'uber', label: ['Uber', 'Uber'] }], // … and under the going-home links
+	routeTitle: ['搭机场捷运怎么走', 'Taking the Airport MRT'], // the heading over the route diagram (`route`)
+	routeAlt: ['桃园机场到酒店：捷运路线', 'Airport to hotel by rail'], // the diagram's accessible title
+	transitCardSite: 'easycard', // SITES key for the transit card (its name comes from the region pack)
+	transitCardTicket: 'easycard-buy', // extra.json ticket card: buying one
 	lede: ['落地后大多数人搭机场捷运，行李多就叫车。', 'Most of us take the Airport MRT after landing; lots of bags means a car.'],
 	facts: [
 		{ k: ['机场捷运票价', 'Airport MRT fare'], v: ['T1 → A1 每人 NT$160', 'T1 → A1 NT$160 each'] },
@@ -1055,6 +1067,7 @@ const AIRPORT = {
 		},
 		{
 			id: 'van',
+			ticket: 'airport-transfer-booking', // extra.json ticket card shown with this way
 			icon: 'van',
 			short: ['接送', 'Van'],
 			name: ['预约机场接送', 'Pre-booked airport van'],
@@ -1101,7 +1114,7 @@ const AIRPORT = {
 		['搭直达车（紫色）到 A1', 'Take the express (purple) to A1'],
 		['A1 出站走到台北车站', 'Walk from A1 to Taipei Main'],
 	],
-	easycard: [
+	transitCard: [
 		['机场捷运服务台买', 'Buy at the Airport MRT desk'],
 		['押金已含在卡价', 'The deposit is in the card price'],
 	],
@@ -1121,6 +1134,8 @@ const AIRPORT = {
 };
 
 const ENTRY = {
+	sites: ['twac'], // SITES keys linked at the end of the section
+	sources: ['入出国及移民署、外交部领事局、海关、观光署官网', 'immigration, consular, customs, tourism sites'],
 	rules: [
 		{
 			h: ['免签入境', 'Visa-free entry'],
@@ -1129,6 +1144,7 @@ const ENTRY = {
 		},
 	],
 	lucky: {
+		sites: ['lucky', 'luckyRules'],
 		name: ['旅客抽奖活动（示范）', 'Visitor lucky draw (demo)'],
 		period: ['示范活动期间', 'Demo campaign period'],
 		deadline: ['出发前 **7天** 登记', 'Register **7 days** before arriving'],

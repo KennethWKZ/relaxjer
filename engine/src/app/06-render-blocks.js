@@ -129,7 +129,7 @@ function airportStrip() {
 		}
 	});
 	const H = y + 18;
-	return `<figure class="diagram strip"><svg viewBox="0 0 360 ${H}" role="img" aria-labelledby="ap-title ap-desc"><title id="ap-title">${esc(Z('桃园机场到酒店：捷运路线', 'Airport to hotel by rail'))}</title><desc id="ap-desc">${esc(
+	return `<figure class="diagram strip"><svg viewBox="0 0 360 ${H}" role="img" aria-labelledby="ap-title ap-desc"><title id="ap-title">${esc(L(AIRPORT.routeAlt || ['机场到酒店：搭车路线', 'Airport to hotel by rail']))}</title><desc id="ap-desc">${esc(
 		rows
 			.map((r) => L(r.name || r.seg))
 			.join(' → ')

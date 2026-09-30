@@ -48,6 +48,23 @@ Days can be any number, ids `d1`…`dN` in order. The engine reads each day's ro
 the first day is the arrival; the day the group leaves for the airport is the evening before an after-midnight
 take-off, else the flight's own day; a day after it that holds only the early take-off takes no added stops.
 
+## Places, sites and the airport section
+
+The engine looks up no place or site by a fixed name. The hotel is `PLACES[TRIP.hotel]` (default `'hotel'`); every
+other place or site is named by the data that uses it, and the contract checks that each one exists.
+
+| Field | Example | What it drives |
+|---|---|---|
+| `TRIP.hotel` | `'hotel'` | the hotel's place id: "from the hotel", distances, the map's first centre |
+| `AIRPORT.terminals` | `[{ place: 'tpe1', code: 'T1' }, …]` | the arrival and going-home route links; the first is where the group lands and leaves |
+| `AIRPORT.sites`, `AIRPORT.departSites` | `['tymetro']`, `[{ site: 'uber', label: [zh, en] }]` | site links under the arrival steps and the going-home links |
+| `AIRPORT.route`, `routeTitle`, `routeAlt` | | the rail diagram from the airport, its heading and its accessible title |
+| `AIRPORT.transitCard`, `transitCardSite`, `transitCardTicket` | list, `'easycard'`, `'easycard-buy'` | the transit-card block (its name comes from the region pack, `Pack.transitCard`) |
+| `AIRPORT.methods[].ticket` | `'airport-transfer-booking'` | an `extra.json` ticket card shown with that way to the hotel |
+| `MONEY.transitCard` | `[zh, en]` | the transit card in the budget's cash-and-cards block |
+| `WEATHER.sites`, `ENTRY.sites`, `ENTRY.lucky.sites` | `['cwa', 'cwaEn']` | site links under the forecast, the entry rules and the lucky draw |
+| `ENTRY.sources` | `[zh, en]` | "Sources: …" under the entry rules |
+
 ## The airport evening (`FLIGHTS.ret.plan`)
 
 The leave day's timeline, worked back from take-off (and recomputed when someone types a delay):
@@ -66,5 +83,4 @@ and `AIRPORT.mrtFare`.
 
 ## Still fixed in the engine
 
-The place ids `hotel`, `tpe1` and `tpe2` are fixed, and so is the airport section's Taoyuan layout; `docs/roadmap.md`
-lists what is left.
+`docs/roadmap.md` lists what is left.

@@ -139,7 +139,7 @@ function renderNear() {
 					.join('')}</ul>
         ${hidden ? `<p class="xsmall">${Z(`今天有 ${hidden} 家休息，已经不列出来。`, `${hidden} closed today and left out.`)}</p>` : ''}`;
 	}
-	const starts = [...new Set(['hotel', ...DAYS.flatMap((d) => d.schedule.map((it) => it.place).filter(Boolean))])].filter(
+	const starts = [...new Set([HOTEL, ...DAYS.flatMap((d) => d.schedule.map((it) => it.place).filter(Boolean))])].filter(
 		(pid) => placeLL(pid) && PLACES[pid],
 	);
 	box.innerHTML = `<div class="toc-head"><h2 id="near-h">${meal === 'wc' ? Z('附近厕所', 'Toilets near me') : meal === 'drink' ? Z('附近饮料', 'Drinks near me') : meal === 'rest' ? Z('附近坐下歇脚', 'Sit & rest near me') : Z('附近吃什么', 'Food near me')}</h2><button type="button" class="icon-btn" data-close aria-label="${Z('关闭', 'Close')}">${icon('x')}</button></div>
@@ -159,7 +159,7 @@ function nearFrom(pid, why) {
 function nearFallback(why) {
 	const now = tpNow();
 	const day = DAYS.find((d) => d.date === now.date);
-	let k = 'hotel';
+	let k = HOTEL;
 	if (day && GEO && GEO.places) {
 		// the nearest stop (in plan order) that has a known place
 		const { cur, next } = nowNext(day, now.mins);
@@ -170,7 +170,7 @@ function nearFallback(why) {
 			.sort((a, b) => Math.abs(a.i - i0) - Math.abs(b.i - i0) || a.i - b.i);
 		if (i0 >= 0 && cand.length) k = cand[0].it.place;
 	}
-	nearFrom(k, `${why}${k === 'hotel' ? Z('，先用酒店', '; using the hotel') : Z('，按行程所在地', '; using where the plan has us')}`);
+	nearFrom(k, `${why}${k === HOTEL ? Z('，先用酒店', '; using the hotel') : Z('，按行程所在地', '; using where the plan has us')}`);
 }
 function nearLocate() {
 	near.note = '';
@@ -187,8 +187,8 @@ function nearLocate() {
 		(pos) => {
 			clearTimeout(wait);
 			const here = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-			if (km(here, placeLL('hotel')) > 60) {
-				nearFrom('hotel', Z(`你现在不在${CITY[0]}，先用酒店`, `not in ${CITY[1]} yet; using hotel`));
+			if (km(here, placeLL(HOTEL)) > 60) {
+				nearFrom(HOTEL, Z(`你现在不在${CITY[0]}，先用酒店`, `not in ${CITY[1]} yet; using hotel`));
 				return;
 			}
 			near.from = here;

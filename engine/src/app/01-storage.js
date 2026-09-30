@@ -36,6 +36,8 @@ const BRAND = TRIP.brand;
 const METRO = Pack.metro || ['地铁', 'metro'];
 const BIKES = (Pack.bikeShare && Pack.bikeShare.name) || ['共享单车', 'bike share'];
 const Cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+// the hotel's place id (PLACES), for "from the hotel", distances and the map's centre
+const HOTEL = TRIP.hotel || 'hotel';
 const CITY = TRIP.city || Pack.city || ['目的地', 'the destination'];
 let rate = Number(store.get('rate', CUR.rate)) || CUR.rate;
 

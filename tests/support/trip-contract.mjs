@@ -25,12 +25,9 @@ export const REQUIRED = [
 	'ENTRY',
 	'ENTRY_CHECKS',
 ];
-// the legacy engine looks these up by name (docs/roadmap.md: engine debt)
-export const LEGACY_PLACE_IDS = ['hotel', 'tpe1', 'tpe2'];
 // the trip's own settings the engine reads (it used to hard-code them)
 export const TRIP_FIELDS = ['brand', 'description', 'pax', 'tz', 'currency', 'checked', 'arriveCity', 'searchHint', 'footer'];
 const MODES = new Set(['transit', 'walking', 'driving', 'bicycling']);
-export const LEGACY_SITE_IDS = ['tymetro', 'easycard', 'uber', 'lucky', 'luckyRules', 'twac', 'cwa', 'cwaEn'];
 
 /** Evaluates a trip's data.js the way the build does (no window) and returns its globals. */
 export function loadTrip(dir) {
@@ -134,8 +131,22 @@ export function checkTrip(trip) {
 		}
 	});
 	if (!DAYS.some((d) => d.schedule.some((it) => it.fixed))) bad('no fixed times: flights at least are fixed');
-	for (const p of LEGACY_PLACE_IDS) if (!PLACES[p]) bad(`missing place "${p}" (the legacy engine looks it up by name)`);
-	for (const s of LEGACY_SITE_IDS) if (!SITES[s]) bad(`missing site "${s}" (the legacy engine looks it up by name)`);
+	// places and sites the data points at must exist (the engine looks none up by a fixed name)
+	const hotel = TRIP.hotel || 'hotel';
+	if (!PLACES[hotel]) bad(`missing the hotel's place "${hotel}" (TRIP.hotel, default "hotel")`);
+	const { AIRPORT, ENTRY, WEATHER } = trip;
+	for (const [k, t] of (AIRPORT?.terminals || []).entries())
+		if (!PLACES[t.place] || !t.code) bad(`AIRPORT.terminals[${k}]: needs a known place and a code, got ${JSON.stringify(t)}`);
+	const siteRefs = [
+		...(AIRPORT?.sites || []).map((k) => ['AIRPORT.sites', k]),
+		...(AIRPORT?.departSites || []).map((x) => ['AIRPORT.departSites', typeof x === 'string' ? x : x.site]),
+		...(AIRPORT?.transitCardSite ? [['AIRPORT.transitCardSite', AIRPORT.transitCardSite]] : []),
+		...(WEATHER?.sites || []).map((k) => ['WEATHER.sites', k]),
+		...(ENTRY?.sites || []).map((k) => ['ENTRY.sites', k]),
+		...(ENTRY?.lucky?.sites || []).map((k) => ['ENTRY.lucky.sites', k]),
+		...(ENTRY?.rules || []).filter((r) => r.site).map((r) => ['ENTRY.rules[].site', r.site]),
+	];
+	for (const [where, k] of siteRefs) if (!SITES[k]) bad(`${where}: no site "${k}" in SITES`);
 	for (const [id, p] of Object.entries(PLACES)) if (!Array.isArray(p.name) || !p.maps) bad(`place ${id}: needs name [zh, en] and a maps query`);
 	// other data that points at a day must point at one this trip has
 	const dayIds = new Set(DAYS.map((d) => d.id));

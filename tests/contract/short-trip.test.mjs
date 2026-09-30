@@ -26,7 +26,15 @@ test('day ids must run d1…dN, and one free-time day at most', () => {
 	trip.DAYS[2].id = 'd9';
 	trip.DAYS[1].freeFrom = '14:00';
 	trip.FLIGHTS.ret.plan.steps[0].at = ['soon'];
+	trip.AIRPORT.sites = ['nowhere'];
+	trip.AIRPORT.terminals[1].place = 'atlantis';
 	const problems = checkTrip(trip).join('\n');
-	for (const want of ['day ids must run d1…d7 in order', 'only one day can be the free-time day', 'steps[0].at'])
+	for (const want of [
+		'day ids must run d1…d7 in order',
+		'only one day can be the free-time day',
+		'steps[0].at',
+		'AIRPORT.sites: no site "nowhere"',
+		'AIRPORT.terminals.1.',
+	])
 		assert.match(problems, new RegExp(want.replace(/[…[\]]/g, '.')));
 });

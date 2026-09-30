@@ -1,6 +1,6 @@
 /* ───────── sections ───────── */
 function secOverview() {
-	const hotelAddr = addrFor('hotel');
+	const hotelAddr = addrFor(HOTEL);
 	return `<section class="sec" id="top" data-sec="top">
       <h1 class="sr-only">${esc(L(TRIP.name))}</h1>
       <div class="now-card" id="now" aria-live="polite"></div>
@@ -253,8 +253,8 @@ function leaveStep(T, x) {
 	return `<li><b>${x.by ? `${Z('最晚', 'By')} ` : ''}${at}</b> ${esc(text)}</li>`;
 }
 const toHotelMin = (ll) => {
-	const w = walkMin(ll, placeLL('hotel'));
-	return w <= 15 ? Math.round(w) : Math.round(((km(ll, placeLL('hotel')) * 1.3) / 22) * 60 + 4 + 6);
+	const w = walkMin(ll, placeLL(HOTEL));
+	return w <= 15 ? Math.round(w) : Math.round(((km(ll, placeLL(HOTEL)) * 1.3) / 22) * 60 + 4 + 6);
 }; // walk, or a taxi incl. hailing
 function leaveBudgetHTML() {
 	const T = leaveTimes();
@@ -290,7 +290,7 @@ function leaveBudgetHTML() {
 const ideaRow = (n, meta, lat, lng, gpid, q, addr) =>
 	`<li class="idea"><div class="idea-b"><span class="idea-n">${esc(n)}</span>${meta ? `<span class="idea-m">${meta.html != null ? meta.html : esc(meta)}</span>` : ''}</div>${addBtn(n, lat, lng, gpid, q, addr)}</li>`;
 const awayHotel = (ll) => {
-	const k = km(placeLL('hotel'), ll);
+	const k = km(placeLL(HOTEL), ll);
 	return k < 0.1 ? Z('就在酒店旁', 'next to the hotel') : Z(`离酒店${distLabel(k)}`, `${distLabel(k)} from hotel`);
 };
 // the country's tourist tax refund (Pack.taxRefund): which of our shops have it, and the minimum spend
@@ -488,7 +488,7 @@ function gapContext(dayId, key) {
 		t = r15(t);
 		if (nx != null && t >= nx) t = Math.max((pt.s || 0) + 30, nx - 30);
 	}
-	const ll = llOfStop(it) || d.schedule.slice(0, i).reverse().map(llOfStop).find(Boolean) || placeLL('hotel');
+	const ll = llOfStop(it) || d.schedule.slice(0, i).reverse().map(llOfStop).find(Boolean) || placeLL(HOTEL);
 	return { t: t != null ? hm(t) : null, prev: L(it.what).replace(/\*\*/g, ''), ll };
 }
 let addDay = null;
@@ -595,7 +595,7 @@ async function addFindGoogle(q) {
 		const { places } = await Place.searchByText({
 			textQuery: q,
 			fields: ['id', 'displayName', 'formattedAddress', 'location'],
-			locationBias: { center: meLL && !farAway() ? meLL : placeLL('hotel'), radius: 30000 },
+			locationBias: { center: meLL && !farAway() ? meLL : placeLL(HOTEL), radius: 30000 },
 			maxResultCount: 8,
 			language: lang === 'en' ? 'en' : 'zh-TW',
 			region: 'tw',
@@ -838,7 +838,10 @@ function secMap() {
 
 function secAirport() {
 	const A = AIRPORT;
-	const maxv = 4000;
+	// the airport's terminals (place ids + codes, the first is where we land and leave) and the hotel
+	const TERM = A.terminals || [];
+	const ax = Chart.axis(Math.max(0, ...A.methods.map((m) => m.max)));
+	const maxv = ax.top;
 	const bars = A.methods
 		.map((m) => {
 			const l = (m.min / maxv) * 100,
@@ -852,7 +855,7 @@ function secAirport() {
       <dl class="facts">${A.facts.map((f) => `<div class="fact"><dt>${esc(L(f.k))}</dt><dd>${fmt(f.v)}</dd></div>`).join('')}</dl>
       <h3 class="sub">${icon('money')}${Z(`Day 1 到酒店：${GROUP[0]}总价`, `Day 1 to the hotel: total ${GROUP[1]}`)}</h3>
       <div class="bars" role="img" aria-label="${esc(A.methods.map((m) => `${L(m.name)} ${m.cost}`).join('; '))}">${bars}</div>
-      <div class="bar-axis"><span></span><div class="bar-axis-t"><span>0</span><span>1,000</span><span>2,000</span><span>3,000</span><span>4,000</span></div></div>
+      ${axisHTML(ax)}
       <div class="methods" style="margin-top:16px">${A.methods
 				.map(
 					(m) => `<article class="method ${m.pick ? 'pick' : ''}" id="m-${m.id}">
@@ -860,25 +863,33 @@ function secAirport() {
         <dl class="method-grid"><div class="mg"><dt>${Z('门到门', 'Door to door')}</dt><dd>${fmt(m.time)}</dd></div><div class="mg"><dt>${Z('换乘', 'Changes')}</dt><dd>${fmt(m.xfer)}</dd></div><div class="mg"><dt>${Z('拖行李', 'With bags')}</dt><dd>${fmt(m.bags)}</dd></div></dl>
         ${list(m.list)}
         <p class="note"><strong>${Z('适合', 'Best when')}:</strong> ${fmt(m.when)}</p>
-        ${m.pick ? `<p class="pick-badge">${icon('check')}${Z('建议：大家要搭捷运的话，这样最省力', 'Recommended if we take the train')}</p>` : ''}
-        ${m.id === 'van' ? ticketBlock('airport-transfer-booking') : ''}
+        ${m.pick ? `<p class="pick-badge">${icon('check')}${Z(`建议：大家要搭${METRO[0]}的话，这样最省力`, 'Recommended if we take the train')}</p>` : ''}
+        ${m.ticket ? ticketBlock(m.ticket) : ''}
       </article>`,
 				)
 				.join('')}</div>
-      <h3 class="sub">${icon('route')}${Z('搭机场捷运怎么走', 'Taking the Airport MRT')}</h3>
-      ${airportStrip()}
+      ${
+				A.route
+					? `<h3 class="sub">${icon('route')}${esc(L(A.routeTitle || ['怎么搭车到酒店', 'To the hotel by train']))}</h3>
+      ${airportStrip()}`
+					: ''
+			}
       <ol class="list steps">${A.steps.map((s) => `<li>${fmt(s)}</li>`).join('')}</ol>
-      <div class="links-row">${placeLinks('tpe1', { noDriver: true })}${ext(SITES.tymetro.url, L(SITES.tymetro.name), 'ext')}${ext(gmDir(PLACES.hotel.maps, 'transit', PLACES.tpe1.maps), Z('T1 → 酒店（搭车）', 'T1 → hotel (transit)'), 'route')}${ext(gmDir(PLACES.hotel.maps, 'transit', PLACES.tpe2.maps), Z('T2 → 酒店（搭车）', 'T2 → hotel (transit)'), 'route')}</div>
+      <div class="links-row">${TERM[0] ? placeLinks(TERM[0].place, { noDriver: true }) : ''}${(A.sites || []).map((k) => siteLink(k)).join('')}${TERM.map((t) => ext(gmDir(PLACES[HOTEL].maps, 'transit', PLACES[t.place].maps), Z(`${t.code} → 酒店（搭车）`, `${t.code} → hotel (transit)`), 'route')).join('')}</div>
       <h3 class="sub">${icon('clock')}${Z('当天怎么决定', 'Deciding on the day')}</h3>
       <div class="decide">${A.rule.map(optRow).join('')}</div>
-      <h3 class="sub" id="easycard">${icon('card')}${Z('悠游卡', 'EasyCard')}</h3>
-      ${list(A.easycard)}
-      <div class="links-row">${ext(SITES.easycard.url, L(SITES.easycard.name), 'ext')}</div>
-      ${ticketBlock('easycard-buy')}
+      ${
+				Pack.transitCard && A.transitCard
+					? `<h3 class="sub" id="transit-card">${icon('card')}${esc(L(Pack.transitCard))}</h3>
+      ${list(A.transitCard)}
+      <div class="links-row">${siteLink(A.transitCardSite)}</div>
+      ${A.transitCardTicket ? ticketBlock(A.transitCardTicket) : ''}`
+					: ''
+			}
       <h3 class="sub" id="depart">${icon('plane')}${Z(`回程：${Time.dateLabel(departEve(), 'zh')}晚到机场`, `Going home: to the airport on ${Time.dateLabel(departEve(), 'en')}`)}</h3>
       <p>${fmt(A.depart.lede)}</p>
       ${list(A.depart.list)}
-      <div class="links-row">${ext(gmDir(PLACES.tpe1.maps, 'driving', PLACES.hotel.maps), Z('酒店 → T1（开车）', 'Hotel → T1 (drive)'), 'car')}${ext(gmDir(PLACES.tpe2.maps, 'driving', PLACES.hotel.maps), Z('酒店 → T2（开车）', 'Hotel → T2 (drive)'), 'car')}${ext(gmDir(PLACES.tpe1.maps, 'transit', PLACES.hotel.maps), Z('酒店 → T1（搭车）', 'Hotel → T1 (transit)'), 'train')}${ext(SITES.uber.url, 'Uber', 'ext')}</div>
+      <div class="links-row">${TERM.map((t) => ext(gmDir(PLACES[t.place].maps, 'driving', PLACES[HOTEL].maps), Z(`酒店 → ${t.code}（开车）`, `Hotel → ${t.code} (drive)`), 'car')).join('')}${TERM[0] ? ext(gmDir(PLACES[TERM[0].place].maps, 'transit', PLACES[HOTEL].maps), Z(`酒店 → ${TERM[0].code}（搭车）`, `Hotel → ${TERM[0].code} (transit)`), 'train') : ''}${(A.departSites || []).map((x) => (typeof x === 'string' ? siteLink(x) : siteLink(x.site, 'ext', x.label))).join('')}</div>
       <p class="xsmall" style="margin-top:10px">${fmt(A.sourceNote)}</p>
     </section>`;
 }
@@ -888,7 +899,7 @@ function secEntry() {
 	const lk = Pack.luckyDraw && E.lucky; // the lucky draw only where the country's pack runs one
 	return `<section class="sec" id="entry" data-sec="entry">
       <h2 class="sec-title">${icon('passport')}${lk ? Z('入境与抽奖', 'Entry & lucky draw') : Z('入境', 'Entry')}</h2>
-      <div class="stack" style="margin-top:14px">${E.rules.map((r) => `<div class="tier"><p class="tier-h">${fmt(r.h)}</p><p style="margin-top:6px">${fmt(r.p)}</p>${r.warn ? `<p class="warn">${icon('alert')}${fmt(r.warn)}</p>` : ''}${r.site ? `<div class="links-row">${ext(SITES[r.site].url, L(SITES[r.site].name), 'ext')}</div>` : ''}</div>`).join('')}</div>
+      <div class="stack" style="margin-top:14px">${E.rules.map((r) => `<div class="tier"><p class="tier-h">${fmt(r.h)}</p><p style="margin-top:6px">${fmt(r.p)}</p>${r.warn ? `<p class="warn">${icon('alert')}${fmt(r.warn)}</p>` : ''}${SITES[r.site] ? `<div class="links-row">${siteLink(r.site)}</div>` : ''}</div>`).join('')}</div>
       ${
 				lk
 					? `      <h3 class="sub" id="lucky">${icon('star')}${fmt(lk.name)}</h3>
@@ -903,8 +914,11 @@ function secEntry() {
       <p class="note">${fmt(lk.unsure)}</p>`
 					: ''
 			}
-      <div class="links-row">${lk ? ext(SITES.lucky.url, L(SITES.lucky.name), 'ext') + ext(SITES.luckyRules.url, L(SITES.luckyRules.name), 'ext') : ''}${lk || !E.rules.some((r) => r.site === 'twac') ? ext(SITES.twac.url, L(SITES.twac.name), 'ext') : ''}</div>
-      <p class="xsmall" style="margin-top:10px">${Z(`资料来源：入出国及移民署、外交部领事局、海关、观光署官网（${checkedOn('ymd')}查）。`, `Sources: immigration, consular, customs, tourism sites (checked ${checkedOn('long')}).`)}</p>
+      <div class="links-row">${lk ? (lk.sites || []).map((k) => siteLink(k)).join('') : ''}${(E.sites || [])
+				.filter((k) => lk || !E.rules.some((r) => r.site === k))
+				.map((k) => siteLink(k))
+				.join('')}</div>
+      <p class="xsmall" style="margin-top:10px">${Z(`资料来源：${L0(E.sources, '官方网站')}（${checkedOn('ymd')}查）。`, `Sources: ${L1(E.sources, 'official sites')} (checked ${checkedOn('long')}).`)}</p>
     </section>`;
 }
 // the country's lucky draw (Pack.luckyDraw): how many of us could win, and how much
@@ -917,6 +931,7 @@ const luckySinceLabel = () => {
 };
 function calcLucky() {
 	if (!Pack.luckyDraw) return;
+	const LK = Pack.luckyDraw.words; // the programme's own words for who wins what
 	const S = Pack.luckyShares(PAX, +store.get('repeat', 3));
 	const r = S.repeat,
 		comp = S.companions,
@@ -928,8 +943,8 @@ function calcLucky() {
 	if (!out) return;
 	out.innerHTML =
 		r === 0
-			? `<p class="warn">${icon('alert')}${Z(`没有人符合「重游旅客」，这次${PAX}人都不能参加。`, 'No Repeat Visitor; none of us eligible.')}</p>`
-			: `<dl class="kv"><div><dt>${Z(`重游旅客（各${Pack.sym}${num(Pack.luckyDraw.repeat)}）`, `Repeat Visitors (${Pack.sym}${num(Pack.luckyDraw.repeat)} each)`)}</dt><dd>${r}</dd></div><div><dt>${Z(`同行亲友（各${Pack.sym}${num(Pack.luckyDraw.companion)}）`, `Companions (${Pack.sym}${num(Pack.luckyDraw.companion)} each)`)}</dt><dd>${comp}</dd></div>${left ? `<div><dt>${Z('不能参加', "Can't join")}</dt><dd>${left}</dd></div>` : ''}<div class="sum"><dt>${Z('全部中奖最多', 'If every pair wins')}</dt><dd>${Pack.sym}${num(total)}</dd></div></dl><p class="note"><span data-rm="${total},${total}">${rmText(total, total)}</span> · ${Z('要中奖才有，不保证。', 'Only if drawn; not guaranteed.')}</p>`;
+			? `<p class="warn">${icon('alert')}${esc(L(LK.none).replace('{pax}', PAX))}</p>`
+			: `<dl class="kv"><div><dt>${Z(`${LK.repeat[0]}（各${Pack.sym}${num(Pack.luckyDraw.repeat)}）`, `${LK.repeat[1]} (${Pack.sym}${num(Pack.luckyDraw.repeat)} each)`)}</dt><dd>${r}</dd></div><div><dt>${Z(`${LK.companion[0]}（各${Pack.sym}${num(Pack.luckyDraw.companion)}）`, `${LK.companion[1]} (${Pack.sym}${num(Pack.luckyDraw.companion)} each)`)}</dt><dd>${comp}</dd></div>${left ? `<div><dt>${Z('不能参加', "Can't join")}</dt><dd>${left}</dd></div>` : ''}<div class="sum"><dt>${esc(L(LK.all))}</dt><dd>${Pack.sym}${num(total)}</dd></div></dl><p class="note"><span data-rm="${total},${total}">${rmText(total, total)}</span> · ${Z('要中奖才有，不保证。', 'Only if drawn; not guaranteed.')}</p>`;
 }
 
 function secOptional() {

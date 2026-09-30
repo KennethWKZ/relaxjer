@@ -12,7 +12,18 @@ export const taxRefund = { min: 2000 };
  * The tourism lucky draw for foreign visitors: a Repeat Visitor (entered since `since`) can win `repeat`, and brings
  * one companion who can win `companion`. The trip's ENTRY.lucky text holds the campaign's rules and dates.
  */
-export const luckyDraw = { repeat: 5000, companion: 3000, since: '2023-01-01' };
+export const luckyDraw = {
+	repeat: 5000,
+	companion: 3000,
+	since: '2023-01-01',
+	// the programme's own words; {pax} = the group size
+	words: {
+		repeat: ['重游旅客', 'Repeat Visitors'],
+		companion: ['同行亲友', 'Companions'],
+		none: ['没有人符合「重游旅客」，这次{pax}人都不能参加。', 'No Repeat Visitor; none of us eligible.'],
+		all: ['全部中奖最多', 'If every pair wins'],
+	},
+};
 
 /** how many of the group can win what: r repeat visitors, each bringing one companion from the rest */
 export function luckyShares(pax, repeat) {

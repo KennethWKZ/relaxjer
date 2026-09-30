@@ -241,9 +241,10 @@ console.log(
 			site: p.site,
 		};
 	};
-	(K.transport || ['hotel']).forEach((pid) => {
+	const HOTEL = TRIP.hotel || 'hotel';
+	(K.transport || [HOTEL]).forEach((pid) => {
 		const it = placeItem(pid);
-		if (it) add('hotel', pid, { ...it, kind: pid === 'hotel' ? '酒店 Hotel' : '交通 Transport' });
+		if (it) add('hotel', pid, { ...it, kind: pid === HOTEL ? '酒店 Hotel' : '交通 Transport' });
 	});
 	planDays.forEach((d) => {
 		d.schedule.forEach((s) => {
