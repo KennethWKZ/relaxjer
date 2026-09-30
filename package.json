@@ -23,6 +23,7 @@
 		"resync": "uv run --project pipeline pipeline/resync.py",
 		"test": "node --test \"tests/repo/*.test.mjs\" \"tests/contract/*.test.mjs\" \"tests/unit/*.test.mjs\"",
 		"test:pipeline": "uv run --quiet --project pipeline python -m unittest discover -s pipeline/tests -t pipeline",
+		"setup:e2e": "playwright install chromium webkit",
 		"test:e2e": "playwright test",
 		"test:e2e:short": "node tests/support/short-trip.mjs && TRIP_DIR=.cache/trips/short-trip playwright test --grep-invert @demo",
 		"test:all": "pnpm test && pnpm test:e2e && pnpm test:e2e:short",
@@ -48,6 +49,7 @@
 		"eslint-config-prettier": "^10.1.8",
 		"globals": "^17.12.0",
 		"husky": "^9.1.7",
+		"lavish-axi": "^0.1.79",
 		"lint-staged": "^17.6.0",
 		"prettier": "^3.9.9"
 	}

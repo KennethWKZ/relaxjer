@@ -26,8 +26,21 @@ the trip in your own words, and it takes it from there, stopping to ask before a
 
 ```sh
 git clone https://github.com/KennethWKZ/relaxjer && cd relaxjer
-corepack enable && pnpm install     # Node 24; also wires the git hooks (needs gitleaks: brew install gitleaks)
+corepack enable && pnpm install     # Node 24; also wires the git hooks
 ```
+
+What you need on your computer:
+
+| Tool                | For                                                  | Install                                                                                                                    |
+| ------------------- | ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| **Node 24**         | everything (`corepack` then brings the right pnpm)   | [nodejs.org](https://nodejs.org/), or `nvm install 24`                                                                     |
+| **gitleaks**        | committing: the git hooks refuse a commit without it | macOS `brew install gitleaks`; Linux and Windows: a release from [gitleaks](https://github.com/gitleaks/gitleaks/releases) |
+| **uv**              | the data refresh (`pnpm resync`) and `pnpm verify`   | [docs.astral.sh/uv](https://docs.astral.sh/uv/getting-started/installation/) (it fetches Python itself)                    |
+| Playwright browsers | the page tests (`pnpm test:e2e`)                     | `pnpm setup:e2e` (on Linux: `pnpm exec playwright install --with-deps chromium webkit`)                                    |
+
+Everything else, including the publishing tool (`lavish-axi`), comes with `pnpm install`. Building the demo and
+`pnpm test` need only Node. On a Mac, publishing keeps the update key in the Keychain; elsewhere it reads a file
+(`publish-htmlapp` skill).
 
 1. **Google Maps (recommended):** set up your own keys with [`guides/google-maps.md`](guides/google-maps.md). It takes
    about 20 minutes, and a family trip stays within Google's free monthly allowance. You can skip it: the page falls

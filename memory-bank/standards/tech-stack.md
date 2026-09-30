@@ -41,6 +41,7 @@ incremental change.
 - `AGENTS.md` for every agent; `CLAUDE.md` imports it.
 - Skills in `.agents/skills/` (Codex, Cursor, Gemini CLI), linked into `.claude/skills/` (Claude Code). Third-party
   ones come in through the skills CLI (`npx skills`) and are pinned in `skills-lock.json`.
-- Claude Code plugins declared in `.claude/settings.json`: impeccable, diagram-design.
-- Code intelligence: codebase-memory-mcp (`.cbmignore` keeps trips, builds, fixtures and vendored skills out), and
-  graphmind for the prose in `memory-bank/`.
+- Claude Code plugins declared in `.claude/settings.json`: impeccable, diagram-design. Optional: Claude Code offers them
+  when you trust the folder, and nothing else needs them.
+- Code intelligence, optional (the maintainer's setup; grep works without them): codebase-memory-mcp (`.cbmignore`
+  keeps trips, builds, fixtures and vendored skills out), and graphmind for the prose in `memory-bank/`.

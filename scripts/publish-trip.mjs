@@ -17,6 +17,9 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 export const SECRETS_DIR = path.join(os.homedir(), '.config', 'relaxjer', 'publish');
+// lavish-axi is a devDependency, so a fresh clone has it after `pnpm install`; a global one is the fallback
+const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+const LAVISH = ['lavish-axi', 'lavish-axi.cmd'].map((b) => path.join(ROOT, 'node_modules', '.bin', b)).find((b) => fs.existsSync(b)) || 'lavish-axi';
 const BUILD_RE = /<meta name="relaxjer-build" content="([0-9a-f]+)"/;
 
 /** The build id the engine writes into the first bytes of a page, or null. */
@@ -193,7 +196,7 @@ async function main(argv) {
 	const share = () => {
 		try {
 			return hide(
-				execFileSync('lavish-axi', ['share', file, '--site', sec.site, '--update-key', updateKey], {
+				execFileSync(LAVISH, ['share', file, '--site', sec.site, '--update-key', updateKey], {
 					encoding: 'utf8',
 					stdio: ['ignore', 'pipe', 'pipe'],
 				}),

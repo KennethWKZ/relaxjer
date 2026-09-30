@@ -91,11 +91,11 @@ pnpm build --trip trips/<slug> --keys ~/.config/relaxjer/google.json   # a real 
 pnpm resync --trip trips/<slug> [--write]   # refresh a trip's data (Google, weather, links), see pipeline/README.md
 pnpm test:pipeline               # the pipeline's offline tests (needs uv)
 pnpm test:release                # the push gate: no real trip's details in anything published
-pnpm parity --live /path/to/legacy-trip-repo --trip trips/<slug>        # renders the same as the live page?
+pnpm parity --ref <commit> --trip trips/<slug>      # renders the same as an earlier commit? (--live <repo>: maintainer only)
 pnpm release                     # bump version + CHANGELOG from the commits (commit-and-tag-version)
 TRIP_DIR=<trip folder> pnpm test                                        # contract on a real trip (local only)
 TRIP_DIR=<trip folder> pnpm exec playwright test --grep-invert @demo    # trip-agnostic e2e on it
-LEGACY_ENGINE_DIR=/path/to/legacy-trip-repo pnpm test:e2e              # compare against the old engine
+LEGACY_ENGINE_DIR=/path/to/legacy-trip-repo pnpm test:e2e              # maintainer only: compare against the first trip's old engine
 node tests/support/probe.mjs     # debug: page errors of the last staged page, with engine line numbers
 ```
 
@@ -103,8 +103,8 @@ node tests/support/probe.mjs     # debug: page errors of the last staged page, w
 
 - **Never commit a real trip, key or build.**
   - `trips/*` (except its README), `.share/`, `*.key`, `.env*` and `dist/` are ignored, and the hook blocks them.
-  - Don't `git add -f` around it, don't skip hooks with `--no-verify`, and don't `git add -A` in the legacy repo, which
-    holds live keys.
+  - Don't `git add -f` around it, don't skip hooks with `--no-verify`, and don't `git add -A` in the first trip's legacy repo
+    (maintainer only), which holds live keys.
 - **Nothing published carries a real trip's details** (name, hotel, flight numbers, dates). Not in the engine, docs,
   tests or commit messages: the release gate and the pre-push history scan block them.
 - **Keys live outside the repo, and each user brings their own**

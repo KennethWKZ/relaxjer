@@ -17,8 +17,9 @@ Everything above applies. This part covers only what Claude Code adds on top.
     They add to `.husky/`; they don't replace it.
 - **Plugins:** trusting the folder offers `impeccable` and `diagram-design` (declared in `.claude/settings.json`).
   `dataviz` is built in. Load the matching one before UI work (`memory-bank/standards/patterns/frontend.md`).
-- **Code graph:** codebase-memory-mcp project `Users-kennethwkz-Repositories-relaxjer`. `.cbmignore` keeps trips,
-  builds, data fixtures and vendored skills out of it. The "why" is prose in `memory-bank/`: search it (graphmind, if
-  registered, or grep) before re-deciding layout, tests or tooling.
+- **Code graph (optional):** if you use codebase-memory-mcp, its project name comes from your clone's path (for
+  example `Users-<you>-…-relaxjer`), and `.cbmignore` keeps trips, builds, data fixtures and vendored skills out of it.
+  The "why" is prose in `memory-bank/`: search it (graphmind if you have it, else grep) before re-deciding layout,
+  tests or tooling.
 - `~/.config/relaxjer/` holds the user's keys and publish secrets. Reading it with the Read tool is denied; scripts
   read it themselves.
