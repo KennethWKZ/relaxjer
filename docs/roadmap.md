@@ -79,8 +79,7 @@ The tier-1 tests found three bugs. They were fixed in the first trip's own repo,
 
 4. **Found 2026-10-01: on WebKit, a link that opens at a section (`…#entry`, `#depart` from the checklist) landed
    ~3,800–10,000 px off.** The page scrolled once at load; WebKit's section skipping then moved it. Fixed in RelaxJer
-   (the same `holdLanding()` as a tab jump; `navigation.spec.mjs` "a link that opens at #… lands on it"). The live page
-   still has it until Kenneth OKs a republish.
+   (the same `holdLanding()` as a tab jump; `navigation.spec.mjs` "a link that opens at #… lands on it"). Live since 2026-10-01.
 
 Not fixed:
 - WebKit desktop flakes under full parallel load (1 in ~140 runs, a different test each time: "closed lists are not
@@ -89,13 +88,22 @@ Not fixed:
 - The airport method tiles break "Manageable" mid-word at desktop width. Cosmetic, desktop only.
 - The per-person share gaps above.
 
+## The live Taipei page runs on RelaxJer (2026-10-01)
+
+Kenneth chose to switch the group's page to RelaxJer's build before the trip. Proven first, against taipei-travel's own
+build of the same data: identical data, markup, embedded data and map export; CSS equal but for formatting and two class
+names; 1,455 of 1,463 screens pixel-identical in iPhone WebKit, Android Chromium and desktop Chromium, both languages,
+before and during the trip (the 8 others are the repeated-share fix); saved state (checklist, language, rate, added
+stops, flight delay) carries over; the Google map loads. Then republished and checked on the live URL in 3 browsers.
+taipei-travel still runs the data scripts until the pipeline moves (step 5); `trips/taipei-2026/sync-from-legacy.mjs`
+copies their output across.
+
 ## Parity with the live Taipei page
 
 `pnpm parity --live ~/Repositories/taipei-travel --trip trips/taipei-2026` builds the live repo's own engine and data
 (from a copy, no key) and diffs every section's text, in both languages, against RelaxJer's build of the same trip.
 On 2026-10-01 it shows **one diff, a fix**: the live page repeats a share the text already states ("NT$160 each
-(NT$800 for 5 · ≈NT$160 each)"); RelaxJer shows it once (`Money.statesShare`). The live page keeps the repeat until
-Kenneth OKs a republish.
+(NT$800 for 5 · ≈NT$160 each)"); RelaxJer shows it once (`Money.statesShare`); live since 2026-10-01.
 
 ## Decisions for Kenneth before the repo goes public
 
