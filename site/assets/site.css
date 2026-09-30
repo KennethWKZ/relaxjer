@@ -349,6 +349,16 @@ svg.i {
 		transform: translateX(19%) rotate(2deg);
 	}
 }
+/* beside the text, the fan's width follows its own column: the back phone reaches ~0.97 of a phone's width left of
+   centre, so a phone at 46% of the column keeps the pair clear of the words at every width from 900 px up */
+@media (min-width: 900px) {
+	.hero-phones {
+		container-type: inline-size;
+	}
+	.phone {
+		width: min(300px, 46cqi);
+	}
+}
 @media (prefers-color-scheme: dark) {
 	.phone {
 		background: #000;
