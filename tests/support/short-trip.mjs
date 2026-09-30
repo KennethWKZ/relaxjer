@@ -1,6 +1,6 @@
 // A 4-day test trip, made from the demo trip so it stays synthetic and in step with it: demo days 1, 2, 6 and 7
 // become days 1–4 (arrival, one full day, the free day + airport evening, the after-midnight flight). It proves the
-// engine reads day roles from the trip, not from fixed ids d1…d7. Written to .cache/trips/short-trip/ (never committed).
+// engine reads day roles from the trip, not from fixed ids d1…d7, and runs without a destination pack. Written to .cache/trips/short-trip/ (never committed).
 //   node tests/support/short-trip.mjs            → prints the folder
 import fs from 'node:fs';
 import path from 'node:path';
@@ -23,6 +23,9 @@ const RESHAPE = `
 		d.date = day(i).toISOString().slice(0, 10);
 		d.dow = DOW[day(i).getUTCDay()];
 	});
+	// and no destination pack: the page must leave the tax refund, lucky draw, taxi meter and bike share out cleanly
+	delete TRIP.destination;
+	delete TRIP.region;
 	TRIP.end = DAYS.at(-1).date;
 	FLIGHTS.ret.date = DAYS.at(-1).date;
 	for (const x of TRIP.shopDays || []) for (const k of ['zh', 'en']) x[k] = x[k].replace(/\\{d([3-7])\\}/g, (m, n) => ({ 6: '{d3}' })[n] || '');

@@ -2,12 +2,11 @@
 import { test, expect, openTrip } from '../support/fixtures.mjs';
 
 const TABS = ['map', 'airport', 'entry', 'optional', 'wish', 'eat', 'budget', 'weather', 'checklist', 'rules'];
-// every day gets a section except a day that holds only an after-midnight take-off (it follows the airport evening)
+// every day of the trip gets a section and a tab
 const daySections = (page) =>
 	page.evaluate(() => {
-		/* global DAYS, FLIGHTS */
-		const early = +FLIGHTS.ret.dep.slice(0, 2) < 12;
-		return DAYS.filter((d, i) => !(early && d.date === FLIGHTS.ret.date && i > 0)).map((d) => d.id);
+		/* global DAYS */
+		return DAYS.map((d) => d.id);
 	});
 
 test('renders every section with no outside network', async ({ page, blocked }) => {

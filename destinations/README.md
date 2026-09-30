@@ -1,10 +1,28 @@
 # destinations/
 
-One pack per country, `destinations/<cc>/` (ISO 3166-1 alpha-2, lower case):
+One pack per country, `destinations/<cc>/` (ISO 3166-1 alpha-2, lower case), with city packs under
+`regions/<city>/`. A trip picks them with `TRIP.destination` and `TRIP.region`; the build merges the two (the city
+over the country) into the page's `Pack`. A trip without a destination builds too: the page leaves those features out.
 
-- `config`: time zone, currency, UI and native languages with romanization
-- country adapters: tax refund, entry rules
-- `knowledge.md`: what matters when planning there
-- `regions/<city>/`: city-level adapters (transit network, bike share, taxi fares)
+| File                           | What                                                                                             |
+| ------------------------------ | ------------------------------------------------------------------------------------------------ |
+| `<cc>/pack.mjs`                | the country: name, currency symbol, tourist tax refund, visitor programmes (Taiwan's lucky draw) |
+| `<cc>/regions/<city>/pack.mjs` | the city: its name, what the metro is called, the taxi meter, the bike share's live-count API    |
+| `<cc>/knowledge.md`            | what matters when planning there (roadmap step 6)                                                |
 
-The first pack, `tw`, is carved out of the legacy engine in roadmap step 3.
+Pack files are pure modules, like `engine/src/core/`: no imports, no DOM, no trip globals, named exports only. The build
+inlines them; `tests/unit/packs.test.mjs` checks that and unit-tests every pack.
+
+What the engine reads from `Pack`, each optional:
+
+| Export                                                                | Used for                                                       |
+| --------------------------------------------------------------------- | -------------------------------------------------------------- |
+| `country`, `sym`                                                      | `[zh, en]` name; the currency symbol the pack's amounts are in |
+| `taxRefund: { min }`                                                  | the tax-refund tag on shops and the "NT$2,000+" chip           |
+| `luckyDraw: { repeat, companion, since }`, `luckyShares(pax, repeat)` | the lucky-draw calculator (Entry section)                      |
+| `city`, `metro`                                                       | `[zh, en]`: "not in Taipei yet", "by MRT"                      |
+| `metroToiletTip`                                                      | `[zh, en]` tip under the toilet list                           |
+| `taxiFare(km, minsNow)`                                               | `[low, high]` per car in the "from where you are" plan         |
+| `bikeShare: { name, request(nos), parse(json) }`                      | live bike and dock counts on bike-share pins                   |
+
+The first pack is `tw` with `regions/taipei`.

@@ -188,7 +188,7 @@ function nearLocate() {
 			clearTimeout(wait);
 			const here = { lat: pos.coords.latitude, lng: pos.coords.longitude };
 			if (km(here, placeLL('hotel')) > 60) {
-				nearFrom('hotel', Z('你现在不在台北，先用酒店', 'not in Taipei yet; using hotel'));
+				nearFrom('hotel', Z(`你现在不在${CITY[0]}，先用酒店`, `not in ${CITY[1]} yet; using hotel`));
 				return;
 			}
 			near.from = here;

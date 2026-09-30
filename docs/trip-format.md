@@ -24,6 +24,8 @@ every field in use.
 | `shopDays` | `[{ ok, zh, en }]` | "which days suit shopping" notes; `{d3}` becomes Day 3's date, `{back}` the time to collect bags on the last day |
 | `addStopNote` | `[zh, en]` | the note under "add a stop" |
 | `kml` | `{ optional, transport: [place ids] }` | Google My Maps export: the optional layer's name, the places on the hotel/transport layer |
+| `destination`, `region` | `'tw'`, `'taipei'` | the destination pack (`destinations/tw/pack.mjs` + `regions/taipei/pack.mjs`): tax refund, lucky draw, metro name, taxi meter, bike share. Leave out for none |
+| `city` | `['台北', 'Taipei']` | "not in Taipei yet"; defaults to the region pack's city |
 | `hotelSlots` | `['d1-hotel']` | food slots that mean "near the hotel" (the breakfast `bk-hotel` and supper `sup-hotel` slots always do) |
 
 Group figures are written in the data as `"NT$1,200–1,800 / 五人"` (zh) and `"NT$1,200–1,800 for 5"` (en), with the
@@ -44,7 +46,7 @@ trip's own currency symbol and group size; the page adds the per-person share. `
 
 Days can be any number, ids `d1`…`dN` in order. The engine reads each day's role from the data (`Plan.dayRoles`):
 the first day is the arrival; the day the group leaves for the airport is the evening before an after-midnight
-take-off, else the flight's own day; a day after it that holds only the early take-off gets no tab and no added stops.
+take-off, else the flight's own day; a day after it that holds only the early take-off takes no added stops.
 
 ## The airport evening (`FLIGHTS.ret.plan`)
 
@@ -64,5 +66,5 @@ and `AIRPORT.mrtFare`.
 
 ## Still fixed in the engine
 
-The place ids `hotel`, `tpe1` and `tpe2` are fixed. The Taiwan-only features (the tax refund, the lucky draw, the
-Taipei taxi meter, YouBike) move into the `tw` destination pack; `docs/roadmap.md` lists what is left.
+The place ids `hotel`, `tpe1` and `tpe2` are fixed, and so is the airport section's Taoyuan layout; `docs/roadmap.md`
+lists what is left.

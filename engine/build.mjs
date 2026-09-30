@@ -50,7 +50,14 @@ const appParts = fs
 	.filter((f) => /^\d\d-[\w-]+\.js$/.test(f))
 	.sort()
 	.map((f) => fs.readFileSync(path.join(appDir, f), 'utf8'));
-// the pure modules (engine/src/core/<name>.mjs, no imports) go in right after 00-open, each as a namespace: time.mjs → Time
+// a pure module (no imports) as a namespace inside the page script: its exports become the namespace's members
+const pureModule = (file, label) => {
+	const src = fs.readFileSync(file, 'utf8');
+	if (/^\s*import\s/m.test(src)) throw new Error(`${label}: pure modules can't import (the build inlines them)`);
+	const names = [...src.matchAll(/^export (?:const|let|function) (\w+)/gm)].map((m) => m[1]);
+	return { body: src.replace(/^export /gm, ''), names };
+};
+// engine/src/core/<name>.mjs go in right after 00-open, each as a namespace: time.mjs → Time
 const coreDir = path.join(engine, 'src', 'core');
 const core = (
 	fs.existsSync(coreDir)
@@ -60,13 +67,10 @@ const core = (
 				.sort()
 		: []
 ).map((f) => {
-	const src = fs.readFileSync(path.join(coreDir, f), 'utf8');
-	if (/^\s*import\s/m.test(src)) throw new Error(`engine/src/core/${f}: core modules can't import (the build inlines them)`);
-	const names = [...src.matchAll(/^export (?:const|let|function) (\w+)/gm)].map((m) => m[1]);
+	const { body, names } = pureModule(path.join(coreDir, f), `engine/src/core/${f}`);
 	const ns = f.replace(/\.mjs$/, '').replace(/^./, (c) => c.toUpperCase());
-	return `  const ${ns} = (() => {\n${src.replace(/^export /gm, '')}\n  return { ${names.join(', ')} };\n  })();`;
+	return `  const ${ns} = (() => {\n${body}\n  return { ${names.join(', ')} };\n  })();`;
 });
-const app = [appParts[0], ...core, ...appParts.slice(1)].join('\n');
 const shareUrl = (process.env.SHARE_URL || '').trim();
 // Google Maps browser key + Map ID live outside the repo (--keys); without them the page keeps the free MapLibre map
 const gmaps = (() => {
@@ -100,6 +104,24 @@ vm.createContext(ctx);
 vm.runInContext(data + ';this.DAYS=DAYS;this.PRINCIPLE=PRINCIPLE;this.TRIP=TRIP;', ctx);
 // the trip's name on the page, the home screen and the KML; the shell's {{brand}} / {{dates}} are filled from it
 const { brand, description } = ctx.TRIP;
+// the destination pack (destinations/<cc>/pack.mjs, merged with regions/<region>/pack.mjs) as `Pack`: what the page
+// knows about the country and the city (tax refund, taxi meter, bike share…). No destination: an empty Pack, and the
+// page leaves those features out.
+const destinations = path.join(engine, '..', 'destinations');
+const packParts = [];
+if (ctx.TRIP.destination) {
+	const cc = String(ctx.TRIP.destination);
+	const files = [path.join(destinations, cc, 'pack.mjs')];
+	if (ctx.TRIP.region) files.push(path.join(destinations, cc, 'regions', String(ctx.TRIP.region), 'pack.mjs'));
+	for (const f of files) {
+		if (!/^[a-z]{2}$/.test(cc) || !/^[a-z0-9-]*$/.test(String(ctx.TRIP.region || '')) || !fs.existsSync(f))
+			throw new Error(`TRIP.destination/region: no pack at ${path.relative(path.join(engine, '..'), f)}`);
+		packParts.push(pureModule(f, path.relative(path.join(engine, '..'), f)));
+	}
+}
+// each part in its own scope (the country and the city may both define helpers); later parts override earlier ones
+const pack = `  const Pack = Object.freeze(Object.assign({}, ${packParts.map((p) => `(() => {\n${p.body}\n  return { ${p.names.join(', ')} };\n  })()`).join(', ')}));`;
+const app = [appParts[0], ...core, pack, ...appParts.slice(1)].join('\n');
 const title = `${brand} ${ctx.TRIP.start.slice(0, 4)}`;
 const htmlEsc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 const shell = shellSrc.replace(/\{\{brand\}\}/g, htmlEsc(brand)).replace(/\{\{dates\}\}/g, rangeLabel(ctx.TRIP.start, ctx.TRIP.end, 'zh'));

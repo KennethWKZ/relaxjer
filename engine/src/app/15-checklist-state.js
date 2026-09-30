@@ -12,17 +12,11 @@ function updateProgress() {
 const ybLive = new Map();
 async function ybFetch(nos) {
 	const need = [...new Set(nos)].filter((n) => !ybLive.has(n) || Date.now() - ybLive.get(n).t > 45000).slice(0, 20);
-	if (need.length) {
+	if (need.length && Pack.bikeShare) {
 		try {
-			const r = await fetch('https://apis.youbike.com.tw/tw2/parkingInfo', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ station_no: need }),
-			});
-			const j = await r.json();
-			((j.retVal || {}).data || []).forEach((x) =>
-				ybLive.set(String(x.station_no), { bikes: x.available_spaces, docks: x.empty_spaces, on: x.status === 1, t: Date.now() }),
-			);
+			const q = Pack.bikeShare.request(need); // the city's bike share (Pack.bikeShare): its live-count API
+			const r = await fetch(q.url, q.init);
+			for (const x of Pack.bikeShare.parse(await r.json())) ybLive.set(x.no, { bikes: x.bikes, docks: x.docks, on: x.on, t: Date.now() });
 		} catch {
 			/* offline or blocked: the count just stays unknown */
 		}
@@ -179,7 +173,7 @@ function buildPins() {
 				lat: m.lat,
 				lng: m.lng,
 				days: [],
-				name: lang === 'en' ? `${m.en || m.zh} MRT` : m.zh,
+				name: lang === 'en' ? `${m.en || m.zh} ${Cap(METRO[1])}` : m.zh,
 				q: `捷運${m.zh.replace(/站$/, '')}站`,
 				serves: [],
 				always: false,

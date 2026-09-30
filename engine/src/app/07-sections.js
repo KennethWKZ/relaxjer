@@ -293,12 +293,16 @@ const awayHotel = (ll) => {
 	const k = km(placeLL('hotel'), ll);
 	return k < 0.1 ? Z('就在酒店旁', 'next to the hotel') : Z(`离酒店${distLabel(k)}`, `${distLabel(k)} from hotel`);
 };
+// the country's tourist tax refund (Pack.taxRefund): which of our shops have it, and the minimum spend
+const TRS_MIN = Pack.taxRefund ? `${Pack.sym}${num(Pack.taxRefund.min)}` : '';
 const trsTag = (x) =>
-	x.trs === 'yes'
-		? Z(' · 可退税（同日满NT$2,000）', ' · tax refund (NT$2,000+ same day)')
-		: x.trs === 'some'
-			? Z(' · 部分店家可退税（满NT$2,000）', ' · some shops: tax refund (NT$2,000+)')
-			: '';
+	!Pack.taxRefund
+		? ''
+		: x.trs === 'yes'
+			? Z(` · 可退税（同日满${TRS_MIN}）`, ` · tax refund (${TRS_MIN}+ same day)`)
+			: x.trs === 'some'
+				? Z(` · 部分店家可退税（满${TRS_MIN}）`, ` · some shops: tax refund (${TRS_MIN}+)`)
+				: '';
 // Day 6 shops, opening hours on the day
 const shopRows = () =>
 	SHOPS.map((x) => {
@@ -378,7 +382,7 @@ function freeIdeasHTML() {
 const taxHTML = () =>
 	typeof TAX === 'undefined'
 		? ''
-		: `<details class="more idea-g tax"><summary>${icon('money')}<span>${esc(L(TAX.h))}</span><span class="wg-n">NT$2,000+</span>${icon('chev', 'chev')}</summary><div class="more-body">${list(TAX.list)}<p class="small">${fmt(TAX.shops)}</p><p class="xsmall muted">${fmt(TAX.note)}</p></div></details>`;
+		: `<details class="more idea-g tax"><summary>${icon('money')}<span>${esc(L(TAX.h))}</span>${TRS_MIN ? `<span class="wg-n">${TRS_MIN}+</span>` : ''}${icon('chev', 'chev')}</summary><div class="more-body">${list(TAX.list)}<p class="small">${fmt(TAX.shops)}</p><p class="xsmall muted">${fmt(TAX.note)}</p></div></details>`;
 // which days suit coming back with bags of shopping
 function shopDaysHTML() {
 	const dl = (id) => {
@@ -422,7 +426,7 @@ function mineStopHTML(d, x, prevLL) {
 						})()
 					: ''
 			}
-      ${prevLL ? `<p class="stop-note">${icon(wk > 20 ? 'car' : 'walk')} ${esc(wk > 20 ? Z(`从上一站 ${distLabel(k)}：计程车约${Math.round(((k * 1.3) / 22) * 60 + 4)}分钟，或搭捷运`, `${distLabel(k)} from the stop before: taxi ~${Math.round(((k * 1.3) / 22) * 60 + 4)} min, or the MRT`) : Z(`从上一站 ${distLabel(k)} · 走路约${wk}分钟`, `${distLabel(k)} from the stop before · ~${wk} min walk`))}</p>` : ''}
+      ${prevLL ? `<p class="stop-note">${icon(wk > 20 ? 'car' : 'walk')} ${esc(wk > 20 ? Z(`从上一站 ${distLabel(k)}：计程车约${Math.round(((k * 1.3) / 22) * 60 + 4)}分钟，或搭${METRO[0]}`, `${distLabel(k)} from the stop before: taxi ~${Math.round(((k * 1.3) / 22) * 60 + 4)} min, or the ${METRO[1]}`) : Z(`从上一站 ${distLabel(k)} · 走路约${wk}分钟`, `${distLabel(k)} from the stop before · ~${wk} min walk`))}</p>` : ''}
       <div class="stop-links">${extI(gmSearch(x.q, x.gpid), Z('地图', 'Map'), 'pin')}${extI(gmDir(x.q, 'transit', undefined, x.gpid), Z('路线', 'Directions'), 'route')}<button type="button" class="mlink" data-mine-edit="${esc(x.id)}">${icon('clock')}<span class="dlbl">${Z('改时间', 'Change')}</span></button><button type="button" class="mlink" data-mine-del="${esc(x.id)}" aria-label="${Z('删除', 'Remove')}">${icon('x')}<span class="dlbl">${Z('删除', 'Remove')}</span></button></div>
       ${nearDrinks(d, { place: x.id })}
     </div></li>`;
@@ -589,7 +593,7 @@ async function addFindGoogle(q) {
 		const { places } = await Place.searchByText({
 			textQuery: q,
 			fields: ['id', 'displayName', 'formattedAddress', 'location'],
-			locationBias: { center: meLL && !farAway() ? meLL : { lat: 25.05, lng: 121.53 }, radius: 30000 },
+			locationBias: { center: meLL && !farAway() ? meLL : placeLL('hotel'), radius: 30000 },
 			maxResultCount: 8,
 			language: lang === 'en' ? 'en' : 'zh-TW',
 			region: 'tw',
@@ -879,30 +883,43 @@ function secAirport() {
 
 function secEntry() {
 	const E = ENTRY;
-	const lk = E.lucky;
+	const lk = Pack.luckyDraw && E.lucky; // the lucky draw only where the country's pack runs one
 	return `<section class="sec" id="entry" data-sec="entry">
-      <h2 class="sec-title">${icon('passport')}${Z('入境与抽奖', 'Entry & lucky draw')}</h2>
+      <h2 class="sec-title">${icon('passport')}${lk ? Z('入境与抽奖', 'Entry & lucky draw') : Z('入境', 'Entry')}</h2>
       <div class="stack" style="margin-top:14px">${E.rules.map((r) => `<div class="tier"><p class="tier-h">${fmt(r.h)}</p><p style="margin-top:6px">${fmt(r.p)}</p>${r.warn ? `<p class="warn">${icon('alert')}${fmt(r.warn)}</p>` : ''}${r.site ? `<div class="links-row">${ext(SITES[r.site].url, L(SITES[r.site].name), 'ext')}</div>` : ''}</div>`).join('')}</div>
-      <h3 class="sub" id="lucky">${icon('star')}${fmt(lk.name)}</h3>
+      ${
+				lk
+					? `      <h3 class="sub" id="lucky">${icon('star')}${fmt(lk.name)}</h3>
       <p>${fmt(lk.period)}</p>
       <p class="callout">${icon('alert')}<span>${fmt(lk.deadline)}</span></p>
       <div class="block">${blockH('list', ['谁可以参加', 'Who can join'])}${list(lk.who)}</div>
       <div class="block">${blockH('users', [`我们${PAX}人可以拿多少？`, `How much could the ${PAX} of us get?`])}
-        <div class="calc"><label for="repeat">${Z('2023年1月1日后入境过台湾的人数', 'People who entered Taiwan since 1 Jan 2023')}</label>
+        <div class="calc"><label for="repeat">${luckySinceLabel()}</label>
           <div class="stepper"><button type="button" class="icon-btn" data-step="-1" aria-label="${Z('减少', 'Fewer')}">${icon('minus')}</button><output id="repeat" aria-live="polite">${store.get('repeat', 3)}</output><button type="button" class="icon-btn" data-step="1" aria-label="${Z('增加', 'More')}">${icon('plus')}</button></div>
           <div id="calcout"></div></div></div>
       <div class="block">${blockH('check', ['中奖后怎么领', 'If we win'])}${list(lk.how)}</div>
-      <p class="note">${fmt(lk.unsure)}</p>
-      <div class="links-row">${ext(SITES.lucky.url, L(SITES.lucky.name), 'ext')}${ext(SITES.luckyRules.url, L(SITES.luckyRules.name), 'ext')}${ext(SITES.twac.url, L(SITES.twac.name), 'ext')}</div>
+      <p class="note">${fmt(lk.unsure)}</p>`
+					: ''
+			}
+      <div class="links-row">${lk ? ext(SITES.lucky.url, L(SITES.lucky.name), 'ext') + ext(SITES.luckyRules.url, L(SITES.luckyRules.name), 'ext') : ''}${lk || !E.rules.some((r) => r.site === 'twac') ? ext(SITES.twac.url, L(SITES.twac.name), 'ext') : ''}</div>
       <p class="xsmall" style="margin-top:10px">${Z(`资料来源：入出国及移民署、外交部领事局、海关、观光署官网（${checkedOn('ymd')}查）。`, `Sources: immigration, consular, customs, tourism sites (checked ${checkedOn('long')}).`)}</p>
     </section>`;
 }
+// the country's lucky draw (Pack.luckyDraw): how many of us could win, and how much
+const luckySinceLabel = () => {
+	const d = Pack.luckyDraw.since;
+	return Z(
+		`${d.slice(0, 4)}年${Time.dateLabel(d, 'zh')}后入境过${Pack.country[0]}的人数`,
+		`People who entered ${Pack.country[1]} since ${Time.dateLabel(d, 'en')} ${d.slice(0, 4)}`,
+	);
+};
 function calcLucky() {
-	const r = Math.max(0, Math.min(5, +store.get('repeat', 3)));
-	const c = PAX - r,
-		comp = Math.min(c, r),
-		left = c - comp,
-		total = r * 5000 + comp * 3000;
+	if (!Pack.luckyDraw) return;
+	const S = Pack.luckyShares(PAX, +store.get('repeat', 3));
+	const r = S.repeat,
+		comp = S.companions,
+		left = S.left,
+		total = S.total;
 	const o = $('#repeat');
 	if (o) o.textContent = r;
 	const out = $('#calcout');
@@ -910,7 +927,7 @@ function calcLucky() {
 	out.innerHTML =
 		r === 0
 			? `<p class="warn">${icon('alert')}${Z(`没有人符合「重游旅客」，这次${PAX}人都不能参加。`, 'No Repeat Visitor; none of us eligible.')}</p>`
-			: `<dl class="kv"><div><dt>${Z('重游旅客（各NT$5,000）', 'Repeat Visitors (NT$5,000 each)')}</dt><dd>${r}</dd></div><div><dt>${Z('同行亲友（各NT$3,000）', 'Companions (NT$3,000 each)')}</dt><dd>${comp}</dd></div>${left ? `<div><dt>${Z('不能参加', "Can't join")}</dt><dd>${left}</dd></div>` : ''}<div class="sum"><dt>${Z('全部中奖最多', 'If every pair wins')}</dt><dd>NT$${num(total)}</dd></div></dl><p class="note"><span data-rm="${total},${total}">${rmText(total, total)}</span> · ${Z('要中奖才有，不保证。', 'Only if drawn; not guaranteed.')}</p>`;
+			: `<dl class="kv"><div><dt>${Z(`重游旅客（各${Pack.sym}${num(Pack.luckyDraw.repeat)}）`, `Repeat Visitors (${Pack.sym}${num(Pack.luckyDraw.repeat)} each)`)}</dt><dd>${r}</dd></div><div><dt>${Z(`同行亲友（各${Pack.sym}${num(Pack.luckyDraw.companion)}）`, `Companions (${Pack.sym}${num(Pack.luckyDraw.companion)} each)`)}</dt><dd>${comp}</dd></div>${left ? `<div><dt>${Z('不能参加', "Can't join")}</dt><dd>${left}</dd></div>` : ''}<div class="sum"><dt>${Z('全部中奖最多', 'If every pair wins')}</dt><dd>${Pack.sym}${num(total)}</dd></div></dl><p class="note"><span data-rm="${total},${total}">${rmText(total, total)}</span> · ${Z('要中奖才有，不保证。', 'Only if drawn; not guaranteed.')}</p>`;
 }
 
 function secOptional() {

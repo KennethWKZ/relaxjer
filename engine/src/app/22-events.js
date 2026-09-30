@@ -283,7 +283,7 @@ document.addEventListener('click', (e) => {
 	}
 	if (t.matches('[data-mine-share]')) {
 		const url = mineShareURL();
-		const text = Z('我加的台北行程：打开链接就能加入你的页面', 'My added Taipei stops: open the link to add them');
+		const text = Z(`我加的${CITY[0]}行程：打开链接就能加入你的页面`, `My added ${CITY[1]} stops: open the link to add them`);
 		if (navigator.share) navigator.share({ title: Z('我加的行程', 'My added stops'), text, url }).catch(() => {});
 		else if (navigator.clipboard)
 			navigator.clipboard.writeText(url).then(() => toast(Z('链接已复制，贴到群里', 'Link copied: paste it in the chat')));
@@ -377,7 +377,7 @@ document.addEventListener('click', (e) => {
 		return;
 	}
 	if (t.matches('[data-step]')) {
-		store.set('repeat', Math.max(0, Math.min(5, +store.get('repeat', 3) + +t.dataset.step)));
+		store.set('repeat', Math.max(0, Math.min(PAX, +store.get('repeat', 3) + +t.dataset.step)));
 		calcLucky();
 		return;
 	}

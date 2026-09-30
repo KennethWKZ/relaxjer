@@ -11,6 +11,9 @@ const TRIP = {
 	description: '示范：五人台北一周 3/13–3/19 · Demo: a week in Taipei for 5, 13–19 Mar 2027',
 	pax: 5, // group size: every "for 5" figure also shows a share each
 	tz: 'Asia/Taipei', // the destination's clock, whatever the phone says
+	// the destination pack: destinations/tw (tax refund, lucky draw) + regions/taipei (metro, taxi meter, bike share)
+	destination: 'tw',
+	region: 'taipei',
 	currency: { sym: 'NT$', home: 'RM', rate: 7.8, rateNote: ['示范汇率，出发前改成当天汇率', 'Demo rate; update before the trip'] },
 	checked: '2027-03-01', // when hours and prices were last checked
 	arriveCity: ['桃园', 'Taoyuan'],

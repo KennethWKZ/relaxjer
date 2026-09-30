@@ -110,13 +110,8 @@ function mrtPlan(from, to) {
 	return { walk: direct, total: best - (WW - 1) * (a + z), w0: a, w1: z, rides };
 }
 const CARS = Math.ceil(PAX / 4); // taxis the group needs, 4 seats each
-// Taipei taxi meter (公共運輸處, since 2023-04): NT$85 first 1.25 km, NT$5 per 200 m, +NT$20 23:00–06:00; +20% for slow traffic
-function taxiFare(dk) {
-	const road = dk * 1.3;
-	const base = 85 + Math.max(0, Math.ceil((road - 1.25) / 0.2)) * 5 + (tpNow().mins >= 1380 || tpNow().mins < 360 ? 20 : 0);
-	const r10 = (v) => Math.round(v / 10) * 10;
-	return [r10(base), r10(base * 1.2)];
-}
+// the city's taxi meter (Pack.taxiFare: [low, high] per car), or null where the pack has none
+const taxiFare = (dk) => (Pack.taxiFare ? Pack.taxiFare(dk, tpNow().mins) : null);
 const mline = (l) => `<span class="mline" style="--lc:${esc(l.c)}"><b>${esc(l.ref)}</b>${esc(lang === 'en' ? l.en : l.zh)}</span>`;
 // "from where you are": walking when that is as quick, else the MRT legs; compact = one line for the map popup
 function planHTML(to, compact) {
@@ -125,18 +120,25 @@ function planHTML(to, compact) {
 	const wk = Math.max(1, Math.round(pl.walk));
 	const dk = km(meLL, to);
 	const taxi = Math.round(((dk * 1.3) / 22) * 60 + 4); // city taxi ~22 km/h door to door
-	const [f0, f1] = taxiFare(dk);
+	const fare = taxiFare(dk);
 	const taxiP = (lead) =>
-		`<p class="plan${lead ? ' lead' : ''}">${icon('car')}<span>${Z(`计程车约${taxi}分钟 · 约${CUR.sym}${num(f0)}–${num(f1)}/辆（${PAX}人要${CARS}辆）`, `Taxi ~${taxi} min · ~${CUR.sym}${num(f0)}–${num(f1)} per car (${PAX} people = ${CARS} car${CARS > 1 ? 's' : ''})`)}</span></p>`;
+		`<p class="plan${lead ? ' lead' : ''}">${icon('car')}<span>${
+			fare
+				? Z(
+						`计程车约${taxi}分钟 · 约${CUR.sym}${num(fare[0])}–${num(fare[1])}/辆（${PAX}人要${CARS}辆）`,
+						`Taxi ~${taxi} min · ~${CUR.sym}${num(fare[0])}–${num(fare[1])} per car (${PAX} people = ${CARS} car${CARS > 1 ? 's' : ''})`,
+					)
+				: Z(`计程车约${taxi}分钟（${PAX}人要${CARS}辆）`, `Taxi ~${taxi} min (${PAX} people = ${CARS} car${CARS > 1 ? 's' : ''})`)
+		}</span></p>`;
 	if (pl.none && wk > 25)
-		return `<div class="plan-box">${taxiP(true)}<p class="xsmall muted">${Z(`离你约${dk.toFixed(1)} km，附近没有捷运；公车看 Google 地图`, `${dk.toFixed(1)} km away, no MRT near; buses: Google Maps`)}</p></div>`;
+		return `<div class="plan-box">${taxiP(true)}<p class="xsmall muted">${Z(`离你约${dk.toFixed(1)} km，附近没有${METRO[0]}；公车看 Google 地图`, `${dk.toFixed(1)} km away, no ${METRO[1]} near; buses: Google Maps`)}</p></div>`;
 	const longLeg = !pl.none && (pl.w0 > 20 || pl.w1 > 20);
 	const walkOnly = pl.none || wk <= Math.min(15, pl.total + 3);
 	if (walkOnly)
-		return `<p class="plan">${icon('walk')}<span>${Z(`从你这里走路约${wk}分钟`, `~${wk} min walk from you`)} · ${distLabel(km(meLL, to))}${pl.none && wk > 25 ? Z('。附近没有捷运：看 Google 地图（公车/计程车）', '. No MRT nearby: check Google Maps (bus/taxi)') : ''}</span></p>`;
+		return `<p class="plan">${icon('walk')}<span>${Z(`从你这里走路约${wk}分钟`, `~${wk} min walk from you`)} · ${distLabel(km(meLL, to))}${pl.none && wk > 25 ? Z(`。附近没有${METRO[0]}：看 Google 地图（公车/计程车）`, `. No ${METRO[1]} nearby: check Google Maps (bus/taxi)`) : ''}</span></p>`;
 	const tot = Math.round(pl.total);
 	if (compact)
-		return `<p class="plan">${icon('train')}<span>${Z(`捷运约${tot}分钟`, `MRT ~${tot} min`)}: ${pl.rides.map((r) => mline(MRT.ln[r.li])).join(' → ')}${Z('（估）', ' (est.)')}</span></p>`;
+		return `<p class="plan">${icon('train')}<span>${Z(`${METRO[0]}约${tot}分钟`, `${Cap(METRO[1])} ~${tot} min`)}: ${pl.rides.map((r) => mline(MRT.ln[r.li])).join(' → ')}${Z('（估）', ' (est.)')}</span></p>`;
 	const leg = (m, zh, en) =>
 		m > 20
 			? `<li>${icon('bus')}${Z(`${zh}约${((m * 75) / 1300).toFixed(1)} km：搭公车或计程车（走路要${Math.round(m)}分钟）`, `${en} ~${((m * 75) / 1300).toFixed(1)} km: bus or taxi (a ${Math.round(m)}-min walk)`)}</li>`
@@ -159,11 +161,11 @@ function planHTML(to, compact) {
 	const mrtBody = `<ol class="plan-steps">${steps.join('')}</ol>`;
 	const est = `<span class="xsmall muted">${Z('（估：Google 乘车时间＋步行/等车估算）', ' (est.: Google ride times + walk/wait estimate)')}</span>`;
 	if (longLeg || taxi * 2 < tot)
-		return `<div class="plan-box"><p class="plan-h">${icon('car')}${Z('从你这里：建议计程车', 'From you: taxi is easiest')}</p>${taxiP(true)}<details class="plan-alt"><summary>${icon('train')}${Z(`或搭捷运：约${tot}分钟`, `Or by MRT: ~${tot} min`)}${est}</summary>${mrtBody}</details></div>`;
-	return `<div class="plan-box"><p class="plan-h">${icon('train')}${Z(`从你这里搭捷运：约${tot}分钟`, `From you by MRT: ~${tot} min`)}${est}</p>${mrtBody}${taxiP(false)}${wk <= 40 ? `<p class="xsmall muted">${Z(`直接走路约${wk}分钟`, `Walking all the way: ~${wk} min`)}</p>` : ''}</div>`;
+		return `<div class="plan-box"><p class="plan-h">${icon('car')}${Z('从你这里：建议计程车', 'From you: taxi is easiest')}</p>${taxiP(true)}<details class="plan-alt"><summary>${icon('train')}${Z(`或搭${METRO[0]}：约${tot}分钟`, `Or by ${METRO[1]}: ~${tot} min`)}${est}</summary>${mrtBody}</details></div>`;
+	return `<div class="plan-box"><p class="plan-h">${icon('train')}${Z(`从你这里搭${METRO[0]}：约${tot}分钟`, `From you by ${METRO[1]}: ~${tot} min`)}${est}</p>${mrtBody}${taxiP(false)}${wk <= 40 ? `<p class="xsmall muted">${Z(`直接走路约${wk}分钟`, `Walking all the way: ~${wk} min`)}</p>` : ''}</div>`;
 }
 const planAsk = (p) =>
 	`<button type="button" class="mlink" data-mefrom="${p.lat},${p.lng}">${icon('pin')}${Z('从我这里怎么去（估）', 'How to get there from me (est.)')}</button>`;
 const farNote = () =>
-	`<p class="xsmall muted">${icon('info')} ${Z('你现在不在台北：到了台北，这里会显示从你所在位置怎么去。', "You're not in Taipei yet: once there, this shows how to get here from where you are.")}</p>`;
+	`<p class="xsmall muted">${icon('info')} ${Z(`你现在不在${CITY[0]}：到了${CITY[0]}，这里会显示从你所在位置怎么去。`, `You're not in ${CITY[1]} yet: once there, this shows how to get here from where you are.`)}</p>`;
 const planOrAsk = (p) => (!meLL ? planAsk(p) : farAway() ? farNote() : planHTML(p));

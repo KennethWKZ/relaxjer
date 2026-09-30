@@ -109,8 +109,8 @@ const MAP_CATS = [
 	['drink', ['饮料', 'Drinks']],
 	['rest', ['歇脚', 'Rest']],
 	['wc', ['厕所', 'Toilets']],
-	['mrt', ['捷运', 'MRT']],
-	['bike', ['YouBike', 'YouBike']],
+	['mrt', [METRO[0], Cap(METRO[1])]],
+	['bike', [BIKES[0], Cap(BIKES[1])]],
 	['bus', ['公车', 'Bus']],
 ];
 const MAP_CAT_KEYS = MAP_CATS.map(([k]) => k).filter((k) => k !== 'all');
@@ -123,8 +123,8 @@ const PIN_KIND = {
 	drink: ['饮料', 'Drinks'],
 	rest: ['歇脚', 'Rest'],
 	wc: ['厕所', 'Toilet'],
-	mrt: ['捷运站', 'MRT'],
-	bike: ['YouBike', 'YouBike'],
+	mrt: [`${METRO[0]}站`, Cap(METRO[1])],
+	bike: [BIKES[0], Cap(BIKES[1])],
 	bus: ['公车站', 'Bus stop'],
 	mine: ['我加的', 'Added by me'],
 };
@@ -228,7 +228,7 @@ async function gSearch(q) {
 		const { places } = await Place.searchByText({
 			textQuery: q,
 			fields: ['id', 'displayName', 'formattedAddress', 'location'],
-			locationBias: { center: meLL && !farAway() ? meLL : { lat: 25.05, lng: 121.53 }, radius: 30000 },
+			locationBias: { center: meLL && !farAway() ? meLL : placeLL('hotel'), radius: 30000 },
 			maxResultCount: 8,
 			language: lang === 'en' ? 'en' : 'zh-TW',
 			region: 'tw',
@@ -318,7 +318,7 @@ function mountLive(url) {
 		m = new maplibregl.Map({
 			container: el,
 			style: url,
-			center: [121.522, 25.056],
+			center: [placeLL('hotel').lng, placeLL('hotel').lat], // until the first map view fits
 			zoom: 12.3,
 			attributionControl: { compact: true },
 			localIdeographFontFamily: '"PingFang TC","PingFang SC","Noto Sans TC","Noto Sans SC","Microsoft JhengHei",sans-serif',

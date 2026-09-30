@@ -38,7 +38,7 @@ export function nearFixed(m, fixed) {
  *   arrive: the first day
  *   leave:  the day the group leaves the hotel for the airport: the evening before an after-midnight take-off (before
  *           12:00), else the flight's own day
- *   flight: a day after `leave` that holds only that early take-off (no stops to add, no day tab), else null
+ *   flight: a day after `leave` that holds only that early take-off (no stops to add), else null
  *   free:   the day marked `freeFrom` (its free time gets the ideas list), else the leave day
  */
 export function dayRoles(days, ret) {

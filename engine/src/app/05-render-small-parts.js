@@ -257,13 +257,13 @@ function wcSheet(pk) {
 	);
 	const mrt =
 		g.mrt && g.mrt.walk
-			? Z(`捷运${g.mrt.zh}站也有厕所（约${g.mrt.min}分钟）`, `MRT ${g.mrt.en || g.mrt.zh} also has toilets (~${g.mrt.min} min)`)
+			? Z(`${METRO[0]}${g.mrt.zh}站也有厕所（约${g.mrt.min}分钟）`, `${Cap(METRO[1])} ${g.mrt.en || g.mrt.zh} also has toilets (~${g.mrt.min} min)`)
 			: '';
 	return `<h3 class="spots-h">${icon('wc')}${esc(Z(`${nm} · 厕所`, `Toilets · ${nm}`))}</h3>
       ${r === 1 ? `<p class="callout ok">${icon('check')}<span>${esc(Z(`${nm}里面有厕所`, `${nm} has its own toilets`))}${a === 1 ? esc(Z('，有无障碍厕所', ', incl. accessible')) : ''}</span></p>` : ''}
       ${pub.length ? `<p class="sub-h">${Z('公厕（按距离）', 'Public toilets, nearest first')}</p><ul class="spots">${pub.join('')}</ul>` : ''}
       ${bor.length ? `<p class="sub-h">${Z('可借用的店家（Google 标示有厕所；先买点东西再开口较好）', 'Shops with a toilet you can ask to use (buy something first)')}</p><ul class="spots">${bor.join('')}</ul>` : ''}
-      <p class="xsmall muted" style="margin-top:10px">${mrt ? esc(mrt) + Z('；', '. ') : ''}${Z('捷运站厕所若在闸门内：向询问处要免费「临时通行票」，15分钟内同站进出，不用刷卡。', 'MRT toilet inside the gates? Ask the info counter for a free temporary pass: 15 min, same station, no fare.')}</p>`;
+      <p class="xsmall muted" style="margin-top:10px">${mrt ? esc(mrt) + Z('；', '. ') : ''}${Pack.metroToiletTip ? Z(...Pack.metroToiletTip) : ''}</p>`;
 }
 // drink stands or sit-down spots within a short walk of a planned place, nearest first
 const spotsNear = (pk, rest, date) =>
@@ -366,8 +366,8 @@ const mrtText = (m) =>
 	!m
 		? ''
 		: m.walk
-			? Z(`${m.train ? '火车' : '捷运'}${m.zh}，步行约${m.min}分钟`, `${m.train ? 'Train' : 'MRT'} ${m.en || m.zh}, ~${m.min} min walk`)
-			: Z(`最近捷运${m.zh}（约${m.km}公里，要转车）`, `Nearest MRT ${m.en || m.zh} (~${m.km} km; take a bus or taxi)`);
+			? Z(`${m.train ? '火车' : METRO[0]}${m.zh}，步行约${m.min}分钟`, `${m.train ? 'Train' : Cap(METRO[1])} ${m.en || m.zh}, ~${m.min} min walk`)
+			: Z(`最近${METRO[0]}${m.zh}（约${m.km}公里，要转车）`, `Nearest ${METRO[1]} ${m.en || m.zh} (~${m.km} km; take a bus or taxi)`);
 const mrtLine = (m) => (m ? `<p class="xsmall">${icon('train')} ${esc(mrtText(m))}</p>` : '');
 function foodRow(f) {
 	const name = lang === 'en' ? f.name_en || f.name_trad : f.name_zh || f.name_trad;
@@ -451,7 +451,7 @@ const slug = (s) =>
 const LEGS = Object.fromEntries(DAYS.filter((d) => d.route && d.route.length).map((d) => [d.id, d.route]));
 // Today's route lives in the day's header card: one button per leg, in order, so each only needs its destination
 const RIDE = {
-	SUBWAY: ['捷运', 'MRT'],
+	SUBWAY: [METRO[0], Cap(METRO[1])],
 	BUS: ['公车', 'bus'],
 	HEAVY_RAIL: ['火车', 'train'],
 	COMMUTER_TRAIN: ['火车', 'train'],
