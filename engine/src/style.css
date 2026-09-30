@@ -162,6 +162,19 @@ button {
 	outline-offset: 2px;
 	border-radius: 6px;
 }
+/* on a lantern the blue ring vanishes into the day's colour: draw it in the day's ink */
+.lantern :focus-visible {
+	outline-color: var(--ci);
+}
+/* disabled is dimmed but readable; busy (a location request in flight) stays readable and says so in its label */
+button:disabled {
+	opacity: 0.55;
+	cursor: not-allowed;
+}
+button[aria-busy='true'] {
+	opacity: 0.8;
+	cursor: progress;
+}
 img {
 	max-width: 100%;
 	display: block;
@@ -233,6 +246,8 @@ svg.i {
 	display: flex;
 	align-items: baseline;
 	gap: 10px;
+	min-height: 44px;
+	padding-block: 10px;
 	text-decoration: none;
 	color: var(--ink);
 	min-width: 0;
@@ -281,7 +296,7 @@ svg.i {
 }
 .seg button {
 	min-width: 44px;
-	height: 38px;
+	height: 44px;
 	padding: 0 10px;
 	border: 0;
 	border-radius: 8px;
@@ -296,9 +311,8 @@ svg.i {
 		transform 160ms var(--ease-out);
 }
 .seg button[aria-pressed='true'] {
-	background: var(--paper);
-	color: var(--ink);
-	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+	background: var(--ink);
+	color: var(--paper);
 }
 .seg button:active {
 	transform: scale(0.96);
@@ -365,7 +379,7 @@ svg.i {
 	max-width: var(--col);
 	margin: 0 auto;
 	display: flex;
-	gap: 6px;
+	gap: 8px;
 	overflow-x: auto;
 	overscroll-behavior-x: contain;
 	padding: 4px 16px 8px;
@@ -374,6 +388,19 @@ svg.i {
 }
 .tabs::-webkit-scrollbar {
 	display: none;
+}
+/* the scrollbar is hidden, so an edge fade on each side with more days says the strip scrolls */
+.tabs.more-r {
+	-webkit-mask-image: linear-gradient(to left, transparent, #000 32px);
+	mask-image: linear-gradient(to left, transparent, #000 32px);
+}
+.tabs.more-l {
+	-webkit-mask-image: linear-gradient(to right, transparent, #000 32px);
+	mask-image: linear-gradient(to right, transparent, #000 32px);
+}
+.tabs.more-l.more-r {
+	-webkit-mask-image: linear-gradient(to right, transparent, #000 32px, #000 calc(100% - 32px), transparent);
+	mask-image: linear-gradient(to right, transparent, #000 32px, #000 calc(100% - 32px), transparent);
 }
 .tab {
 	flex: none;
@@ -426,6 +453,8 @@ svg.i {
 .tab[aria-current='true'] {
 	background: var(--ink);
 	color: var(--paper);
+	font-weight: 800;
+	box-shadow: inset 0 -3px 0 currentColor;
 }
 .tab.day[aria-current='true'] {
 	background: var(--c);
@@ -939,8 +968,8 @@ ul.list li::marker {
 	min-height: 44px;
 	padding: 0 14px;
 	border-radius: 11px;
-	border: 1.5px solid color-mix(in srgb, var(--ci) 40%, transparent);
-	background: transparent;
+	border: 1.5px solid color-mix(in srgb, var(--ci) 75%, transparent);
+	background: color-mix(in srgb, var(--ci) 10%, transparent);
 	color: var(--ci);
 	font-weight: 700;
 	font-size: var(--fs-sm);
@@ -952,7 +981,7 @@ ul.list li::marker {
 }
 .l-btn:active {
 	transform: scale(0.96);
-	background: color-mix(in srgb, var(--ci) 14%, transparent);
+	background: color-mix(in srgb, var(--ci) 22%, transparent);
 }
 
 /* photo strip */
@@ -1191,7 +1220,7 @@ ul.list li::marker {
 .links-row {
 	display: flex;
 	flex-wrap: wrap;
-	gap: 6px;
+	gap: 8px;
 	margin-top: 8px;
 }
 
@@ -1498,6 +1527,12 @@ details.more > .more-body {
 	color: var(--ink-3);
 	margin-top: 2px;
 	text-decoration: none;
+}
+/* a cross-reference under a row ("Day 1 …", "Airport"): a 44 px target without moving the line */
+.check-sub a {
+	display: inline-block;
+	padding-block: 13px;
+	margin-block: -13px;
 }
 .progress {
 	display: flex;
@@ -2119,7 +2154,8 @@ dialog.sheet::backdrop {
 	display: inline-flex;
 	align-items: center;
 	gap: 4px;
-	margin: -4px 0 10px 42px;
+	min-height: 44px;
+	margin: -14px 0 0 42px;
 	font-size: var(--fs-xs);
 	font-weight: 700;
 }
@@ -2715,6 +2751,14 @@ dialog.sheet::backdrop {
 .tag.pinbtn {
 	min-height: 44px;
 	cursor: pointer;
+	color: var(--link);
+	font-weight: 700;
+	background: color-mix(in srgb, var(--link) 8%, var(--paper));
+	border-color: color-mix(in srgb, var(--link) 55%, var(--rule));
+	transition: transform 160ms var(--ease-out);
+}
+.tag.pinbtn:active {
+	transform: scale(0.96);
 }
 details.wnote {
 	margin-top: 8px;
@@ -3467,7 +3511,7 @@ dialog.psheet {
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
-	min-height: 36px;
+	min-height: 44px;
 	cursor: pointer;
 	font-weight: 700;
 	color: var(--ink-2);
@@ -3540,9 +3584,6 @@ body {
 .brand-name {
 	overflow: hidden;
 	text-overflow: ellipsis;
-}
-.seg button {
-	height: 44px;
 }
 .now-v a {
 	display: inline-flex;
@@ -4423,7 +4464,7 @@ dialog.toc {
 	flex: none;
 }
 .mres-seg .seg-btn {
-	min-height: 34px;
+	min-height: 44px;
 	padding: 4px 10px;
 	font-size: var(--fs-xs);
 }
@@ -4459,11 +4500,20 @@ dialog.toc {
 	flex-wrap: wrap;
 	align-items: center;
 	gap: 4px 6px;
-	min-height: 40px;
+	min-height: 44px;
 	font-size: var(--fs-sm);
 	font-weight: 750;
 	cursor: pointer;
 	list-style: none;
+}
+.plan-alt > summary .chev,
+.flt-d > summary .chev {
+	color: var(--ink-3);
+	transition: transform 200ms var(--ease-out);
+}
+.plan-alt[open] > summary .chev,
+.flt-d[open] > summary .chev {
+	transform: rotate(180deg);
 }
 .plan-alt > summary::-webkit-details-marker {
 	display: none;
@@ -4693,13 +4743,13 @@ dialog.toc {
 /* "+" under each timeline dot: add a stop after this one */
 .stop-knot .knot-add {
 	position: absolute;
-	left: -7px;
-	bottom: -14px;
+	left: -13px;
+	bottom: -20px;
 	z-index: 2;
 	display: grid;
 	place-items: center;
-	width: 32px;
-	height: 32px;
+	width: 44px;
+	height: 44px;
 	padding: 0;
 	border: 0;
 	border-radius: 50%;
@@ -4722,11 +4772,6 @@ dialog.toc {
 	color: #fff;
 	border-color: var(--c);
 }
-.stop-knot .knot-add::before {
-	content: '';
-	position: absolute;
-	inset: -6px;
-} /* 44px touch target */
 .add-cats,
 .add-sort {
 	display: flex;
@@ -4737,7 +4782,7 @@ dialog.toc {
 	scrollbar-width: none;
 }
 .add-sort .seg-btn {
-	min-height: 36px;
+	min-height: 44px;
 	font-size: var(--fs-xs);
 }
 .add-sort .seg-btn svg.i {
@@ -4772,7 +4817,7 @@ dialog.toc {
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
-	min-height: 40px;
+	min-height: 44px;
 	font-size: var(--fs-sm);
 	font-weight: 750;
 	color: var(--link, #1a5fb4);

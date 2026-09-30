@@ -173,7 +173,7 @@ document.addEventListener('click', (e) => {
 		return;
 	}
 	if (t.matches('[data-geo-on]')) {
-		t.disabled = true;
+		geoBusy(t);
 		locateMe(() => renderNow());
 		return;
 	}
@@ -187,7 +187,7 @@ document.addEventListener('click', (e) => {
 		return;
 	}
 	if (t.matches('[data-late-loc]')) {
-		t.disabled = true;
+		geoBusy(t);
 		locateMe(() => renderNow());
 		return;
 	}

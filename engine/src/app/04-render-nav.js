@@ -21,4 +21,15 @@ function renderTabs(today) {
 		}
 		return `<a class="tab" href="#${n.id}" data-tab="${n.id}">${esc(L(n.label))}</a>`;
 	}).join('');
+	tabsCue();
 }
+// the strip's scrollbar is hidden: fade each edge that has more days behind it (style.css .tabs.more-l / .more-r)
+function tabsCue() {
+	const t = $('#tabs');
+	if (!t) return;
+	const max = t.scrollWidth - t.clientWidth;
+	t.classList.toggle('more-l', t.scrollLeft > 2);
+	t.classList.toggle('more-r', t.scrollLeft < max - 2);
+}
+$('#tabs').addEventListener('scroll', tabsCue, { passive: true });
+window.addEventListener('resize', tabsCue);

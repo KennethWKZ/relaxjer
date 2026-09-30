@@ -52,7 +52,10 @@ function locateMe(cb, quiet) {
 				geoState = 'denied';
 				renderNow();
 			}
-			if (!quiet) toast(Z('没法取得位置：请允许定位权限', 'Location unavailable; allow access'));
+			if (!quiet) {
+				toast(Z('没法取得位置：请允许定位权限', 'Location unavailable; allow access'));
+				renderNow(); // a busy "Finding you…" button comes back as a button
+			}
 		},
 		{ enableHighAccuracy: true, maximumAge: 5000, timeout: 20000 },
 	);
@@ -137,6 +140,12 @@ function geoCoarseSync() {
 	if (coarse === geoCoarse) return;
 	geoCoarse = coarse;
 	renderNow();
+}
+// a location button while the phone looks for a fix: disabled, marked busy, and saying so
+function geoBusy(b) {
+	b.disabled = true;
+	b.setAttribute('aria-busy', 'true');
+	b.innerHTML = `${icon('pin')}${Z('正在定位…', 'Finding you…')}`;
 }
 function geoAsk() {
 	if (store.get('geoNo', null) === tpNow().date) return '';

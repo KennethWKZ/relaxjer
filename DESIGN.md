@@ -184,8 +184,8 @@ components:
     padding: '0 10px'
     height: '44px'
   segmented-option-pressed:
-    backgroundColor: '{colors.paper}'
-    textColor: '{colors.ink}'
+    backgroundColor: '{colors.ink}'
+    textColor: '{colors.paper}'
   filter-button:
     backgroundColor: '{colors.paper}'
     textColor: '{colors.ink-2}'
@@ -226,7 +226,7 @@ components:
     rounded: '{rounded.lg}'
     padding: '22px 18px 18px'
   lantern-button:
-    backgroundColor: 'transparent'
+    backgroundColor: 'color-mix(in srgb, {colors.lantern-1-ink} 10%, transparent)'
     textColor: '{colors.lantern-1-ink}'
     rounded: '11px'
     padding: '0 14px'
@@ -398,7 +398,6 @@ Hybrid. Content is flat and tonal: Fog Grey and Mist Grey containers on white pa
 - **Float** (`box-shadow: 0 10px 28px -10px rgba(0, 0, 0, 0.45)`): the Back pill (0.55 on the sections button).
 - **Toast** (`box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.4)`).
 - **Sheet** (`box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.5)`): dialogs over the scrim.
-- **Pressed segment** (`box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12)`): the selected option in a segmented control.
 
 ### Named Rules
 
@@ -421,10 +420,11 @@ Every control is a plain, heavy-lettered rectangle with a 44 px floor (48–52 p
 - **Shape:** 12 px for the go button, 9–11 px for link and lantern buttons.
 - **Go (primary):** ink fill, paper text, 700 weight, 48 px tall, 0 18px padding. The one action that matters on a card (for example "open checklist").
 - **Link button:** Fog Grey fill, link-blue text, 0.9375rem at 700, 44 px, with a 15 px line icon. Map, route and site links under every stop. Below 600 px, icon-only variants are 44 px squares.
-- **Lantern button:** transparent, 1.5 px border in the day ink at 40 %, day ink text. On press it fills with the ink at 14 %.
+- **Lantern button:** a tint of the day ink at 10 %, a 1.5 px border in the day ink at 75 % (3:1 on the lantern), day ink text. On press the tint goes to 22 %. Never a bare outline: a ghost button doesn't read as tappable.
 - **Route legs:** a two-up grid of 46 px tiles tinted with the day ink at 13 %. The "whole route" leg spans both columns and inverts: day-ink fill, day-colour text.
 - **Icon and text buttons:** 44 px, transparent; the text button is link blue at 600.
-- **Hover / Focus:** hover only under `(hover: hover) and (pointer: fine)`, one step darker paper. Focus is a 3 px Focus Blue outline, 2 px offset, 6 px radius, everywhere.
+- **Hover / Focus:** hover only under `(hover: hover) and (pointer: fine)`, one step darker paper. Focus is a 3 px Focus Blue outline, 2 px offset, 6 px radius; on a lantern the ring is drawn in the day's ink, since blue vanishes on the lantern paper.
+- **Disabled / busy:** disabled is dimmed to 55 % and still readable; a button waiting on the phone ("Finding you…") is disabled, `aria-busy`, at 80 %, and its label says what it's doing.
 
 ### Chips
 
@@ -450,8 +450,8 @@ Every control is a plain, heavy-lettered rectangle with a 44 px floor (48–52 p
 
 ### Navigation
 
-- **Header:** translucent glass bar with the brush brand (the trip dates hidden below 440 px), search, theme and a 中 / EN segmented switch, a search row, then the tab strip.
-- **Day tabs:** 44 px tall, at least 48 px wide, 10 px radius, Fog Grey. Each shows the date number (1rem at 750) and weekday (0.6875rem) under a short 3 px bar in the day colour. The current day tab fills with its lantern pair, and the non-day section tabs fill with ink. The strip scrolls sideways with no visible scrollbar.
+- **Header:** translucent glass bar with the brush brand (the trip dates hidden below 440 px), install (until the page is on the home screen), search, theme and a 中 / EN segmented switch whose chosen option fills with ink, a search row, then the tab strip.
+- **Day tabs:** 44 px tall, at least 48 px wide, 10 px radius, Fog Grey. Each shows the date number (1rem at 750) and weekday (0.6875rem) under a short 3 px bar in the day colour. The current tab fills (a day with its lantern pair, a section with ink) and adds a second cue: 800 weight and a 3 px bar in its own ink along the bottom, so it never differs by hue alone. Tabs sit 8 px apart. The strip scrolls sideways with no visible scrollbar, so each edge with more tabs behind it fades out over 32 px.
 - **Now stripe:** a 3 px stripe under the sticky header takes the colour of the day in view (`--now`), fading over 240 ms, and falls back to `rule` between days.
 - **Sections button:** a floating 52 px ink button, bottom right, that opens the sections sheet.
 - **Back pill:** a floating 52 px paper button, bottom left, with a hairline border and the float shadow. After a jump it returns the reader to where they were, then slides away (fades and drops 14 px).

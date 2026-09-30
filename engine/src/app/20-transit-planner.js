@@ -161,7 +161,7 @@ function planHTML(to, compact) {
 	const mrtBody = `<ol class="plan-steps">${steps.join('')}</ol>`;
 	const est = `<span class="xsmall muted">${Z('（估：Google 乘车时间＋步行/等车估算）', ' (est.: Google ride times + walk/wait estimate)')}</span>`;
 	if (longLeg || taxi * 2 < tot)
-		return `<div class="plan-box"><p class="plan-h">${icon('car')}${Z('从你这里：建议计程车', 'From you: taxi is easiest')}</p>${taxiP(true)}<details class="plan-alt"><summary>${icon('train')}${Z(`或搭${METRO[0]}：约${tot}分钟`, `Or by ${METRO[1]}: ~${tot} min`)}${est}</summary>${mrtBody}</details></div>`;
+		return `<div class="plan-box"><p class="plan-h">${icon('car')}${Z('从你这里：建议计程车', 'From you: taxi is easiest')}</p>${taxiP(true)}<details class="plan-alt"><summary>${icon('train')}${Z(`或搭${METRO[0]}：约${tot}分钟`, `Or by ${METRO[1]}: ~${tot} min`)}${est}${icon('chev', 'chev')}</summary>${mrtBody}</details></div>`;
 	return `<div class="plan-box"><p class="plan-h">${icon('train')}${Z(`从你这里搭${METRO[0]}：约${tot}分钟`, `From you by ${METRO[1]}: ~${tot} min`)}${est}</p>${mrtBody}${taxiP(false)}${wk <= 40 ? `<p class="xsmall muted">${Z(`直接走路约${wk}分钟`, `Walking all the way: ~${wk} min`)}</p>` : ''}</div>`;
 }
 const planAsk = (p) =>
