@@ -12,3 +12,12 @@ gitleaks git --redact --no-banner --config .gitleaks.toml
 
 pnpm verify
 pnpm test:release
+
+# graphmind: diff-impact. Optional maintainer tooling, informational only: a no-op without graphmind, and it never
+# fails the push.
+if command -v graphmind >/dev/null 2>&1; then
+  echo ""
+  echo "  graphmind diff-impact:"
+  graphmind diff-impact 2>/dev/null || true
+  echo ""
+fi

@@ -1,0 +1,5 @@
+# graphmind: auto-rebuild. Optional maintainer tooling: a no-op unless graphmind is installed and this repo is
+# registered with it (graphmind init), so a fresh clone without it commits exactly the same.
+if command -v graphmind >/dev/null 2>&1; then
+  graphmind build >/dev/null 2>&1 &
+fi

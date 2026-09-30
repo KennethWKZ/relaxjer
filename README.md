@@ -42,6 +42,11 @@ Everything else, including the publishing tool (`lavish-axi`), comes with `pnpm 
 `pnpm test` need only Node. On a Mac, publishing keeps the update key in the Keychain; elsewhere it reads a file
 (`publish-htmlapp` skill).
 
+Optional, the maintainer's tooling: [graphmind](https://github.com/aouicher/graphmind) and codebase-memory-mcp give AI
+agents a code graph. The git hooks rebuild graphmind's graph only when it's installed, and skip it otherwise. If you
+use it, exclude your trips before the first build (`graphmind exclude add trips`), because it doesn't read
+`.gitignore`, and if you configure an embedding provider it sends indexed code there.
+
 1. **Google Maps (recommended):** set up your own keys with [`guides/google-maps.md`](guides/google-maps.md). It takes
    about 20 minutes, and a family trip stays within Google's free monthly allowance. You can skip it: the page falls
    back to a free map.

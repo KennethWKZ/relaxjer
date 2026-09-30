@@ -34,3 +34,6 @@ __pycache__/
 /.impeccable/hook.cache.json
 /.impeccable/review/
 /.impeccable/live/
+
+# editor config written by `graphmind init` (paths on one machine)
+/.vscode/mcp.json
