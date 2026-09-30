@@ -84,6 +84,6 @@ Traditional → Simplified search. That's step 4.
   front that the flow isn't legally reviewed and that each user runs it under their own Google agreement
   (`guides/google-maps.md`, [ADR-20260930-google-keys](./standards/decisions/ADR-20260930-google-keys.md)). Get the
   legal read before anything commercial.
-- ~~CI supply chain~~: **every GitHub Action is pinned to a commit SHA**, the release named in a comment (`ci.yml`, `pages.yml`), done 2026-10-01.
+- ~~CI supply chain~~: **`ci.yml` uses each action's latest major version tag** (Kenneth's call, 2026-10-01: fixes arrive on their own, at the cost of trusting the tag); `pages.yml` stays pinned to commit SHAs.
 - **History:** the pre-push scan blocks any pushed commit that adds a real trip's details. Rewrite such a commit before
   the first push.
