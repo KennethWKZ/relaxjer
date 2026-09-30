@@ -9,7 +9,7 @@ let meLL = null; // map: every pin, day scope, category, sort by distance, where
 function mapListHTML() {
 	if (!GEO) return '';
 	const pins = buildPins();
-	const byDay = DAYS.filter((d) => d.id !== 'd7').map((d) => ({
+	const byDay = DAYS.filter((d) => d.id !== ROLE.flight).map((d) => ({
 		d,
 		items: pins.filter((p) => p.days.includes(d.id) && p.type !== 'mrt' && !p.drink && !p.wc),
 	}));

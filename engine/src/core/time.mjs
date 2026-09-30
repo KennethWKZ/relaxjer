@@ -47,6 +47,9 @@ export const dateLabel = (s, lang, dow) =>
 /** "19 Mar" / "3/19": the short form used in front of a next-day time */
 export const shortDate = (s, lang) => (lang === 'en' ? `${+s.slice(8, 10)} ${MON[+s.slice(5, 7) - 1]}` : `${+s.slice(5, 7)}/${+s.slice(8, 10)}`);
 
+/** 1st, 2nd, 3rd, 4th … 11th, 12th, 13th … 21st */
+export const ordinal = (n) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] || 'th'}`;
+
 /** a trip's dates for the header: "13–19 Mar", "30 Mar – 2 Apr" / "3.13–3.19" */
 export function rangeLabel(start, end, lang) {
 	const [m1, d1, m2, d2] = [+start.slice(5, 7), +start.slice(8, 10), +end.slice(5, 7), +end.slice(8, 10)];

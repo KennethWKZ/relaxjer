@@ -135,7 +135,7 @@ const stopName = (it) => L(it.what).replace(/\*\*/g, '');
 function lateHTML() {
 	const now = tpNow();
 	const d = DAYS.find((x) => x.date === now.date);
-	if (!d || d.id === 'd7') return '';
+	if (!d || d.id === ROLE.flight) return '';
 	const segs = shiftsOf(d.date);
 	const lt = lateCheck();
 	const no = store.get('lateNo', null);
@@ -232,19 +232,32 @@ function mineMerge(d, planned) {
 const SHOPS = window.SHOPS || [];
 const hm = (m) =>
 	`${String(Math.floor((((m % 1440) + 1440) % 1440) / 60)).padStart(2, '0')}:${String((((m % 1440) + 1440) % 1440) % 60).padStart(2, '0')}`;
-function d6Times() {
-	const dep = depMin(); // the plan: back at the hotel 5 h 50 before take-off, leave 5 h 05 before, at the airport ~3 h 50 before
-	const plan = { back: dep - 350, leave: dep - 305, airport: dep - 230 };
-	const airport = dep - 180;
-	const leave = airport - 75; // the latest: 3 h before at the airport, ~60–75 min on the road
+// the airport evening, worked back from take-off. FLIGHTS.ret.plan gives it in minutes before take-off: back at the
+// hotel for the bags, leave, at the airport; the latest arrival at the airport and the longest road there
+const LEAVE_PLAN = { back: 350, leave: 305, airport: 230, latest: 180, road: 75, ...(FLIGHTS.ret.plan || {}) };
+function leaveTimes() {
+	const P = LEAVE_PLAN;
+	const dep = depMin();
+	const plan = { back: dep - P.back, leave: dep - P.leave, airport: dep - P.airport };
+	const airport = dep - P.latest;
+	const leave = airport - P.road;
 	return { dep, airport, leave, back: plan.back, plan };
+}
+// one line of the airport evening: `at` holds one or two times, each "HH:MM" as written or minutes before take-off;
+// in the text, {latest} is the latest time to leave and {-N} the time N minutes before take-off
+function leaveStep(T, x) {
+	const at = x.at.map((a) => (typeof a === 'number' ? hm(T.dep - a) : a)).join('–');
+	const text = L(x.what)
+		.replace(/\{latest\}/g, () => hm(T.leave))
+		.replace(/\{-(\d+)\}/g, (m, n) => hm(T.dep - +n));
+	return `<li><b>${x.by ? `${Z('最晚', 'By')} ` : ''}${at}</b> ${esc(text)}</li>`;
 }
 const toHotelMin = (ll) => {
 	const w = walkMin(ll, placeLL('hotel'));
 	return w <= 15 ? Math.round(w) : Math.round(((km(ll, placeLL('hotel')) * 1.3) / 22) * 60 + 4 + 6);
 }; // walk, or a taxi incl. hailing
-function d6BudgetHTML() {
-	const T = d6Times();
+function leaveBudgetHTML() {
+	const T = leaveTimes();
 	const note =
 		T.dep == null
 			? Z(`按计划 ${hm(T.plan.leave)} 出发。`, `Plan: leave ${hm(T.plan.leave)}.`)
@@ -262,17 +275,12 @@ function d6BudgetHTML() {
 							`按航班：最晚 ${hm(T.airport)} 到机场、${hm(T.leave)} 离开酒店；计划 ${hm(T.plan.leave)} 出发，多出约 ${T.leave - T.plan.leave} 分钟缓冲（塞车、下雨也够）。`,
 							`By the flight: at the airport by ${hm(T.airport)}, leave the hotel by ${hm(T.leave)}; the planned ${hm(T.plan.leave)} leaves ~${T.leave - T.plan.leave} min of buffer (traffic, rain).`,
 						);
-	return `<div class="block d6-budget" id="d6-budget">${blockH('clock', ['今天的时间（从航班回推）', "Today's time, worked back from the flight"])}
+	return `<div class="block leave-budget" id="leave-budget">${blockH('clock', ['今天的时间（从航班回推）', "Today's time, worked back from the flight"])}
       ${fltEditHTML('dep')}${store.get('fltDep', '') ? resetBtn() : ''}
-      <p class="xsmall muted">${Z('桃园 T1 → 吉隆坡 KLIA T2。登机时间在值机后的登机证上（通常起飞前约45分钟）。', 'Taoyuan T1 → KLIA T2. Boarding time is on the boarding pass after check-in (usually ~45 min before).')}</p>
-      <ol class="d6-line">
-        <li><b>13:00–${hm(T.dep - 440)}</b> ${Z('自由时间：下面「自由时间去哪」点＋加入', 'Free time: add places from "Free-time ideas" below')}</li>
-        <li><b>${hm(T.dep - 425)}</b> ${Z('集合吃晚餐', 'Meet up for dinner')}</li>
-        <li><b>${Z('最晚', 'By')} ${hm(T.back)}</b> ${Z('回酒店拿行李（约45分钟整理）', 'Back at the hotel for the bags (~45 min)')}</li>
-        <li><b>${hm(T.plan.leave)}–${hm(T.plan.leave + 15)}</b> ${Z(`出发去机场（最晚约${hm(T.leave)}）：Taxi/接送约60分钟，捷运+A1约70分钟`, `Leave for the airport (latest ~${hm(T.leave)}): taxi/van ~60 min, train via A1 ~70`)}</li>
-        <li><b>${hm(T.plan.airport)}–${hm(T.plan.airport + 30)}</b> ${Z(`到 T1：柜台约起飞前3小时开（约${hm(T.dep - 180)}），早到排前面`, `At T1: counters open ~3 h before (~${hm(T.dep - 180)}); early means near the front of the queue`)}</li>
-        <li><b>${Z('最晚', 'By')} ${hm(T.dep - 60)}</b> ${Z('托运完行李（柜台起飞前60分钟关）；安检＋出境约30–45分钟', 'Bags checked (counters close 60 min before); security + immigration ~30–45 min')}</li>
-        ${T.dep != null ? `<li><b>${hm(T.dep)}</b> ${Z('起飞', 'Take-off')}${T.dep >= 1440 ? Z('（23日）', ' (23rd)') : ''}</li>` : ''}
+      ${LEAVE_PLAN.route ? `<p class="xsmall muted">${esc(L(LEAVE_PLAN.route))}</p>` : ''}
+      <ol class="leave-line">
+        ${(LEAVE_PLAN.steps || []).map((x) => leaveStep(T, x)).join('\n        ')}
+        ${T.dep != null ? `<li><b>${hm(T.dep)}</b> ${Z('起飞', 'Take-off')}${T.dep >= 1440 ? Z(`（${+FLIGHTS.ret.date.slice(8)}日）`, ` (${Time.ordinal(+FLIGHTS.ret.date.slice(8))})`) : ''}</li>` : ''}
       </ol>
       <p class="note">${esc(note)}</p></div>`;
 }
@@ -310,15 +318,15 @@ function shopBoxHTML() {
 	const rows = shopRows();
 	if (!rows.length) return '';
 	const N = 4;
-	return `<div class="stop-eat stop-shops" id="d6-shops"><p class="eat-h">${icon('bag')}${Z('买东西 · 点＋加入行程', 'Shopping · tap ＋ to add')}</p>
+	return `<div class="stop-eat stop-shops" id="free-shops"><p class="eat-h">${icon('bag')}${Z('买东西 · 点＋加入行程', 'Shopping · tap ＋ to add')}</p>
       <ul class="ideas">${rows.slice(0, N).join('')}</ul>
       ${rows.length > N ? `<details class="more idea-g" data-lazy="${lazyKey(() => rows.slice(N).join(''))}"><summary>${icon('bag')}<span>${Z(`再看 ${rows.length - N} 间`, `${rows.length - N} more`)}</span>${icon('chev', 'chev')}</summary><ul class="ideas" data-lazy-body></ul></details>` : ''}
       ${taxHTML()}</div>`;
 }
-function d6IdeasHTML() {
+function freeIdeasHTML() {
 	const row = ideaRow;
 	const away = awayHotel;
-	const wish = WISH.filter((w) => w.status !== 'closed' && (w.fits || []).some((f) => f.day === 'd6'))
+	const wish = WISH.filter((w) => w.status !== 'closed' && (w.fits || []).some((f) => f.day === ROLE.free))
 		.sort((a, b) => (b.must ? 1 : 0) - (a.must ? 1 : 0))
 		.map((w) => {
 			const br = wBest(w);
@@ -360,9 +368,9 @@ function d6IdeasHTML() {
 			? `<details class="more idea-g"${open ? ' open' : ` data-lazy="${lazyKey(() => body)}"`}><summary>${icon(ic)}<span>${esc(h)}</span><span class="wg-n">${n}</span>${icon('chev', 'chev')}</summary><ul class="ideas"${open ? `>${body}` : ' data-lazy-body>'}</ul></details>`
 			: '';
 	const cnt = (h) => (h.match(/class="idea"/g) || []).length;
-	return `<div class="block" id="d6-ideas">${blockH('star', ['自由时间去哪（点＋加入行程）', 'Free-time ideas (tap ＋ to add)'])}
+	return `<div class="block" id="free-ideas">${blockH('star', ['自由时间去哪（点＋加入行程）', 'Free-time ideas (tap ＋ to add)'])}
       ${shopDaysHTML()}
-      ${SHOPS.length ? `<a class="mlink" href="#d6-shops">${icon('bag')}${Z(`买东西（${SHOPS.length} 间店、退税）：在行程「分组自由购物」下面`, `Shopping (${SHOPS.length} shops, tax refund): under “Free shopping” in the schedule`)}</a>` : ''}
+      ${SHOPS.length ? `<a class="mlink" href="#free-shops">${icon('bag')}${Z(`买东西（${SHOPS.length} 间店、退税）：在行程「分组自由购物」下面`, `Shopping (${SHOPS.length} shops, tax refund): under “Free shopping” in the schedule`)}</a>` : ''}
       ${grp('star', Z('想去清单', 'Wishlist'), cnt(wish), wish)}${grp('flag', Z('备选景点', 'Optional sights'), cnt(opt), opt)}${grp('snow', Z('雪具店', 'Snowboard gear'), cnt(snow), snow)}
       <p class="xsmall muted">${Z('也可以在「地图」搜任何地方（包括 Google），点＋加入。', 'Or search anything on the map (Google too) and tap ＋.')}</p></div>`;
 }
@@ -381,7 +389,7 @@ function shopDaysHTML() {
 	const fill = (s) =>
 		String(s)
 			.replace(/\{(d\d+)\}/g, (m, id) => (dayById[id] ? dl(id) : m))
-			.replace(/\{back\}/g, () => hm(d6Times().back));
+			.replace(/\{back\}/g, () => hm(leaveTimes().back));
 	const rows = (TRIP.shopDays || []).map(
 		(x) => `<li class="${x.ok ? 'ok' : 'no'}">${icon(x.ok ? 'check' : 'x')}<span>${fill(Z(x.zh, x.en))}</span></li>`,
 	);
@@ -391,8 +399,8 @@ function shopDaysHTML() {
     </ul></div>`;
 }
 // an added stop on the last day: the latest time to leave it and still collect the bags
-function d6Deadline(x) {
-	const back = d6Times().back;
+function leaveDeadline(x) {
+	const back = leaveTimes().back;
 	const t = toHotelMin(x);
 	return { by: Math.floor((back - t) / 5) * 5, t, back };
 } // rounded down to 5 min
@@ -406,9 +414,9 @@ function mineStopHTML(d, x, prevLL) {
       ${x.addr ? `<p class="stop-note">${esc(x.addr)}</p>` : ''}
       ${cl ? `<p class="warn">${icon('alert')}${esc(Z(`接近固定行程：${L(cl.t)} ${L(cl.what).replace(/\*\*/g, '')}`, `Close to a fixed time: ${L(cl.t)} ${L(cl.what).replace(/\*\*/g, '')}`))}</p>` : ''}
       ${
-				d.id === 'd6'
+				d.id === ROLE.leave
 					? (() => {
-							const D = d6Deadline(x);
+							const D = leaveDeadline(x);
 							const late = tMin(x.t) + 30 > D.by;
 							return `<p class="${late ? 'warn' : 'stop-note'}">${icon(late ? 'alert' : 'clock')} ${esc(Z(`最晚 ${hm(D.by)} 离开这里（回酒店约${D.t}分钟，${hm(D.back)}拿行李）`, `Leave here by ${hm(D.by)} (~${D.t} min back to the hotel, bags at ${hm(D.back)})`))}</p>`;
 						})()
@@ -427,11 +435,17 @@ const addBtn = (n, lat, lng, gpid, q, addr) =>
 		: `<button type="button" class="mlink add-btn" data-add="${esc(JSON.stringify({ n, lat: +lat, lng: +lng, gpid: gpid || null, q: q || n, addr: addr || '' }))}">${icon('plus')}${Z('加入行程', 'Add to plan')}</button>`;
 function addSheet(item) {
 	addItem = item;
-	const td = DAYS.find((d) => d.date === tpNow().date && d.id !== 'd7');
-	const day = item.day || (td ? td.id : 'd6');
-	const t = item.t || (td ? `${String(Math.min(22, Math.floor(tpNow().mins / 60) + 1)).padStart(2, '0')}:00` : day === 'd6' ? '14:00' : '12:00');
+	const td = DAYS.find((d) => d.date === tpNow().date && d.id !== ROLE.flight);
+	const day = item.day || (td ? td.id : ROLE.free);
+	const t =
+		item.t ||
+		(td
+			? `${String(Math.min(22, Math.floor(tpNow().mins / 60) + 1)).padStart(2, '0')}:00`
+			: day === ROLE.free && dayById[day].freeFrom
+				? hm(tMin(dayById[day].freeFrom) + 60)
+				: '12:00');
 	return `<h3 class="spots-h">${icon('plus')}${esc(item.id ? Z('改时间', 'Change the time') : Z('加入行程', 'Add to my plan'))}</h3><p class="add-name">${esc(item.n)}</p>${item.addr ? `<p class="xsmall muted">${esc(item.addr)}</p>` : ''}
-      <p class="sub-h">${Z('哪一天', 'Which day')}</p><div class="add-days" role="group">${DAYS.filter((d) => d.id !== 'd7')
+      <p class="sub-h">${Z('哪一天', 'Which day')}</p><div class="add-days" role="group">${DAYS.filter((d) => d.id !== ROLE.flight)
 				.map(
 					(d) =>
 						`<button type="button" class="seg-btn dayf" style="${colorVars(d.c)}" data-add-day="${d.id}" aria-pressed="${d.id === day}">${+d.date.slice(8)} ${esc(L(d.dow))}</button>`,
@@ -444,7 +458,7 @@ function addSheet(item) {
 }
 // "+" under a dot: add a stop right after this one
 const gapBtn = (d, key) =>
-	d.id === 'd7'
+	d.id === ROLE.flight
 		? ''
 		: `<button type="button" class="knot-add" data-add-gap="${d.id}|${esc(key)}" aria-label="${Z('在这之后加一站', 'Add a stop after this')}">${icon('plus')}</button>`;
 function gapContext(dayId, key) {
@@ -496,7 +510,7 @@ function addFindSheet(dayId, ctx = {}) {
       <label class="map-q add-q">${icon('search')}<input type="search" data-addq enterkeyhint="search" autocomplete="off" placeholder="${Z('店名、景点、地址…', 'Shop, sight, address…')}" aria-label="${Z('搜地点', 'Search places')}"></label>
       <div class="add-cats" role="group" aria-label="${Z('分类', 'Category')}">${ADD_CATS.map(([k, l]) => `<button type="button" class="seg-btn" data-addcat="${k}" aria-pressed="${k === 'all'}">${esc(L(l))}</button>`).join('')}</div>
       <div class="add-sort" role="group" aria-label="${Z('排序', 'Sort')}">${ctx.ll ? `<button type="button" class="seg-btn" data-addsort="near" aria-pressed="${addSort === 'near'}">${icon('pin')}${Z('离上一站近', 'Nearest to the stop before')}</button>` : ''}<button type="button" class="seg-btn" data-addsort="rate" aria-pressed="${addSort === 'rate'}">${icon('star')}${Z('评分高', 'Top rated')}</button></div>
-      <div class="add-res" data-add-res></div>${dayId === 'd6' ? `<p class="xsmall"><a class="mlink" href="#d6-ideas" data-close>${icon('star')}${Z('看「自由时间去哪」清单', 'See the free-time ideas')}</a></p>` : ''}`;
+      <div class="add-res" data-add-res></div>${dayId === ROLE.free ? `<p class="xsmall"><a class="mlink" href="#free-ideas" data-close>${icon('star')}${Z('看「自由时间去哪」清单', 'See the free-time ideas')}</a></p>` : ''}`;
 }
 // everything addable, with a category, a rating and "closed that day" when we know it
 function addPool() {
@@ -600,8 +614,8 @@ function addClashNote() {
 	const day = ($('[data-add-day][aria-pressed="true"]') || {}).dataset?.addDay;
 	const tv = ($('[data-add-t]') || {}).value;
 	const cl = day && mineClash(day, tv);
-	if (!cl && day === 'd6' && addItem && tMin(tv) != null) {
-		const D = d6Deadline(addItem);
+	if (!cl && day === ROLE.leave && addItem && tMin(tv) != null) {
+		const D = leaveDeadline(addItem);
 		if (tMin(tv) + 30 > D.by) {
 			el.innerHTML = `${icon('alert')} ${esc(Z(`太晚了：这里最晚 ${hm(D.by)} 要离开（回酒店约${D.t}分钟，${hm(D.back)}拿行李）`, `Too late: leave here by ${hm(D.by)} (~${D.t} min to the hotel, bags at ${hm(D.back)})`))}`;
 			return;
@@ -725,15 +739,7 @@ function secDay(d, today) {
         ${it.photo ? thumb(it.photo) : ''}</div></li>`;
 	});
 	const sched = mineMerge(d, planned);
-	const foodSlots =
-		{
-			d1: ['d1-ningxia', 'd1-hotel'],
-			d2: ['d2-lunch', 'd2-dessert', 'd2-dinner'],
-			d3: ['d3-lunch', 'd3-dinner'],
-			d4: ['d4-jiufen', 'd4-shifen'],
-			d5: ['d5-lunch', 'd5-dinner'],
-			d6: ['d6-meals'],
-		}[d.id] || [];
+	const foodSlots = d.foodSlots || []; // the day's researched food slots (extra.json food[].slot)
 	const tickets = d.tickets || []; // the day's ticket/booking cards (ids in extra.json tickets)
 	const tix = tickets
 		.map((t) => ticketBlock(t))
@@ -753,9 +759,9 @@ function secDay(d, today) {
         </div>
       </div>
       ${d.lede ? `<p class="day-lede">${fmt(d.lede)}</p>` : ''}
-      ${d.id === 'd6' ? d6BudgetHTML() : ''}${d.id === 'd1' ? `<div class="block d1-flight">${fltEditHTML('arr')}</div>` : ''}
-      <div class="block">${blockH(d.stepsTitle ? 'list' : 'clock', [stopsTitle, stopsTitle])}${shiftBanner(d)}<ol class="sched">${sched}</ol>${d.id !== 'd7' ? `<button type="button" class="go-btn ghost add-stop" data-add-open="${d.id}">${icon('plus')}${Z(`加一站到 Day ${d.n}`, `Add a stop to Day ${d.n}`)}</button>` : ''}</div>
-      ${d.id === 'd6' ? d6IdeasHTML() : ''}
+      ${d.id === ROLE.leave ? leaveBudgetHTML() : ''}${d.id === ROLE.arrive ? `<div class="block arrive-flight">${fltEditHTML('arr')}</div>` : ''}
+      <div class="block">${blockH(d.stepsTitle ? 'list' : 'clock', [stopsTitle, stopsTitle])}${shiftBanner(d)}<ol class="sched">${sched}</ol>${d.id !== ROLE.flight ? `<button type="button" class="go-btn ghost add-stop" data-add-open="${d.id}">${icon('plus')}${Z(`加一站到 Day ${d.n}`, `Add a stop to Day ${d.n}`)}</button>` : ''}</div>
+      ${d.id === ROLE.free ? freeIdeasHTML() : ''}
       ${photos.length ? `<div class="photos" role="list">${photos.map((p) => figure(p)).join('')}</div>` : ''}
       ${tix ? `<div class="block">${blockH('ticket', ['门票与怎么订', 'Tickets & how to book'])}<div class="stack">${tix}</div></div>` : ''}
       ${d.blocks.map((b) => renderBlock(b, d)).join('')}
@@ -774,7 +780,7 @@ function secMap() {
       <div class="map-top"><p class="map-top-t">${icon('map')}${Z('地图', 'Map')}</p><button type="button" class="mlink map-exit" data-mapfull="0" aria-label="${Z('退出全屏', 'Exit full screen')}">${icon('x')}<span class="dlbl">${Z('退出全屏', 'Exit full screen')}</span></button></div>
       <div class="map-ctrl" role="group" aria-label="${Z('地图范围', 'Map area')}">${views.map(([k, l]) => `<button type="button" class="seg-btn" data-view="${k}">${esc(L(l))}</button>`).join('')}</div>
       <div class="map-ctrl days" role="group" aria-label="${Z('按日期筛选', 'Filter by day')}"><button type="button" class="seg-btn" data-filter="all" aria-pressed="true">${Z('全部天', 'All days')}</button>${DAYS.filter(
-				(d) => d.id !== 'd7',
+				(d) => d.id !== ROLE.flight,
 			)
 				.map(
 					(d) =>
@@ -916,7 +922,7 @@ function secOptional() {
         <p class="note"><strong>${Z('什么时候', 'When')}:</strong> ${fmt(s.when)}</p>${list(s.list)}
         ${a.zh ? `<p class="addr">${icon('pin')}<span>${esc(a.zh)}${lang === 'en' && a.en ? `<br><span class="xsmall">${esc(a.en)}</span>` : ''}</span></p>` : ''}
         ${p.mrt ? `<p class="xsmall">${icon('train')} ${fmt(p.mrt)}</p>` : ''}${p.hours ? `<p class="xsmall">${icon('clock')} ${fmt(p.hours)}${p.tel ? ` · ${Z('电话', 'Tel')} <span class="sel">${esc(p.tel)}</span>` : ''}</p>` : ''}
-        <div class="links-row">${placeLinks(s.place, { noDriver: true })}${s.day ? `<a class="mlink" href="#${s.day}">${icon('calendar')}Day ${dayById[s.day].n}</a>` : ''}</div></article>`;
+        <div class="links-row">${placeLinks(s.place, { noDriver: true })}${dayById[s.day] ? `<a class="mlink" href="#${s.day}">${icon('calendar')}Day ${dayById[s.day].n}</a>` : ''}</div></article>`;
 	};
 	const opt = (o) => {
 		const a = addrFor(o.place);

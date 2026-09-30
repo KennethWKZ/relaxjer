@@ -74,7 +74,10 @@ function popupHTML(p) {
 				? `${lang === 'en' ? p.drink.tip_en : p.drink.tip_zh}${p.drink.rating ? ` · ★${p.drink.rating}` : ''}`
 				: '';
 	const q = p.q || addr || p.name;
-	const days = p.days.map((d) => `<span class="daychip" style="${colorVars(dayById[d].c)}">Day ${dayById[d].n}</span>`).join(' ');
+	const days = p.days
+		.filter((d) => dayById[d])
+		.map((d) => `<span class="daychip" style="${colorVars(dayById[d].c)}">Day ${dayById[d].n}</span>`)
+		.join(' ');
 	return `<div class="pop"><p class="pop-name">${esc(p.name)}</p>${meta ? `<p class="pop-meta">${esc(meta)}</p>` : ''}${days ? `<p class="pop-days">${days}</p>` : ''}${addr ? `<p class="pop-addr">${esc(addr)}</p>` : ''}${p.type === 'mrt' ? `<p class="pop-addr">${esc(p.near || '')}</p>` : popMrt(p)}${meLL && !farAway() ? planHTML(p, true) : ''}
       <div class="links-row">${ext(gmSearch(q), Z('地图', 'Map'), 'pin')}${ext(gmDir(q, 'transit'), Z('路线', 'Directions'), 'route')}<button type="button" class="mlink" data-more="1">${icon('info')}${Z('详情', 'Details')}</button></div></div>`;
 }

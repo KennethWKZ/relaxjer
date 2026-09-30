@@ -26,7 +26,6 @@ export const REQUIRED = [
 	'ENTRY_CHECKS',
 ];
 // the legacy engine looks these up by name (docs/roadmap.md: engine debt)
-export const LEGACY_DAY_IDS = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'];
 export const LEGACY_PLACE_IDS = ['hotel', 'tpe1', 'tpe2'];
 // the trip's own settings the engine reads (it used to hard-code them)
 export const TRIP_FIELDS = ['brand', 'description', 'pax', 'tz', 'currency', 'checked', 'arriveCity', 'searchHint', 'footer'];
@@ -89,9 +88,12 @@ export function checkTrip(trip) {
 	for (const v of TRIP.mapViews || [])
 		if (!v.id || !Array.isArray(v.name) || !(Array.isArray(v.bbox) && v.bbox.length === 4))
 			bad(`TRIP.mapViews ${v.id}: needs id, name [zh, en] and bbox [w, s, e, n]`);
-	// days: the legacy ids, consecutive dates from TRIP.start to TRIP.end
+	// days: any number, ids d1…dN in order, consecutive dates from TRIP.start to TRIP.end. The engine reads each day's
+	// role from the data (first day = arrival, the airport evening from the return flight), never from a fixed id.
 	const ids = DAYS.map((d) => d.id);
-	if (ids.join() !== LEGACY_DAY_IDS.join()) bad(`day ids must be ${LEGACY_DAY_IDS.join(',')} for the legacy engine, got ${ids.join(',')}`);
+	if (!ids.length) bad('DAYS is empty');
+	if (ids.some((id, i) => id !== `d${i + 1}`)) bad(`day ids must run d1…d${ids.length} in order, got ${ids.join(',')}`);
+	if (DAYS.filter((d) => d.freeFrom).length > 1) bad('only one day can be the free-time day (freeFrom)');
 	if (DAYS[0]?.date !== TRIP.start) bad(`first day ${DAYS[0]?.date} is not TRIP.start ${TRIP.start}`);
 	if (DAYS.at(-1)?.date !== TRIP.end) bad(`last day ${DAYS.at(-1)?.date} is not TRIP.end ${TRIP.end}`);
 	DAYS.forEach((d, i) => {
@@ -118,6 +120,9 @@ export function checkTrip(trip) {
 			if (m < last) bad(`${where}: ${JSON.stringify(it.t)} is earlier than the stop before`);
 			last = m;
 		});
+		if (d.foodSlots && !(Array.isArray(d.foodSlots) && d.foodSlots.every((x) => typeof x === 'string'))) bad(`${d.id}: foodSlots must be slot names`);
+		if (d.freeEvening != null && typeof d.freeEvening !== 'boolean') bad(`${d.id}: freeEvening must be true or false`);
+		if (d.freeFrom != null && minutes(d.freeFrom) == null) bad(`${d.id}: freeFrom must be HH:MM`);
 		for (const [k, leg] of (d.route || []).entries()) {
 			if (!Array.isArray(leg) || !PLACES[leg[0]] || !PLACES[leg[1]] || !MODES.has(leg[2]))
 				bad(`${d.id} route leg ${k}: needs [known place, known place, ${[...MODES].join('|')}], got ${JSON.stringify(leg)}`);
@@ -132,6 +137,24 @@ export function checkTrip(trip) {
 	for (const p of LEGACY_PLACE_IDS) if (!PLACES[p]) bad(`missing place "${p}" (the legacy engine looks it up by name)`);
 	for (const s of LEGACY_SITE_IDS) if (!SITES[s]) bad(`missing site "${s}" (the legacy engine looks it up by name)`);
 	for (const [id, p] of Object.entries(PLACES)) if (!Array.isArray(p.name) || !p.maps) bad(`place ${id}: needs name [zh, en] and a maps query`);
+	// other data that points at a day must point at one this trip has
+	const dayIds = new Set(DAYS.map((d) => d.id));
+	for (const [where, list] of [
+		['SNOW.shops', trip.SNOW?.shops],
+		['WEATHER.outfits', trip.WEATHER?.outfits],
+	])
+		for (const [k, x] of (list || []).entries()) if (x.day && !dayIds.has(x.day)) bad(`${where}[${k}].day: no day "${x.day}" in this trip`);
+	const plan = FLIGHTS?.ret?.plan;
+	if (plan) {
+		for (const k of ['back', 'leave', 'airport', 'latest', 'road'])
+			if (plan[k] != null && !(plan[k] >= 0)) bad(`FLIGHTS.ret.plan.${k}: minutes, 0 or more`);
+		if (plan.route && !isLabel(plan.route)) bad('FLIGHTS.ret.plan.route must be [zh, en]');
+		for (const [k, x] of (plan.steps || []).entries()) {
+			if (!Array.isArray(x.at) || !x.at.length || x.at.some((a) => !(typeof a === 'number' ? a >= 0 : minutes(a) != null)))
+				bad(`FLIGHTS.ret.plan.steps[${k}].at: one or two times, each HH:MM or minutes before take-off`);
+			if (!isLabel(x.what)) bad(`FLIGHTS.ret.plan.steps[${k}].what must be [zh, en]`);
+		}
+	}
 	for (const k of ['out', 'ret']) {
 		const f = FLIGHTS[k];
 		if (!f || minutes(f.dep) == null || minutes(f.arr) == null || !/^\d{4}-\d\d-\d\d$/.test(f.date || ''))

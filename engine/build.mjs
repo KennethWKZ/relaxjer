@@ -9,6 +9,7 @@ import os from 'node:os';
 import path from 'node:path';
 import vm from 'node:vm';
 import { rangeLabel } from './src/core/time.mjs';
+import { dayRoles } from './src/core/plan.mjs';
 
 const argv = process.argv.slice(2);
 const arg = (name, fallback) => {
@@ -175,8 +176,10 @@ console.log(
 {
 	const c2 = {};
 	vm.createContext(c2);
-	vm.runInContext(data + ';this.PLACES=PLACES;this.DAYS=DAYS;this.SNOW=SNOW;this.OPTIONAL=OPTIONAL;this.TRIP=TRIP;', c2);
-	const { PLACES, DAYS, SNOW, OPTIONAL, TRIP } = c2;
+	vm.runInContext(data + ';this.PLACES=PLACES;this.DAYS=DAYS;this.SNOW=SNOW;this.OPTIONAL=OPTIONAL;this.TRIP=TRIP;this.FLIGHTS=FLIGHTS;', c2);
+	const { PLACES, DAYS, SNOW, OPTIONAL, TRIP, FLIGHTS } = c2;
+	// one layer per day, except a day that holds only an after-midnight take-off
+	const planDays = DAYS.filter((d) => d.id !== dayRoles(DAYS, FLIGHTS.ret).flight);
 	const K = TRIP.kml || {}; // the trip's KML layer names and the places that go on its hotel/transport layer
 	const X = (s) => String(s ?? '').replace(/[<>&]/g, (ch) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' })[ch]);
 	const gm = (q) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
@@ -184,7 +187,7 @@ console.log(
 	const kmlColor = (hex) => `ff${hex.slice(4, 6)}${hex.slice(2, 4)}${hex.slice(0, 2)}`; // aabbggrr
 	const layers = [
 		{ id: 'hotel', name: '酒店与交通 Hotel & transport', color: '15161a', items: [] },
-		...DAYS.slice(0, 6).map((d) => ({
+		...planDays.map((d) => ({
 			id: d.id,
 			name: `Day ${d.n} · ${d.date.slice(5).replace('-', '/')} ${d.dow[1]} · ${d.title[0]}`,
 			color: DAYCOL[d.c],
@@ -198,7 +201,7 @@ console.log(
 	const add = (layer, key, it) => {
 		if (seen.has(key) || it.lat == null || it.lng == null) return;
 		seen.add(key);
-		L[layer].items.push(it);
+		(L[layer] || L.optional).items.push(it); // a day this trip doesn't have: with the optional places
 	};
 	const placeItem = (pid, extra = '') => {
 		const p = PLACES[pid],
@@ -220,7 +223,7 @@ console.log(
 		const it = placeItem(pid);
 		if (it) add('hotel', pid, { ...it, kind: pid === 'hotel' ? '酒店 Hotel' : '交通 Transport' });
 	});
-	DAYS.slice(0, 6).forEach((d) => {
+	planDays.forEach((d) => {
 		d.schedule.forEach((s) => {
 			if (!s.place) return;
 			const t = Array.isArray(s.t) ? s.t[0] : s.t || '';
@@ -235,8 +238,8 @@ console.log(
 		);
 	});
 	(extra.food || []).forEach((f, i) => {
-		const m = f.slot.match(/^d(\d)/);
-		const layer = m ? 'd' + m[1] : 'optional';
+		// on the layer of the day that lists its slot (DAYS[].foodSlots), else with the optional places
+		const layer = (planDays.find((d) => (d.foodSlots || []).includes(f.slot)) || { id: 'optional' }).id;
 		add(layer, 'food' + i, {
 			name: `${f.name_trad}${f.name_en ? ' · ' + f.name_en : ''}`,
 			lat: f.lat,
@@ -263,7 +266,7 @@ console.log(
 		.filter((w) => w.status !== 'closed')
 		.forEach((w) => {
 			const f0 = (w.fits || [])[0];
-			const layer = f0 && /^d[1-6]$/.test(f0.day) ? f0.day : 'wish';
+			const layer = f0 && L[f0.day] && planDays.some((d) => d.id === f0.day) ? f0.day : 'wish'; // a day of this trip, else the wishlist layer
 			(w.branches || []).forEach((br, bi) =>
 				add(layer, `wish-${w.id}-${bi}`, {
 					name: `★ ${w.name_trad || w.name_zh}${w.name_en ? ' · ' + w.name_en : ''}${w.branches.length > 1 && br.label_zh ? ' (' + br.label_zh + ')' : ''}`,

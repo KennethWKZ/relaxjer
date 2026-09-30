@@ -1,5 +1,5 @@
 /* ───────── wishlist ───────── */
-const TRIP_DATES = DAYS.slice(0, 6).map((d) => d.date);
+const TRIP_DATES = DAYS.filter((d) => d.id !== ROLE.flight).map((d) => d.date);
 const WISH_ICON = {
 	food: 'food',
 	snack: 'food',
@@ -54,7 +54,7 @@ function wishCard(w) {
 }
 function wishForDay(d) {
 	const items = WISH.filter(
-		(w) => w.status !== 'closed' && (w.fits || []).some((f) => f.day === d.id || (f.day === 'any-evening' && ['d1', 'd4'].includes(d.id))),
+		(w) => w.status !== 'closed' && (w.fits || []).some((f) => f.day === d.id || (f.day === 'any-evening' && d.freeEvening)),
 	).sort((a, b) => (b.must ? 1 : 0) - (a.must ? 1 : 0));
 	if (!items.length) return '';
 	return `<div class="block">${blockH('star', ['顺路还可以去（想去清单）', 'Also nearby (wishlist)'])}<ul class="wish-rows">${items
@@ -125,7 +125,7 @@ function secEat() {
 function secWish() {
 	if (!WISH.length) return '';
 	const buckets = [
-		...DAYS.slice(0, 6).map((d) => ({ k: d.id, h: `Day ${d.n} · ${dateLabel(d.date, d.dow)} · ${L(d.title)}`, c: d.c })),
+		...DAYS.filter((d) => d.id !== ROLE.flight).map((d) => ({ k: d.id, h: `Day ${d.n} · ${dateLabel(d.date, d.dow)} · ${L(d.title)}`, c: d.c })),
 		{ k: 'any-evening', h: Z('酒店附近 · 任何晚上', 'Near the hotel · any evening') },
 		{ k: 'special', h: Z('要专程去', 'Needs its own trip') },
 	];
@@ -206,7 +206,13 @@ function secWeather() {
       <h3 class="sub">${icon('list')}${Z('每天检查', 'Check each day')}</h3>
       <div class="pills">${W.items.map((x) => `<span class="tag">${fmt(x)}</span>`).join('')}</div>
       <h3 class="sub">${icon('shirt')}${Z('怎么穿', 'Outfits')}</h3>
-      <div class="stack">${W.outfits.map((o) => `<a class="wear outfit" href="#${o.day}" style="${colorVars(dayById[o.day].c)}"><span class="sw" aria-hidden="true"></span><span><span class="xsmall">${fmt(o.h)}</span><span class="wear-main" style="display:block">${fmt(o.main)}</span><span class="note" style="display:block">${fmt(o.note)}</span></span></a>`).join('')}</div>
+      <div class="stack">${W.outfits
+				.filter((o) => dayById[o.day])
+				.map(
+					(o) =>
+						`<a class="wear outfit" href="#${o.day}" style="${colorVars(dayById[o.day].c)}"><span class="sw" aria-hidden="true"></span><span><span class="xsmall">${fmt(o.h)}</span><span class="wear-main" style="display:block">${fmt(o.main)}</span><span class="note" style="display:block">${fmt(o.note)}</span></span></a>`,
+				)
+				.join('')}</div>
     </section>`;
 }
 

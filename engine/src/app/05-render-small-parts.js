@@ -76,7 +76,7 @@ const REST_KIND = { tea: ['茶馆', 'Teahouse'], dessert: ['甜品', 'Dessert'],
 // which timeline stops are meals, and which researched food slots (extra.json) suit them: each day's `mealAt`
 // in the trip data, [[stop-name pattern, [[meal, [slot, …]], …]], …]
 const MEAL_AT = Object.fromEntries(DAYS.filter((d) => d.mealAt).map((d) => [d.id, d.mealAt]));
-const HOTEL_AREA = new Set(['bk-hotel', 'sup-hotel', 'd1-hotel']);
+const HOTEL_AREA = new Set(['bk-hotel', 'sup-hotel', ...(TRIP.hotelSlots || [])]); // food slots that mean "near the hotel"
 const WISH_FOOD = new Set(['food', 'snack', 'dessert', 'drink', 'market']);
 const SLOT_MEALS = (slot) =>
 	/^bk-/.test(slot)

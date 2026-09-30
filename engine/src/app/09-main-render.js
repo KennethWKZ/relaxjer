@@ -4,8 +4,6 @@
 const fltArr = () => store.get('fltArr', '') || FLIGHTS.out.arr;
 const fltDep = () => store.get('fltDep', '') || FLIGHTS.ret.dep;
 const depMin = () => Plan.depMinutes(tMin(fltDep())); // minutes from the evening-before's midnight: 00:20 = 1460
-// the evening the group leaves for the airport: the day before an after-midnight take-off
-const departEve = () => (tMin(FLIGHTS.ret.dep) < 12 * 60 ? Time.addDays(FLIGHTS.ret.date, -1) : FLIGHTS.ret.date);
 const nextDay = () => [Time.shortDate(FLIGHTS.ret.date, 'zh'), Time.shortDate(FLIGHTS.ret.date, 'en')]; // e.g. "3/19", "19 Mar"
 // when a trip's shop hours and prices were checked (TRIP.checked, YYYY-MM-DD): 'short' 9月30日 / 30 Sep, 'ymd' 2026/9/30, 'long' 30 Sep 2026, 'md' 9/30
 const checkedOn = (form) => {

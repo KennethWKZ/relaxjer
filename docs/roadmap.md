@@ -23,7 +23,8 @@ Step 3 (2026-09-30) paid: dates, group name, group size, currency, time zone, da
 map areas, meal slots, shopping notes, the per-person share gaps (all now trip data, `docs/trip-format.md`).
 **Still in the engine** (step 3b, in progress: the `tw` destination pack and generic day roles):
 
-- day roles `d1` arrival / `d4` charter / `d6` last full day / `d7` departure, and place ids `hotel`, `tpe1`, `tpe2`
+- ~~day roles `d1`…`d7`~~: read from the data since 2026-10-01 (`Plan.dayRoles`, any trip length; a 4-day trip made
+  from the demo runs the trip-agnostic e2e, `pnpm test:e2e:short`). Place ids `hotel`, `tpe1`, `tpe2` are still fixed
 - Taiwan-only features: tax refund (NT$2,000 chip), lucky draw amounts, Taipei MRT planner and taxi meter, YouBike
 - output file names `taipei-trip*.html`; the snowboard-gear section's name; a few Taiwan examples in UI copy
 

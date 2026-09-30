@@ -47,6 +47,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile && pnpm exec playwright install --with-deps chromium webkit
       - run: pnpm test:e2e
+      - run: pnpm test:e2e:short # the same trip-agnostic suite on a 4-day trip made from the demo
       - if: failure()
         uses: actions/upload-artifact@v4
         with:

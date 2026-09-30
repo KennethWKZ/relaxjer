@@ -24,6 +24,7 @@ every field in use.
 | `shopDays` | `[{ ok, zh, en }]` | "which days suit shopping" notes; `{d3}` becomes Day 3's date, `{back}` the time to collect bags on the last day |
 | `addStopNote` | `[zh, en]` | the note under "add a stop" |
 | `kml` | `{ optional, transport: [place ids] }` | Google My Maps export: the optional layer's name, the places on the hotel/transport layer |
+| `hotelSlots` | `['d1-hotel']` | food slots that mean "near the hotel" (the breakfast `bk-hotel` and supper `sup-hotel` slots always do) |
 
 Group figures are written in the data as `"NT$1,200–1,800 / 五人"` (zh) and `"NT$1,200–1,800 for 5"` (en), with the
 trip's own currency symbol and group size; the page adds the per-person share. `**bold**` works in all text.
@@ -37,12 +38,31 @@ trip's own currency symbol and group size; the page adds the per-person share. `
 | `mealAt` | which stops are meals and which researched food slots (`extra.json`) suit them: `[[/stop name/, [[meal, [slot, …]]]], …]` |
 | `tickets` | ticket / booking cards for the day (ids from `extra.json` `tickets`) |
 | `forecastSpot` | the forecast spot for that day |
+| `foodSlots` | the researched food slots listed under the day ("Where to eat") |
+| `freeEvening` | `true`: wishlist items that fit "any evening" are suggested on this day |
+| `freeFrom` | `'13:00'`: this day has free time from then; it gets the free-time ideas list (one day at most) |
+
+Days can be any number, ids `d1`…`dN` in order. The engine reads each day's role from the data (`Plan.dayRoles`):
+the first day is the arrival; the day the group leaves for the airport is the evening before an after-midnight
+take-off, else the flight's own day; a day after it that holds only the early take-off gets no tab and no added stops.
+
+## The airport evening (`FLIGHTS.ret.plan`)
+
+The leave day's timeline, worked back from take-off (and recomputed when someone types a delay):
+
+| Field | Example | What it drives |
+|---|---|---|
+| `back`, `leave`, `airport` | `350`, `305`, `230` | the plan, in minutes before take-off: back at the hotel for the bags, leave, at the airport |
+| `latest`, `road` | `180`, `75` | the latest arrival at the airport and the longest road there: the "leave by" warning |
+| `route` | `[zh, en]` | one line under the flight ("Taoyuan T1 → Kuala Lumpur. Boarding time is …") |
+| `steps` | `[{ at: ['13:00', 440], what: [zh, en], by }]` | the lines: `at` holds one or two times, each `'HH:MM'` or minutes before take-off; `by: true` prefixes "By"; in `what`, `{latest}` is the latest time to leave and `{-N}` the time N minutes before take-off |
+
+The take-off line and its date ("Take-off (19th)") are added by the engine.
 
 Also read: `OPTIONAL[i].ticket` and `OPTIONAL[i].food: { slots, h }`, `BUDGET.airportNote` and `BUDGET.chartNote`,
 and `AIRPORT.mrtFare`.
 
 ## Still fixed in the engine
 
-The day roles are fixed: `d1` is arrival, `d6` the last full day, `d7` departure. The place ids `hotel`, `tpe1` and
-`tpe2` are fixed too. The Taiwan-only features are the tax refund, the lucky draw, the Taipei MRT planner and taxi
-meter, and YouBike. All of these move into the `tw` destination pack next; `docs/roadmap.md` lists them.
+The place ids `hotel`, `tpe1` and `tpe2` are fixed. The Taiwan-only features (the tax refund, the lucky draw, the
+Taipei taxi meter, YouBike) move into the `tw` destination pack; `docs/roadmap.md` lists what is left.

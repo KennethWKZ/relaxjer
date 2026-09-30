@@ -1,11 +1,20 @@
 // The page renders every section from trip data alone, offline, without errors, and keeps closed lists unbuilt.
 import { test, expect, openTrip } from '../support/fixtures.mjs';
 
-const TABS = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'map', 'airport', 'entry', 'optional', 'wish', 'eat', 'budget', 'weather', 'checklist', 'rules'];
+const TABS = ['map', 'airport', 'entry', 'optional', 'wish', 'eat', 'budget', 'weather', 'checklist', 'rules'];
+// every day gets a section except a day that holds only an after-midnight take-off (it follows the airport evening)
+const daySections = (page) =>
+	page.evaluate(() => {
+		/* global DAYS, FLIGHTS */
+		const early = +FLIGHTS.ret.dep.slice(0, 2) < 12;
+		return DAYS.filter((d, i) => !(early && d.date === FLIGHTS.ret.date && i > 0)).map((d) => d.id);
+	});
 
 test('renders every section with no outside network', async ({ page, blocked }) => {
 	await openTrip(page);
-	for (const id of TABS) await expect(page.locator(`#${id}[data-sec]`), `section #${id}`).toBeAttached();
+	const days = await daySections(page);
+	expect(days.length, 'the trip has days').toBeGreaterThan(0);
+	for (const id of [...days, ...TABS]) await expect(page.locator(`#${id}[data-sec]`), `section #${id}`).toBeAttached();
 	await expect(page.locator('html')).toHaveAttribute('lang', 'en');
 	// the guard aborted every outside request and the page still rendered; list what it tried, for the report
 	test.info().annotations.push({ type: 'blocked hosts', description: [...new Set(blocked)].sort().join(', ') || 'none' });
@@ -14,7 +23,7 @@ test('renders every section with no outside network', async ({ page, blocked }) 
 test('each tab points at a section that exists', async ({ page }) => {
 	await openTrip(page);
 	const targets = await page.locator('.tab[href^="#"]').evaluateAll((as) => as.map((a) => a.getAttribute('href').slice(1)));
-	expect(targets.length).toBeGreaterThanOrEqual(TABS.length);
+	expect(targets.length).toBeGreaterThanOrEqual(TABS.length + (await daySections(page)).length);
 	for (const id of targets) await expect(page.locator(`[id="${id}"]`), `tab target #${id}`).toBeAttached();
 });
 

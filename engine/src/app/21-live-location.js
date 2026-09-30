@@ -268,7 +268,7 @@ function mapListOpen(on) {
 
 function mapReadyNow() {
 	const td = DAYS.find((d) => d.date === tpNow().date);
-	if (!mapWait.length && td && td.id !== 'd7') map.filter(td.id);
+	if (!mapWait.length && td && td.id !== ROLE.flight) map.filter(td.id);
 	else map.filter(mapDay); // 'all' keeps the drink pins out of the overview
 	const q = mapWait.splice(0);
 	q.forEach((f) => {

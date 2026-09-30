@@ -19,3 +19,8 @@ function nowNext(day, mins) {
 	}
 	return { cur, next };
 }
+
+// the evening the group leaves for the airport: the day before an after-midnight take-off
+const departEve = () => (Time.clockMinutes(FLIGHTS.ret.dep) < 12 * 60 ? Time.addDays(FLIGHTS.ret.date, -1) : FLIGHTS.ret.date);
+// which day does what (arrival, airport evening, flight-only day, free-time day), from the trip data: Plan.dayRoles
+const ROLE = Plan.dayRoles(DAYS, FLIGHTS.ret);

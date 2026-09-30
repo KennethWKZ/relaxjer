@@ -31,6 +31,22 @@ test('Time: dates and labels', () => {
 	assert.equal(Time.rangeLabel('2027-03-30', '2027-04-02', 'en'), '30 Mar – 2 Apr');
 });
 
+test('Time: ordinals', () => {
+	assert.deepEqual([1, 2, 3, 4, 11, 12, 13, 21, 22, 23, 30].map(Time.ordinal), [
+		'1st',
+		'2nd',
+		'3rd',
+		'4th',
+		'11th',
+		'12th',
+		'13th',
+		'21st',
+		'22nd',
+		'23rd',
+		'30th',
+	]);
+});
+
 test('Time: now in the destination, not on the phone', () => {
 	const at = new Date('2027-03-13T17:30:00Z'); // 01:30 next day in Taipei
 	assert.deepEqual(Time.nowIn('Asia/Taipei', at), { date: '2027-03-14', mins: 90 });
@@ -107,4 +123,16 @@ test('Plan: an added stop near a fixed time', () => {
 	assert.equal(Plan.nearFixed(1100, fixed), null); // 18:20 is 50 min before 19:10, outside the 45-min window
 	assert.equal(Plan.nearFixed(1240, fixed)?.id, 'concert'); // during it
 	assert.equal(Plan.nearFixed(900, fixed), null);
+});
+
+test('Plan: day roles come from the trip, any length', () => {
+	const days = (n) => Array.from({ length: n }, (_, i) => ({ id: `d${i + 1}`, date: `2027-03-${String(13 + i).padStart(2, '0')}` }));
+	// an after-midnight take-off: the group leaves on the evening before; the last day holds only the flight
+	assert.deepEqual(Plan.dayRoles(days(7), { dep: '00:45', date: '2027-03-19' }), { arrive: 'd1', leave: 'd6', flight: 'd7', free: 'd6' });
+	assert.deepEqual(Plan.dayRoles(days(4), { dep: '00:45', date: '2027-03-16' }), { arrive: 'd1', leave: 'd3', flight: 'd4', free: 'd3' });
+	// an evening flight: the last day is both the airport evening and the flight
+	assert.deepEqual(Plan.dayRoles(days(3), { dep: '21:10', date: '2027-03-15' }), { arrive: 'd1', leave: 'd3', flight: null, free: 'd3' });
+	// the free-time day is whichever day the data marks
+	const marked = days(5).map((d) => (d.id === 'd2' ? { ...d, freeFrom: '14:00' } : d));
+	assert.equal(Plan.dayRoles(marked, { dep: '10:00', date: '2027-03-17' }).free, 'd2');
 });

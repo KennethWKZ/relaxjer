@@ -119,6 +119,8 @@ const DAYS = [
 		date: '2027-03-13',
 		dow: ['六', 'Sat'],
 		c: 1,
+		foodSlots: ['d1-shilin'], // researched food (extra.json food[].slot) listed under the day
+		freeEvening: true, // wishlist items that fit "any evening" are suggested here
 		wish: '平安到',
 		gloss: ['', 'Arrive safe'],
 		mealAt: [
@@ -234,6 +236,7 @@ const DAYS = [
 		date: '2027-03-14',
 		dow: ['日', 'Sun'],
 		c: 2,
+		foodSlots: ['d2-lunch', 'd2-dinner'],
 		wish: '慢慢逛',
 		gloss: ['', 'Take it slow'],
 		mealAt: [
@@ -353,6 +356,7 @@ const DAYS = [
 		date: '2027-03-15',
 		dow: ['一', 'Mon'],
 		c: 3,
+		foodSlots: ['d3-lunch'],
 		wish: '泡温泉',
 		gloss: ['', 'Hot springs'],
 		mealAt: [
@@ -463,6 +467,7 @@ const DAYS = [
 		date: '2027-03-16',
 		dow: ['二', 'Tue'],
 		c: 4,
+		freeEvening: true,
 		wish: '看海去',
 		gloss: ['', 'To the sea'],
 		route: [
@@ -568,6 +573,7 @@ const DAYS = [
 		date: '2027-03-17',
 		dow: ['三', 'Wed'],
 		c: 5,
+		foodSlots: ['d5-lunch'],
 		wish: '上山听歌',
 		gloss: ['', 'Up the hill, then music'],
 		mealAt: [
@@ -657,6 +663,8 @@ const DAYS = [
 		date: '2027-03-18',
 		dow: ['四', 'Thu'],
 		c: 6,
+		foodSlots: ['d6-meals'],
+		freeFrom: '13:00', // this day's free time starts here: it gets the free-time ideas list
 		wish: '买买买再见',
 		gloss: ['', 'Shop, then fly'],
 		mealAt: [
@@ -917,6 +925,47 @@ const FLIGHTS = {
 		from: ['桃园 T1', 'Taoyuan T1'],
 		to: ['吉隆坡', 'Kuala Lumpur'],
 		dur: '4h 40m',
+		// the airport evening, in minutes before take-off: back at the hotel for the bags, leave, at the airport;
+		// latest = the last sensible arrival at the airport, road = the longest drive there
+		plan: {
+			back: 350,
+			leave: 305,
+			airport: 230,
+			latest: 180,
+			road: 75,
+			route: [
+				'桃园 T1 → 吉隆坡。登机时间在值机后的登机证上（通常起飞前约45分钟）。',
+				'Taoyuan T1 → Kuala Lumpur. Boarding time is on the boarding pass after check-in (usually ~45 min before).',
+			],
+			// `at`: "HH:MM" or minutes before take-off; {latest} = the latest time to leave, {-N} = N minutes before take-off
+			steps: [
+				{ at: ['13:00', 440], what: ['自由时间：下面「自由时间去哪」点＋加入', 'Free time: add places from "Free-time ideas" below'] },
+				{ at: [425], what: ['集合吃晚餐', 'Meet up for dinner'] },
+				{ by: true, at: [350], what: ['回酒店拿行李（约45分钟整理）', 'Back at the hotel for the bags (~45 min)'] },
+				{
+					at: [305, 290],
+					what: [
+						'出发去机场（最晚约{latest}）：计程车约60分钟，机场捷运约70分钟',
+						'Leave for the airport (latest ~{latest}): taxi ~60 min, Airport MRT ~70',
+					],
+				},
+				{
+					at: [230, 200],
+					what: [
+						'到 T1：柜台约起飞前3小时开（约{-180}），早到排前面',
+						'At T1: counters open ~3 h before (~{-180}); early means near the front of the queue',
+					],
+				},
+				{
+					by: true,
+					at: [60],
+					what: [
+						'托运完行李（柜台起飞前60分钟关）；安检＋出境约30–45分钟',
+						'Bags checked (counters close 60 min before); security + immigration ~30–45 min',
+					],
+				},
+			],
+		},
 	},
 };
 

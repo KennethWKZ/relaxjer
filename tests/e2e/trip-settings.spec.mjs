@@ -20,3 +20,22 @@ test.describe('trip settings', { tag: '@demo' }, () => {
 		await expect(page.locator('#depart')).toContainText('18 Mar');
 	});
 });
+
+// any trip, any length: the day roles come from the data (Plan.dayRoles), not from ids d1…d7
+test('the airport evening sits on the day the group leaves, with the take-off date', async ({ page }) => {
+	await openTrip(page);
+	const r = await page.evaluate(() => {
+		/* global DAYS, FLIGHTS */
+		const early = +FLIGHTS.ret.dep.slice(0, 2) < 12;
+		const eve = early ? new Date(Date.parse(FLIGHTS.ret.date) - 864e5).toISOString().slice(0, 10) : FLIGHTS.ret.date;
+		const leave = (DAYS.find((d) => d.date === eve) || DAYS.at(-1)).id;
+		const flight = early ? (DAYS.find((d) => d.date === FLIGHTS.ret.date && d.id !== leave) || {}).id : null;
+		return { leave, flight, day: +FLIGHTS.ret.date.slice(8), early };
+	});
+	const budget = page.locator(`#${r.leave} #leave-budget`);
+	await expect(budget, `the airport evening is on ${r.leave}`).toHaveCount(1);
+	await expect(page.locator('#leave-budget'), 'and only there').toHaveCount(1);
+	if (r.early) await expect(budget.locator('.leave-line li').last()).toContainText(`(${r.day}`); // "Take-off (19th)"
+	if (r.flight) await expect(page.locator(`#${r.flight} .add-stop`), 'no stops to add on the flight-only day').toHaveCount(0);
+	await expect(page.locator(`#${r.leave} .add-stop`), 'the airport evening can take added stops').toHaveCount(1);
+});
