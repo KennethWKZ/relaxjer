@@ -49,3 +49,9 @@ export function dayRoles(days, ret) {
 	const free = (days.find((d) => d.freeFrom) || days.find((d) => d.id === leave)).id;
 	return { arrive: days[0].id, leave, flight, free };
 }
+
+/**
+ * The prefix a trip's page stores its state under (checklist, added stops, language…): TRIP.storageKey, else one per
+ * trip start date, so two trips opened from the same site never share state.
+ */
+export const storeKey = (trip) => trip.storageKey || `rj.${trip.start}.`;

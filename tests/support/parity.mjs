@@ -12,6 +12,8 @@ import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import http from 'node:http';
 import { ROOT } from './stage.mjs';
+import { storeKey } from '../../engine/src/core/plan.mjs';
+import { loadTrip } from './trip-contract.mjs';
 
 const argv = process.argv.slice(2);
 const arg = (n, f) => {
@@ -26,6 +28,7 @@ if (!ref === !live) {
 	console.error('usage: node tests/support/parity.mjs (--ref <commit> | --live <legacy repo>) --trip <dir> [--ref-data <dir>]');
 	process.exit(2);
 }
+const STORE_KEYS = [...new Set(['tp5.', storeKey(loadTrip(trip).TRIP), storeKey(loadTrip(refData).TRIP)])];
 const work = path.join(ROOT, '.cache', 'parity');
 fs.rmSync(work, { recursive: true, force: true });
 
@@ -36,7 +39,11 @@ const build = (engineDir, tripDir, out) => {
 		env: { PATH: process.env.PATH },
 		stdio: 'pipe',
 	});
-	return path.join(out, 'taipei-trip-standalone.html');
+	// <TRIP.fileName>-standalone.html (older engines always wrote taipei-trip-standalone.html)
+	return path.join(
+		out,
+		fs.readdirSync(out).find((f) => f.endsWith('-standalone.html')),
+	);
 };
 
 // the legacy repo builds itself from src/ + img/ and reads its key from ./.share/, which the copy leaves out (no key,
@@ -77,11 +84,14 @@ async function sections(which, lang) {
 	const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, timezoneId: 'Asia/Taipei' });
 	await ctx.route(/^https?:\/\/(?!127\.0\.0\.1)/, (r) => r.abort());
 	await ctx.addInitScript(
-		({ lang }) => {
-			localStorage.setItem('tp5.lang', JSON.stringify(lang));
-			localStorage.setItem('tp5.now', JSON.stringify('2020-01-01 09:00'));
+		({ lang, keys }) => {
+			// the reference may be an older engine (always tp5.) and the current one a trip's own prefix: seed both
+			for (const k of keys) {
+				localStorage.setItem(`${k}lang`, JSON.stringify(lang));
+				localStorage.setItem(`${k}now`, JSON.stringify('2020-01-01 09:00'));
+			}
 		},
-		{ lang },
+		{ lang, keys: STORE_KEYS },
 	);
 	const p = await ctx.newPage();
 	const errors = [];

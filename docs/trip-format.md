@@ -26,6 +26,9 @@ every field in use.
 | `kml` | `{ optional, transport: [place ids] }` | Google My Maps export: the optional layer's name, the places on the hotel/transport layer |
 | `destination`, `region` | `'tw'`, `'taipei'` | the destination pack (`destinations/tw/pack.mjs` + `regions/taipei/pack.mjs`): tax refund, lucky draw, metro name, taxi meter, bike share. Leave out for none |
 | `city` | `['台北', 'Taipei']` | "not in Taipei yet"; defaults to the region pack's city |
+| `fileName` | `'taipei-trip'` | the build's file names: `<fileName>-standalone.html`, `<fileName>.html`, `<fileName>-mymaps.kml` (default `trip`) |
+| `storageKey` | `'tp5.'` | the prefix the page saves state under on the phone (checklist, added stops, language); default `rj.<start>.`. Keep a published page's prefix when you rebuild it, or its readers lose what they saved |
+| `brushFont` | `'Ma Shan Zheng'` | the Google Fonts face for the brush lettering (brand, day wishes) |
 | `hotelSlots` | `['d1-hotel']` | food slots that mean "near the hotel" (the breakfast `bk-hotel` and supper `sup-hotel` slots always do) |
 
 Group figures are written in the data as `"NT$1,200–1,800 / 五人"` (zh) and `"NT$1,200–1,800 for 5"` (en), with the
@@ -64,6 +67,10 @@ other place or site is named by the data that uses it, and the contract checks t
 | `MONEY.transitCard` | `[zh, en]` | the transit card in the budget's cash-and-cards block |
 | `WEATHER.sites`, `ENTRY.sites`, `ENTRY.lucky.sites` | `['cwa', 'cwaEn']` | site links under the forecast, the entry rules and the lucky draw |
 | `ENTRY.sources` | `[zh, en]` | "Sources: …" under the entry rules |
+
+The Optional section's themed shop list is `SNOW` (the first trip's was snowboard gear): `SNOW.h` (heading),
+`SNOW.group` (its group in the free-time ideas), `SNOW.kind` (map pin kind), `SNOW.icon`, `SNOW.photo`; left out, they
+read "Shops".
 
 ## The airport evening (`FLIGHTS.ret.plan`)
 

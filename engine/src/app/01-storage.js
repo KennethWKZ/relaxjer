@@ -1,5 +1,5 @@
 /* ───────── storage (per device) ───────── */
-const KEY = 'tp5.';
+const KEY = Plan.storeKey(TRIP); // TRIP.storageKey, else rj.<start>. (the first trip keeps its tp5.)
 const store = {
 	get(k, d) {
 		try {
@@ -28,7 +28,7 @@ let themePref = ['dark', 'system'].includes(store.get('theme', 'light')) ? store
 let checks = store.get('checks', {}) || {};
 // the trip's own settings (data.js TRIP): group size, currency, the destination's clock, the name on the home screen
 const PAX = TRIP.pax;
-const CUR = TRIP.currency; // { sym: 'NT$', home: 'RM', rate: 7.8, rateNote: [zh, en] }
+const CUR = TRIP.currency; // { sym: 'NT$', home: 'RM', rate: 7.8, rateNote: [zh, en] }: the destination's and the group's home currency
 const TZ = TRIP.tz;
 const BRAND = TRIP.brand;
 // the city the trip is in, for "you're not in Taipei yet": the trip's own, else the region pack's
@@ -38,6 +38,10 @@ const BIKES = (Pack.bikeShare && Pack.bikeShare.name) || ['共享单车', 'bike 
 const Cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 // the hotel's place id (PLACES), for "from the hotel", distances and the map's centre
 const HOTEL = TRIP.hotel || 'hotel';
+// the trip's themed shop list (SNOW: the first trip's was snowboard gear): its heading, pin kind, icon and photo
+const SHOPLIST = { h: ['商店', 'Shops'], group: ['商店', 'Shops'], kind: ['商店', 'Shop'], icon: 'bag', photo: '', ...SNOW };
+// the build's output name (TRIP.fileName), for the My Maps download
+const FILE_BASE = TRIP.fileName || 'trip';
 const CITY = TRIP.city || Pack.city || ['目的地', 'the destination'];
 let rate = Number(store.get('rate', CUR.rate)) || CUR.rate;
 

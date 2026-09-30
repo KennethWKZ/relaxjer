@@ -154,7 +154,7 @@ function secWish() {
 function budgetChip(d) {
 	const b = d.blocks.find((x) => x.type === 'budget');
 	if (!b) return `<span class="chip">${icon('money')}${esc(L(d.budgetChip))}</span>`;
-	const rm = (a, z) => `<span class="chip-rm nw" data-rm="${a},${z}">${rmText(a, z)}</span>`; // on a narrow phone the RM drops under the NT$ instead of overflowing
+	const rm = (a, z) => `<span class="chip-rm nw" data-rm="${a},${z}">${rmText(a, z)}</span>`; // on a narrow phone the home-currency figure drops under the NT$ instead of overflowing
 	return `<a class="chip chip-link chip-2l" href="#${d.id}-budget">${icon('money')}<span class="chip-lines"><span><span class="nw">${Z('每人', 'Each')} <b>${eachText(b.min, b.max)}</b>${b.est ? Z('（估）', ' (est.)') : ''}</span> ${rm(each(b.min), each(b.max))}</span><span class="chip-sub"><span class="nw">${Z(GROUP[0], 'Group')} ${CUR.sym}${num(b.min)}–${num(b.max)}</span> ${rm(b.min, b.max)}</span></span></a>`;
 }
 

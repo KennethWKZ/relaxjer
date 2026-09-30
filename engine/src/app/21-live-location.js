@@ -118,7 +118,7 @@ const PIN_KIND = {
 	place: ['景点', 'Sight'],
 	hotel: ['酒店', 'Hotel'],
 	food: ['美食', 'Food'],
-	shop: ['雪具店', 'Ski shop'],
+	shop: SHOPLIST.kind,
 	wish: ['想去', 'Wishlist'],
 	drink: ['饮料', 'Drinks'],
 	rest: ['歇脚', 'Rest'],

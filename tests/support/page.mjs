@@ -1,5 +1,6 @@
 // Page probes shared by the e2e specs, ported from the legacy Playwright (Python) suites.
 import { expect } from '@playwright/test';
+import { STORE_KEY } from './store-key.mjs';
 
 /** Waits until scrollY has not moved for 5 frames' worth of polls (legacy SETTLE). */
 export async function settle(page) {
@@ -113,11 +114,14 @@ export async function switchLang(page, lang) {
 	await settle(page);
 }
 
-/** Sets per-device state the way the page stores it (JSON under the tp5. prefix), then reloads. */
+/** Sets per-device state the way the page stores it (JSON under the trip's prefix), then reloads. */
 export async function setStored(page, entries) {
-	await page.evaluate((e) => {
-		for (const [k, v] of Object.entries(e)) localStorage.setItem(`tp5.${k}`, JSON.stringify(v));
-	}, entries);
+	await page.evaluate(
+		({ e, key }) => {
+			for (const [k, v] of Object.entries(e)) localStorage.setItem(`${key}${k}`, JSON.stringify(v));
+		},
+		{ e: entries, key: STORE_KEY },
+	);
 	await page.reload();
 	await expect(page.locator('#app [data-sec]').first()).toBeAttached();
 }

@@ -32,7 +32,7 @@ are in this file. Review it before the repo goes public.
 | `img/` | Photos with credit JSON, icons | Trip data (licences are per photo) |
 | `.share/` | Keys, caches, publish logs, legacy tests | Never commit |
 | `PRODUCT.md`, `.impeccable/` | Design context | Template it |
-| `dist/`, `taipei-trip.html` | Built pages | Never commit |
+| `dist/`, `*-standalone.html` | Built pages | Never commit |
 
 **Taiwan-only parts inside `src/app.js`:**
 - the Asia/Taipei clock (`tpNow`)

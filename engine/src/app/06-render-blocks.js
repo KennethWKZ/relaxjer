@@ -78,11 +78,11 @@ function checkList(items) {
 		.join('')}</ul>`;
 }
 
-/* YouBike weather decision, drawn as a flowchart (diagram-design rules: orthogonal, labelled exits) */
+/* bike-share weather decision, drawn as a flowchart (diagram-design rules: orthogonal, labelled exits) */
 function rideFlow() {
 	const T = (zh, en) => esc(Z(zh, en));
 	return `<figure class="diagram" style="margin:0 0 12px"><svg viewBox="0 0 344 368" role="img" aria-labelledby="ride-title ride-desc">
-      <title id="ride-title">${T('要不要骑YouBike', 'Should we ride?')}</title>
+      <title id="ride-title">${T(`要不要骑${BIKES[0]}`, 'Should we ride?')}</title>
       <desc id="ride-desc">${T('先看有无危险天气：有就取消改走Plan B；否则若只是上午阵雨，午餐后再决定，不然照常骑车。', 'Unsafe weather: cancel, Plan B. Else only morning showers: decide after lunch; otherwise ride.')}</desc>
       <path class="dg-line" d="M120 44V68"/><path class="dg-line" d="M200 112H232"/><path class="dg-line" d="M120 152V192"/><path class="dg-line" d="M200 236H232"/><path class="dg-line" d="M120 276V308"/>
       <path d="M116 64l4 6 4-6M228 108l6 4-6 4M116 188l4 6 4-6M228 232l6 4-6 4M116 304l4 6 4-6" fill="none" stroke="var(--ink-3)" stroke-width="1.5"/>

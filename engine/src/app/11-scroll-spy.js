@@ -66,7 +66,7 @@ function setActive(id) {
 	}
 }
 let barH = 100;
-/* offline: the plan, lists, costs and MRT hints all live in this file and keep working; the map, Google search and live YouBike counts need a connection */
+/* offline: the plan, lists, costs and MRT hints all live in this file and keep working; the map, Google search and live bike-share counts need a connection */
 function netSync() {
 	const el = $('#netOff');
 	if (!el) return;
@@ -74,7 +74,7 @@ function netSync() {
 	const was = !el.hidden;
 	el.hidden = !off;
 	el.innerHTML = off
-		? `${icon('alert')}<span><b>${Z('没有网络', 'Offline')}</b> · ${Z('行程、清单照常看；地图、Google 搜索、YouBike 车数等有网络再用。别刷新页面。', 'Plans and lists still work; map, Google search and live YouBike wait for a connection. Don’t reload the page.')}</span>`
+		? `${icon('alert')}<span><b>${Z('没有网络', 'Offline')}</b> · ${Z(`行程、清单照常看；地图、Google 搜索、${BIKES[0]} 车数等有网络再用。别刷新页面。`, `Plans and lists still work; map, Google search and live ${BIKES[1]} wait for a connection. Don’t reload the page.`)}</span>`
 		: '';
 	if (was !== off) measureBar();
 }

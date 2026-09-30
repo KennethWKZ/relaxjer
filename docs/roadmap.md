@@ -26,7 +26,10 @@ map areas, meal slots, shopping notes, the per-person share gaps (all now trip d
 - ~~day roles `d1`…`d7`~~ (`Plan.dayRoles`), ~~Taiwan-only features~~ (the `tw` pack), ~~place ids `hotel`, `tpe1`,
   `tpe2`, the Taoyuan airport section, the required Taiwan site ids, the lucky-draw wording~~: all trip or pack data
   since 2026-10-01 (`docs/trip-format.md`, `destinations/README.md`)
+- ~~YouBike by name, the snowboard section's labels, `taipei-trip*` file names, the `tp5.` storage prefix, the brush
+  font~~: pack or trip data since 2026-10-01 (`TRIP.fileName`, `storageKey`, `brushFont`, `SNOW.h/kind/icon`)
 - one hotel per trip (`TRIP.hotel`): a multi-city trip (Hokkaido) needs a hotel per day
+- the themed shop list is still called `SNOW` in trip data: rename it when a second trip needs one
 - UI languages fixed to Chinese + English (`Z(zh, en)`), Chinese group numerals (五人), the Traditional → Simplified
   search: roadmap step 4
 
@@ -79,6 +82,9 @@ The tier-1 tests found three bugs. They were fixed in the first trip's own repo,
    still has it until Kenneth OKs a republish.
 
 Not fixed:
+- WebKit desktop flakes under full parallel load (1 in ~140 runs, a different test each time: "closed lists are not
+  built until opened" on 2026-09-30, "+ after a stop offers nearby places" on 2026-10-01); both pass alone every time.
+  CI retries once. Watch it; if it grows, run WebKit with fewer workers.
 - The airport method tiles break "Manageable" mid-word at desktop width. Cosmetic, desktop only.
 - The per-person share gaps above.
 

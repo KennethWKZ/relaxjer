@@ -830,6 +830,12 @@ const OPTIONAL = [
 ];
 
 const SNOW = {
+	// a themed shop list in the Optional section (the first trip's: snowboard gear); heading, ideas group, pin kind, icon
+	h: ['Snowboard / 雪具店', 'Snowboard / ski shops'],
+	group: ['雪具店', 'Snowboard gear'],
+	kind: ['雪具店', 'Ski shop'],
+	icon: 'snow',
+	photo: 'snow-gear',
 	lede: ['**不用买雪具**：只看看，不排进行程。', '**No gear needed**: just a look, never scheduled.'],
 	lede2: ['想看的话第6天自由时间去。', 'If you want to look, go in the Day 6 free time.'],
 	shops: [

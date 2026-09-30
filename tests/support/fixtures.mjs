@@ -1,9 +1,11 @@
 // Shared e2e fixtures. Every test gets:
 // - no outside network: anything not on the local test server is aborted and recorded (the page must work offline);
-// - a pinned trip clock through the engine's own override (localStorage tp5.now = "YYYY-MM-DD HH:MM", Asia/Taipei);
-// - a pinned UI language (tp5.lang), seeded once per tab so reloads keep what the page stored;
+// - a pinned trip clock through the engine's own override (localStorage <prefix>now = "YYYY-MM-DD HH:MM", in the
+//   trip's time zone; the prefix is the trip's, tests/support/store-key.mjs);
+// - a pinned UI language (<prefix>lang), seeded once per tab so reloads keep what the page stored;
 // - a failure if the page throws or logs an error.
 import { test as base, expect } from '@playwright/test';
+import { STORE_KEY } from './store-key.mjs';
 
 export { expect };
 
@@ -43,17 +45,17 @@ export const test = base.extend({
 	seed: [
 		async ({ context, tripNow, tripLang }, use) => {
 			await context.addInitScript(
-				({ now, lang }) => {
+				({ now, lang, key }) => {
 					try {
 						if (sessionStorage.getItem('__relaxjer_seeded')) return;
-						localStorage.setItem('tp5.now', JSON.stringify(now));
-						localStorage.setItem('tp5.lang', JSON.stringify(lang));
+						localStorage.setItem(`${key}now`, JSON.stringify(now));
+						localStorage.setItem(`${key}lang`, JSON.stringify(lang));
 						sessionStorage.setItem('__relaxjer_seeded', '1');
 					} catch {
 						/* storage blocked: the page runs on its defaults */
 					}
 				},
-				{ now: tripNow, lang: tripLang },
+				{ now: tripNow, lang: tripLang, key: STORE_KEY },
 			);
 			await use();
 		},

@@ -59,7 +59,8 @@ export function stagePage({ engine, trip, outDir }) {
 			env: BARE_ENV,
 			stdio: 'pipe',
 		});
-		page = path.join(outDir, 'taipei-trip-standalone.html');
+		// <TRIP.fileName>-standalone.html: the one single-file page the build writes
+		page = path.join(outDir, fs.readdirSync(outDir).find((f) => f.endsWith('-standalone.html')) || 'trip-standalone.html');
 	} else {
 		for (const f of LEGACY_ENGINE_FILES) copy(path.join(engine.dir, f), path.join(outDir, f));
 		for (const f of TRIP_FILES) {

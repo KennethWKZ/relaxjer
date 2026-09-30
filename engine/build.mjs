@@ -1,4 +1,4 @@
-// Build: engine/src/* + a trip's data and img/ → taipei-trip.html (artifact body) and taipei-trip-standalone.html (single file,
+// Build: engine/src/* + a trip's data and img/ → <name>.html (artifact body) and <name>-standalone.html (single file,
 // images inlined), plus the My Maps KML. Moved verbatim from the first trip's repo; only where files are read and written changed.
 //   node engine/build.mjs --trip <trip dir> [--out <dir>] [--keys <google.json>]
 // The trip dir holds data.js, the *.json side files and img/. The Google browser key + Map ID go in only when --keys
@@ -9,7 +9,7 @@ import os from 'node:os';
 import path from 'node:path';
 import vm from 'node:vm';
 import { rangeLabel } from './src/core/time.mjs';
-import { dayRoles } from './src/core/plan.mjs';
+import { dayRoles, storeKey } from './src/core/plan.mjs';
 
 const argv = process.argv.slice(2);
 const arg = (name, fallback) => {
@@ -98,12 +98,17 @@ const transit = readJSON('src/transit.json', { yb: [], bus: [] }); // scripts/mr
 // scripts/gdrinks.py: drink shops near every stop // scripts/resync.py writes it once trip days are inside the 16-day forecast
 const wish = [...(readJSON('src/wish-a.json', { items: [] }).items || []), ...(readJSON('src/wish-b.json', { items: [] }).items || [])];
 
-// brush glyphs → Google Fonts `text=` subset (Ma Shan Zheng is a large CJK face)
+// brush glyphs → Google Fonts `text=` subset of the trip's brush face (TRIP.brushFont, default Ma Shan Zheng: a
+// large Chinese face, so only the glyphs the page letters go down)
 const ctx = {};
 vm.createContext(ctx);
 vm.runInContext(data + ';this.DAYS=DAYS;this.PRINCIPLE=PRINCIPLE;this.TRIP=TRIP;', ctx);
 // the trip's name on the page, the home screen and the KML; the shell's {{brand}} / {{dates}} are filled from it
 const { brand, description } = ctx.TRIP;
+// the output files' base name: TRIP.fileName (e.g. 'taipei-trip'), else 'trip' → trip.html, trip-standalone.html, trip-mymaps.kml
+const fileBase = ctx.TRIP.fileName || 'trip';
+if (!/^[a-z0-9][a-z0-9-]*$/.test(fileBase))
+	throw new Error(`TRIP.fileName: lower-case letters, digits and dashes only, got ${JSON.stringify(fileBase)}`);
 // the destination pack (destinations/<cc>/pack.mjs, merged with regions/<region>/pack.mjs) as `Pack`: what the page
 // knows about the country and the city (tax refund, taxi meter, bike share…). No destination: an empty Pack, and the
 // page leaves those features out.
@@ -124,10 +129,17 @@ const pack = `  const Pack = Object.freeze(Object.assign({}, ${packParts.map((p)
 const app = [appParts[0], ...core, pack, ...appParts.slice(1)].join('\n');
 const title = `${brand} ${ctx.TRIP.start.slice(0, 4)}`;
 const htmlEsc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
-const shell = shellSrc.replace(/\{\{brand\}\}/g, htmlEsc(brand)).replace(/\{\{dates\}\}/g, rangeLabel(ctx.TRIP.start, ctx.TRIP.end, 'zh'));
+const shell = shellSrc
+	.replace(/\{\{brand\}\}/g, htmlEsc(brand))
+	.replace(/\{\{dates\}\}/g, rangeLabel(ctx.TRIP.start, ctx.TRIP.end, 'zh'))
+	.replace(/\{\{storeKey\}\}/g, () => JSON.stringify(storeKey(ctx.TRIP)).replace(/</g, '\\u003c'));
 const brush = new Set([brand, '定', ...ctx.DAYS.map((d) => d.wish), ctx.PRINCIPLE.wish].join('').replace(/\s/g, ''));
-const fontHref = `https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap&text=${encodeURIComponent([...brush].join(''))}`;
+const brushFont = ctx.TRIP.brushFont || 'Ma Shan Zheng';
+if (!/^[A-Za-z0-9 ]+$/.test(brushFont)) throw new Error(`TRIP.brushFont: a Google Fonts family name, got ${JSON.stringify(brushFont)}`);
+const fontHref = `https://fonts.googleapis.com/css2?family=${brushFont.replace(/ /g, '+')}&display=swap&text=${encodeURIComponent([...brush].join(''))}`;
 
+// the brush face goes first in the lettering's font stack (style.css keeps system Kaiti faces as the fallback)
+const brushCSS = brushFont === 'Ma Shan Zheng' ? '' : `:root{--font-brush:'${brushFont}','STKaiti','KaiTi','Kaiti SC','BiauKai',serif}`;
 const safe = (o) => JSON.stringify(o).replace(/</g, '\\u003c');
 // home-screen icons (scripts: /tmp render of the brand lettering → img/icon/); the host serves one file, so they go in as data: URLs
 const iconURL = (n) => {
@@ -153,8 +165,8 @@ const scripts = (
 // pages are written by writePages(); the final call happens after the KML exists
 const writePages = (kmlB64) => {
 	// 1) artifact body (the host adds doctype/head/body)
-	const artifact = `${head}\n<style>${css}</style>\n${shell}\n${scripts(null, kmlB64)}\n`;
-	fs.writeFileSync(path.join(out, 'taipei-trip.html'), artifact);
+	const artifact = `${head}\n<style>${css}${brushCSS}</style>\n${shell}\n${scripts(null, kmlB64)}\n`;
+	fs.writeFileSync(path.join(out, `${fileBase}.html`), artifact);
 
 	// 2) standalone single file
 	const imgMap = {};
@@ -175,7 +187,7 @@ const writePages = (kmlB64) => {
 <meta name="mobile-web-app-capable" content="yes">
 ${iconURL(180) ? `<link rel="apple-touch-icon" href="${iconURL(180)}">` : ''}${iconURL(32) ? `\n<link rel="icon" type="image/png" sizes="32x32" href="${iconURL(32)}">` : ''}
 ${head}
-<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}${css}</style>
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}${css}${brushCSS}</style>
 </head>
 <body data-img-late="1">
 ${shell}
@@ -184,7 +196,7 @@ ${scripts(imgMap, kmlB64)}
 </body>
 </html>
 `;
-	fs.writeFileSync(path.join(out, 'taipei-trip-standalone.html'), standalone);
+	fs.writeFileSync(path.join(out, `${fileBase}-standalone.html`), standalone);
 
 	const kb = (s) => (Buffer.byteLength(s) / 1024).toFixed(0) + ' KB';
 	return { artifact, standalone, kb };
@@ -283,7 +295,7 @@ console.log(
 	});
 	SNOW.shops.forEach((sh) => {
 		const it = placeItem(sh.place, `${sh.when[0]} / ${sh.when[1]}`);
-		if (it) add('optional', sh.place, { ...it, kind: '雪具店 Ski shop' });
+		if (it) add('optional', sh.place, { ...it, kind: (SNOW.kind || ['商店', 'Shop']).join(' ') });
 	});
 	wish
 		.filter((w) => w.status !== 'closed')
@@ -324,7 +336,7 @@ ${ls
 	const outDir = path.join(out, 'mymaps');
 	fs.mkdirSync(outDir, { recursive: true });
 	for (const f of fs.readdirSync(outDir)) fs.unlinkSync(path.join(outDir, f));
-	fs.writeFileSync(path.join(out, 'taipei-trip-mymaps.kml'), doc(title, layers));
+	fs.writeFileSync(path.join(out, `${fileBase}-mymaps.kml`), doc(title, layers));
 	layers
 		.filter((l) => l.items.length)
 		.forEach((l, i) => fs.writeFileSync(path.join(outDir, `${String(i + 1).padStart(2, '0')}-${l.id}.kml`), doc(l.name, [l])));

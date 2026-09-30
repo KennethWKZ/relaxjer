@@ -6,7 +6,7 @@ requirements, data, photos and built pages never reach the public repo.
 A trip folder holds `data.js`, the `*.json` side files and `img/`, the same shape as `examples/demo-trip/`. Build it with:
 
 ```sh
-pnpm build --trip trips/<slug> --keys ~/.config/relaxjer/google.json   # → trips/<slug>/dist/taipei-trip-standalone.html
+pnpm build --trip trips/<slug> --keys ~/.config/relaxjer/google.json   # → trips/<slug>/dist/trip-standalone.html (TRIP.fileName sets the name)
 TRIP_DIR=trips/<slug> pnpm test              # the trip contract on your data
 TRIP_DIR=trips/<slug> pnpm exec playwright test --grep-invert @demo   # page tests that hold for any trip
 ```

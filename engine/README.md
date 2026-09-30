@@ -8,8 +8,8 @@ pnpm build --trip trips/<slug> [--out <dir>] [--keys ~/.config/relaxjer/google.j
 ```
 
 - `--trip`: a folder with `data.js`, the `*.json` side files and `img/`. The demo is `examples/demo-trip`.
-- `--out`: default `<trip>/dist`. It writes `taipei-trip-standalone.html` (the page to publish), `taipei-trip.html`
-  and the My Maps KML. The file names still carry the first trip's name (debt, see `docs/roadmap.md`).
+- `--out`: default `<trip>/dist`. It writes `<name>-standalone.html` (the page to publish; `<name>` is `TRIP.fileName`, default `trip`), `<name>.html`
+  and the My Maps KML.
 - `--keys`: the Google browser key + Map ID, **opt-in** (ADR 0003). Keep the file outside the repo, for example
   `~/.config/relaxjer/google.json` (mode 600). Without it the page uses the free MapLibre map. Build the demo, and
   anything shared publicly, without it. The build prints whether a key went in.
