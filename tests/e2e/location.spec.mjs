@@ -76,6 +76,16 @@ test('the card comes back on a trip day when the browser forgot the answer', asy
 	expect(await page.evaluate(() => window.__geoAsked)).toBe(0);
 });
 
+test('allowing location from "near me" clears the card at once', async ({ page }) => {
+	await stubGeo(page, 'prompt');
+	await openOn(page, -3);
+	await expect(card(page)).toBeVisible();
+	const near = page.locator('#app [data-near]').first();
+	await near.scrollIntoViewIfNeeded();
+	await near.click();
+	await expect(card(page)).toHaveCount(0);
+});
+
 test('a "no" turns the card into steps to switch it back on', async ({ page }) => {
 	await stubGeo(page, 'denied');
 	await openOn(page, -3);

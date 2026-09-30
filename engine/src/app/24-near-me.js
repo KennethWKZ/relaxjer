@@ -186,6 +186,10 @@ function nearLocate() {
 	navigator.geolocation.getCurrentPosition(
 		(pos) => {
 			clearTimeout(wait);
+			if (geoState !== 'granted') {
+				geoState = 'granted';
+				renderNow(); // the location card in the "now" box goes as soon as the answer is yes
+			}
 			const here = { lat: pos.coords.latitude, lng: pos.coords.longitude };
 			if (
 				HOTELS.map(placeLL)
@@ -201,9 +205,13 @@ function nearLocate() {
 			near.label = Z('你现在的位置', 'where you are now');
 			renderNear();
 		},
-		() => {
+		(err) => {
 			clearTimeout(wait);
 			nearFallback(Z('没有定位权限', 'location is off'));
+			if (err && err.code === 1 && geoState !== 'denied') {
+				geoState = 'denied';
+				renderNow();
+			}
 		},
 		{ enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
 	);
