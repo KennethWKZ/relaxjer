@@ -188,6 +188,7 @@ function nearLocate() {
 	navigator.geolocation.getCurrentPosition(
 		(pos) => {
 			clearTimeout(wait);
+			geoFix(pos.coords.accuracy);
 			if (geoState !== 'granted') {
 				geoState = 'granted';
 				renderNow(); // the location card in the "now" box goes as soon as the answer is yes

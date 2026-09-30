@@ -183,7 +183,7 @@ document.addEventListener('click', (e) => {
 		return;
 	}
 	if (t.matches('[data-geo-help]')) {
-		geoHelp();
+		geoHelp(t.dataset.geoHelp);
 		return;
 	}
 	if (t.matches('[data-late-loc]')) {

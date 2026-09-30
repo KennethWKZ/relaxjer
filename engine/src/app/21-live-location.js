@@ -11,6 +11,7 @@ function meGot(pos) {
 	geoState = 'granted';
 	meLL = { lat: pos.coords.latitude, lng: pos.coords.longitude };
 	meAcc = pos.coords.accuracy || 0;
+	geoFix(meAcc);
 	meHd = pos.coords.speed > 0.6 && pos.coords.heading != null && !Number.isNaN(pos.coords.heading) ? pos.coords.heading : null;
 	if (map && map.me) map.me(meLL, meAcc, meHd);
 	mapListSync();
@@ -113,31 +114,106 @@ function geoWatch() {
 		geoState = 'unknown'; // no Permissions API: the card stays until a tap gets a position
 	}
 }
-function geoAsk() {
-	if (['none', 'pending', 'granted'].includes(geoState) || meLL) return '';
-	if (store.get('geoNo', null) === tpNow().date) return '';
-	const off = geoState === 'denied';
-	return `<div class="geo-ask"><p class="late-h">${icon('pin')}<span>${
-		off
-			? Z('这个页面的定位是关着的', 'Location is off for this page')
-			: Z('打开定位，行程会提醒你是不是晚了', 'Turn on location so the plan can tell you when you’re running late')
-	}</span></p>
-      <p class="small">${
-				off
-					? Z(
-							'打开后，地图会显示你在哪，也会帮你看赶不赶得上下一站。',
-							'With it on, the map shows where you are and the plan checks whether you’ll make the next stop.',
-						)
-					: Z('地图也会显示你在哪。位置只留在这支手机上。', 'The map also shows where you are. Your position stays on this phone.')
-			}</p>
-      <div class="links-row">${
-				off
-					? `<button type="button" class="go-btn" data-geo-help>${icon('info')}${Z('怎么打开', 'How to turn it on')}</button>`
-					: `<button type="button" class="go-btn" data-geo-on>${icon('pin')}${Z('打开定位', 'Turn on location')}</button>`
-			}<button type="button" class="go-btn ghost" data-geo-no>${Z('今天先不用', 'Not today')}</button></div></div>`;
+/* approximate location (Android's "Approximate", iPhone's Precise Location off) is off by a kilometre or two: the map
+   dot still shows, but the late check needs ~400 m and stays silent, so say so once the fixes stay that coarse */
+let geoBest = Infinity;
+let geoFixes = 0;
+let geoFirstAt = 0;
+let geoCoarse = false;
+function geoFix(acc) {
+	if (!store.get('geoOk', false)) store.set('geoOk', true); // this phone said yes once: a later ask means it forgot
+	if (!(acc > 0)) return;
+	geoBest = Math.min(geoBest, acc);
+	if (++geoFixes === 1) {
+		geoFirstAt = Date.now();
+		setTimeout(geoCoarseSync, 30000); // an approximate position rarely updates: judge it after 30 s as well
+	}
+	geoCoarseSync();
 }
-function geoHelp() {
+// judged after 3 fixes or 30 s, so the first rough fix while the GPS warms up doesn't raise it
+function geoCoarseSync() {
+	if (geoFixes < 3 && Date.now() - geoFirstAt < 29500) return;
+	const coarse = geoBest > 1000;
+	if (coarse === geoCoarse) return;
+	geoCoarse = coarse;
+	renderNow();
+}
+function geoAsk() {
+	if (store.get('geoNo', null) === tpNow().date) return '';
+	const card = (title, text, action) =>
+		`<div class="geo-ask"><p class="late-h">${icon('pin')}<span>${title}</span></p>
+      <p class="small">${text}</p>
+      <div class="links-row">${action}<button type="button" class="go-btn ghost" data-geo-no>${Z('今天先不用', 'Not today')}</button></div></div>`;
+	const help = (kind) =>
+		`<button type="button" class="go-btn" data-geo-help${kind ? `="${kind}"` : ''}>${icon('info')}${Z('怎么打开', 'How to turn it on')}</button>`;
+	const turnOn = `<button type="button" class="go-btn" data-geo-on>${icon('pin')}${Z('打开定位', 'Turn on location')}</button>`;
+	if (geoState === 'granted' && geoCoarse)
+		return card(
+			Z('位置只有大概', 'Your location is only approximate'),
+			Z(
+				'会差一两公里，行程没法判断你是不是晚了。打开「精确位置」就好。',
+				'It can be off by a kilometre or two, so the plan can’t tell if you’re running late. Turn on Precise location to fix it.',
+			),
+			help('precise'),
+		);
+	if (['none', 'pending', 'granted'].includes(geoState) || meLL) return '';
+	if (geoState === 'denied')
+		return card(
+			Z('这个页面的定位是关着的', 'Location is off for this page'),
+			Z(
+				'打开后，地图会显示你在哪，也会帮你看赶不赶得上下一站。',
+				'With it on, the map shows where you are and the plan checks whether you’ll make the next stop.',
+			),
+			help(),
+		);
+	// said yes before, asked again: the phone forgot (Safari on "Ask", or Chrome's "Only this time")
+	if (store.get('geoOk', false))
+		return card(
+			Z('手机又在问定位了', 'Your phone is asking for location again'),
+			isIOS()
+				? Z(
+						'iPhone 关掉页面后会忘记。想以后不再问：<b>设置 → App → Safari 浏览器 → 位置 → 允许</b>。',
+						'iPhone forgets once the page is closed. To stop it asking: <b>Settings → Apps → Safari → Location → Allow</b>.',
+					)
+				: isAndroid()
+					? Z(
+							'可能上次选了「仅限这一次」。下次选<b>「访问该网站时允许」</b>，就不会再问。',
+							'Maybe last time was “Only this time”. Pick <b>“While visiting the site”</b> next time and it won’t ask again.',
+						)
+					: Z('浏览器没有记住上次的选择。', 'The browser didn’t keep last time’s answer.'),
+			turnOn,
+		);
+	return card(
+		Z('打开定位，行程会提醒你是不是晚了', 'Turn on location so the plan can tell you when you’re running late'),
+		Z('地图也会显示你在哪。位置只留在这支手机上。', 'The map also shows where you are. Your position stays on this phone.'),
+		turnOn,
+	);
+}
+function geoHelp(kind) {
 	const ios = isIOS();
+	if (kind === 'precise') {
+		const steps = ios
+			? [
+					Z(
+						'打开<b>「设置」→「隐私与安全性」→「定位服务」→「Safari 浏览器网站」</b>',
+						'Open <b>Settings → Privacy &amp; Security → Location Services → Safari Websites</b>',
+					),
+					Z('打开<b>「精确位置」</b>', 'Turn on <b>Precise Location</b>'),
+				]
+			: isAndroid()
+				? [
+						Z(
+							'打开手机<b>「设置」→「应用」→「Chrome」→「权限」→「位置」</b>',
+							'Open the phone’s <b>Settings → Apps → Chrome → Permissions → Location</b>',
+						),
+						Z('打开<b>「使用精确位置」</b>', 'Turn on <b>Use precise location</b>'),
+					]
+				: [Z('电脑只能给出大概位置；出门时用手机看这个页面', 'A computer can only give a rough position; use a phone when you’re out')];
+		openSheet(`<div class="home-guide"><p class="pop-name">${icon('pin')}${Z('打开精确位置', 'Turn on precise location')}</p>
+      <ol class="home-steps">${steps.map((x) => `<li>${x}</li>`).join('')}</ol>
+      <p class="small">${Z('回到这个页面，过一会儿就会用准确的位置。', 'Come back to this page; it switches to the exact position in a moment.')}</p></div>`);
+		return;
+	}
 	const steps = ios
 		? [
 				Z(

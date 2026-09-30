@@ -17,7 +17,7 @@ async function stubGeo(page, state, here = HERE) {
 			window.__geoAsked = 0;
 			navigator.geolocation.watchPosition = (ok) => {
 				window.__geoAsked++;
-				setTimeout(() => ok(fix()), 10);
+				for (const ms of [10, 40, 70]) setTimeout(() => ok(fix()), ms); // a watch keeps sending fixes
 				return 1;
 			};
 			navigator.geolocation.getCurrentPosition = (ok) => {
@@ -74,6 +74,23 @@ test('the card comes back on a trip day when the browser forgot the answer', asy
 	await openOn(page, 0);
 	await expect(card(page)).toContainText('running late');
 	expect(await page.evaluate(() => window.__geoAsked)).toBe(0);
+});
+
+test('an approximate location says the late check needs precise location', async ({ page }) => {
+	await stubGeo(page, 'granted', { ...HERE, accuracy: 2500 }); // Android "Approximate" / iPhone Precise Location off
+	await openOn(page, 0);
+	await expect(card(page)).toContainText('only approximate');
+	await card(page).getByRole('button', { name: 'How to turn it on' }).click();
+	const phone = await page.evaluate(() => /iPhone|iPad|Android/.test(navigator.userAgent));
+	await expect(page.locator('#placeSheet .home-steps')).toContainText(phone ? /[Pp]recise/ : 'use a phone');
+});
+
+test('a phone that allowed location before says plainly why it asks again', async ({ page }) => {
+	await stubGeo(page, 'prompt');
+	await openOn(page, 0);
+	await setStored(page, { geoOk: true });
+	await expect(card(page)).toContainText('asking for location again');
+	await expect(card(page).getByRole('button', { name: 'Turn on location' })).toBeVisible();
 });
 
 test('allowing location from "near me" clears the card at once', async ({ page }) => {
