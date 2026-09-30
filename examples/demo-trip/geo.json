@@ -1,0 +1,28 @@
+{
+  "attribution": "Demo coordinates, hand-placed near public landmarks",
+  "bbox": [121.18, 24.95, 121.9, 25.22],
+  "places": {
+    "hotel": { "lat": 25.0527, "lng": 121.5205, "q": "Zhongshan Station Taipei", "addr": "台北市中山區（示範地址）", "addr_en": "Zhongshan District, Taipei (demo address)" },
+    "tpe1": { "lat": 25.081, "lng": 121.238, "q": "Taoyuan International Airport Terminal 1" },
+    "tpe2": { "lat": 25.077, "lng": 121.233, "q": "Taoyuan International Airport Terminal 2" },
+    "a1": { "lat": 25.049, "lng": 121.5146, "q": "A1 Taipei Main Station" },
+    "tpmain": { "lat": 25.0478, "lng": 121.517, "q": "Taipei Main Station" },
+    "shilin": { "lat": 25.088, "lng": 121.5241, "q": "Shilin Night Market" },
+    "longshan": { "lat": 25.0372, "lng": 121.4999, "q": "Lungshan Temple of Manka" },
+    "bopiliao": { "lat": 25.036, "lng": 121.502, "q": "Bopiliao Historical Block" },
+    "huashan": { "lat": 25.0441, "lng": 121.5294, "q": "Huashan 1914 Creative Park" },
+    "beitouStn": { "lat": 25.1368, "lng": 121.5031, "q": "Xinbeitou Station" },
+    "beitou": { "lat": 25.1366, "lng": 121.5069, "q": "Beitou Hot Spring Museum" },
+    "thermal": { "lat": 25.1379, "lng": 121.5117, "q": "Beitou Thermal Valley" },
+    "yehliu": { "lat": 25.2063, "lng": 121.6905, "q": "Yehliu Geopark" },
+    "keelung": { "lat": 25.1283, "lng": 121.7434, "q": "Keelung Miaokou Night Market" },
+    "zoo": { "lat": 24.996, "lng": 121.5763, "q": "Maokong Gondola Taipei Zoo Station" },
+    "maokong": { "lat": 24.9679, "lng": 121.5885, "q": "Maokong Station" },
+    "concert": { "lat": 25.034, "lng": 121.5185, "q": "National Concert Hall Taipei" },
+    "songshan": { "lat": 25.0437, "lng": 121.5606, "q": "Songshan Cultural and Creative Park" },
+    "dihua": { "lat": 25.0556, "lng": 121.51, "q": "Dihua Street Taipei" },
+    "t101": { "lat": 25.0339, "lng": 121.5645, "q": "Taipei 101 Observatory" },
+    "gearshop": { "lat": 25.0416, "lng": 121.551, "q": "Zhongxiao Dunhua Station" }
+  },
+  "legs": {}
+}

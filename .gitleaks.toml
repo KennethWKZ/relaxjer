@@ -1,0 +1,15 @@
+# gitleaks config: the default rules (Google API keys, private keys, tokens…) plus this project's own secrets.
+[extend]
+useDefault = true
+
+[[rules]]
+id = "htmlapp-update-key"
+description = "ht-ml.app update key (republishes a trip page)"
+regex = '''(?i)update[_-]?key["']?\s*[:=]\s*["']?([0-9a-z_-]{16,})'''
+secretGroup = 1
+
+[[rules]]
+id = "htmlapp-password-cookie"
+description = "ht-ml.app viewer password cookie"
+regex = '''ht_ml_pwd=([A-Za-z0-9%._~-]{6,})'''
+secretGroup = 1

@@ -1,0 +1,15 @@
+#!/bin/sh
+# Blocks pushes that would publish a real trip's details or a secret. Enabled with the pre-commit hook (core.hooksPath).
+set -eu
+
+# every commit being published, not just the tip: git passes the refs on stdin
+node tests/release/scan-history.mjs
+
+if ! command -v gitleaks >/dev/null 2>&1; then
+  echo "pre-push: gitleaks is required (brew install gitleaks)." >&2
+  exit 1
+fi
+gitleaks git --redact --no-banner --config .gitleaks.toml
+
+npm test --silent
+node --test "tests/release/*.test.mjs"

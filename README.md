@@ -8,22 +8,23 @@ move, and every group cost shows a per-person share in the home currency. You ge
 near each stop, and a map with an offline transit planner. The page runs in two UI languages plus the destination's
 own.
 
-> **Status: pre-alpha, step 0.** The repo layout and the first tests exist. The engine is still being extracted from
-> the first trip (Taipei, 2026); see [`docs/roadmap.md`](docs/roadmap.md).
+> **Status: pre-alpha.** The engine has moved in from the first trip (Taipei, 2026) and is being split and generalised;
+> see [`docs/roadmap.md`](docs/roadmap.md).
 
 ## Quick start (contributors)
 
 ```sh
 npm install        # Node 22+; also installs the pre-commit hook (needs gitleaks: brew install gitleaks)
 npm test           # repo hygiene + trip contract
-LEGACY_ENGINE_DIR=/path/to/legacy-trip-repo npm run test:e2e   # page characterisation, Chromium + WebKit, 390 px + desktop
+npm run test:e2e   # page characterisation, Chromium + WebKit, 390 px + desktop
+npm run build -- --trip examples/demo-trip   # build the demo trip page
 ```
 
 ## Layout
 
 | Path | What |
 |---|---|
-| `engine/` | Page engine and single-file build (arrives in step 1) |
+| `engine/` | Page engine and single-file build |
 | `destinations/<cc>/` | Country packs: time zone, currency, languages, tax refund, entry rules; city adapters under `regions/` |
 | `pipeline/` | Data sync: Google first, OpenStreetMap fallback, weather, images |
 | `examples/demo-trip/` | A synthetic trip that tests and docs run on |

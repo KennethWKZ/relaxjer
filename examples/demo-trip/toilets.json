@@ -1,0 +1,23 @@
+{
+  "checked": "2027-03-01",
+  "wc": [
+    { "n_trad": "中山站公廁（示範）", "n_zh": "中山站公厕（示范）", "n_en": "Zhongshan Station toilets (demo)", "lat": 25.0529, "lng": 121.5202 },
+    { "n_trad": "龍山寺站公廁（示範）", "n_zh": "龙山寺站公厕（示范）", "n_en": "Longshan Temple Station toilets (demo)", "lat": 25.0355, "lng": 121.5 },
+    { "n_trad": "華山公廁（示範）", "n_zh": "华山公厕（示范）", "n_en": "Huashan toilets (demo)", "lat": 25.0445, "lng": 121.5288 },
+    { "n_trad": "新北投站公廁（示範）", "n_zh": "新北投站公厕（示范）", "n_en": "Xinbeitou Station toilets (demo)", "lat": 25.1369, "lng": 121.5034 },
+    { "n_trad": "野柳公廁（示範）", "n_zh": "野柳公厕（示范）", "n_en": "Yehliu toilets (demo)", "lat": 25.2058, "lng": 121.69 }
+  ],
+  "near": {
+    "hotel": [[0, 40]],
+    "longshan": [[1, 220]],
+    "bopiliao": [[1, 180]],
+    "huashan": [[2, 70]],
+    "beitouStn": [[3, 20]],
+    "beitou": [[3, 330]],
+    "yehliu": [[4, 90]]
+  },
+  "gp": {},
+  "borrow": {
+    "dihua": [{ "n_trad": "示範咖啡", "n_zh": "示范咖啡", "type": "coffee_shop", "lat": 25.0558, "lng": 121.5098, "d": 35 }]
+  }
+}

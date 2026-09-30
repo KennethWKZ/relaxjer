@@ -1,0 +1,23 @@
+# Real trips: requirements, data, photos, builds. Only the README is tracked.
+/trips/*
+!/trips/README.md
+
+# Builds, caches, test output
+/dist/
+/.cache/
+/test-results/
+/playwright-report/
+/blob-report/
+node_modules/
+
+# Secrets, wherever they land
+.share/
+.secrets/
+*.key
+*.pem
+.env
+.env.*
+!.env.example
+
+# OS / editor
+.DS_Store

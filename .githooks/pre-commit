@@ -1,0 +1,21 @@
+#!/bin/sh
+# Blocks real trips, keys and builds from reaching the public repo, then runs the fast tests.
+# Enabled by `npm install` (package.json "prepare" sets core.hooksPath=.githooks).
+set -eu
+
+staged=$(git diff --cached --name-only --diff-filter=ACMR)
+
+blocked=$(printf '%s\n' "$staged" | grep -E '^(trips/|\.share/|\.secrets/|dist/|\.cache/)|\.(key|pem)$|(^|/)\.env(\..+)?$' | grep -vE '^trips/README\.md$|(^|/)\.env\.example$' || true)
+if [ -n "$blocked" ]; then
+  echo "pre-commit: these must never be committed (real trips, keys, builds):" >&2
+  printf '  %s\n' $blocked >&2
+  exit 1
+fi
+
+if ! command -v gitleaks >/dev/null 2>&1; then
+  echo "pre-commit: gitleaks is required (brew install gitleaks). Refusing to commit unscanned." >&2
+  exit 1
+fi
+gitleaks git --staged --redact --no-banner --config .gitleaks.toml
+
+npm test --silent

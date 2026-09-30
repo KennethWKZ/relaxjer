@@ -1,0 +1,11 @@
+# Keep the code graph to framework code: no trip data, builds, caches or data fixtures.
+trips/
+dist/
+.cache/
+node_modules/
+test-results/
+playwright-report/
+blob-report/
+.share/
+.secrets/
+examples/**/*.json

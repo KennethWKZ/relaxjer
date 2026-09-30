@@ -1,0 +1,22 @@
+{
+  "name": "relaxjer",
+  "version": "0.0.0",
+  "private": true,
+  "description": "An AI-assisted planner that turns a family's trip requirements into one offline-friendly, installable page.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "node engine/build.mjs",
+    "test": "node --test \"tests/repo/*.test.mjs\" \"tests/contract/*.test.mjs\" \"tests/unit/*.test.mjs\"",
+    "test:e2e": "playwright test",
+    "test:all": "npm test && npm run test:e2e",
+    "test:release": "node --test \"tests/release/*.test.mjs\"",
+    "prepare": "git config core.hooksPath .githooks || true"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
+  }
+}
