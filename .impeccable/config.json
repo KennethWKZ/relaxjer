@@ -1,0 +1,23 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "dark-glow",
+        "value": "*",
+        "files": [
+          "site/index.html"
+        ],
+        "createdAt": "2026-09-30T22:01:27.027Z",
+        "reason": "build thread decision: DESIGN.md's Glow From Inside Rule and 'Lantern, night' shadow define this lantern glow; engine/src/style.css ships the same; DESIGN.md's landing-page section records it"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "sfmono-regular",
+        "createdAt": "2026-09-30T22:01:27.050Z",
+        "reason": "build thread decision: the monospace stack is used only for command code blocks (code content), not as a display or UI face"
+      }
+    ]
+  }
+}
