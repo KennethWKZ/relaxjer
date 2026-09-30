@@ -82,6 +82,6 @@ Traditional → Simplified search. That's step 4.
   content on a Google map. The pipeline stores fetched details in trip files, and the MapLibre fallback shows them.
   Get a legal read before the public guide recommends the current flow
   ([ADR-20260930-google-keys](./standards/decisions/ADR-20260930-google-keys.md)).
-- **CI supply chain:** pin GitHub Actions to commit SHAs.
+- ~~CI supply chain~~: **every GitHub Action is pinned to a commit SHA**, the release named in a comment (`ci.yml`, `pages.yml`), done 2026-10-01.
 - **History:** the pre-push scan blocks any pushed commit that adds a real trip's details. Rewrite such a commit before
   the first push.
