@@ -35,11 +35,26 @@ test('guard-publish: every other route is denied', () => {
 		'lavish-axi share x.html --site abc123de --update-key "$K"',
 		'cat ~/.config/relaxjer/publish/demo.txt',
 		'security find-generic-password -s relaxjer-publish -a demo -w',
+		// a flag that takes a value, and a read-only command that runs another inside it
+		'node -r ./x.cjs scripts/publish-trip.mjs trips/demo',
+		'node --env-file .env scripts/publish-trip.mjs trips/demo',
+		'echo "$(node scripts/publish-trip.mjs trips/demo)"',
+		'cat `node scripts/publish-trip.mjs trips/demo`',
+		'cat <(node scripts/publish-trip.mjs trips/demo)',
 	])
 		assert.equal(decide({ command }), 'deny', command);
+	assert.equal(decide({ command: 'node scripts/publish-trip.mjs trips/demo', description: 'x', timeout_ms: 1000 }), 'deny', 'Monitor');
 	assert.equal(decide({ code: "import('./scripts/publish-trip.mjs')" }), 'deny', 'ctx_execute code');
 	assert.equal(decide({ path: '/x/.config/relaxjer/publish/demo.txt', code: 'print(1)' }), 'deny', 'ctx_execute_file path');
 	assert.equal(decide({ commands: [{ label: 'x', command: 'pnpm publish:trip trips/demo' }] }), 'deny', 'ctx_batch_execute');
+});
+
+test('guard-publish: the shell guards also see the Monitor tool, which runs a command too', () => {
+	const settings = JSON.parse(fs.readFileSync(path.join(root, '.claude', 'settings.json'), 'utf8'));
+	for (const script of ['guard-bash.mjs', 'guard-publish.mjs']) {
+		const group = settings.hooks.PreToolUse.find((g) => g.hooks.some((h) => h.command.includes(script)));
+		for (const tool of ['Bash', 'Monitor']) assert.match(tool, new RegExp(`^(${group.matcher})$`), `${script} misses ${tool}`);
+	}
 });
 
 test('guard-publish: work on the script itself is not publishing', () => {

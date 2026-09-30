@@ -7,7 +7,7 @@
 	"hooks": {
 		"PreToolUse": [
 			{
-				"matcher": "Bash",
+				"matcher": "Bash|Monitor",
 				"hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-bash.mjs\"", "timeout": 10 }]
 			},
 			{
@@ -15,7 +15,7 @@
 				"hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-write.mjs\"", "timeout": 10 }]
 			},
 			{
-				"matcher": "Bash|mcp__.*ctx_(batch_execute|execute_file|execute)",
+				"matcher": "Bash|Monitor|mcp__.*ctx_(batch_execute|execute_file|execute)",
 				"hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-publish.mjs\"", "timeout": 10 }]
 			}
 		],

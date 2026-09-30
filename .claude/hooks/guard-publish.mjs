@@ -1,4 +1,4 @@
-// PreToolUse (Bash and context-mode's shells): publishing reaches the group, so it has exactly one door. A plain
+// PreToolUse (Bash, Monitor and context-mode's shells): publishing reaches the group, so it has exactly one door. A plain
 // `pnpm publish:trip …` passes here and meets the settings.json "ask" rule, which prompts the planner in every mode.
 // Every other route to the script, the share or the publish secrets is denied, since a hook "ask" isn't documented to
 // prompt in bypass mode but a deny holds in all of them. The planner's own `!` commands don't go through hooks.
@@ -10,22 +10,24 @@ const cmd = typeof input.command === 'string' ? input.command : '';
 const text = JSON.stringify(input);
 // the one door: the package script alone, with plain arguments (no chaining, substitution or redirects)
 const plain = /^\s*pnpm\s+publish:trip(\s+[\w./-]+)*\s*$/.test(cmd) && input.code == null && input.commands == null;
-// Bash: look at each command in the line, skipping heredoc bodies (a commit message may name the script) and parts that
-// only read (grep, cat, sed -n, git show…). Code in a context-mode shell can run the script any way: any mention counts.
+// Bash and Monitor: look at each command in the line, skipping heredoc bodies (a commit message may name the script) and
+// parts that only read (grep, cat, sed -n, git show…). A part that substitutes a command (`$( )`, backticks, `<( )`)
+// runs it, so it isn't read-only. Code in a context-mode shell can run the script any way: any mention counts.
 const READ_ONLY = /^(grep|rg|cat|head|tail|less|more|wc|ls|stat|file|echo|printf|sed\s+-n|git\s+(show|log|diff|grep|blame|status))\b/;
+const RUNS_INSIDE = /\$\(|`|[<>]\(/;
 const noHeredocs = cmd.replace(/<<-?\s*(['"]?)(\w+)\1[^\n]*\n[\s\S]*?\n\s*\2[ \t]*(?=\n|$)/g, ' ');
 const parts = noHeredocs
 	.split(/&&|\|\||[;|\n]/)
 	.map((p) => p.trim())
-	.filter((p) => p && !READ_ONLY.test(p));
+	.filter((p) => p && !(READ_ONLY.test(p) && !RUNS_INSIDE.test(p)));
 const shellCode = input.code != null || input.commands != null;
 const acts = (re) => (shellCode ? re.test(text) : parts.some((p) => re.test(p)));
 
 const RULES = [
-	// running it: a JS runtime pointed at the file (with or without flags, or inline code naming it), or the package
-	// script under another spelling. `pnpm exec prettier … publish-trip.mjs` only touches the file
+	// running it: a JS runtime pointed at the file (after any flags, with or without values, or inline code naming it),
+	// or the package script under another spelling. `pnpm exec prettier … publish-trip.mjs` only touches the file
 	[
-		acts(shellCode ? /publish[-:]trip/ : /\b(node|bun|deno|tsx)\b(\s+-\S+)*\s+\S*publish-trip\b|\b(pnpm|npm|yarn|bun)\b(\s+\S+)*?\s+publish:trip\b/),
+		acts(shellCode ? /publish[-:]trip/ : /\b(node|bun|deno|tsx)\b(\s+\S+)*?\s+\S*publish-trip\b|\b(pnpm|npm|yarn|bun)\b(\s+\S+)*?\s+publish:trip\b/),
 		'runs the publish script another way',
 	],
 	[acts(/lavish-axi\b.*\bshare\b.*--update-key/), 'republishes a live page directly'],
