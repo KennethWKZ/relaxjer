@@ -6,9 +6,12 @@ import { existsSync, readFileSync, rmSync } from 'node:fs';
 import path from 'node:path';
 
 const root = process.env.CLAUDE_PROJECT_DIR || process.cwd();
-const flag = path.join(root, '.claude', '.write-flag');
+const input = JSON.parse(readFileSync(0, 'utf8') || '{}');
+// this session's flag only (mark-write.mjs): another agent in the same tree keeps its own
+const session = String(input.session_id || 'default').replace(/[^\w-]/g, '');
+const flag = path.join(root, '.claude', `.write-flag-${session}`);
 if (!existsSync(flag)) process.exit(0);
-const retried = JSON.parse(readFileSync(0, 'utf8') || '{}').stop_hook_active === true;
+const retried = input.stop_hook_active === true;
 
 try {
 	execSync('pnpm --silent lint:check && pnpm --silent format:check && pnpm --silent test', { cwd: root, stdio: 'pipe', encoding: 'utf8' });

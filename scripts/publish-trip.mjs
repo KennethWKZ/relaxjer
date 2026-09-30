@@ -4,8 +4,10 @@
 //   pnpm publish:trip trips/<slug>             publish, prove the live build id, open it on an iPhone and an Android phone
 //   pnpm publish:trip trips/<slug> --dry-run   everything up to the share (and the rollback copy), without publishing
 //   pnpm publish:trip trips/<slug> --check     only prove what's live and that it opens cleanly
-// Secrets live in ~/.config/relaxjer/publish/ (never in the repo), either one value per file (<slug>.update-key,
-// <slug>.viewer, <slug>.site) or the first trip's labelled files (<slug>.txt as lavish-axi printed it, <slug>-viewer.txt).
+// The update key comes from the macOS Keychain when it's there (service relaxjer-publish, account <slug>; macOS asks the
+// planner before each read), and is read only right before the share. The rest live in ~/.config/relaxjer/publish/
+// (never in the repo), either one value per file (<slug>.viewer, <slug>.site, and <slug>.update-key if the key isn't in
+// the Keychain) or the first trip's labelled files (<slug>.txt as lavish-axi printed it, <slug>-viewer.txt).
 // Before publishing it saves the live copy there as <slug>-rollback-<build id>.html, so a bad publish can be undone by
 // publishing that file again.
 import { execFileSync } from 'node:child_process';
@@ -26,22 +28,58 @@ const labelled = (text, key) => {
 	return m ? m[1] : null;
 };
 
-/** { site, url, updateKey, viewer } for a trip, from one-value files or the labelled ones; throws naming what's missing. */
+export const KEYCHAIN_SERVICE = 'relaxjer-publish';
+
+/**
+ * The update key from the macOS Keychain (service relaxjer-publish, account = the trip's slug). The planner stores it
+ * with no trusted apps (`-T ""`), so macOS asks them before every read. Returns null when there's no such item (then
+ * the key comes from a file), and throws when there is one but the read was refused: a "Deny" must stop the publish,
+ * never fall back to a copy on disk.
+ */
+export function keychainKey(slug, run = execFileSync) {
+	if (process.platform !== 'darwin') return null;
+	const args = ['find-generic-password', '-s', KEYCHAIN_SERVICE, '-a', slug];
+	const opts = { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] };
+	try {
+		run('security', args, opts); // the item's attributes only: no dialog
+	} catch {
+		return null;
+	}
+	try {
+		return run('security', [...args, '-w'], opts).trim() || null;
+	} catch {
+		throw new Error('the Keychain read of the update key was refused (or timed out): not publishing');
+	}
+}
+
+const oneValue = (dir, slug, ext) => (readIf(path.join(dir, `${slug}.${ext}`)) || '').trim() || null;
+
+/** { site, url, viewer } for a trip, from one-value files or the labelled ones; throws naming what's missing. */
 export function readSecrets(dir, slug) {
-	const one = (ext) => (readIf(path.join(dir, `${slug}.${ext}`)) || '').trim() || null;
 	const txt = readIf(path.join(dir, `${slug}.txt`));
-	const siteFile = one('site') || '';
+	const siteFile = oneValue(dir, slug, 'site') || '';
 	const site = labelled(siteFile, 'site_id') || (/^[a-z0-9]{6,}$/m.exec(siteFile) || [])[0] || labelled(txt, 'site_id');
 	const url = (/https:\/\/[^\s"]+/.exec(siteFile) || [])[0] || labelled(txt, 'url') || (site ? `https://${site}.ht-ml.app/` : null);
-	const updateKey = one('update-key') || labelled(txt, 'update_key');
 	// the labelled viewer file is one line, "viewer password (…): <password>"; only the password goes into the cookie
 	const viewerTxt = readIf(path.join(dir, `${slug}-viewer.txt`));
-	const viewer = one('viewer') || (viewerTxt ? viewerTxt.replace(/^[^\n]*\):\s*/, '').trim() : null);
-	const missing = Object.entries({ site, updateKey, viewer })
+	const viewer = oneValue(dir, slug, 'viewer') || (viewerTxt ? viewerTxt.replace(/^[^\n]*\):\s*/, '').trim() : null);
+	const missing = Object.entries({ site, viewer })
 		.filter(([, v]) => !v)
 		.map(([k]) => k);
 	if (missing.length) throw new Error(`missing in ${dir} for ${slug}: ${missing.join(', ')} (see the publish-htmlapp skill)`);
-	return { site, url, updateKey, viewer };
+	return { site, url, viewer };
+}
+
+/**
+ * { key, from } for the share, read only right before it (so --check and --dry-run never ask for it): the Keychain
+ * first, else <slug>.update-key, else the labelled <slug>.txt.
+ */
+export function readUpdateKey(dir, slug, { keychain = keychainKey } = {}) {
+	const fromKeychain = keychain(slug);
+	if (fromKeychain) return { key: fromKeychain, from: 'keychain' };
+	const key = oneValue(dir, slug, 'update-key') || labelled(readIf(path.join(dir, `${slug}.txt`)), 'update_key');
+	if (!key) throw new Error(`no update key for ${slug} in the Keychain or ${dir} (see the publish-htmlapp skill)`);
+	return { key, from: 'file' };
 }
 
 /** Text with every secret value and every secret-looking line hidden, for anything the script prints. */
@@ -115,7 +153,8 @@ async function main(argv) {
 	if (!next) throw new Error(`${file} has no build id: rebuild it with this engine`);
 
 	const sec = readSecrets(SECRETS_DIR, slug);
-	const hide = (t) => redact(t, [sec.updateKey, sec.viewer]);
+	let updateKey = null;
+	const hide = (t) => redact(t, [updateKey, sec.viewer]);
 	const live = await liveBuild(sec.url, sec.viewer);
 	console.log(`${sec.url}\n  live ${live || 'unknown (gate or network)'} → new ${next}`);
 	const proveOpens = async () => {
@@ -146,11 +185,15 @@ async function main(argv) {
 		return;
 	}
 
+	const got = readUpdateKey(SECRETS_DIR, slug);
+	updateKey = got.key;
+	if (got.from === 'file' && process.platform === 'darwin')
+		console.log('  note: the update key is still in a file; move it into the Keychain so macOS asks before each publish (publish-htmlapp skill)');
 	// the key has to go to lavish-axi as an argument; a failure's message repeats the whole command line, so hide it
 	const share = () => {
 		try {
 			return hide(
-				execFileSync('lavish-axi', ['share', file, '--site', sec.site, '--update-key', sec.updateKey], {
+				execFileSync('lavish-axi', ['share', file, '--site', sec.site, '--update-key', updateKey], {
 					encoding: 'utf8',
 					stdio: ['ignore', 'pipe', 'pipe'],
 				}),

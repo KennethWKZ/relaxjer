@@ -23,10 +23,13 @@ lavish-axi share trips/<slug>/dist/<fileName>-standalone.html --private
 
 It prints the URL, a generated viewer password and a secret update key, **each shown once**.
 
-- Ask the planner to save each secret alone in its own file outside the repo, mode 600:
-  `~/.config/relaxjer/publish/<slug>.update-key` and `~/.config/relaxjer/publish/<slug>.viewer`, plus the site id and
-  URL in `<slug>.site`. One value per file means nothing has to be cut out of a labelled line later. **Never echo the
-  update key into the chat, a repo file, a test or a commit.**
+- Ask the planner to put the **update key in the macOS Keychain**, with no trusted apps, so macOS asks them before
+  every read (they type it; never echo it):
+  `security add-generic-password -s relaxjer-publish -a <slug> -T "" -w '<the key>'`. Without a Mac, it goes alone in
+  `~/.config/relaxjer/publish/<slug>.update-key`, mode 600.
+- The viewer password goes alone in `~/.config/relaxjer/publish/<slug>.viewer`, and the site id and URL in
+  `<slug>.site`. One value per file means nothing has to be cut out of a labelled line later. **Never echo the update
+  key into the chat, a repo file, a test or a commit.**
 - If the planner wants a password the group can type (the gate asks again every 24 h), pass
   `--password "<chosen>"`, quoted. An empty value would publish a public page, so lavish-axi refuses it.
 
@@ -38,23 +41,27 @@ pnpm publish:trip trips/<slug> --dry-run   # the checks and the rollback copy, n
 pnpm publish:trip trips/<slug> --check     # only prove what's live and that it opens
 ```
 
-`scripts/publish-trip.mjs` reads the update key and the viewer password from `~/.config/relaxjer/publish/` itself.
-Agents can't read that folder (`.claude/settings.json` denies it), and Claude Code asks the planner before every
-`pnpm publish:trip`. So the planner approves each publish, and no secret reaches the chat. Never read or copy those
-files another way. The script:
+`scripts/publish-trip.mjs` reads the secrets itself, so none reaches the chat. **Publishing has one door**: that
+command, alone in Bash. Claude Code asks the planner before every `pnpm publish:trip` (a settings "ask" rule, which
+prompts in every mode), and `.claude/hooks/guard-publish.mjs` denies every other route: `node scripts/publish-trip.mjs`,
+`npm run …`, a chained command, a context-mode shell, a direct `lavish-axi share --update-key`, and any read of
+`~/.config/relaxjer/publish/` or the Keychain item. On a Mac, macOS then asks once more before it releases the key.
+Never read or copy the secrets another way. The script:
 
 1. Reads the new page's build id from `trips/<slug>/dist/<fileName>-standalone.html`, and the live page's through the
    password gate. If they're the same, it stops.
 2. Saves the live copy as `~/.config/relaxjer/publish/<slug>-rollback-<build id>.html`. To undo a bad publish, the
    planner publishes that file.
-3. Shares the page to the same site (`--site`, `--update-key`). Without `--password` or `--private`, the viewer password
-   stays as it is.
+3. Reads the update key (the Keychain first; `--check` and `--dry-run` never read it), then shares the page to the same
+   site. A "Deny" in the Keychain dialog stops the publish; it never falls back to a copy on disk. Without `--password`
+   or `--private`, the viewer password stays as it is.
 4. Polls the live build id for about 3 minutes. The CDN can serve the old copy for minutes, and `?v=` doesn't bust it,
    so after a minute it shares once more (that fixed a stale copy within a minute on the first trip).
 5. Opens the live page past the gate on an iPhone (WebKit) and an Android phone (Chromium) and fails on page errors.
 
-It reads either layout: one value per file (`<slug>.update-key`, `<slug>.viewer`, `<slug>.site`), or the first trip's
-labelled files (`<slug>.txt` as lavish-axi printed it, `<slug>-viewer.txt`). Keep `TRIP.fileName` and
+It reads either layout: one value per file (`<slug>.viewer`, `<slug>.site`, and `<slug>.update-key` when the key isn't
+in the Keychain), or the first trip's labelled files (`<slug>.txt` as lavish-axi printed it, `<slug>-viewer.txt`). If
+the key still sits in a file on a Mac, it says so; the planner moves it into the Keychain and deletes the file copy. Keep `TRIP.fileName` and
 `TRIP.storageKey` unchanged from the last publish (`build-page`), or the group loses its saved state.
 
 Phones that hold the old copy on their home screen show an update bar once they're back online.

@@ -20,6 +20,10 @@ id> --update-key <key>` with the key read from outside the repo. Without `--pass
   password stays as it is.
 - **An agent never holds the publish secrets.** Once the repo denied agents the secrets folder, a publish that read the
   key in the agent's own shell was blocked (2026-10-01). The script reads them itself, and the planner approves each run.
+- **An "ask" rule matches text, not intent.** `Bash(pnpm publish:trip:*)` let `node scripts/publish-trip.mjs`,
+  `npm run …` and a context-mode shell through. So the hook `guard-publish.mjs` denies every route but the one that asks
+  (a hook "deny" holds in every mode; a hook "ask" isn't documented for bypass mode), and the key sits in the macOS
+  Keychain with no trusted apps, so the OS itself asks before a publish, even one started by a script nobody reviewed.
 - **Pick a password the group can type.** The gate keeps it in a cookie for 24 h, so seniors re-enter it daily. A
   generated password was too hard; the first group got a simple one.
 - **The CDN can keep serving the old copy for minutes** after a republish, even when the host says `updated: true`,

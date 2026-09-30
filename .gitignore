@@ -29,7 +29,7 @@ __pycache__/
 .venv/
 
 # Agent tooling: local-only state
-/.claude/.write-flag
+/.claude/.write-flag*
 /.claude/settings.local.json
 /.impeccable/hook.cache.json
 /.impeccable/review/
