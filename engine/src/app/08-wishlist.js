@@ -105,13 +105,13 @@ const wGroup = (h, c, items) =>
 		items.map((w) => `wish-${w.id}`),
 	)}"${c ? ` style="${colorVars(c)}"` : ''}><summary><h3 class="wish-h">${c ? '<span class="sw" aria-hidden="true"></span>' : icon('star')}<span>${esc(h)}</span></h3><span class="wg-n">${items.length}</span>${icon('chev', 'chev')}</summary><div class="hung" data-lazy-body></div></details>`;
 // how to order at a Taiwan tea stand (the menu words that matter)
-const drinkHowTo =
-	() => `<details class="more" style="margin-top:12px"><summary>${icon('boba')}${Z('怎么点饮料', 'How to order a drink')}${icon('chev', 'chev')}</summary><div class="more-body"><dl class="kv">
-      <div><dt>${Z('甜度', 'Sugar')}</dt><dd class="wrap">${Z('正常 · 少糖 · 半糖 · 微糖 · 无糖（怕甜说「微糖」）', 'regular · less · half · light · none ("微糖" = light)')}</dd></div>
-      <div><dt>${Z('冰块', 'Ice')}</dt><dd class="wrap">${Z('正常 · 少冰 · 微冰 · 去冰 · 常温 · 热', 'regular · less · light · no ice · room temp · hot')}</dd></div>
-      <div><dt>${Z('加料', 'Toppings')}</dt><dd class="wrap">${Z('珍珠/波霸（大颗）· 椰果 · 仙草 · 布丁', 'pearls / boba (large) · coconut jelly · grass jelly · pudding')}</dd></div>
-      <div><dt>${Z('价钱', 'Price')}</dt><dd class="wrap">${Z('大杯约NT$45–80；自备杯常折NT$5', 'large ~NT$45–80; own cup usually NT$5 off')}</dd></div>
-    </dl></div></details>`;
+// how to order a drink there (Pack.drinkGuide: [[term, text], …] rows), if the country's pack has one
+const drinkHowTo = () =>
+	Pack.drinkGuide
+		? `<details class="more" style="margin-top:12px"><summary>${icon('boba')}${Z('怎么点饮料', 'How to order a drink')}${icon('chev', 'chev')}</summary><div class="more-body"><dl class="kv">
+      ${Pack.drinkGuide.map(([k, v]) => `<div><dt>${esc(L(k))}</dt><dd class="wrap">${esc(L(v))}</dd></div>`).join('\n      ')}
+    </dl></div></details>`
+		: '';
 function secEat() {
 	return `<section class="sec" id="eat" data-sec="eat">
       <h2 class="sec-title">${icon('food')}${Z('附近吃什么', 'Food nearby')}</h2>

@@ -5,6 +5,26 @@
 export const country = ['台湾', 'Taiwan'];
 export const sym = 'NT$';
 
+/** how to order a drink at a tea shop: [[term, text], …], each [zh, en] */
+export const drinkGuide = [
+	[
+		['甜度', 'Sugar'],
+		['正常 · 少糖 · 半糖 · 微糖 · 无糖（怕甜说「微糖」）', 'regular · less · half · light · none ("微糖" = light)'],
+	],
+	[
+		['冰块', 'Ice'],
+		['正常 · 少冰 · 微冰 · 去冰 · 常温 · 热', 'regular · less · light · no ice · room temp · hot'],
+	],
+	[
+		['加料', 'Toppings'],
+		['珍珠/波霸（大颗）· 椰果 · 仙草 · 布丁', 'pearls / boba (large) · coconut jelly · grass jelly · pudding'],
+	],
+	[
+		['价钱', 'Price'],
+		['大杯约NT$45–80；自备杯常折NT$5', 'large ~NT$45–80; own cup usually NT$5 off'],
+	],
+];
+
 /** tourist tax refund: at least this much in one shop on one day */
 export const taxRefund = { min: 2000 };
 

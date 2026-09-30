@@ -27,6 +27,7 @@ export function taxiFare(km, minsNow) {
 /** YouBike 2.0 live dock counts: the request for some station numbers, and its answer as { no, bikes, docks, on } */
 export const bikeShare = {
 	name: ['YouBike', 'YouBike'],
+	system: ['YouBike 2.0', 'YouBike 2.0'],
 	request: (nos) => ({
 		url: 'https://apis.youbike.com.tw/tw2/parkingInfo',
 		init: { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ station_no: nos }) },
