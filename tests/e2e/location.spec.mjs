@@ -32,9 +32,18 @@ async function stubGeo(page, state) {
 
 const card = (page) => page.locator('#now .geo-ask');
 
+/** Opens the trip with its clock on a day relative to the first trip day (-3: three days before), on any trip. */
+async function openOn(page, offset, time = '10:00') {
+	await openTrip(page);
+	const first = await page.evaluate(() => DAYS[0].date);
+	const d = new Date(`${first}T12:00:00Z`);
+	d.setUTCDate(d.getUTCDate() + offset);
+	await setStored(page, { now: `${d.toISOString().slice(0, 10)} ${time}` });
+}
+
 test('the page never asks for location by itself, and the card asks on a tap', async ({ page }) => {
 	await stubGeo(page, 'prompt');
-	await openTrip(page);
+	await openOn(page, -3);
 	await expect(card(page)).toContainText('Turn on location');
 	expect(await page.evaluate(() => window.__geoAsked), 'no request before a tap').toBe(0);
 	await card(page).getByRole('button', { name: 'Turn on location' }).click();
@@ -44,7 +53,7 @@ test('the page never asks for location by itself, and the card asks on a tap', a
 
 test('"Not today" hides the card for the rest of the day', async ({ page }) => {
 	await stubGeo(page, 'prompt');
-	await openTrip(page);
+	await openOn(page, -3);
 	await card(page).getByRole('button', { name: 'Not today' }).click();
 	await expect(card(page)).toHaveCount(0);
 	await page.reload();
@@ -54,9 +63,7 @@ test('"Not today" hides the card for the rest of the day', async ({ page }) => {
 
 test('no card once location is allowed, and a trip day follows the phone without asking', async ({ page }) => {
 	await stubGeo(page, 'granted');
-	await openTrip(page);
-	const first = await page.evaluate(() => DAYS[0].date);
-	await setStored(page, { now: `${first} 10:00` });
+	await openOn(page, 0);
 	await expect(page.locator('#now .now-day')).toBeVisible();
 	await expect(card(page)).toHaveCount(0);
 	await expect.poll(() => page.evaluate(() => window.__geoAsked), { message: 'tracking started on its own' }).toBeGreaterThan(0);
@@ -64,16 +71,14 @@ test('no card once location is allowed, and a trip day follows the phone without
 
 test('the card comes back on a trip day when the browser forgot the answer', async ({ page }) => {
 	await stubGeo(page, 'prompt');
-	await openTrip(page);
-	const first = await page.evaluate(() => DAYS[0].date);
-	await setStored(page, { now: `${first} 10:00` });
+	await openOn(page, 0);
 	await expect(card(page)).toContainText('running late');
 	expect(await page.evaluate(() => window.__geoAsked)).toBe(0);
 });
 
 test('a "no" turns the card into steps to switch it back on', async ({ page }) => {
 	await stubGeo(page, 'denied');
-	await openTrip(page);
+	await openOn(page, -3);
 	await expect(card(page)).toContainText('Location is off');
 	await card(page).getByRole('button', { name: 'How to turn it on' }).click();
 	await expect(page.locator('#placeSheet .home-steps li').first()).toBeVisible();
