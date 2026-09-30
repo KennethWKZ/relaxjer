@@ -1,8 +1,8 @@
-// E2E characterisation of the trip page: 390 px and desktop, Chromium and WebKit (docs/adr/0002-test-strategy.md).
+// E2E characterisation of the trip page: 390 px and desktop, Chromium and WebKit (memory-bank/standards/decisions/ADR-20260930-test-strategy.md).
 import { defineConfig, devices } from '@playwright/test';
 
 const PORT = Number(process.env.RELAXJER_TEST_PORT || 8124);
-const phone = { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 3 };
+const phone = { width: 390, height: 844 };
 const desktop = { viewport: { width: 1280, height: 800 } };
 
 export default defineConfig({
@@ -26,7 +26,8 @@ export default defineConfig({
 		reuseExistingServer: !process.env.CI,
 	},
 	projects: [
-		{ name: 'chromium-390', use: { ...devices['Desktop Chrome'], ...phone } },
+		// the group's Android phones: Chrome's Android user agent (install button, Android steps), at the 390 px the iPhone uses
+		{ name: 'android-390', use: { ...devices['Pixel 7'], viewport: phone } },
 		{ name: 'chromium-1280', use: { ...devices['Desktop Chrome'], ...desktop } },
 		{ name: 'webkit-390', use: { ...devices['iPhone 13'] } },
 		{ name: 'webkit-1280', use: { ...devices['Desktop Safari'], ...desktop } },
