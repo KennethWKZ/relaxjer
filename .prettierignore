@@ -22,3 +22,5 @@ engine/src/shell.html
 # the two halves of the IIFE the build wraps around engine/src/app/*.js; neither parses alone
 engine/src/app/00-open.js
 engine/src/app/99-close.js
+# screenshot provenance sidecars, written by impeccable embed-prompt
+site/assets/**/*.json

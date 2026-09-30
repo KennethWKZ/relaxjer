@@ -5,7 +5,8 @@ AI agent (Claude Code, Codex, Cursor, Gemini CLI, Copilot…) and every person w
 in `memory-bank/` and states the rules that bind.
 
 **Status:** story steps 0–3b and 5 are done (engine moved, split and generalised; the `tw` pack; the pipeline). Step 6,
-the agent tooling, is in flight. Next: i18n (step 4), the landing page (6b), a second destination (7). See
+the agent tooling, is in flight, and the landing page (6b) is built but not yet deployed. Next: i18n (step 4), the
+affordance fixes (6c), a second destination (7). See
 [`memory-bank/story-index.md`](memory-bank/story-index.md).
 
 ## Read first
@@ -31,18 +32,19 @@ the agent tooling, is in flight. Next: i18n (step 4), the landing page (6b), a s
 
 ### Task shortcuts
 
-| If your task is…                       | Start here                                                                                              |
-| -------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| Plan a new trip                        | skill `trip-intake`, then `data-sync` → `build-page` → `verify-page` → `publish-htmlapp`                |
-| Refresh a live trip's data             | skill `data-sync`, then `verify-page` and `publish-htmlapp`                                             |
-| A new country or city                  | skill `destination-pack`                                                                                |
-| Change the engine, a section or a pack | [`memory-bank/standards/patterns/engine.md`](memory-bank/standards/patterns/engine.md)                  |
-| Change anything the page shows         | [`memory-bank/standards/patterns/frontend.md`](memory-bank/standards/patterns/frontend.md), `DESIGN.md` |
-| Write or change a test                 | [`memory-bank/standards/patterns/testing.md`](memory-bank/standards/patterns/testing.md)                |
-| Write trip data                        | [`memory-bank/standards/patterns/trip-data.md`](memory-bank/standards/patterns/trip-data.md)            |
-| Touch the pipeline                     | [`memory-bank/standards/patterns/pipeline.md`](memory-bank/standards/patterns/pipeline.md)              |
-| After a trip                           | skill `trip-retro`                                                                                      |
-| A decision worth recording             | an ADR in `memory-bank/standards/decisions/`, then `pnpm gen:adr-index`                                 |
+| If your task is…                       | Start here                                                                                                    |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Plan a new trip                        | skill `trip-intake`, then `data-sync` → `build-page` → `verify-page` → `publish-htmlapp`                      |
+| Refresh a live trip's data             | skill `data-sync`, then `verify-page` and `publish-htmlapp`                                                   |
+| A new country or city                  | skill `destination-pack`                                                                                      |
+| Change the engine, a section or a pack | [`memory-bank/standards/patterns/engine.md`](memory-bank/standards/patterns/engine.md)                        |
+| Change the landing page (`site/`)      | [`memory-bank/standards/patterns/frontend.md`](memory-bank/standards/patterns/frontend.md) § The landing page |
+| Change anything the page shows         | [`memory-bank/standards/patterns/frontend.md`](memory-bank/standards/patterns/frontend.md), `DESIGN.md`       |
+| Write or change a test                 | [`memory-bank/standards/patterns/testing.md`](memory-bank/standards/patterns/testing.md)                      |
+| Write trip data                        | [`memory-bank/standards/patterns/trip-data.md`](memory-bank/standards/patterns/trip-data.md)                  |
+| Touch the pipeline                     | [`memory-bank/standards/patterns/pipeline.md`](memory-bank/standards/patterns/pipeline.md)                    |
+| After a trip                           | skill `trip-retro`                                                                                            |
+| A decision worth recording             | an ADR in `memory-bank/standards/decisions/`, then `pnpm gen:adr-index`                                       |
 
 ## Skills
 

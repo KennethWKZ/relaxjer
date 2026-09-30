@@ -68,3 +68,19 @@ Run the checks before you call it done. The `verify-page` skill runs all of them
 4. Put a screenshot next to the reference part of the page, and fix alignment, spacing and style drift.
 5. Check an iPhone-sensitive change (scroll, jumps, install, location) in WebKit; Playwright's WebKit is close to iOS
    Safari, not identical.
+
+## The landing page (`site/`)
+
+GitHub Pages serves `site/` as it is (`.github/workflows/pages.yml`), under the `/relaxjer/` sub-path. It follows
+`DESIGN.md` like the trip page does: the four steps hang as lanterns on a string. Its surface brief and direction
+contract are in `.impeccable/surfaces/site-index-html.md`.
+
+- **Static and self-contained.** Plain HTML, `site/assets/site.css` and one small script. Only relative paths, and no
+  third-party script, style or font: the brush face is a self-hosted subset, `site/assets/fonts/`, with its SIL OFL.
+  A new brush glyph means fetching a new subset that includes it.
+- **Only the demo, ever.** The screenshots come from `node scripts/docs-update/site-screens.mjs`, which builds the
+  synthetic demo without a key and writes each image with its provenance sidecar. The flow diagram comes from
+  `node scripts/docs-update/flow-diagram.mjs`.
+- **Checked like the trip page.** `tests/repo/site.test.mjs` covers links, third-party requests, alt text,
+  provenance, the file types and the SHA-pinned deploy. The eye check is 390 px and desktop, light and dark, in
+  Chromium and WebKit.

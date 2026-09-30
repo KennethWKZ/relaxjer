@@ -1,0 +1,818 @@
+/* RelaxJer's landing page: the trip page's lantern-paper world (DESIGN.md) applied to one page about planning a trip.
+   The four steps hang as lanterns on a string; everything operated is plain system sans on white paper. */
+@font-face {
+	font-family: 'Ma Shan Zheng';
+	src: url('fonts/ma-shan-zheng-subset.woff2') format('woff2');
+	font-display: swap;
+	/* a subset: only the glyphs this page letters (see fonts/OFL.txt) */
+}
+
+:root {
+	--paper: #ffffff;
+	--paper-2: #f3f4f7;
+	--paper-3: #e7e9ee;
+	--ink: #15161a;
+	--ink-2: #464a53;
+	--ink-3: #545963;
+	--rule: #dfe2e8;
+	--seal: #c42a1f;
+	--seal-ink: #ffffff;
+	--focus: #1f5fd1;
+	--link: #1d5bc4;
+	--glass: rgba(255, 255, 255, 0.82);
+	--glass-edge: rgba(21, 22, 26, 0.08);
+	--code: #f3f4f7;
+
+	--l1: #d9352b;
+	--l1-ink: #ffffff;
+	--l2: #2466c8;
+	--l2-ink: #ffffff;
+	--l3: #ec6a1c;
+	--l3-ink: #1c0d02;
+	--l4: #1b7f52;
+	--l4-ink: #ffffff;
+
+	--font-ui:
+		-apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Microsoft YaHei', 'Segoe UI', Roboto, 'Helvetica Neue',
+		Arial, sans-serif;
+	--font-brush: 'Ma Shan Zheng', 'STKaiti', 'KaiTi', 'Kaiti SC', 'BiauKai', serif;
+	--font-code: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+	--wide: 72rem;
+	--col: 46rem;
+	--r-md: 12px;
+	--r-lg: 18px;
+	--ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+	color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--paper: #0c1017;
+		--paper-2: #151a23;
+		--paper-3: #1e2430;
+		--ink: #eef0f4;
+		--ink-2: #bcc1cb;
+		--ink-3: #969ca8;
+		--rule: #2a313d;
+		--seal: #ff6a5c;
+		--seal-ink: #1a0503;
+		--focus: #7fb0ff;
+		--link: #8ab8ff;
+		--glass: rgba(12, 16, 23, 0.8);
+		--glass-edge: rgba(238, 240, 244, 0.08);
+		--code: #151a23;
+		color-scheme: dark;
+	}
+}
+
+* {
+	box-sizing: border-box;
+}
+html {
+	-webkit-text-size-adjust: 100%;
+	text-size-adjust: 100%;
+	scroll-behavior: smooth;
+	scroll-padding-top: 5rem;
+}
+@supports (font: -apple-system-body) {
+	html {
+		font: -apple-system-body;
+		font-size: max(100%, 1rem);
+	}
+}
+body {
+	margin: 0;
+	background: var(--paper);
+	color: var(--ink);
+	font-family: var(--font-ui);
+	font-size: 1.0625rem;
+	line-height: 1.55;
+	-webkit-font-smoothing: antialiased;
+}
+::selection {
+	background: color-mix(in srgb, var(--l3) 32%, transparent);
+}
+a {
+	color: var(--link);
+	text-decoration-line: underline;
+	text-decoration-thickness: max(1px, 0.08em);
+	text-underline-offset: 0.18em;
+}
+a:hover {
+	text-decoration-thickness: 2px;
+}
+:focus-visible {
+	outline: 3px solid var(--focus);
+	outline-offset: 2px;
+	border-radius: 6px;
+}
+h1,
+h2,
+h3 {
+	margin: 0;
+	line-height: 1.2;
+	text-wrap: balance;
+}
+p {
+	margin: 0;
+	text-wrap: pretty;
+}
+code {
+	font-family: var(--font-code);
+	font-size: 0.9em;
+}
+img {
+	display: block;
+	max-width: 100%;
+	height: auto;
+}
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+	white-space: nowrap;
+}
+svg.i {
+	width: 1.1em;
+	height: 1.1em;
+	flex: none;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 2;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+.skip {
+	position: absolute;
+	left: 16px;
+	top: -100px;
+	z-index: 60;
+	padding: 12px 16px;
+	background: var(--ink);
+	color: var(--paper);
+	border-radius: var(--r-md);
+}
+.skip:focus {
+	top: 12px;
+}
+.brush {
+	font-family: var(--font-brush);
+	font-weight: 400;
+	letter-spacing: 0.02em;
+}
+
+/* ───────── the sticky bar ───────── */
+.bar {
+	position: sticky;
+	top: 0;
+	z-index: 40;
+	background: var(--glass);
+	-webkit-backdrop-filter: blur(20px) saturate(180%);
+	backdrop-filter: blur(20px) saturate(180%);
+	box-shadow: 0 1px 0 var(--glass-edge);
+}
+.bar-row {
+	max-width: var(--wide);
+	margin: 0 auto;
+	padding: 6px 16px;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	min-height: 60px;
+}
+.brand {
+	font-family: var(--font-brush);
+	font-size: 1.75rem;
+	line-height: 1;
+	color: var(--ink);
+	text-decoration: none;
+	margin-right: auto;
+	display: inline-flex;
+	align-items: center;
+	min-height: 48px;
+}
+.nav {
+	display: flex;
+	gap: 4px;
+}
+.nav a {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	min-height: 44px;
+	padding: 0 12px;
+	border-radius: 10px;
+	color: var(--ink);
+	font-weight: 650;
+	font-size: 0.9375rem;
+	text-decoration: none;
+	transition: background-color 160ms ease;
+}
+.nav a:active {
+	background: var(--paper-3);
+}
+.nav .nav-gh {
+	background: var(--paper-2);
+	box-shadow: inset 0 0 0 1px var(--rule);
+}
+@media (hover: hover) and (pointer: fine) {
+	.nav a:hover {
+		background: var(--paper-2);
+	}
+	.nav .nav-gh:hover {
+		background: var(--paper-3);
+	}
+}
+
+/* ───────── hero ───────── */
+.hero {
+	max-width: var(--wide);
+	margin: 0 auto;
+	padding: clamp(40px, 7vw, 88px) 16px clamp(48px, 7vw, 96px);
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	gap: 40px;
+	align-items: center;
+}
+@media (min-width: 900px) {
+	.hero {
+		grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+		gap: 56px;
+	}
+}
+.hero h1 {
+	font-size: clamp(4rem, 13vw, 7.5rem);
+	line-height: 0.95;
+	font-weight: 400;
+}
+.meaning {
+	margin-top: 12px;
+	font-size: 1.1875rem;
+	font-weight: 650;
+	color: var(--ink-2);
+}
+.lede {
+	margin-top: 24px;
+	max-width: 32ch;
+	font-size: clamp(1.3125rem, 2.4vw, 1.625rem);
+	line-height: 1.4;
+	font-weight: 700;
+	letter-spacing: -0.01em;
+}
+.actions {
+	margin-top: 32px;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 12px 24px;
+}
+.go {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	min-height: 56px;
+	padding: 0 24px;
+	border-radius: var(--r-md);
+	background: var(--ink);
+	color: var(--paper);
+	font-weight: 750;
+	font-size: 1.0625rem;
+	text-decoration: none;
+	transition:
+		transform 120ms var(--ease-out),
+		background-color 160ms ease;
+}
+.go:active {
+	transform: scale(0.97);
+}
+.text-link {
+	display: inline-flex;
+	align-items: center;
+	min-height: 44px;
+	font-weight: 650;
+}
+.fine {
+	margin-top: 20px;
+	font-size: 0.9375rem;
+	color: var(--ink-3);
+}
+
+.hero-phones {
+	position: relative;
+	display: grid;
+	justify-items: center;
+	padding: 8px 0 24px;
+}
+.phone {
+	margin: 0;
+	width: min(300px, 74vw);
+	aspect-ratio: 390 / 844;
+	border-radius: 34px;
+	padding: 10px;
+	background: var(--ink);
+	box-shadow: 0 24px 60px -24px rgba(12, 14, 20, 0.45);
+}
+.phone img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	object-position: top;
+	border-radius: 25px;
+}
+.phone-back {
+	position: absolute;
+	top: 40px;
+	left: 50%;
+	transform: translateX(-104%) rotate(-5deg) scale(0.86);
+	opacity: 0.94;
+}
+.phone-front {
+	position: relative;
+	transform: translateX(22%) rotate(2deg);
+}
+@media (max-width: 520px) {
+	.phone {
+		width: min(240px, 62vw);
+		border-radius: 28px;
+		padding: 8px;
+	}
+	.phone img {
+		border-radius: 21px;
+	}
+	.phone-back {
+		transform: translateX(-84%) rotate(-5deg) scale(0.86);
+	}
+	.phone-front {
+		transform: translateX(19%) rotate(2deg);
+	}
+}
+@media (prefers-color-scheme: dark) {
+	.phone {
+		background: #000;
+		box-shadow:
+			0 0 0 1px rgba(238, 240, 244, 0.12),
+			0 24px 60px -24px rgba(0, 0, 0, 0.8);
+	}
+}
+
+/* ───────── sections ───────── */
+.band {
+	max-width: var(--wide);
+	margin: 0 auto;
+	padding: clamp(48px, 7vw, 88px) 16px 0;
+}
+.band > h2 {
+	font-size: clamp(1.75rem, 3.6vw, 2.625rem);
+	font-weight: 800;
+	letter-spacing: -0.02em;
+	max-width: var(--col);
+}
+.section-lede {
+	margin-top: 12px;
+	max-width: 60ch;
+	font-size: 1.1875rem;
+	color: var(--ink-2);
+}
+.band > p:not(.section-lede):not(.flow-hint) {
+	margin-top: 16px;
+	max-width: 68ch;
+}
+
+/* what the group gets */
+.gets {
+	margin-top: 36px;
+	display: grid;
+	gap: 28px;
+	grid-template-columns: minmax(0, 1fr);
+}
+@media (min-width: 900px) {
+	.gets {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 32px;
+	}
+}
+.get {
+	margin: 0;
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	gap: 16px;
+	align-items: start;
+}
+.shot {
+	width: min(290px, 100%);
+	border-radius: 22px;
+	padding: 6px;
+	background: var(--ink);
+	aspect-ratio: 390 / 600;
+	overflow: hidden;
+}
+@media (prefers-color-scheme: dark) {
+	.shot {
+		background: #000;
+		box-shadow: 0 0 0 1px rgba(238, 240, 244, 0.12);
+	}
+}
+.shot img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	object-position: top;
+	border-radius: 17px;
+}
+@media (min-width: 900px) {
+	.shot {
+		max-width: 300px;
+		aspect-ratio: 390 / 640;
+	}
+}
+.get h3 {
+	font-size: 1.4375rem;
+	font-weight: 800;
+	letter-spacing: -0.01em;
+}
+.get p {
+	margin-top: 8px;
+	color: var(--ink-2);
+}
+.seal {
+	display: inline-grid;
+	place-items: center;
+	width: 1.35em;
+	height: 1.35em;
+	margin-right: 8px;
+	border-radius: 3px;
+	background: var(--seal);
+	color: var(--seal-ink);
+	font-family: var(--font-brush);
+	font-size: 0.95em;
+	line-height: 1;
+	transform: rotate(-4deg) translateY(-0.05em);
+	vertical-align: middle;
+}
+.also {
+	margin-top: 36px !important;
+	padding-top: 20px;
+	border-top: 1px solid var(--rule);
+	color: var(--ink-2);
+}
+
+/* the flow diagram: full size on wide screens, a framed sideways scroller on phones */
+.flow {
+	margin-top: 32px;
+	overflow-x: auto;
+	overscroll-behavior-x: contain;
+	border-radius: var(--r-md);
+	box-shadow: inset 0 0 0 1px var(--rule);
+	scrollbar-color: var(--ink-3) transparent;
+	/* the right edge fades while there's more to see (NN/g: sideways content needs a strong cue) */
+	mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent);
+}
+.flow img {
+	width: 928px;
+	max-width: none;
+}
+@media (min-width: 960px) {
+	.flow {
+		overflow: visible;
+		mask-image: none;
+		box-shadow: none;
+	}
+	.flow img {
+		width: 100%;
+		max-width: 928px;
+	}
+	.flow-hint {
+		display: none;
+	}
+}
+.flow-hint {
+	margin-top: 8px;
+	font-size: 0.9375rem;
+	color: var(--ink-3);
+}
+
+/* the four steps, as lanterns hung from one string: each step's stretch of string and its knot take that step's
+   colour (DESIGN.md: the string is the day colour at 55 %), and a short cord hangs the lantern from its knot */
+.string {
+	list-style: none;
+	margin: 40px 0 0;
+	padding: 0 0 0 40px;
+	max-width: 52rem;
+	display: grid;
+}
+.step {
+	position: relative;
+	padding-bottom: 40px;
+}
+.step:last-child {
+	padding-bottom: 0;
+}
+.step::before {
+	/* this step's stretch of string, from the knot above to the next step */
+	content: '';
+	position: absolute;
+	left: -30px;
+	top: -2px;
+	bottom: 0;
+	width: 2px;
+	background: color-mix(in srgb, var(--c) 55%, transparent);
+}
+.step:first-child::before {
+	top: -32px;
+}
+.step:last-child::before {
+	bottom: auto;
+	height: 34px;
+}
+.knot {
+	/* the stop on the string, as the trip page draws it: a paper ring in the day colour */
+	position: absolute;
+	left: -36px;
+	top: 26px;
+	width: 14px;
+	height: 14px;
+	border-radius: 50%;
+	background: var(--paper);
+	border: 2.5px solid var(--c);
+}
+.knot::after {
+	/* the cord the lantern hangs from */
+	content: '';
+	position: absolute;
+	left: 11px;
+	top: 3.5px;
+	width: 20px;
+	height: 2px;
+	background: color-mix(in srgb, var(--c) 55%, transparent);
+}
+.lantern {
+	position: relative;
+	isolation: isolate;
+	border-radius: var(--r-lg);
+	padding: 22px 20px 18px;
+	background: var(--c);
+	color: var(--ci);
+	box-shadow: 0 10px 24px -14px color-mix(in srgb, var(--c) 80%, #000);
+	overflow: hidden;
+	transform-origin: -16px 33px;
+}
+.lantern::before {
+	/* paper fibre: the engine's own layer (engine/src/style.css .lantern::before) */
+	content: '';
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	opacity: 0.22;
+	mix-blend-mode: soft-light;
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9 .06' numOctaves='3' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1.2 -.35'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
+}
+.lantern::after {
+	/* the bamboo rings, top and bottom */
+	content: '';
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 9px;
+	bottom: 9px;
+	z-index: -1;
+	pointer-events: none;
+	border-top: 1.5px solid color-mix(in srgb, var(--ci) 22%, transparent);
+	border-bottom: 1.5px solid color-mix(in srgb, var(--ci) 22%, transparent);
+}
+.wish {
+	font-family: var(--font-brush);
+	font-size: clamp(2.125rem, 7vw, 2.625rem);
+	line-height: 1.1;
+	letter-spacing: 0.04em;
+}
+.lantern h3 {
+	margin-top: 6px;
+	font-size: clamp(1.1875rem, 2.8vw, 1.4375rem);
+	font-weight: 800;
+	letter-spacing: -0.015em;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px 12px;
+}
+.tag {
+	display: inline-flex;
+	align-items: center;
+	min-height: 28px;
+	padding: 2px 10px;
+	border-radius: 8px;
+	background: var(--ci);
+	color: var(--c);
+	font-size: 0.8125rem;
+	font-weight: 750;
+	letter-spacing: 0.02em;
+}
+.hang {
+	position: relative;
+	margin: 0 12px;
+	padding: 18px 20px 20px;
+	border: 1px solid var(--rule);
+	border-top: 0;
+	border-radius: 0 0 var(--r-md) var(--r-md);
+	background: var(--paper);
+	display: grid;
+	gap: 12px;
+}
+.hang pre {
+	margin: 0;
+	padding: 12px 14px;
+	border-radius: 10px;
+	background: var(--code);
+	white-space: pre-wrap;
+	overflow-wrap: break-word; /* after a / (the <wbr>s), a word breaks only as a last resort */
+	font-size: 0.9375rem;
+	line-height: 1.6;
+}
+.note {
+	font-size: 0.9375rem;
+	color: var(--ink-2);
+}
+@media (prefers-color-scheme: dark) {
+	.lantern {
+		background: radial-gradient(130% 95% at 50% 115%, color-mix(in srgb, var(--c) 62%, #fff4c9), var(--c) 62%);
+		box-shadow: 0 16px 40px -18px color-mix(in srgb, var(--c) 90%, transparent);
+	}
+}
+/* the one authored moment: each lantern settles on its string the first time it comes into view (site.js adds .sway) */
+.step.sway .lantern {
+	animation: settle 1100ms var(--ease-out) both;
+}
+.step.sway:nth-child(2) .lantern {
+	animation-delay: 90ms;
+}
+.step.sway:nth-child(3) .lantern {
+	animation-delay: 180ms;
+}
+.step.sway:nth-child(4) .lantern {
+	animation-delay: 270ms;
+}
+@keyframes settle {
+	0% {
+		transform: rotate(-2.4deg);
+	}
+	45% {
+		transform: rotate(1.1deg);
+	}
+	75% {
+		transform: rotate(-0.4deg);
+	}
+	100% {
+		transform: rotate(0);
+	}
+}
+
+/* the comparison */
+.table-wrap {
+	margin-top: 28px;
+	overflow-x: auto;
+	max-width: 52rem;
+}
+table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 1.0625rem;
+}
+th,
+td {
+	text-align: left;
+	vertical-align: top;
+	padding: 14px 12px;
+	border-bottom: 1px solid var(--rule);
+}
+thead th {
+	font-size: 1.0625rem;
+	font-weight: 800;
+	border-bottom: 2px solid var(--ink);
+	vertical-align: bottom;
+}
+tbody th {
+	font-weight: 700;
+	width: 30%;
+}
+.th-sub {
+	display: block;
+	margin-top: 2px;
+	font-size: 0.8125rem;
+	font-weight: 600;
+	color: var(--ink-3);
+}
+td.rec,
+th.rec {
+	background: color-mix(in srgb, var(--l2) 7%, transparent);
+}
+thead th.rec {
+	border-bottom-color: var(--l2);
+}
+@media (max-width: 520px) {
+	th,
+	td {
+		padding: 12px 8px;
+		font-size: 0.9375rem;
+	}
+	tbody th {
+		width: 28%;
+	}
+}
+
+/* for a group with seniors: the trip page's fact rows (a key column, then the value) */
+.facts {
+	margin: 28px 0 0;
+	max-width: 46rem;
+	border-top: 1px solid var(--rule);
+}
+.facts > div {
+	display: grid;
+	grid-template-columns: minmax(0, 7.5rem) minmax(0, 1fr);
+	gap: 4px 20px;
+	padding: 14px 0;
+	border-bottom: 1px solid var(--rule);
+}
+.facts dt {
+	font-weight: 750;
+	color: var(--ink-3);
+	font-size: 0.9375rem;
+	padding-top: 2px;
+}
+.facts dd {
+	margin: 0;
+	font-weight: 650;
+}
+.facts .num {
+	font-size: 1.4375rem;
+	font-weight: 800;
+	font-variant-numeric: tabular-nums;
+	letter-spacing: -0.02em;
+}
+@media (max-width: 420px) {
+	.facts > div {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+
+/* footer */
+.foot {
+	max-width: var(--wide);
+	margin: clamp(64px, 9vw, 112px) auto 0;
+	padding: 28px 16px 48px;
+	border-top: 1px solid var(--rule);
+	display: grid;
+	gap: 12px;
+	color: var(--ink-2);
+	font-size: 0.9375rem;
+}
+.foot a {
+	display: inline-flex;
+	align-items: center;
+	min-height: 44px;
+}
+.brush-sm {
+	font-size: 1.4375rem;
+	color: var(--ink);
+}
+
+@media (max-width: 559px) {
+	.nav-wide {
+		display: none !important;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	html {
+		scroll-behavior: auto;
+	}
+	*,
+	*::before,
+	*::after {
+		animation-duration: 1ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 1ms !important;
+	}
+}
+@media (prefers-reduced-transparency: reduce) {
+	.bar {
+		background: var(--paper);
+		-webkit-backdrop-filter: none;
+		backdrop-filter: none;
+		box-shadow: 0 1px 0 var(--rule);
+	}
+}
+@media (prefers-contrast: more) {
+	.bar {
+		background: var(--paper);
+		-webkit-backdrop-filter: none;
+		backdrop-filter: none;
+		box-shadow: 0 1px 0 var(--ink);
+	}
+	.nav .nav-gh,
+	.hang {
+		box-shadow: inset 0 0 0 1px var(--ink);
+	}
+}

@@ -28,8 +28,8 @@ export default [
 		},
 	},
 	{
-		// Playwright callbacks run inside the page (page.evaluate, addInitScript)
-		files: ['tests/**/*.mjs'],
+		// Playwright callbacks run inside the page (page.evaluate, addInitScript), in tests and in the docs scripts
+		files: ['tests/**/*.mjs', 'scripts/**/*.mjs'],
 		languageOptions: { globals: { ...globals.browser } },
 	},
 	{
@@ -39,6 +39,11 @@ export default [
 		files: ['engine/src/app/**/*.js'],
 		languageOptions: { ecmaVersion: 'latest', sourceType: 'script', globals: { ...globals.browser } },
 		rules: { 'no-undef': 'off', 'no-unused-vars': 'off', 'no-redeclare': 'off' },
+	},
+	{
+		// the landing page's own script (site/, served by GitHub Pages as is)
+		files: ['site/**/*.js'],
+		languageOptions: { ecmaVersion: 'latest', sourceType: 'script', globals: { ...globals.browser } },
 	},
 	{
 		// a trip's data file: top-level consts the page reads as globals

@@ -1,14 +1,15 @@
 // Writes site/assets/flow-light.svg and flow-dark.svg: how a trip becomes a page, for the README and the landing page.
 // One layout, two themes (GitHub shows the right one through <picture>). Edit this file, not the SVGs, then run
 //   node scripts/docs-update/flow-diagram.mjs
-// Drawn to the diagram-design rules (4 px grid, orthogonal connectors, one accent) in DESIGN.md's colours.
+// Drawn to the diagram-design rules (4 px grid, orthogonal connectors, one accent) in DESIGN.md's colours. The accent is
+// the step-3 lantern orange, never seal red: seal red means a fixed time (DESIGN.md, the Seal Means Fixed rule).
 import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 const OUT = path.join(import.meta.dirname, '..', '..', 'site', 'assets');
 const THEMES = {
-	light: { paper: '#ffffff', ink: '#15161a', muted: '#464a53', soft: '#545963', rule: '#dfe2e8', accent: '#c42a1f', tint: '#fbeceb', you: '#f3f4f7' },
-	dark: { paper: '#0d1117', ink: '#eef0f4', muted: '#bcc1cb', soft: '#969ca8', rule: '#2a313d', accent: '#ff6a5c', tint: '#2a1614', you: '#151a23' },
+	light: { paper: '#ffffff', ink: '#15161a', muted: '#464a53', soft: '#545963', rule: '#dfe2e8', accent: '#c2530f', tint: '#fdeee4', you: '#f3f4f7' },
+	dark: { paper: '#0d1117', ink: '#eef0f4', muted: '#bcc1cb', soft: '#969ca8', rule: '#2a313d', accent: '#ec6a1c', tint: '#2a1a10', you: '#151a23' },
 };
 const SANS = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
 const MONO = 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
@@ -19,14 +20,14 @@ const Y = [40, 216];
 const W = 180;
 const H = 80;
 const NODES = [
-	{ id: 'req', col: 0, row: 0, tag: 'YOU', name: 'Your requirements', sub: 'requirements.md', mono: true, kind: 'you' },
-	{ id: 'intake', col: 1, row: 0, tag: 'SKILL', name: 'trip-intake', sub: 'words → trip data' },
-	{ id: 'sync', col: 2, row: 0, tag: 'SKILL', name: 'data-sync', sub: 'pnpm resync', mono: true },
-	{ id: 'build', col: 3, row: 0, tag: 'SKILL', name: 'build-page', sub: 'one HTML file', kind: 'focal' },
-	{ id: 'verify', col: 3, row: 1, tag: 'SKILL', name: 'verify-page', sub: 'tests + 390 px pass' },
-	{ id: 'publish', col: 2, row: 1, tag: 'SKILL', name: 'publish-htmlapp', sub: 'behind a password' },
-	{ id: 'phones', col: 1, row: 1, tag: 'GROUP', name: "The group's phones", sub: 'installed, offline', kind: 'you' },
-	{ id: 'retro', col: 0, row: 1, tag: 'SKILL', name: 'trip-retro', sub: 'lessons → knowledge/', mono: true },
+	{ id: 'req', col: 0, row: 0, name: 'Your requirements', sub: 'requirements.md', mono: true, kind: 'you' },
+	{ id: 'intake', col: 1, row: 0, name: 'trip-intake', sub: 'words → trip data' },
+	{ id: 'sync', col: 2, row: 0, name: 'data-sync', sub: 'pnpm resync', mono: true },
+	{ id: 'build', col: 3, row: 0, name: 'build-page', sub: 'one HTML file', kind: 'focal' },
+	{ id: 'verify', col: 3, row: 1, name: 'verify-page', sub: 'tests + 390 px pass' },
+	{ id: 'publish', col: 2, row: 1, name: 'publish-htmlapp', sub: 'behind a password' },
+	{ id: 'phones', col: 1, row: 1, name: "The group's phones", sub: 'installed, offline', kind: 'you' },
+	{ id: 'retro', col: 0, row: 1, name: 'trip-retro', sub: 'lessons → knowledge/', mono: true },
 ];
 
 function svg(t, theme) {
@@ -35,15 +36,12 @@ function svg(t, theme) {
 		const y = Y[n.row];
 		const fill = n.kind === 'focal' ? t.tint : n.kind === 'you' ? t.you : t.paper;
 		const stroke = n.kind === 'focal' ? t.accent : n.kind === 'you' ? t.soft : t.ink;
-		const tagW = Math.ceil((n.tag.length * 6 + 16) / 4) * 4;
 		return `
   <g>
     <rect x="${x}" y="${y}" width="${W}" height="${H}" rx="6" fill="${t.paper}"/>
     <rect x="${x}" y="${y}" width="${W}" height="${H}" rx="6" fill="${fill}" stroke="${stroke}" stroke-width="${n.kind === 'focal' ? 1.2 : 1}"/>
-    <rect x="${x + 8}" y="${y + 8}" width="${tagW}" height="16" rx="2" fill="none" stroke="${stroke}" stroke-opacity="0.45" stroke-width="0.8"/>
-    <text x="${x + 8 + tagW / 2}" y="${y + 20}" fill="${stroke}" font-size="8" font-weight="600" letter-spacing="0.08em" text-anchor="middle" font-family="${MONO}">${n.tag}</text>
-    <text x="${x + 16}" y="${y + 48}" fill="${t.ink}" font-size="16" font-weight="600" font-family="${SANS}">${esc(n.name)}</text>
-    <text x="${x + 16}" y="${y + 68}" fill="${t.muted}" font-size="12" font-family="${n.mono ? MONO : SANS}">${esc(n.sub)}</text>
+    <text x="${x + 16}" y="${y + 36}" fill="${t.ink}" font-size="16" font-weight="600" font-family="${SANS}">${esc(n.name)}</text>
+    <text x="${x + 16}" y="${y + 58}" fill="${t.muted}" font-size="12" font-family="${n.mono ? MONO : SANS}">${esc(n.sub)}</text>
   </g>`;
 	};
 	const arrow = (d, opts = {}) =>
