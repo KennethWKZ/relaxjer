@@ -28,6 +28,7 @@
 		"test:all": "pnpm test && pnpm test:e2e && pnpm test:e2e:short",
 		"test:release": "node --test \"tests/release/*.test.mjs\"",
 		"parity": "node tests/support/parity.mjs",
+		"publish:trip": "node scripts/publish-trip.mjs",
 		"lint": "eslint --max-warnings=0 --fix --cache .",
 		"lint:check": "eslint --max-warnings=0 .",
 		"format": "prettier --write .",

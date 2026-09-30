@@ -15,8 +15,11 @@ What the first trip taught about publishing a trip page. The step-by-step is the
   and a secret update key, each once. Save the update key and password outside the repo
   (`~/.config/relaxjer/publish/<slug>.txt`, mode 600). Never paste the update key into a chat, a file in the repo or a
   commit.
-- **Republishing** to the same link: `lavish-axi share <file> --site <site id> --update-key <key>`. Without
-  `--password` or `--private`, the viewer password stays as it is.
+- **Republishing** to the same link: `pnpm publish:trip trips/<slug>`, which runs `lavish-axi share <file> --site <site
+id> --update-key <key>` with the key read from outside the repo. Without `--password` or `--private`, the viewer
+  password stays as it is.
+- **An agent never holds the publish secrets.** Once the repo denied agents the secrets folder, a publish that read the
+  key in the agent's own shell was blocked (2026-10-01). The script reads them itself, and the planner approves each run.
 - **Pick a password the group can type.** The gate keeps it in a cookie for 24 h, so seniors re-enter it daily. A
   generated password was too hard; the first group got a simple one.
 - **The CDN can keep serving the old copy for minutes** after a republish, even when the host says `updated: true`,
@@ -34,3 +37,5 @@ What the first trip taught about publishing a trip page. The step-by-step is the
 - **Keep `TRIP.fileName` and `TRIP.storageKey`** across rebuilds, or the group's saved state (checklist, language, rate,
   added stops, flight delay) is lost.
 - **Keep a backup of the last good build** outside the repo, so a bad publish can be rolled back by republishing it.
+  `pnpm publish:trip` saves the live copy before it shares. Builds are also reproducible: rebuilding the same commit
+  from the same data gives the same build id.

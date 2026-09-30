@@ -33,30 +33,29 @@ It prints the URL, a generated viewer password and a secret update key, **each s
 ## Republish to the same link
 
 ```sh
-P=~/.config/relaxjer/publish/<slug>
-lavish-axi share trips/<slug>/dist/<fileName>-standalone.html --site <site id> --update-key "$(cat "$P.update-key")"
+pnpm publish:trip trips/<slug>             # after the planner said yes to this change
+pnpm publish:trip trips/<slug> --dry-run   # the checks and the rollback copy, no publish
+pnpm publish:trip trips/<slug> --check     # only prove what's live and that it opens
 ```
 
-- The key is read in the shell, so it never appears in the chat. An older trip whose file holds labelled lines needs
-  its key cut out in the shell the same way, never pasted.
-- Without `--password` or `--private`, the viewer password stays as it is.
-- Keep `TRIP.fileName` and `TRIP.storageKey` unchanged from the last publish (`build-page`), or the group loses its
-  saved state.
-- Keep a copy of the previous build outside the repo, so a bad publish can be rolled back by republishing it.
+`scripts/publish-trip.mjs` reads the update key and the viewer password from `~/.config/relaxjer/publish/` itself.
+Agents can't read that folder (`.claude/settings.json` denies it), and Claude Code asks the planner before every
+`pnpm publish:trip`. So the planner approves each publish, and no secret reaches the chat. Never read or copy those
+files another way. The script:
 
-## Prove the live copy is the new build
+1. Reads the new page's build id from `trips/<slug>/dist/<fileName>-standalone.html`, and the live page's through the
+   password gate. If they're the same, it stops.
+2. Saves the live copy as `~/.config/relaxjer/publish/<slug>-rollback-<build id>.html`. To undo a bad publish, the
+   planner publishes that file.
+3. Shares the page to the same site (`--site`, `--update-key`). Without `--password` or `--private`, the viewer password
+   stays as it is.
+4. Polls the live build id for about 3 minutes. The CDN can serve the old copy for minutes, and `?v=` doesn't bust it,
+   so after a minute it shares once more (that fixed a stale copy within a minute on the first trip).
+5. Opens the live page past the gate on an iPhone (WebKit) and an Android phone (Chromium) and fails on page errors.
 
-The CDN can serve the old copy for minutes, and `?v=` doesn't bust it.
-
-1. The build id you just published:
-   `grep -o 'relaxjer-build" content="[0-9a-f]*' trips/<slug>/dist/<fileName>-standalone.html`
-2. The live page's build id, through the password gate. The gate reads the viewer password from the `ht_ml_pwd`
-   cookie. Use only the password itself, never a whole labelled line from the file:
-   `curl -s --cookie "ht_ml_pwd=$(cat "$P.viewer")" <url> | grep -o 'relaxjer-build" content="[0-9a-f]*'`
-3. If they differ after a few minutes, run the same share command again (it fixed a stale copy within a minute on the
-   first trip), then check again.
-4. Open the live URL on a phone-sized viewport in Chromium and WebKit, and check the page loads past the gate with no
-   page errors.
+It reads either layout: one value per file (`<slug>.update-key`, `<slug>.viewer`, `<slug>.site`), or the first trip's
+labelled files (`<slug>.txt` as lavish-axi printed it, `<slug>-viewer.txt`). Keep `TRIP.fileName` and
+`TRIP.storageKey` unchanged from the last publish (`build-page`), or the group loses its saved state.
 
 Phones that hold the old copy on their home screen show an update bar once they're back online.
 
