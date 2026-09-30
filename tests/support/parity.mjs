@@ -1,9 +1,9 @@
 // Dev tool, not a test (it may read a real trip): builds a trip twice and diffs what the reader sees.
-//   reference = the engine at a git ref (default: the baseline commit) + the trip's data as it was
+//   reference = the engine at a git ref (a commit from before your change) + the trip's data as it was
 //   current   = engine/ now + the trip's data now
 // Both are rendered offline in Chromium at 390 px, in both languages, with every <details> opened; the text of each
 // top-level section is compared. Usage:
-//   node tests/support/parity.mjs --trip trips/taipei-2026 --ref-data /path/to/original/trip [--ref 0df131f]
+//   node tests/support/parity.mjs --ref <commit> --trip trips/<slug> [--ref-data /path/to/the/trip/as/it/was]
 import { chromium } from '@playwright/test';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -15,7 +15,8 @@ const argv = process.argv.slice(2);
 const arg = (n, f) => { const i = argv.indexOf(`--${n}`); return i >= 0 ? argv[i + 1] : f; };
 const trip = path.resolve(arg('trip', 'examples/demo-trip'));
 const refData = path.resolve(arg('ref-data', trip));
-const ref = arg('ref', '0df131f');
+const ref = arg('ref', '');
+if (!ref) { console.error('usage: node tests/support/parity.mjs --ref <commit> --trip <dir> [--ref-data <dir>]'); process.exit(2); }
 const work = path.join(ROOT, '.cache', 'parity');
 fs.rmSync(work, { recursive: true, force: true });
 
