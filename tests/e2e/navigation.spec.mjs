@@ -104,3 +104,16 @@ test('going offline shows a notice, coming back hides it', async ({ page, contex
 	await page.evaluate(() => window.dispatchEvent(new Event('online')));
 	await expect(note).toBeHidden();
 });
+
+// a shared link like …/trip.html#entry: WebKit opened it ~3,800 px off (the legacy page too) until it got the same
+// landing hold as a tab jump
+for (const id of ['entry', 'budget', 'checklist']) {
+	test(`a link that opens at #${id} lands on it`, async ({ page }) => {
+		await openTrip(page, `#${id}`);
+		await expect.poll(() => top(page, `#${id}`), { timeout: 4000 }).toBeGreaterThanOrEqual(LANDED.min);
+		await page.waitForTimeout(1500); // past the landing hold: it must stay put
+		const t = await top(page, `#${id}`);
+		expect(t, `#${id} top after load`).toBeGreaterThanOrEqual(LANDED.min);
+		expect(t, `#${id} top after load`).toBeLessThanOrEqual(LANDED.max);
+	});
+}

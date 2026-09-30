@@ -38,5 +38,6 @@ if (/^#add=/.test(location.hash))
 	setTimeout(mineImportOffer, 300); // someone shared their added stops
 else if (location.hash.length > 1) {
 	const el = lazyFor(location.hash.slice(1));
-	if (el) setTimeout(() => el.scrollIntoView({ block: 'start', behavior: 'instant' }), 50);
+	// the same landing as a tab jump: WebKit needs holdLanding() here too, or a shared #entry link opened ~3,800 px off
+	if (el) setTimeout(() => scrollToEl(el, 'start'), 50);
 }

@@ -73,6 +73,11 @@ The tier-1 tests found three bugs. They were fixed in the first trip's own repo,
      Landing is now 126 px in all 4 projects.
    - Still worth a check on a real iPhone: Playwright's WebKit is close to iOS Safari, not identical.
 
+4. **Found 2026-10-01: on WebKit, a link that opens at a section (`…#entry`, `#depart` from the checklist) landed
+   ~3,800–10,000 px off.** The page scrolled once at load; WebKit's section skipping then moved it. Fixed in RelaxJer
+   (the same `holdLanding()` as a tab jump; `navigation.spec.mjs` "a link that opens at #… lands on it"). The live page
+   still has it until Kenneth OKs a republish.
+
 Not fixed:
 - The airport method tiles break "Manageable" mid-word at desktop width. Cosmetic, desktop only.
 - The per-person share gaps above.
