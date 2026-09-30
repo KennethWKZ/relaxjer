@@ -59,6 +59,15 @@ test('Money: group figures are found, bold or not, and only once', () => {
 	assert.deepEqual([...'¥8,000 for 4'.matchAll(Money.groupFigureRe('¥', 4))].length, 1);
 });
 
+test('Money: a share the text already states is not repeated', () => {
+	assert.equal(Money.statesShare('NT$600 each, **NT$3,000** for 5', 'NT$', 3000, 3000, 5), true);
+	assert.equal(Money.statesShare('每人 NT$600，五人 **NT$3,000**', 'NT$', 3000, 3000, 5), true);
+	assert.equal(Money.statesShare('NT$300–400 each; NT$1,500–2,000 for 5', 'NT$', 1500, 2000, 5), true);
+	assert.equal(Money.statesShare('Tickets NT$1,200 for 5', 'NT$', 1200, 1200, 5), false);
+	assert.equal(Money.statesShare('NT$6,000 each; dinner NT$3,000 for 5', 'NT$', 3000, 3000, 5), false); // another figure
+	assert.equal(Money.statesShare('NT$1,001 for 5', 'NT$', 1001, 1001, 5), false);
+});
+
 test('Money: the home-currency line', () => {
 	assert.equal(Money.homeText(160, 160, 7.8, 'RM'), '≈ RM 21');
 	assert.equal(Money.homeText(1200, 1800, 7.8, 'RM'), '≈ RM 150–230');

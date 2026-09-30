@@ -3,31 +3,50 @@ import { test, expect, openTrip } from '../support/fixtures.mjs';
 import { openAllDetails } from '../support/page.mjs';
 
 // every "NT$a–b for 5" text run, with whether the page put a per-person share right after it
+// every "NT$… for 5" in the page text: followed by its share (shared), or already stating it (stated: "NT$600 each,
+// NT$3,000 for 5"), never both
 const groupFigures = (page) =>
 	page.evaluate(() => {
 		const out = [];
 		const walk = document.createTreeWalker(document.getElementById('app'), NodeFilter.SHOW_TEXT);
+		const num = (s) => +s.replace(/,/g, '');
 		for (let n; (n = walk.nextNode());) {
-			for (const m of n.textContent.matchAll(/NT\$[\d,]+(?:–[\d,]+)? for 5(?! \(NT\$)/g)) {
+			for (const m of n.textContent.matchAll(/NT\$([\d,]+)(?:–([\d,]+))? for 5(?! \(NT\$)/g)) {
 				const next = n.nextSibling;
-				out.push({ text: m[0], idea: !!n.parentElement.closest('.idea'), shared: !!(next && next.classList && next.classList.contains('each-i')) });
+				const [lo, hi] = [num(m[1]), num(m[2] || m[1])];
+				const per = (v) => (v / 5).toLocaleString('en-US');
+				const stated = lo % 5 === 0 && hi % 5 === 0 && n.textContent.includes(`NT$${per(lo)}${hi > lo ? `–${per(hi)}` : ''} each`);
+				out.push({
+					text: m[0],
+					idea: !!n.parentElement.closest('.idea'),
+					stated,
+					shared: !!(next && next.classList && next.classList.contains('each-i')),
+				});
 			}
 		}
 		return out;
 	});
 
-test('each "for 5" group figure is followed by a per-person share', async ({ page }) => {
+test('each "for 5" group figure shows a per-person share once', async ({ page }) => {
 	await openTrip(page);
 	await openAllDetails(page);
 	const figures = await groupFigures(page);
 	expect(figures.length, 'demo trip has group figures').toBeGreaterThan(5);
-	expect(figures.filter((f) => !f.shared)).toEqual([]);
+	expect(figures.filter((f) => f.shared === f.stated)).toEqual([]);
+});
+
+test('a share the text already states is not repeated @demo', async ({ page }) => {
+	await openTrip(page);
+	await openAllDetails(page);
+	const stated = (await groupFigures(page)).filter((f) => f.stated);
+	expect(stated.length, 'demo trip states a share itself somewhere').toBeGreaterThan(0);
+	expect(stated.filter((f) => f.shared)).toEqual([]);
 });
 
 test('a group figure in a free-time idea row also gets a per-person share @demo', async ({ page }) => {
 	await openTrip(page);
 	await openAllDetails(page);
-	const ideas = (await groupFigures(page)).filter((f) => f.idea);
+	const ideas = (await groupFigures(page)).filter((f) => f.idea && !f.stated);
 	expect(ideas.length).toBeGreaterThan(0);
 	expect(ideas.filter((f) => !f.shared)).toEqual([]);
 });

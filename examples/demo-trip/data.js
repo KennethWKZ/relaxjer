@@ -810,8 +810,9 @@ const OPTIONAL = [
 		list: [
 			['晴天才值得', 'Only worth it on a clear day'],
 			['排队约30分钟', 'Queue ~30 min'],
+			['门票每人 NT$600，NT$3,000 / 五人', 'Tickets NT$600 each, NT$3,000 for 5'],
 		],
-		cost: ['每人 NT$600，五人 **NT$3,000**', 'NT$600 each, **NT$3,000** for 5'],
+		cost: ['门票 **NT$3,000** / 五人', 'Tickets **NT$3,000** for 5'],
 		note: ['第6天自由时间也可以去。', 'Fits the Day 6 free time too.'],
 	},
 ];

@@ -1,9 +1,11 @@
 // Dev tool, not a test (it may read a real trip): builds a trip twice and diffs what the reader sees.
-//   reference = the engine at a git ref (a commit from before your change) + the trip's data as it was
+//   reference = either the engine at a git ref (a commit from before your change) + the trip's data as it was,
+//               or a live legacy repo (its own build.mjs, src/ and img/, built from a copy so the repo is untouched)
 //   current   = engine/ now + the trip's data now
 // Both are rendered offline in Chromium at 390 px, in both languages, with every <details> opened; the text of each
 // top-level section is compared. Usage:
 //   node tests/support/parity.mjs --ref <commit> --trip trips/<slug> [--ref-data /path/to/the/trip/as/it/was]
+//   node tests/support/parity.mjs --live /path/to/legacy-trip-repo --trip trips/<slug>
 import { chromium } from '@playwright/test';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -19,20 +21,14 @@ const arg = (n, f) => {
 const trip = path.resolve(arg('trip', 'examples/demo-trip'));
 const refData = path.resolve(arg('ref-data', trip));
 const ref = arg('ref', '');
-if (!ref) {
-	console.error('usage: node tests/support/parity.mjs --ref <commit> --trip <dir> [--ref-data <dir>]');
+const live = arg('live', '');
+if (!ref === !live) {
+	console.error('usage: node tests/support/parity.mjs (--ref <commit> | --live <legacy repo>) --trip <dir> [--ref-data <dir>]');
 	process.exit(2);
 }
 const work = path.join(ROOT, '.cache', 'parity');
 fs.rmSync(work, { recursive: true, force: true });
 
-// reference engine: engine/ as it was at `ref`
-const refEngine = path.join(work, 'ref-engine');
-for (const f of execFileSync('git', ['ls-tree', '-r', '--name-only', ref, 'engine/'], { cwd: ROOT, encoding: 'utf8' }).split('\n').filter(Boolean)) {
-	const to = path.join(refEngine, f.replace(/^engine\//, ''));
-	fs.mkdirSync(path.dirname(to), { recursive: true });
-	fs.writeFileSync(to, execFileSync('git', ['show', `${ref}:${f}`], { cwd: ROOT }));
-}
 const build = (engineDir, tripDir, out) => {
 	// the baseline engine had one src/app.js; the current one has src/app/*.js; both builds take the same flags
 	execFileSync(process.execPath, [path.join(engineDir, 'build.mjs'), '--trip', tripDir, '--out', out, '--keys', 'none'], {
@@ -42,7 +38,29 @@ const build = (engineDir, tripDir, out) => {
 	});
 	return path.join(out, 'taipei-trip-standalone.html');
 };
-const pages = { ref: build(refEngine, refData, path.join(work, 'ref')), cur: build(path.join(ROOT, 'engine'), trip, path.join(work, 'cur')) };
+
+// the legacy repo builds itself from src/ + img/ and reads its key from ./.share/, which the copy leaves out (no key,
+// like --keys none); only build.mjs, src/ and img/ are copied, and the build runs inside the copy
+function buildLive(repo) {
+	const to = path.join(work, 'live');
+	for (const f of ['build.mjs', 'src', 'img']) fs.cpSync(path.join(repo, f), path.join(to, f), { recursive: true });
+	execFileSync(process.execPath, ['build.mjs'], { cwd: to, env: { PATH: process.env.PATH }, stdio: 'pipe' });
+	return path.join(to, 'dist', 'taipei-trip-standalone.html');
+}
+
+function buildRef(commit) {
+	// reference engine: engine/ as it was at `commit`
+	const refEngine = path.join(work, 'ref-engine');
+	for (const f of execFileSync('git', ['ls-tree', '-r', '--name-only', commit, 'engine/'], { cwd: ROOT, encoding: 'utf8' })
+		.split('\n')
+		.filter(Boolean)) {
+		const to = path.join(refEngine, f.replace(/^engine\//, ''));
+		fs.mkdirSync(path.dirname(to), { recursive: true });
+		fs.writeFileSync(to, execFileSync('git', ['show', `${commit}:${f}`], { cwd: ROOT }));
+	}
+	return build(refEngine, refData, path.join(work, 'ref'));
+}
+const pages = { ref: live ? buildLive(path.resolve(live)) : buildRef(ref), cur: build(path.join(ROOT, 'engine'), trip, path.join(work, 'cur')) };
 
 const server = http
 	.createServer((req, res) => {

@@ -32,6 +32,19 @@ export function groupFigureRe(sym, pax) {
 	return new RegExp(`((?:\\*\\*)?${s}([\\d,]+)(?:–([\\d,]+))?(?:\\*\\*)?)( \\/ ${zh}| ${en})(?! \\(${s})`, 'g');
 }
 
+/**
+ * Does the text already give the per-person figure for a group amount (lo–hi)? "NT$600 each, NT$3,000 for 5" or
+ * "每人 NT$600，五人 NT$3,000" do; adding "≈NT$600 each" again would only repeat it. Exact amounts (not the rounded
+ * share), bold markers ignored.
+ */
+export function statesShare(text, sym, lo, hi, pax) {
+	const t = String(text).replace(/\*\*/g, '');
+	const fig = (n) => formatNum(n / pax);
+	const amt = `${reEsc(sym)} ?${reEsc(fig(lo))}${hi > lo ? `–${reEsc(fig(hi))}` : ''}`;
+	if (lo % pax || hi % pax) return false; // a share with pennies is never written out that way
+	return new RegExp(`${amt} each|每人(?:约)? ?${amt}(?![\\d,])`).test(t);
+}
+
 /** "≈ RM 100" / "≈ RM 100–140": a figure in the home currency, rounded to 10 above 100 */
 export function homeText(min, max, rate, home) {
 	const r = (v) => formatNum(v < 100 ? Math.round(v) : Math.round(v / 10) * 10);

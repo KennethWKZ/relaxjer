@@ -1,6 +1,8 @@
 # Roadmap
 
-Order matters: every step keeps `ppnpm test:all` green before the next starts.
+Order matters: every step keeps `pnpm test:all` green before the next starts, and every engine change keeps
+`pnpm parity --live <legacy repo> --trip trips/taipei-2026` at the listed diffs only: the proof that RelaxJer renders the
+first trip the same as its live page.
 
 | Step | What | Done when |
 |---|---|---|
@@ -8,6 +10,7 @@ Order matters: every step keeps `ppnpm test:all` green before the next starts.
 | 1 ✅ | Move the engine **verbatim** into `engine/`; `build.mjs` takes `--trip <dir> --out <dir>` instead of fixed paths; teach `tests/support/stage.mjs` the new layout; turn the CI e2e job on | Same specs green with no `LEGACY_ENGINE_DIR`. Done 2026-09-30: 120/120 on `engine/`; the Taipei trip built from `trips/taipei-2026` is byte-identical to the old repo's build |
 | 2 ✅ | Split `app.js` into modules along its own section map (storage · helpers · time · render parts · sections · wishlist · now/next · scroll spy · search · share · driver card · checklist · MapLibre map · Google map · Back · transit planner · live location · events · Sections menu · near me · theme); `build.mjs` bundles them; unit tests for the pure ones | Characterisation green; unit tests for flights, shifts, clashes, costs, the transit planner. Done 2026-09-30: `engine/src/app/NN-*.js` (joined build is byte-identical); `engine/src/core/{time,money,plan}.mjs` with 9 unit tests; the transit planner is still inline (next) |
 | 3 ✅ | Pay the hard-coding debt (this also opens the push gate, `tests/release`) (below) into a trip schema + the `tw` destination pack; migrate the demo off `LEGACY_SLOTS` | Every `test.fail()` in `known-debt.spec.mjs` and `costs.spec.mjs` removed. Done 2026-09-30: trip settings in `docs/trip-format.md`; the push gate passes; parity on the real Taipei trip differs only where the two share bugs were fixed |
+| 3b | Generic day roles (arrival, last day, flight-only day, free-time day from the data, any trip length) and the `tw` destination pack (tax refund, lucky draw, taxi meter, bike share) | A 4-day test trip builds and passes the trip-agnostic e2e; live parity unchanged |
 | 4 | i18n: inline `Z(zh, en)` → locale files; per-trip UI languages (primary, secondary) + the destination's native layer with romanization | A second language pair renders from config alone |
 | 5 | Move the pipeline (`pipeline/`, Python + uv) with Google mocked in tests; decide the Google-terms stance first (below) | Pipeline tests green offline |
 | 6 | `.claude/`: skills (trip-intake, destination-pack, data-sync, build-page, verify-page, publish-htmlapp, trip-retro), agents (destination researcher, data curator, UX verifier read-only, release checker), hooks (block secrets/trips, fast tests after engine edits, load knowledge), rules; seed `knowledge/` from the brief's lessons | An agent plans the demo trip end to end from a requirements file |
@@ -18,7 +21,7 @@ Order matters: every step keeps `ppnpm test:all` green before the next starts.
 
 Step 3 (2026-09-30) paid: dates, group name, group size, currency, time zone, day routes, forecast spots, tickets,
 map areas, meal slots, shopping notes, the per-person share gaps (all now trip data, `docs/trip-format.md`).
-**Still in the engine** (next: the `tw` destination pack and generic day roles):
+**Still in the engine** (step 3b, in progress: the `tw` destination pack and generic day roles):
 
 - day roles `d1` arrival / `d4` charter / `d6` last full day / `d7` departure, and place ids `hotel`, `tpe1`, `tpe2`
 - Taiwan-only features: tax refund (NT$2,000 chip), lucky draw amounts, Taipei MRT planner and taxi meter, YouBike
@@ -70,6 +73,14 @@ The tier-1 tests found three bugs. They were fixed in the first trip's own repo,
 Not fixed:
 - The airport method tiles break "Manageable" mid-word at desktop width. Cosmetic, desktop only.
 - The per-person share gaps above.
+
+## Parity with the live Taipei page
+
+`pnpm parity --live ~/Repositories/taipei-travel --trip trips/taipei-2026` builds the live repo's own engine and data
+(from a copy, no key) and diffs every section's text, in both languages, against RelaxJer's build of the same trip.
+On 2026-10-01 it shows **one diff, a fix**: the live page repeats a share the text already states ("NT$160 each
+(NT$800 for 5 · ≈NT$160 each)"); RelaxJer shows it once (`Money.statesShare`). The live page keeps the repeat until
+Kenneth OKs a republish.
 
 ## Decisions for Kenneth before the repo goes public
 

@@ -18,4 +18,4 @@ fi
 gitleaks git --staged --redact --no-banner --config .gitleaks.toml
 
 pnpm exec lint-staged
-pnpm test --silent
+pnpm --silent test

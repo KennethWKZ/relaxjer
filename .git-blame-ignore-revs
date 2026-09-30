@@ -1,0 +1,3 @@
+# one-time formatting commits: git blame skips them (git config blame.ignoreRevsFile .git-blame-ignore-revs)
+# build: move to pnpm, husky, Prettier, ESLint and commitlint
+6466c74470678d3d85b9e72086fe37a3263a0fee

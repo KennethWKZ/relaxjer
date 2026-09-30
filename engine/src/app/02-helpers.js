@@ -28,9 +28,10 @@ const numsIn = (x) => Money.amountsIn(x, CUR.sym);
 // shares go in before **bold** turns into <strong>, so a bold group figure gets its share too
 const fmt = (x) =>
 	esc(L(x))
-		.replace(Money.groupFigureRe(CUR.sym, PAX), (m, amt, a, b, tail) => {
+		.replace(Money.groupFigureRe(CUR.sym, PAX), (m, amt, a, b, tail, _at, text) => {
 			const lo = +a.replace(/,/g, ''),
 				hi = b ? +b.replace(/,/g, '') : lo;
+			if (Money.statesShare(text, CUR.sym, lo, hi, PAX)) return m; // "NT$600 each, NT$3,000 for 5" says it already
 			return `${amt}${tail}<span class="each-i"> · ${Z(`每人约${eachText(lo, hi)}`, `≈${eachText(lo, hi)} each`)}</span>`;
 		})
 		.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
