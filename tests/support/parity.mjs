@@ -49,16 +49,17 @@ function buildLive(repo) {
 }
 
 function buildRef(commit) {
-	// reference engine: engine/ as it was at `commit`
-	const refEngine = path.join(work, 'ref-engine');
-	for (const f of execFileSync('git', ['ls-tree', '-r', '--name-only', commit, 'engine/'], { cwd: ROOT, encoding: 'utf8' })
+	// reference engine: engine/ and its destination packs (destinations/) as they were at `commit`
+	const refRoot = path.join(work, 'ref-root');
+	const files = execFileSync('git', ['ls-tree', '-r', '--name-only', commit, 'engine/', 'destinations/'], { cwd: ROOT, encoding: 'utf8' })
 		.split('\n')
-		.filter(Boolean)) {
-		const to = path.join(refEngine, f.replace(/^engine\//, ''));
+		.filter(Boolean);
+	for (const f of files) {
+		const to = path.join(refRoot, f);
 		fs.mkdirSync(path.dirname(to), { recursive: true });
 		fs.writeFileSync(to, execFileSync('git', ['show', `${commit}:${f}`], { cwd: ROOT }));
 	}
-	return build(refEngine, refData, path.join(work, 'ref'));
+	return build(path.join(refRoot, 'engine'), refData, path.join(work, 'ref'));
 }
 const pages = { ref: live ? buildLive(path.resolve(live)) : buildRef(ref), cur: build(path.join(ROOT, 'engine'), trip, path.join(work, 'cur')) };
 

@@ -38,6 +38,9 @@ export function nowIn(timeZone, at = new Date()) {
 	return { date: `${p.year}-${p.month}-${p.day}`, mins: (+p.hour % 24) * 60 + +p.minute };
 }
 
+/** a date's weekday, Monday = 0 … Sunday = 6 (the order of Google's opening hours) */
+export const weekdayIndex = (s) => (new Date(dayNumber(s) * 864e5).getUTCDay() + 6) % 7;
+
 /** "Sat 13 Mar" / "3月13日 周六"; dow is the day's [zh, en] weekday, optional */
 export const dateLabel = (s, lang, dow) =>
 	lang === 'en'

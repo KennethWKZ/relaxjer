@@ -303,13 +303,14 @@ const trsTag = (x) =>
 			: x.trs === 'some'
 				? Z(` · 部分店家可退税（满${TRS_MIN}）`, ` · some shops: tax refund (${TRS_MIN}+)`)
 				: '';
-// Day 6 shops, opening hours on the day
-const shopRows = () =>
-	SHOPS.map((x) => {
-		const h = x.week ? x.week[3] : '';
+// the shops for the free-time day, with that day's opening hours
+const shopRows = () => {
+	const fd = dayById[ROLE.free];
+	return SHOPS.map((x) => {
+		const h = x.week ? x.week[Time.weekdayIndex(fd.date)] : '';
 		return ideaRow(
 			lang === 'en' ? x.name_en || x.name_trad : x.name_zh,
-			`${lang === 'en' ? x.why_en : x.why_zh} · ${awayHotel(x)}${h ? ` · ${Z('周四', 'Thu')} ${h === '24h' ? Z('24小时', '24 h') : h === 'closed' ? Z('休息', 'closed') : h}` : ''}${trsTag(x)}`,
+			`${lang === 'en' ? x.why_en : x.why_zh} · ${awayHotel(x)}${h ? ` · ${Z(`周${fd.dow[0]}`, fd.dow[1])} ${h === '24h' ? Z('24小时', '24 h') : h === 'closed' ? Z('休息', 'closed') : h}` : ''}${trsTag(x)}`,
 			x.lat,
 			x.lng,
 			x.gpid,
@@ -317,6 +318,7 @@ const shopRows = () =>
 			x.addr,
 		);
 	});
+};
 // the shop list right under the free-shopping stop: the nearest few, the rest one tap away, and the tax-refund rules
 function shopBoxHTML() {
 	const rows = shopRows();
@@ -568,7 +570,7 @@ function addFindRender(q) {
 	hits = hits.map((x) => ({
 		...x,
 		k: from ? km(from, x.p) : null,
-		off: !!date && (x.closed.includes(date) || (x.week && x.week[(new Date(date + 'T12:00:00+08:00').getUTCDay() + 6) % 7] === 'closed')),
+		off: !!date && (x.closed.includes(date) || (x.week && x.week[Time.weekdayIndex(date)] === 'closed')),
 	}));
 	hits.sort((a, b) => a.off - b.off || (addSort === 'near' && from ? a.k - b.k : (b.rating || 0) - (a.rating || 0)));
 	const row = (x) =>

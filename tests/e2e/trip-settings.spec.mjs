@@ -3,6 +3,8 @@
 // a test.fail(true, reason) that states the behaviour we want.
 import { test, expect, openTrip } from '../support/fixtures.mjs';
 
+/* global DAYS, FLIGHTS -- the trip data, read inside the page */
+
 // tagged @demo: the expected dates are the demo trip's
 test.describe('trip settings', { tag: '@demo' }, () => {
 	test('the header dates come from the trip', async ({ page }) => {
@@ -25,7 +27,6 @@ test.describe('trip settings', { tag: '@demo' }, () => {
 test('the airport evening sits on the day the group leaves, with the take-off date', async ({ page }) => {
 	await openTrip(page);
 	const r = await page.evaluate(() => {
-		/* global DAYS, FLIGHTS */
 		const early = +FLIGHTS.ret.dep.slice(0, 2) < 12;
 		const eve = early ? new Date(Date.parse(FLIGHTS.ret.date) - 864e5).toISOString().slice(0, 10) : FLIGHTS.ret.date;
 		const leave = (DAYS.find((d) => d.date === eve) || DAYS.at(-1)).id;
@@ -38,4 +39,17 @@ test('the airport evening sits on the day the group leaves, with the take-off da
 	if (r.early) await expect(budget.locator('.leave-line li').last()).toContainText(`(${r.day}`); // "Take-off (19th)"
 	if (r.flight) await expect(page.locator(`#${r.flight} .add-stop`), 'no stops to add on the flight-only day').toHaveCount(0);
 	await expect(page.locator(`#${r.leave} .add-stop`), 'the airport evening can take added stops').toHaveCount(1);
+});
+
+test("the shop list shows the free-time day's own opening hours", async ({ page }) => {
+	await openTrip(page);
+	const dow = await page.evaluate(() => {
+		const early = +FLIGHTS.ret.dep.slice(0, 2) < 12;
+		const eve = early ? new Date(Date.parse(FLIGHTS.ret.date) - 864e5).toISOString().slice(0, 10) : FLIGHTS.ret.date;
+		return (DAYS.find((d) => d.freeFrom) || DAYS.find((d) => d.date === eve) || DAYS.at(-1)).dow[1];
+	});
+	const rows = page.locator('#free-shops .idea-m');
+	test.skip((await rows.count()) === 0, 'this trip lists no shops');
+	for (const t of await rows.allTextContents())
+		if (/\d{1,2}:\d{2}|24 h|closed/.test(t)) expect(t, 'hours are for the free-time day').toContain(` ${dow} `);
 });

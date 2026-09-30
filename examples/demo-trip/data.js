@@ -698,6 +698,7 @@ const DAYS = [
 				t: '13:00–17:00',
 				what: ['分组自由购物', 'Free shopping in groups'],
 				place: 'songshan',
+				shops: true, // the trip's shop list (shops.json) goes under this stop
 				note: ['各自逛，保持联络', 'Split up, keep in touch'],
 			},
 			{

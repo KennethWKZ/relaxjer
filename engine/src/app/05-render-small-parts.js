@@ -274,10 +274,10 @@ const spotsNear = (pk, rest, date) =>
 const dayHours = (x, date) => {
 	const all = lang === 'en' ? x.hours_en : x.hours_zh;
 	if (!date || !x.week) return all;
-	const h = x.week[(new Date(date + 'T12:00:00+08:00').getUTCDay() + 6) % 7];
+	const h = x.week[Time.weekdayIndex(date)];
 	return h === 'closed'
 		? Z('当天休息', 'closed that day')
-		: `${Z(`${+date.slice(5, 7)}/${+date.slice(8)}`, `${+date.slice(8)} Oct`)} ${h === '24h' ? Z('24小时', '24 h') : h.replace(/,/g, ', ')}`;
+		: `${Time.shortDate(date, lang)} ${h === '24h' ? Z('24小时', '24 h') : h.replace(/,/g, ', ')}`;
 };
 function spotsSheet(pk, rest, date) {
 	const rows = spotsNear(pk, rest, date);

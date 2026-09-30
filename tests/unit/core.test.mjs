@@ -31,6 +31,10 @@ test('Time: dates and labels', () => {
 	assert.equal(Time.rangeLabel('2027-03-30', '2027-04-02', 'en'), '30 Mar – 2 Apr');
 });
 
+test('Time: weekday index, Monday first', () => {
+	assert.deepEqual(['2027-03-13', '2027-03-15', '2027-03-18', '2027-03-21'].map(Time.weekdayIndex), [5, 0, 3, 6]); // Sat, Mon, Thu, Sun
+});
+
 test('Time: ordinals', () => {
 	assert.deepEqual([1, 2, 3, 4, 11, 12, 13, 21, 22, 23, 30].map(Time.ordinal), [
 		'1st',
