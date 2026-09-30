@@ -38,8 +38,16 @@ jobs:
       - uses: astral-sh/setup-uv@v10.2.0 # setup-uv has no v10 major tag: its latest release; the data pipeline's offline tests (pipeline/)
       - run: pnpm verify # lint + format check + fast tests + pipeline tests
 
+  # one job per Playwright project, side by side: on one runner the four ran almost one at a time (40+ min)
   e2e:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [android-390, chromium-1280, webkit-390, webkit-1280]
+    env:
+      BROWSER: ${{ startsWith(matrix.project, 'webkit') && 'webkit' || 'chromium' }}
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -47,12 +55,13 @@ jobs:
         with:
           node-version-file: .node-version
           cache: pnpm
-      - run: pnpm install --frozen-lockfile && pnpm exec playwright install --with-deps chromium webkit
-      - run: pnpm test:e2e
-      - run: pnpm test:e2e:short # the same trip-agnostic suite on a 4-day trip made from the demo
+      - run: pnpm install --frozen-lockfile && pnpm exec playwright install --with-deps "$BROWSER"
+      - run: pnpm exec playwright test --project=${{ matrix.project }}
+      # the same trip-agnostic suite on a 4-day trip made from the demo
+      - run: node tests/support/short-trip.mjs && TRIP_DIR=.cache/trips/short-trip pnpm exec playwright test --grep-invert @demo --project=${{ matrix.project }}
       - if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.project }}
           path: playwright-report/
           retention-days: 7
