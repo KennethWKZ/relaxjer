@@ -829,30 +829,54 @@ const OPTIONAL = [
 	},
 ];
 
-const SNOW = {
-	// a themed shop list in the Optional section (the first trip's: snowboard gear); heading, ideas group, pin kind, icon
-	h: ['Snowboard / 雪具店', 'Snowboard / ski shops'],
-	group: ['雪具店', 'Snowboard gear'],
-	kind: ['雪具店', 'Ski shop'],
-	icon: 'snow',
-	photo: 'snow-gear',
-	lede: ['**不用买雪具**：只看看，不排进行程。', '**No gear needed**: just a look, never scheduled.'],
-	lede2: ['想看的话第6天自由时间去。', 'If you want to look, go in the Day 6 free time.'],
-	shops: [
-		{
-			place: 'gearshop',
-			name: ['示范雪具店', 'Demo Snow Gear'],
-			area: ['忠孝敦化', 'Zhongxiao Dunhua'],
-			when: ['第6天下午', 'Day 6 afternoon'],
-			rank: ['只看看', 'Browse only'],
-			list: [['示范店，不是真的店', 'A demo shop, not a real one']],
-			day: 'd6',
-		},
-	],
-	rule: ['不排进行程。', 'Never scheduled.'],
-	checks: [['先量好脚的尺寸', 'Measure your feet first']],
-	close: ['想买再说。', 'Decide later.'],
-};
+// themed shop lists in the Optional section, as many as the trip wants (snow gear, tea, anime…). Each: id (its anchor
+// and checklist keys), h (heading), group (its free-time ideas group), kind (map pin label), icon, photo, lede/lede2,
+// shops [{ place, name, area, rank, when, list, day }], and an optional rule + checks + close before going in
+const SHOPLISTS = [
+	{
+		id: 'snow',
+		h: ['Snowboard / 雪具店', 'Snowboard / ski shops'],
+		group: ['雪具店', 'Snowboard gear'],
+		kind: ['雪具店', 'Ski shop'],
+		icon: 'snow',
+		photo: 'snow-gear',
+		lede: ['**不用买雪具**：只看看，不排进行程。', '**No gear needed**: just a look, never scheduled.'],
+		lede2: ['想看的话第6天自由时间去。', 'If you want to look, go in the Day 6 free time.'],
+		shops: [
+			{
+				place: 'gearshop',
+				name: ['示范雪具店', 'Demo Snow Gear'],
+				area: ['忠孝敦化', 'Zhongxiao Dunhua'],
+				when: ['第6天下午', 'Day 6 afternoon'],
+				rank: ['只看看', 'Browse only'],
+				list: [['示范店，不是真的店', 'A demo shop, not a real one']],
+				day: 'd6',
+			},
+		],
+		rule: ['不排进行程。', 'Never scheduled.'],
+		checks: [['先量好脚的尺寸', 'Measure your feet first']],
+		close: ['想买再说。', 'Decide later.'],
+	},
+	{
+		id: 'tea',
+		h: ['茶叶与干货', 'Tea and dried goods'],
+		group: ['茶叶店', 'Tea shops'],
+		kind: ['茶叶店', 'Tea shop'],
+		icon: 'bag',
+		lede: ['迪化街一带的示范茶行：顺路才去。', 'A demo tea shop on Dihua Street: only if passing by.'],
+		shops: [
+			{
+				place: 'dihua',
+				name: ['示范茶行', 'Demo Tea House'],
+				area: ['迪化街', 'Dihua Street'],
+				when: ['第6天上午', 'Day 6 morning'],
+				rank: ['可试喝', 'Tasting welcome'],
+				list: [['示范店，不是真的店', 'A demo shop, not a real one']],
+				day: 'd6',
+			},
+		],
+	},
+];
 
 const BUDGET = {
 	excludes: [

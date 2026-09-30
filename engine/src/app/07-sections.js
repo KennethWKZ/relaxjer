@@ -364,12 +364,16 @@ function freeIdeasHTML() {
 				)
 			: '';
 	}).join('');
-	const snow = SNOW.shops
-		.map((x) => {
-			const g = (GEO.places || {})[x.place];
-			return g ? row(L(x.name), `${L(x.rank)} · ${away(g)}`, g.lat, g.lng, g.gpid, PLACES[x.place] ? PLACES[x.place].maps : L(x.name), '') : '';
-		})
-		.join('');
+	// each shop list's shops, as its own group
+	const shopGroups = SHOPLISTS_.map((l) => ({
+		l,
+		rows: l.shops
+			.map((x) => {
+				const g = (GEO.places || {})[x.place];
+				return g ? row(L(x.name), `${L(x.rank)} · ${away(g)}`, g.lat, g.lng, g.gpid, PLACES[x.place] ? PLACES[x.place].maps : L(x.name), '') : '';
+			})
+			.join(''),
+	}));
 	const grp = (ic, h, n, body, open) =>
 		body
 			? `<details class="more idea-g"${open ? ' open' : ` data-lazy="${lazyKey(() => body)}"`}><summary>${icon(ic)}<span>${esc(h)}</span><span class="wg-n">${n}</span>${icon('chev', 'chev')}</summary><ul class="ideas"${open ? `>${body}` : ' data-lazy-body>'}</ul></details>`
@@ -378,7 +382,7 @@ function freeIdeasHTML() {
 	return `<div class="block" id="free-ideas">${blockH('star', ['自由时间去哪（点＋加入行程）', 'Free-time ideas (tap ＋ to add)'])}
       ${shopDaysHTML()}
       ${SHOPS.length ? `<a class="mlink" href="#free-shops">${icon('bag')}${Z(`买东西（${SHOPS.length} 间店、退税）：在行程「分组自由购物」下面`, `Shopping (${SHOPS.length} shops, tax refund): under “Free shopping” in the schedule`)}</a>` : ''}
-      ${grp('star', Z('想去清单', 'Wishlist'), cnt(wish), wish)}${grp('flag', Z('备选景点', 'Optional sights'), cnt(opt), opt)}${grp(SHOPLIST.icon, L(SHOPLIST.group), cnt(snow), snow)}
+      ${grp('star', Z('想去清单', 'Wishlist'), cnt(wish), wish)}${grp('flag', Z('备选景点', 'Optional sights'), cnt(opt), opt)}${shopGroups.map(({ l, rows }) => grp(l.icon, L(l.group), cnt(rows), rows)).join('')}
       <p class="xsmall muted">${Z('也可以在「地图」搜任何地方（包括 Google），点＋加入。', 'Or search anything on the map (Google too) and tap ＋.')}</p></div>`;
 }
 // tourist tax refund: the rules in five lines + which of our shops have it
@@ -807,7 +811,7 @@ function secMap() {
       <div class="map-legend">
         <span><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="var(--ink-2)"/></svg>${Z('景点', 'Sight')}</span>
         <span><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="2.5" width="11" height="11" rx="3" fill="var(--ink-2)"/></svg>${Z('美食', 'Food')}</span>
-        <span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5L14.5 8L8 14.5L1.5 8Z" fill="var(--ink-2)"/></svg>${esc(L(SHOPLIST.kind))}</span>
+        <span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5L14.5 8L8 14.5L1.5 8Z" fill="var(--ink-2)"/></svg>${esc(SHOPLISTS_.map((l) => L(l.kind)).join(' / ') || Z('商店', 'Shop'))}</span>
         ${WISH.length ? `<span><svg viewBox="-10 -10 20 20" aria-hidden="true"><path d="M0 -9.5L2.8 -3.2L9.4 -2.6L4.4 1.8L5.9 8.4L0 5L-5.9 8.4L-4.4 1.8L-9.4 -2.6L-2.8 -3.2Z" fill="var(--ink-2)"/></svg>${Z('想去', 'Wishlist')}</span>` : ''}
         <span><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="#0f8a7e"/><path d="M5.4 4.8h5.2l-.8 6.4H6.2z" fill="#fff"/></svg>${Z('饮料', 'Drinks')}</span>
         <span><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="#a0527e"/><path d="M4.4 6h5.4v2.2a2.7 2.7 0 0 1-5.4 0z" fill="#fff"/><path d="M9.8 6.8h.8a1.2 1.2 0 0 1 0 2.4h-.8" fill="none" stroke="#fff" stroke-width="1"/></svg>${Z('歇脚·甜品', 'Rest & dessert')}</span>
@@ -949,7 +953,6 @@ function calcLucky() {
 }
 
 function secOptional() {
-	const S = SNOW;
 	const shop = (s) => {
 		const p = PLACES[s.place];
 		const a = addrFor(s.place);
@@ -974,10 +977,12 @@ function secOptional() {
       ${OPTIONAL.filter((o) => o.food)
 				.map((o) => foodBlock(o.food.slots, o.food.h))
 				.join('')}
-      <h3 class="sub" id="snow">${icon(SHOPLIST.icon)}${esc(L(SHOPLIST.h))}</h3>
-      <p>${fmt(S.lede)}</p><p class="note">${fmt(S.lede2)}</p>
-      ${credit[SHOPLIST.photo] ? `<div class="photos">${figure(SHOPLIST.photo)}</div>` : ''}
+      ${SHOPLISTS_.map(
+				(S) => `<h3 class="sub" id="${esc(S.id)}">${icon(S.icon)}${esc(L(S.h))}</h3>
+      ${S.lede ? `<p>${fmt(S.lede)}</p>` : ''}${S.lede2 ? `<p class="note">${fmt(S.lede2)}</p>` : ''}
+      ${credit[S.photo] ? `<div class="photos">${figure(S.photo)}</div>` : ''}
       <div class="hung">${S.shops.map(shop).join('')}</div>
-      <div class="block">${blockH('check', ['去之前对一下', 'Before going in, check'])}<p class="callout">${icon('info')}<span>${fmt(S.rule)}</span></p>${checkList(S.checks.map((t, i) => ({ id: `snow-${i}`, t })))}<p class="note">${fmt(S.close)}</p></div>
+      ${S.rule || S.checks.length ? `<div class="block">${blockH('check', ['去之前对一下', 'Before going in, check'])}${S.rule ? `<p class="callout">${icon('info')}<span>${fmt(S.rule)}</span></p>` : ''}${checkList(S.checks.map((t, i) => ({ id: `${S.id}-${i}`, t })))}${S.close ? `<p class="note">${fmt(S.close)}</p>` : ''}</div>` : ''}`,
+			).join('\n      ')}
     </section>`;
 }

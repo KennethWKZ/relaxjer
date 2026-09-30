@@ -33,8 +33,9 @@ const RESHAPE = `
 	FLIGHTS.ret.date = DAYS.at(-1).date;
 	for (const x of TRIP.shopDays || []) for (const k of ['zh', 'en']) x[k] = x[k].replace(/\\{d([3-7])\\}/g, (m, n) => ({ 6: '{d3}' })[n] || '');
 	// other data that points at a day: follow the renumbering, or drop the pointer to a day that is gone
-	for (const x of [...(SNOW.shops || []), ...(WEATHER.outfits || [])]) if (x.day) x.day = rename[x.day];
-	for (const x of SNOW.shops || []) if (!x.day) delete x.day;
+	const shops = (typeof SHOPLISTS !== 'undefined' ? SHOPLISTS : [SNOW]).flatMap((l) => l.shops || []);
+	for (const x of [...shops, ...(WEATHER.outfits || [])]) if (x.day) x.day = rename[x.day];
+	for (const x of shops) if (!x.day) delete x.day;
 	WEATHER.outfits = (WEATHER.outfits || []).filter((x) => x.day);
 }
 `;

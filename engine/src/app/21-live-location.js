@@ -118,7 +118,7 @@ const PIN_KIND = {
 	place: ['景点', 'Sight'],
 	hotel: ['酒店', 'Hotel'],
 	food: ['美食', 'Food'],
-	shop: SHOPLIST.kind,
+	shop: ['商店', 'Shop'], // a shop pin names its own list's kind (p.kind)
 	wish: ['想去', 'Wishlist'],
 	drink: ['饮料', 'Drinks'],
 	rest: ['歇脚', 'Rest'],
@@ -155,8 +155,8 @@ const hayOf = (p) =>
 	p.hay ||
 	(p.hay = [
 		p.name,
-		L(PIN_KIND[p.type] || ['', '']),
-		other(PIN_KIND[p.type] || ['', '']),
+		L(p.kind || PIN_KIND[p.type] || ['', '']),
+		other(p.kind || PIN_KIND[p.type] || ['', '']),
 		p.food && [p.food.name_trad, p.food.name_en, p.food.name_zh, p.food.dish_zh, p.food.dish_en],
 		p.wish && [p.wish.name_trad, p.wish.name_en, p.wish.name_zh, p.wish.list_name],
 		p.drink && [p.drink.name_trad, p.drink.name_en, p.drink.brand, p.drink.tip_zh, p.drink.kind && L(REST_KIND[p.drink.kind])],
@@ -197,7 +197,7 @@ function mapListSync() {
 	if (n) n.textContent = String(list.length);
 	if (box.hidden) return;
 	const row = ({ p, k }) =>
-		`<li><button type="button" class="mres" data-mres="${esc(p.pid)}"><span class="mres-ic" aria-hidden="true">${pinSVG(p)}</span><span class="mres-b"><span class="mres-n">${esc(p.name)}</span><span class="mres-m">${esc(L(PIN_KIND[p.type] || ['', '']))}${p.days
+		`<li><button type="button" class="mres" data-mres="${esc(p.pid)}"><span class="mres-ic" aria-hidden="true">${pinSVG(p)}</span><span class="mres-b"><span class="mres-n">${esc(p.name)}</span><span class="mres-m">${esc(L(p.kind || PIN_KIND[p.type] || ['', '']))}${p.days
 			.slice(0, 2)
 			.map((d) => ` · Day ${dayById[d] ? dayById[d].n : ''}`)
 			.join('')}</span></span>${k != null ? `<span class="mres-d">${distLabel(k)}</span>` : ''}</button></li>`;

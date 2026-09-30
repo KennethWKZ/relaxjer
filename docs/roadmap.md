@@ -30,7 +30,7 @@ map areas, meal slots, shopping notes, the per-person share gaps (all now trip d
   font~~: pack or trip data since 2026-10-01 (`TRIP.fileName`, `storageKey`, `brushFont`, `SNOW.h/kind/icon`)
 - ~~one hotel per trip~~: one or one per night since 2026-10-01 (`DAYS[i].hotel`, `Plan.hotelsByDay`; the 4-day test
   trip moves hotel on night 2)
-- the themed shop list is still called `SNOW` in trip data: rename it when a second trip needs one
+- ~~the themed shop list is `SNOW`~~: any number of lists since 2026-10-01 (`SHOPLISTS`; `SNOW` still works as one list)
 - UI languages fixed to Chinese + English (`Z(zh, en)`), Chinese group numerals (五人), the Traditional → Simplified
   search: roadmap step 4
 

@@ -93,16 +93,25 @@ function buildPins() {
 		});
 		d.blocks.forEach((b) => (b.opts || []).forEach((o) => add(o.place)));
 	});
-	SNOW.shops.forEach((s) => {
+	ALL_SHOPS.forEach((s) => {
 		if (s.day) (dayOfPlace[s.place] = dayOfPlace[s.place] || []).push(s.day);
 	});
 	Object.keys(PLACES).forEach((pid) => {
 		const g = GEO.places && GEO.places[pid];
 		if (!g || seen.has(pid)) return;
 		seen.add(pid);
-		const type = isHotel(pid) ? 'hotel' : SNOW.shops.some((x) => x.place === pid) ? 'shop' : 'place';
+		const type = isHotel(pid) ? 'hotel' : shopListOf(pid) ? 'shop' : 'place';
 		const days = (dayOfPlace[pid] || []).filter(() => !isHotel(pid));
-		pins.push({ pid, type, lat: g.lat, lng: g.lng, days, name: L(PLACES[pid].name), q: PLACES[pid].maps });
+		pins.push({
+			pid,
+			type,
+			kind: type === 'shop' ? shopListOf(pid).kind : null,
+			lat: g.lat,
+			lng: g.lng,
+			days,
+			name: L(PLACES[pid].name),
+			q: PLACES[pid].maps,
+		});
 	});
 	(EXTRA.food || []).forEach((f, i) => {
 		if (f.lat == null || f.lng == null) return;

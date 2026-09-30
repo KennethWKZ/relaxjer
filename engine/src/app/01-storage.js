@@ -46,8 +46,20 @@ const hotelNow = () => {
 	const d = DAYS.find((x) => x.date === tpNow().date);
 	return hotelOf(d ? d.id : DAYS[0].id);
 };
-// the trip's themed shop list (SNOW: the first trip's was snowboard gear): its heading, pin kind, icon and photo
-const SHOPLIST = { h: ['商店', 'Shops'], group: ['商店', 'Shops'], kind: ['商店', 'Shop'], icon: 'bag', photo: '', ...SNOW };
+// the trip's themed shop lists (SHOPLISTS: snowboard gear, tea, anime…), each with its heading, ideas group, pin kind,
+// icon and photo; a trip written with the older single SNOW list gets it as the list with id 'snow'
+const SHOPLISTS_ = (typeof SHOPLISTS !== 'undefined' ? SHOPLISTS : typeof SNOW !== 'undefined' ? [{ id: 'snow', ...SNOW }] : []).map((l) => ({
+	h: ['商店', 'Shops'],
+	group: ['商店', 'Shops'],
+	kind: ['商店', 'Shop'],
+	icon: 'bag',
+	photo: '',
+	shops: [],
+	checks: [],
+	...l,
+}));
+const ALL_SHOPS = SHOPLISTS_.flatMap((l) => l.shops.map((s) => ({ ...s, list: l })));
+const shopListOf = (pid) => (ALL_SHOPS.find((s) => s.place === pid) || {}).list;
 // the build's output name (TRIP.fileName), for the My Maps download
 const FILE_BASE = TRIP.fileName || 'trip';
 const CITY = TRIP.city || Pack.city || ['目的地', 'the destination'];

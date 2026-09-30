@@ -210,8 +210,13 @@ console.log(
 {
 	const c2 = {};
 	vm.createContext(c2);
-	vm.runInContext(data + ';this.PLACES=PLACES;this.DAYS=DAYS;this.SNOW=SNOW;this.OPTIONAL=OPTIONAL;this.TRIP=TRIP;this.FLIGHTS=FLIGHTS;', c2);
-	const { PLACES, DAYS, SNOW, OPTIONAL, TRIP, FLIGHTS } = c2;
+	vm.runInContext(
+		data +
+			';this.PLACES=PLACES;this.DAYS=DAYS;this.SHOPLISTS=typeof SHOPLISTS==="undefined"?undefined:SHOPLISTS;this.SNOW=typeof SNOW==="undefined"?undefined:SNOW;this.OPTIONAL=OPTIONAL;this.TRIP=TRIP;this.FLIGHTS=FLIGHTS;',
+		c2,
+	);
+	const { PLACES, DAYS, OPTIONAL, TRIP, FLIGHTS } = c2;
+	const SHOPLISTS = c2.SHOPLISTS || (c2.SNOW ? [{ id: 'snow', ...c2.SNOW }] : []);
 	// one layer per day, except a day that holds only an after-midnight take-off
 	const planDays = DAYS.filter((d) => d.id !== dayRoles(DAYS, FLIGHTS.ret).flight);
 	const K = TRIP.kml || {}; // the trip's KML layer names and the places that go on its hotel/transport layer
@@ -293,9 +298,9 @@ console.log(
 		const it = placeItem(o.place, `${o.meta[0]}`);
 		if (it) add('optional', o.place, it);
 	});
-	SNOW.shops.forEach((sh) => {
+	SHOPLISTS.flatMap((l) => (l.shops || []).map((sh) => ({ ...sh, kind: l.kind }))).forEach((sh) => {
 		const it = placeItem(sh.place, `${sh.when[0]} / ${sh.when[1]}`);
-		if (it) add('optional', sh.place, { ...it, kind: (SNOW.kind || ['商店', 'Shop']).join(' ') });
+		if (it) add('optional', sh.place, { ...it, kind: (sh.kind || ['商店', 'Shop']).join(' ') });
 	});
 	wish
 		.filter((w) => w.status !== 'closed')

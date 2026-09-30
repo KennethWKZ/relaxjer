@@ -38,3 +38,12 @@ test('day ids must run d1…dN, and one free-time day at most', () => {
 	])
 		assert.match(problems, new RegExp(want.replace(/[…[\]]/g, '.')));
 });
+
+test('shop lists: any number, each with a unique id and known places', () => {
+	const trip = loadTrip(DEMO_TRIP);
+	assert.ok(trip.SHOPLISTS.length >= 2, 'the demo shows more than one list');
+	trip.SHOPLISTS[1].id = trip.SHOPLISTS[0].id;
+	trip.SHOPLISTS[0].shops[0].place = 'nowhere';
+	const problems = checkTrip(trip).join('\n');
+	for (const want of ['id used twice', 'unknown place "nowhere"']) assert.match(problems, new RegExp(want));
+});

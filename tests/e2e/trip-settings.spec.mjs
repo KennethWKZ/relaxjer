@@ -4,7 +4,7 @@
 import { test, expect, openTrip } from '../support/fixtures.mjs';
 import { setStored } from '../support/page.mjs';
 
-/* global DAYS, FLIGHTS -- the trip data, read inside the page */
+/* global DAYS, FLIGHTS, PLACES, TRIP, SHOPLISTS, SNOW -- the trip data, read inside the page */
 
 // tagged @demo: the expected dates are the demo trip's
 test.describe('trip settings', { tag: '@demo' }, () => {
@@ -61,8 +61,19 @@ test("before the trip, the card names the first night's hotel", async ({ page })
 	const start = await page.evaluate(() => TRIP.start);
 	await setStored(page, { now: `${new Date(Date.parse(start) - 864e5).toISOString().slice(0, 10)} 09:00` });
 	const name = await page.evaluate(() => {
-		/* global PLACES, TRIP */
 		return PLACES[DAYS[0].hotel || TRIP.hotel || 'hotel'].name[1];
 	});
 	await expect(page.locator('#now')).toContainText(name);
+});
+
+test('every shop list gets its own section and free-time ideas group', async ({ page }) => {
+	await openTrip(page);
+	const lists = await page.evaluate(() => {
+		const all = typeof SHOPLISTS !== 'undefined' ? SHOPLISTS : typeof SNOW !== 'undefined' ? [{ id: 'snow', ...SNOW }] : [];
+		return all.map((l) => ({ id: l.id, h: (l.h || ['', 'Shops'])[1], group: (l.group || ['', 'Shops'])[1], n: (l.shops || []).length }));
+	});
+	for (const l of lists) {
+		await expect(page.locator(`#optional h3[id="${l.id}"]`), `list ${l.id} heading`).toHaveText(l.h);
+		if (l.n) await expect(page.locator('#free-ideas summary', { hasText: l.group }), `list ${l.id} in the ideas`).toHaveCount(1);
+	}
 });

@@ -70,9 +70,19 @@ other place or site is named by the data that uses it, and the contract checks t
 | `WEATHER.sites`, `ENTRY.sites`, `ENTRY.lucky.sites` | `['cwa', 'cwaEn']` | site links under the forecast, the entry rules and the lucky draw |
 | `ENTRY.sources` | `[zh, en]` | "Sources: …" under the entry rules |
 
-The Optional section's themed shop list is `SNOW` (the first trip's was snowboard gear): `SNOW.h` (heading),
-`SNOW.group` (its group in the free-time ideas), `SNOW.kind` (map pin kind), `SNOW.icon`, `SNOW.photo`; left out, they
-read "Shops".
+## Shop lists (`SHOPLISTS`)
+
+Themed shop lists for the Optional section, as many as the trip wants (snowboard gear, tea, anime, pharmacies…):
+
+| Field | What it drives |
+|---|---|
+| `id` | the list's anchor (`#snow`) and its checklist keys; lower case, unique |
+| `h`, `group`, `kind`, `icon`, `photo` | its heading, its group in the free-time ideas, its map pin label, icon and photo (default "Shops") |
+| `lede`, `lede2` | the lines under the heading |
+| `shops[]` | `{ place, name, area, rank, when, list, day }`: each shop's place id, labels, and the day it fits |
+| `rule`, `checks`, `close` | an optional "before going in, check" block |
+
+The older single-list form, `const SNOW = { … }`, still works: it becomes the list with id `snow`.
 
 ## The airport evening (`FLIGHTS.ret.plan`)
 

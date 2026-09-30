@@ -4,6 +4,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 
+// read when present: the themed shop lists (SNOW is the older single-list form)
+export const OPTIONAL_GLOBALS = ['SHOPLISTS', 'SNOW'];
 export const REQUIRED = [
 	'TRIP',
 	'PLACES',
@@ -12,7 +14,6 @@ export const REQUIRED = [
 	'BACKUPS',
 	'DAYS',
 	'OPTIONAL',
-	'SNOW',
 	'BUDGET',
 	'MONEY',
 	'WEATHER',
@@ -34,7 +35,10 @@ export function loadTrip(dir) {
 	const src = fs.readFileSync(path.join(dir, 'data.js'), 'utf8');
 	const ctx = {};
 	vm.createContext(ctx);
-	vm.runInContext(`${src};this.__trip={${REQUIRED.map((k) => `${k}:typeof ${k}==='undefined'?undefined:${k}`).join(',')}}`, ctx);
+	vm.runInContext(
+		`${src};this.__trip={${[...REQUIRED, ...OPTIONAL_GLOBALS].map((k) => `${k}:typeof ${k}==='undefined'?undefined:${k}`).join(',')}}`,
+		ctx,
+	);
 	return ctx.__trip;
 }
 
@@ -152,10 +156,18 @@ export function checkTrip(trip) {
 	for (const [id, p] of Object.entries(PLACES)) if (!Array.isArray(p.name) || !p.maps) bad(`place ${id}: needs name [zh, en] and a maps query`);
 	// other data that points at a day must point at one this trip has
 	const dayIds = new Set(DAYS.map((d) => d.id));
-	for (const [where, list] of [
-		['SNOW.shops', trip.SNOW?.shops],
-		['WEATHER.outfits', trip.WEATHER?.outfits],
-	])
+	// shop lists: any number, each with a unique id (its section anchor and checklist keys) and known places
+	const lists = trip.SHOPLISTS || (trip.SNOW ? [{ id: 'snow', ...trip.SNOW }] : []);
+	if (trip.SHOPLISTS && trip.SNOW) bad('SHOPLISTS and SNOW both set: SNOW is the older single-list form, keep one');
+	const listIds = new Set();
+	for (const [k, l] of lists.entries()) {
+		if (!/^[a-z][a-z0-9-]*$/.test(l.id || '')) bad(`shop list ${k}: id must be lower-case letters, digits and dashes, got ${JSON.stringify(l.id)}`);
+		if (listIds.has(l.id)) bad(`shop list ${l.id}: id used twice`);
+		listIds.add(l.id);
+		for (const f of ['h', 'kind']) if (l[f] != null && !isLabel(l[f])) bad(`shop list ${l.id}: ${f} must be [zh, en]`);
+		for (const [j, x] of (l.shops || []).entries()) if (!PLACES[x.place]) bad(`shop list ${l.id} shop ${j}: unknown place "${x.place}"`);
+	}
+	for (const [where, list] of [...lists.map((l) => [`shop list ${l.id}`, l.shops]), ['WEATHER.outfits', trip.WEATHER?.outfits]])
 		for (const [k, x] of (list || []).entries()) if (x.day && !dayIds.has(x.day)) bad(`${where}[${k}].day: no day "${x.day}" in this trip`);
 	const plan = FLIGHTS?.ret?.plan;
 	if (plan) {
