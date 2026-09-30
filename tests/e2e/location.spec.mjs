@@ -8,7 +8,7 @@ import { setStored } from '../support/page.mjs';
 const HERE = { latitude: 25.0339, longitude: 121.5645, accuracy: 20 };
 
 /** Stubs what the browser says about location: its permission state, and a fix once the page asks for one. */
-async function stubGeo(page, state) {
+async function stubGeo(page, state, here = HERE) {
 	await page.addInitScript(
 		({ state, here }) => {
 			const status = { state, onchange: null };
@@ -26,7 +26,7 @@ async function stubGeo(page, state) {
 			};
 			navigator.geolocation.clearWatch = () => {};
 		},
-		{ state, here: HERE },
+		{ state, here },
 	);
 }
 
@@ -86,6 +86,16 @@ test('allowing location from "near me" clears the card at once', async ({ page }
 	await expect(card(page)).toHaveCount(0);
 });
 
+test('far from the trip, "near me" says it counts from the hotel, and the card still goes', async ({ page }) => {
+	await stubGeo(page, 'prompt', { latitude: 3.139, longitude: 101.6869, accuracy: 20 }); // another country
+	await openOn(page, -3);
+	const near = page.locator('#app [data-near]').first();
+	await near.scrollIntoViewIfNeeded();
+	await near.click();
+	await expect(page.locator('#near .near-far')).toContainText('distances start from the hotel');
+	await expect(card(page)).toHaveCount(0);
+});
+
 test('a "no" turns the card into steps to switch it back on', async ({ page }) => {
 	await stubGeo(page, 'denied');
 	await openOn(page, -3);
@@ -111,4 +121,7 @@ test('the install button sits in the header and opens the steps', async ({ page 
 	expect(brand.x + brand.width).toBeLessThanOrEqual(b.x);
 	await btn.click();
 	await expect(page.locator('#placeSheet .home-steps li').first()).toBeVisible();
+	// iPhone: the guide also says how to make "Allow" stick, so the page stops asking every time
+	if (await page.evaluate(() => /iPhone|iPad/.test(navigator.userAgent)))
+		await expect(page.locator('#placeSheet .home-notes')).toContainText('Settings → Apps → Safari → Location');
 });

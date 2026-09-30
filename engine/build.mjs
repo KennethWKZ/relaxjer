@@ -4,6 +4,7 @@
 // The trip dir holds data.js, the *.json side files and img/. The Google browser key + Map ID go in only when --keys
 // names a file (keep it outside the repo, e.g. ~/.config/relaxjer/google.json, mode 600): a page built without it,
 // like the demo, can be shared without leaking a key. Without one the page keeps the free MapLibre map.
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -176,10 +177,11 @@ const writePages = (kmlB64) => {
 			const f = fs.existsSync(lite) ? lite : path.join(trip, 'img', `${k}.webp`); // scripts/imglite.py: 720 px, lighter
 			if (fs.existsSync(f)) imgMap[k] = `data:image/webp;base64,${fs.readFileSync(f).toString('base64')}`;
 		}
-	const standalone = `<!doctype html>
+	const draft = `<!doctype html>
 <html lang="zh-Hans">
 <head>
 <meta charset="utf-8">
+<meta name="relaxjer-build" content="{{build}}">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="${htmlEsc(brand)}">
@@ -196,6 +198,9 @@ ${scripts(imgMap, kmlB64)}
 </body>
 </html>
 `;
+	// the page's own version, first bytes of the file: a paused home-screen app reads the live copy's to offer an update
+	const build = crypto.createHash('sha256').update(draft).digest('hex').slice(0, 12);
+	const standalone = draft.replace('{{build}}', build);
 	fs.writeFileSync(path.join(out, `${fileBase}-standalone.html`), standalone);
 
 	const kb = (s) => (Buffer.byteLength(s) / 1024).toFixed(0) + ' KB';

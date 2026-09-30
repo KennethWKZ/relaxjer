@@ -4851,6 +4851,56 @@ dialog.toc {
 .net-off b {
 	color: var(--warn);
 }
+/* a newer copy is live: same strip as offline, in the link colour, with its one action on the right */
+.upd {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	margin: 0;
+	padding: 4px 8px 4px 16px;
+	font-size: var(--fs-xs);
+	line-height: 1.35;
+	color: var(--ink);
+	background: color-mix(in srgb, var(--link) 12%, var(--paper));
+	border-top: 1px solid color-mix(in srgb, var(--link) 28%, transparent);
+}
+.upd[hidden] {
+	display: none;
+}
+.upd .i {
+	flex: none;
+	width: 16px;
+	height: 16px;
+	color: var(--link);
+}
+.upd span {
+	flex: 1;
+	min-width: 0;
+}
+.upd b {
+	color: var(--link);
+}
+.upd .text-btn {
+	flex: none;
+	font-weight: 750;
+	color: var(--link);
+}
+.near-far {
+	display: flex;
+	gap: 8px;
+	align-items: flex-start;
+	margin: 0;
+	padding: 10px 12px;
+	border-radius: var(--r-md);
+	background: color-mix(in srgb, var(--link) 10%, var(--paper));
+	font-size: var(--fs-sm);
+	font-weight: 600;
+}
+.near-far .i {
+	flex: none;
+	margin-top: 2px;
+	color: var(--link);
+}
 
 /* running late: the prompt in the "now" card, the pushed-back banner, the push-back sheet */
 .late,

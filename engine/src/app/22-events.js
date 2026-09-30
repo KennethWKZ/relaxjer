@@ -39,6 +39,7 @@ document.addEventListener('click', (e) => {
 		return;
 	}
 	if (t.matches('[data-near-from]')) {
+		near.far = false;
 		nearFrom(t.dataset.nearFrom);
 		return;
 	}
@@ -125,6 +126,11 @@ document.addEventListener('click', (e) => {
 	if (t.matches('[data-filter]')) return map && map.filter(t.dataset.filter);
 	if (t.matches('[data-reset-all]')) {
 		resetAll();
+		return;
+	}
+	if (t.matches('[data-upd]')) {
+		if (navigator.onLine === false) toast(Z('没有网络：先用这一版，有网络再更新', 'Offline: keep this copy and update when you’re online'));
+		else location.reload();
 		return;
 	}
 	if (t.matches('[data-home]')) {

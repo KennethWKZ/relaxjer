@@ -144,6 +144,7 @@ function renderNear() {
 	);
 	box.innerHTML = `<div class="toc-head"><h2 id="near-h">${meal === 'wc' ? Z('附近厕所', 'Toilets near me') : meal === 'drink' ? Z('附近饮料', 'Drinks near me') : meal === 'rest' ? Z('附近坐下歇脚', 'Sit & rest near me') : Z('附近吃什么', 'Food near me')}</h2><button type="button" class="icon-btn" data-close aria-label="${Z('关闭', 'Close')}">${icon('x')}</button></div>
       ${near.from ? `<p class="small">${icon('pin')} ${Z('起点：', 'From: ')}${esc(near.label)}</p>` : ''}
+      ${near.far ? `<p class="near-far">${icon('info')}<span>${esc(Z(`你现在不在${CITY[0]}，所以距离先从酒店算。到了${CITY[0]}会自动用你的位置。`, `You’re not in ${CITY[1]} yet, so distances start from the hotel. Once you’re there, it uses where you are.`))}</span></p>` : ''}
       <div class="map-ctrl near-meals" role="group" aria-label="${Z('哪一餐', 'Which meal')}">${tabs}</div>
       ${body}
       <details class="more"><summary>${icon('pin')}${Z('换一个起点', 'Start from somewhere else')}${icon('chev', 'chev')}</summary><div class="more-body"><div class="pills">${`<button type="button" class="tag pinbtn" data-near-gps>${Z('我的位置', 'My location')}</button>`}${starts.map((pid) => `<button type="button" class="tag pinbtn" data-near-from="${pid}">${esc(L(PLACES[pid].name))}</button>`).join('')}</div></div></details>
@@ -175,6 +176,7 @@ function nearFallback(why) {
 function nearLocate() {
 	near.note = '';
 	near.from = null;
+	near.far = false;
 	renderNear();
 	if (!navigator.geolocation) {
 		nearFallback(Z('这个浏览器不能定位', 'this browser cannot share location'));
@@ -196,7 +198,8 @@ function nearLocate() {
 					.filter(Boolean)
 					.every((h) => km(here, h) > 60)
 			) {
-				nearFrom(hotelNow(), Z(`你现在不在${CITY[0]}，先用酒店`, `not in ${CITY[1]} yet; using hotel`));
+				near.far = true;
+				nearFrom(hotelNow());
 				return;
 			}
 			near.from = here;

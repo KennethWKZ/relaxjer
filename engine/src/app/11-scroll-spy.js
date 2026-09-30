@@ -78,6 +78,55 @@ function netSync() {
 		: '';
 	if (was !== off) measureBar();
 }
+/* a new version: the host serves one file with no service worker, so a home-screen app that was only paused keeps the
+   copy it loaded. Back in front and online, read the start of the live copy (its build id sits in the first bytes; the
+   rest of the download is cancelled) and offer a reload only when it differs, so nobody reloads into a blank offline page */
+const BUILD = ($('meta[name="relaxjer-build"]') || {}).content || '';
+let updAt = 0;
+let updNew = false;
+async function updCheck() {
+	if (!BUILD || updNew || document.hidden || navigator.onLine === false || !/^https?:$/.test(location.protocol)) return;
+	if (Date.now() - updAt < 10 * 60000) return;
+	updAt = Date.now();
+	const ctl = new AbortController();
+	const stop = setTimeout(() => ctl.abort(), 20000);
+	try {
+		const r = await fetch(location.href.split('#')[0], { cache: 'no-store', credentials: 'same-origin', signal: ctl.signal });
+		if (!r.ok || !r.body) return; // the host's password page after 24 h: nothing to compare
+		const rd = r.body.getReader();
+		const dec = new TextDecoder();
+		let head = '';
+		let m = null;
+		while (!m && head.length < 8192) {
+			const { done, value } = await rd.read();
+			if (done) break;
+			head += dec.decode(value, { stream: true });
+			m = /<meta name="relaxjer-build" content="([^"]+)"/.exec(head);
+		}
+		if (m && m[1] !== BUILD) {
+			updNew = true;
+			updSync();
+		}
+	} catch {
+		/* offline, slow or blocked: try again next time */
+	} finally {
+		clearTimeout(stop);
+		ctl.abort();
+	}
+}
+function updSync() {
+	const el = $('#updBar');
+	if (!el) return;
+	const was = !el.hidden;
+	el.hidden = !updNew;
+	el.innerHTML = updNew
+		? `${icon('install')}<span><b>${Z('有新版本', 'New version')}</b> · ${Z('行程有更新', 'the plan changed')}</span><button type="button" class="text-btn" data-upd>${Z('更新', 'Update')}</button>`
+		: '';
+	if (was !== updNew) measureBar();
+}
+document.addEventListener('visibilitychange', updCheck);
+window.addEventListener('online', updCheck);
+setTimeout(updCheck, 4000);
 window.addEventListener('offline', netSync);
 window.addEventListener('online', () => {
 	netSync();
@@ -160,6 +209,7 @@ function homeGuide() {
       <p class="small">${Z(`以后点主画面的「${BRAND}」图标打开，全屏像 App。`, `Then open it from the ${BRAND} icon: full screen, like an app.`)}</p>
       <ul class="home-notes">
         ${ios ? `<li>${Z('图标版和 Safari <b>分开保存</b>：在 Safari 加的站、打的勾不会带过去。之后只用图标打开就好（加的站可以用「把我加的分享给大家」链接带过去）。', 'The icon version <b>saves separately</b> from Safari: stops and ticks added in Safari don’t carry over. Just use the icon from now on (added stops can move over with the “Share my added stops” link).')}</li>` : ''}
+        ${ios ? `<li>${Z('装好后打开<b>「设置」→「App」→「Safari 浏览器」→「位置」</b>，选<b>「允许」</b>：以后用定位就不会每次都问。', 'Once added, open <b>Settings → Apps → Safari → Location</b> and pick <b>Allow</b>, so the page stops asking for location every time.')}</li>` : ''}
         <li>${Z('密码每 24 小时要再输入一次（网站规定）。', 'The password is asked again every 24 hours (the host’s rule).')}</li>
         <li>${Z('没有网络时打不开；打开后断网，行程照常看，别刷新。', 'It won’t open without internet; once open, plans keep working offline. Don’t reload.')}</li>
       </ul></div>`);
