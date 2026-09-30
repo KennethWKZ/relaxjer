@@ -2778,6 +2778,15 @@ details.wgroup > summary .chev {
 		font-size: 1.5rem;
 	}
 }
+/* the install button takes a 44px slot until the page is installed: tighten the row so the trip name still fits */
+@media (max-width: 440px) {
+	.bar-row:has(.home-hd:not([hidden])) {
+		gap: 4px;
+	}
+	.bar-row:has(.home-hd:not([hidden])) .brand-name {
+		font-size: 1.375rem;
+	}
+}
 .stop-eat {
 	grid-column: 1 / -1;
 	margin-top: 10px;
@@ -4844,13 +4853,24 @@ dialog.toc {
 }
 
 /* running late: the prompt in the "now" card, the pushed-back banner, the push-back sheet */
-.late {
+.late,
+.geo-ask {
 	display: grid;
 	gap: 8px;
 	padding: 12px 14px;
 	border-radius: var(--r-md);
 	background: var(--paper);
 	border: 1px solid color-mix(in srgb, var(--warn) 45%, var(--rule));
+}
+.geo-ask {
+	border-color: color-mix(in srgb, var(--link) 40%, var(--rule));
+}
+.geo-ask .late-h .i {
+	color: var(--link);
+}
+.geo-ask .small,
+.geo-ask .links-row {
+	margin: 0;
 }
 .late.risk {
 	border-color: color-mix(in srgb, var(--bad) 55%, var(--rule));
@@ -4992,11 +5012,12 @@ dialog.toc {
 	margin: 0;
 }
 
-/* add to the home screen */
-.home-row {
-	margin: 10px 0 0;
+/* add to the home screen: the header button stands out from search and theme until the page is installed */
+.icon-btn.home-hd {
+	color: var(--link);
+	background: color-mix(in srgb, var(--link) 12%, transparent);
 }
-.home-row:empty {
+.icon-btn.home-hd[hidden] {
 	display: none;
 }
 .home-guide {

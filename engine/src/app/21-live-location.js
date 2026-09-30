@@ -8,6 +8,7 @@ let meCardAt = null;
 let mapSel = null;
 const meOnce = [];
 function meGot(pos) {
+	geoState = 'granted';
 	meLL = { lat: pos.coords.latitude, lng: pos.coords.longitude };
 	meAcc = pos.coords.accuracy || 0;
 	meHd = pos.coords.speed > 0.6 && pos.coords.heading != null && !Number.isNaN(pos.coords.heading) ? pos.coords.heading : null;
@@ -42,10 +43,14 @@ function locateMe(cb, quiet) {
 	}
 	meWatch = navigator.geolocation.watchPosition(
 		meGot,
-		() => {
+		(err) => {
 			if (meWatch != null) navigator.geolocation.clearWatch(meWatch);
 			meWatch = null;
 			meOnce.length = 0;
+			if (err && err.code === 1 && geoState !== 'denied') {
+				geoState = 'denied';
+				renderNow();
+			}
 			if (!quiet) toast(Z('没法取得位置：请允许定位权限', 'Location unavailable; allow access'));
 		},
 		{ enableHighAccuracy: true, maximumAge: 5000, timeout: 20000 },
@@ -79,6 +84,91 @@ function meAuto() {
 	} catch {
 		/* no Permissions API: wait for a tap */
 	}
+}
+/* asking for location: a card in the "now" box says why before the browser asks, and comes back when the phone
+   forgets the answer (Safari on iPhone does, so a one-time "Allow" is not enough to keep the late check working) */
+// pending (asking the browser) | unknown (it can't say) | prompt | granted | denied | none (no GPS in this browser)
+let geoState = !navigator.geolocation ? 'none' : navigator.permissions ? 'pending' : 'unknown';
+function geoWatch() {
+	if (!navigator.geolocation) return;
+	const tripDay = DAYS.some((d) => d.date === tpNow().date);
+	try {
+		navigator.permissions
+			.query({ name: 'geolocation' })
+			.then((r) => {
+				const set = () => {
+					const was = geoState;
+					geoState = r.state;
+					if (r.state === 'granted' && tripDay) locateMe(null, true); // follow the phone; never asks by itself
+					if (geoState !== was) renderNow();
+				};
+				set();
+				r.onchange = set;
+			})
+			.catch(() => {
+				geoState = 'unknown';
+				renderNow();
+			});
+	} catch {
+		geoState = 'unknown'; // no Permissions API: the card stays until a tap gets a position
+	}
+}
+function geoAsk() {
+	if (['none', 'pending', 'granted'].includes(geoState) || meLL) return '';
+	if (store.get('geoNo', null) === tpNow().date) return '';
+	const off = geoState === 'denied';
+	return `<div class="geo-ask"><p class="late-h">${icon('pin')}<span>${
+		off
+			? Z('这个页面的定位是关着的', 'Location is off for this page')
+			: Z('打开定位，行程会提醒你是不是晚了', 'Turn on location so the plan can tell you when you’re running late')
+	}</span></p>
+      <p class="small">${
+				off
+					? Z(
+							'打开后，地图会显示你在哪，也会帮你看赶不赶得上下一站。',
+							'With it on, the map shows where you are and the plan checks whether you’ll make the next stop.',
+						)
+					: Z('地图也会显示你在哪。位置只留在这支手机上。', 'The map also shows where you are. Your position stays on this phone.')
+			}</p>
+      <div class="links-row">${
+				off
+					? `<button type="button" class="go-btn" data-geo-help>${icon('info')}${Z('怎么打开', 'How to turn it on')}</button>`
+					: `<button type="button" class="go-btn" data-geo-on>${icon('pin')}${Z('打开定位', 'Turn on location')}</button>`
+			}<button type="button" class="go-btn ghost" data-geo-no>${Z('今天先不用', 'Not today')}</button></div></div>`;
+}
+function geoHelp() {
+	const ios = isIOS();
+	const steps = ios
+		? [
+				Z(
+					'打开手机的<b>「设置」→「隐私与安全性」→「定位服务」</b>：要开着，里面的<b>「Safari 浏览器网站」</b>选「使用 App 期间」',
+					'Open <b>Settings → Privacy &amp; Security → Location Services</b>: keep it on, and set <b>Safari Websites</b> to “While Using the App”',
+				),
+				Z(
+					'回到<b>「设置」→「App」→「Safari 浏览器」→「位置」</b>，选<b>「允许」</b>或「询问」',
+					'Then <b>Settings → Apps → Safari → Location</b>: pick <b>Allow</b> or Ask',
+				),
+				Z('有网络时，重新打开这个页面', 'With internet, open this page again'),
+			]
+		: isAndroid()
+			? [
+					Z(
+						'在 Chrome 点网址左边的图标 →<b>「权限」→「位置」</b>，选<b>「允许」</b>',
+						'In Chrome, tap the icon left of the address → <b>Permissions → Location</b> → <b>Allow</b>',
+					),
+					Z(
+						'从主画面图标打开的？先用 Chrome 打开这个页面再做上一步',
+						'Opened it from the home-screen icon? Open this page in Chrome and do the step above',
+					),
+					Z('手机本身的<b>「位置」</b>也要开着（从屏幕顶部往下滑）', 'The phone’s own <b>Location</b> must be on too (swipe down from the top)'),
+				]
+			: [
+					Z('点网址左边的图标 →<b>「位置」</b>，选<b>「允许」</b>', 'Click the icon left of the address → <b>Location</b> → <b>Allow</b>'),
+					Z('重新打开这个页面', 'Open this page again'),
+				];
+	openSheet(`<div class="home-guide"><p class="pop-name">${icon('pin')}${Z('打开定位', 'Turn on location')}</p>
+      <ol class="home-steps">${steps.map((x) => `<li>${x}</li>`).join('')}</ol>
+      <p class="small">${Z('位置只用来在地图上显示你、检查行程进度，不会传出这支手机。', 'Your position is only used to show you on the map and check the plan; it never leaves this phone.')}</p></div>`);
 }
 const meDot = () => {
 	const d = document.createElement('div');

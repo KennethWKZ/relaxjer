@@ -55,6 +55,7 @@ function render() {
 	$('#brand-dates').textContent = Time.rangeLabel(TRIP.start, TRIP.end, lang);
 	$('#q').placeholder = L(TRIP.searchHint);
 	$('#searchBtn').setAttribute('aria-label', Z('搜索', 'Search'));
+	homeSync();
 	$('#back-lab').textContent = Z('返回刚才', 'Back');
 	$('#backPill').setAttribute('aria-label', Z('返回刚才的位置', 'Back to where you were'));
 	$('#toc-lab').textContent = Z('目录', 'Sections');

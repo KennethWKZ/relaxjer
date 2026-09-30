@@ -20,6 +20,7 @@ function renderNow() {
 		el.innerHTML = `<div class="now-count"><span class="now-num">${n}</span><span class="now-unit">${Z('天后出发', n === 1 ? 'day to go' : 'days to go')}</span></div>
         <p class="muted">${Z(`${Time.dateLabel(FLIGHTS.out.date, 'zh', DAYS[0].dow)} 飞${TRIP.arriveCity[0]}，第一晚住`, `Fly to ${TRIP.arriveCity[1]} on ${Time.dateLabel(FLIGHTS.out.date, 'en', DAYS[0].dow)}; first night at`)} ${esc(L(PLACES[hotelOf(ROLE.arrive)].name))}</p>
         ${todo.length ? `<div class="now-rows">${todo.map((i) => `<div class="now-row"><span class="now-k">${esc(dateLabel(i.due))}</span><span class="now-v">${fmt(i.t)}</span></div>`).join('')}</div>` : ''}
+        ${geoAsk()}
         <div class="links-row"><a class="go-btn" href="#checklist">${icon('check')}${Z('打开清单', 'Open checklist')}</a><a class="go-btn ghost" href="#${ROLE.arrive}">${icon('arrow')}Day ${dayById[ROLE.arrive].n}</a></div>`;
 		return;
 	}
@@ -38,7 +39,7 @@ function renderNow() {
 	el.innerHTML = `<div class="now-count"><span class="now-day" style="background:var(--c);color:var(--ci)">Day ${day.n}</span><span class="now-unit">${esc(dateLabel(day.date, day.dow))}</span></div>
       <p class="wish" lang="zh-Hans" style="font-size:2rem;margin:0">${esc(day.wish)}</p>
       <div class="now-rows">${row(Z('现在', 'Now'), cur)}${row(Z('接下来', 'Next'), next)}</div>
-      ${lateHTML()}
+      ${geoAsk()}${lateHTML()}
       <div class="links-row"><a class="go-btn" href="#${cur ? `${day.id}-s${cur.i}` : next ? `${day.id}-s${next.i}` : day.id}">${icon('arrow')}${Z('看今天', 'Open today')}</a>${nxPlace ? ext(gmDir(PLACES[nxPlace].maps, 'transit'), Z('去下一站', 'Go to next stop'), 'route', 'go-btn ghost') : ''}</div>`;
 }
 function markToday() {

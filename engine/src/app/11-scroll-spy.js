@@ -116,13 +116,18 @@ let installEv = null;
 const isStandalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
 const isIOS = () => /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const isAndroid = () => /Android/.test(navigator.userAgent);
+const canHome = () => !isStandalone() && (installEv || isIOS() || isAndroid());
 const homeBtn = () =>
-	!isStandalone() && (installEv || isIOS() || isAndroid())
+	canHome()
 		? `<button type="button" class="mlink home-btn" data-home>${icon('plus')}${Z('加到手机主画面（像 App 一样打开）', 'Add to the home screen (opens like an app)')}</button>`
 		: '';
+// the header's install button: shown until the page runs from the home screen
 const homeSync = () => {
-	const r = $('#homeRow');
-	if (r) r.innerHTML = homeBtn();
+	const b = $('#homeBtn');
+	if (!b) return;
+	b.hidden = !canHome();
+	b.setAttribute('aria-label', Z('加到手机主画面（像 App 一样打开）', 'Add to the home screen (opens like an app)'));
+	b.title = Z('加到手机主画面', 'Add to the home screen');
 };
 window.addEventListener('beforeinstallprompt', (e) => {
 	e.preventDefault();

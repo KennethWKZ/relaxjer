@@ -28,7 +28,7 @@ setInterval(() => {
 	renderNow();
 	markToday();
 }, 60000);
-if (DAYS.some((d) => d.date === tpNow().date)) meAuto(); // a trip day: follow the phone if location is already allowed (never asks by itself)
+geoWatch(); // on a trip day, follow the phone if location is already allowed (never asks by itself)
 
 render();
 const idle = window.requestIdleCallback || ((f) => setTimeout(f, 200));

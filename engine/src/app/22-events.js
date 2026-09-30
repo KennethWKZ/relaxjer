@@ -166,6 +166,20 @@ document.addEventListener('click', (e) => {
 		renderNow();
 		return;
 	}
+	if (t.matches('[data-geo-on]')) {
+		t.disabled = true;
+		locateMe(() => renderNow());
+		return;
+	}
+	if (t.matches('[data-geo-no]')) {
+		store.set('geoNo', tpNow().date);
+		renderNow();
+		return;
+	}
+	if (t.matches('[data-geo-help]')) {
+		geoHelp();
+		return;
+	}
 	if (t.matches('[data-late-loc]')) {
 		t.disabled = true;
 		locateMe(() => renderNow());
