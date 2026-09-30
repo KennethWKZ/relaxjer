@@ -1,0 +1,17 @@
+{
+	"releaseCommitMessageFormat": "chore(release): v{{currentTag}}",
+	"types": [
+		{ "type": "feat", "section": "✨ Features" },
+		{ "type": "fix", "section": "🐛 Bug Fixes" },
+		{ "type": "perf", "section": "⚡️ Performance Improvements" },
+		{ "type": "refactor", "section": "♻️ Code Refactoring" },
+		{ "type": "docs", "section": "📝 Documentation" },
+		{ "type": "test", "section": "✅ Testing" },
+		{ "type": "build", "section": "🔨 Builds" },
+		{ "type": "ci", "section": "🧑‍💻 Continuous Integrations" },
+		{ "type": "style", "section": "💄 Styling" },
+		{ "type": "chore", "section": "🚚 Chores" },
+		{ "type": "revert", "section": "⏪️ Revert" },
+		{ "type": "wip", "hidden": true, "section": "🚧 Work In Progress" }
+	]
+}

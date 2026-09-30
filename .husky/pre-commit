@@ -1,6 +1,5 @@
-#!/bin/sh
-# Blocks real trips, keys and builds from reaching the public repo, then runs the fast tests.
-# Enabled by `npm install` (package.json "prepare" sets core.hooksPath=.githooks).
+# Blocks real trips, keys and builds from reaching the public repo, scans the staged diff for secrets, then lints and
+# formats the staged files and runs the fast tests. Wired by `pnpm install` (the "prepare" script runs husky).
 set -eu
 
 staged=$(git diff --cached --name-only --diff-filter=ACMR)
@@ -18,4 +17,5 @@ if ! command -v gitleaks >/dev/null 2>&1; then
 fi
 gitleaks git --staged --redact --no-banner --config .gitleaks.toml
 
-npm test --silent
+pnpm exec lint-staged
+pnpm test --silent

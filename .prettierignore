@@ -1,0 +1,17 @@
+# never formatted: real trips, builds, caches, lockfile, generated changelog
+trips/
+dist/
+.cache/
+node_modules/
+test-results/
+playwright-report/
+pnpm-lock.yaml
+CHANGELOG.md
+# data fixtures (pulled from Google, rewritten by the pipeline) and prose docs (hand-wrapped)
+examples/**/*.json
+docs/
+# the page shell carries {{placeholders}} and inline markup the build fills in
+engine/src/shell.html
+# the two halves of the IIFE the build wraps around engine/src/app/*.js; neither parses alone
+engine/src/app/00-open.js
+engine/src/app/99-close.js

@@ -4,7 +4,7 @@ The page engine and its single-file build, moved in **verbatim** from the first 
 `build.mjs`'s paths changed:
 
 ```sh
-npm run build -- --trip trips/<slug> [--out <dir>] [--keys ~/.config/relaxjer/google.json]
+pnpm build --trip trips/<slug> [--out <dir>] [--keys ~/.config/relaxjer/google.json]
 ```
 
 - `--trip`: a folder with `data.js`, the `*.json` side files and `img/`. The demo is `examples/demo-trip`.
@@ -15,4 +15,4 @@ npm run build -- --trip trips/<slug> [--out <dir>] [--keys ~/.config/relaxjer/go
   anything shared publicly, without it. The build prints whether a key went in.
 
 `src/app/NN-*.js` are the engine's sections, joined in order into one script (they share one scope; `00-open` and
-`99-close` wrap them). `src/core/*.mjs` hold the pure logic, unit-tested in `tests/unit`. `tests/release` (run by `.githooks/pre-push`) blocks a push if a real trip's details creep back into the engine.
+`99-close` wrap them). `src/core/*.mjs` hold the pure logic, unit-tested in `tests/unit`. `tests/release` (run by `.husky/pre-push`) blocks a push if a real trip's details creep back into the engine.

@@ -13,10 +13,12 @@ export const formatNum = (n) => Math.round(n).toLocaleString('en-US');
 
 /** the first "SYM a" or "SYM a–b" in a text → [a, b], else null (bold markers ignored) */
 export function amountsIn(text, sym) {
-  const m = String(text).replace(/\*\*/g, '').match(new RegExp(`${reEsc(sym)}([\\d,]+)(?:–([\\d,]+))?`));
-  if (!m) return null;
-  const a = +m[1].replace(/,/g, '');
-  return [a, m[2] ? +m[2].replace(/,/g, '') : a];
+	const m = String(text)
+		.replace(/\*\*/g, '')
+		.match(new RegExp(`${reEsc(sym)}([\\d,]+)(?:–([\\d,]+))?`));
+	if (!m) return null;
+	const a = +m[1].replace(/,/g, '');
+	return [a, m[2] ? +m[2].replace(/,/g, '') : a];
 }
 
 /**
@@ -25,13 +27,13 @@ export function amountsIn(text, sym) {
  * brackets is skipped.
  */
 export function groupFigureRe(sym, pax) {
-  const [zh, en] = groupWord(pax);
-  const s = reEsc(sym);
-  return new RegExp(`((?:\\*\\*)?${s}([\\d,]+)(?:–([\\d,]+))?(?:\\*\\*)?)( \\/ ${zh}| ${en})(?! \\(${s})`, 'g');
+	const [zh, en] = groupWord(pax);
+	const s = reEsc(sym);
+	return new RegExp(`((?:\\*\\*)?${s}([\\d,]+)(?:–([\\d,]+))?(?:\\*\\*)?)( \\/ ${zh}| ${en})(?! \\(${s})`, 'g');
 }
 
 /** "≈ RM 100" / "≈ RM 100–140": a figure in the home currency, rounded to 10 above 100 */
 export function homeText(min, max, rate, home) {
-  const r = (v) => formatNum(v < 100 ? Math.round(v) : Math.round(v / 10) * 10);
-  return min === max ? `≈ ${home} ${r(min / rate)}` : `≈ ${home} ${r(min / rate)}–${r(max / rate)}`;
+	const r = (v) => formatNum(v < 100 ? Math.round(v) : Math.round(v / 10) * 10);
+	return min === max ? `≈ ${home} ${r(min / rate)}` : `≈ ${home} ${r(min / rate)}–${r(max / rate)}`;
 }

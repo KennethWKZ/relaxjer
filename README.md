@@ -1,6 +1,6 @@
 # RelaxJer
 
-*Malaysian for "just relax": family trips at a comfortable pace, with the planning done for you.*
+_Malaysian for "just relax": family trips at a comfortable pace, with the planning done for you._
 
 RelaxJer plans a family trip with an AI agent and builds it into **one self-contained page**. The group opens it on
 their phones, installs it to the home screen, and uses it offline. Each day has a timeline with fixed times that never
@@ -14,23 +14,24 @@ own.
 ## Quick start (contributors)
 
 ```sh
-npm install        # Node 22+; also installs the pre-commit hook (needs gitleaks: brew install gitleaks)
-npm test           # repo hygiene + trip contract
-npm run test:e2e   # page characterisation, Chromium + WebKit, 390 px + desktop
-npm run build -- --trip examples/demo-trip   # build the demo trip page
+corepack enable    # once: gives you the pnpm version pinned in package.json (Node 24)
+pnpm install       # also wires the git hooks (husky; needs gitleaks: brew install gitleaks)
+pnpm test          # repo hygiene + trip contract + unit tests
+pnpm test:e2e      # page characterisation, Chromium + WebKit, 390 px + desktop
+pnpm build --trip examples/demo-trip   # build the demo trip page
 ```
 
 ## Layout
 
-| Path | What |
-|---|---|
-| `engine/` | Page engine and single-file build |
-| `destinations/<cc>/` | Country packs: time zone, currency, languages, tax refund, entry rules; city adapters under `regions/` |
-| `pipeline/` | Data sync: Google first, OpenStreetMap fallback, weather, images |
-| `examples/demo-trip/` | A synthetic trip that tests and docs run on |
-| `trips/` | Your real trips. Gitignored; never committed |
-| `tests/` | Hygiene, trip contract, Playwright characterisation |
-| `knowledge/` | Lessons learned across trips and countries |
+| Path                  | What                                                                                                   |
+| --------------------- | ------------------------------------------------------------------------------------------------------ |
+| `engine/`             | Page engine and single-file build                                                                      |
+| `destinations/<cc>/`  | Country packs: time zone, currency, languages, tax refund, entry rules; city adapters under `regions/` |
+| `pipeline/`           | Data sync: Google first, OpenStreetMap fallback, weather, images                                       |
+| `examples/demo-trip/` | A synthetic trip that tests and docs run on                                                            |
+| `trips/`              | Your real trips. Gitignored; never committed                                                           |
+| `tests/`              | Hygiene, trip contract, Playwright characterisation                                                    |
+| `knowledge/`          | Lessons learned across trips and countries                                                             |
 
 Decisions and their trade-offs are in [`docs/adr/`](docs/adr/).
 

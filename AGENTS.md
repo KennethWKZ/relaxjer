@@ -15,14 +15,18 @@ destination pack and generic day roles.
 ## Commands
 
 ```sh
-npm install                      # also wires .githooks (pre-commit: blocks trips/keys, gitleaks, fast tests)
-npm test                         # tier 0: repo hygiene + trip contract (node:test, < 1 s)
-npm run test:e2e                 # tier 1: 4 projects, ~1–2 min, on engine/
-npm run build -- --trip trips/<slug> --keys ~/.config/relaxjer/google.json   # a real trip; omit --keys for the demo
-npm run test:release             # the push gate: no real-trip details in engine/
-TRIP_DIR=<trip folder> npm test                                    # contract on a real trip (local only)
-TRIP_DIR=<trip folder> npx playwright test --grep-invert @demo    # trip-agnostic e2e on it
-LEGACY_ENGINE_DIR=/path/to/legacy-trip-repo npm run test:e2e      # compare against the old engine
+pnpm install                     # also wires .husky (pre-commit: blocks trips/keys, gitleaks, lint-staged, fast tests)
+pnpm test                        # tier 0: repo hygiene + trip contract + unit (node:test, < 1 s)
+pnpm test:e2e                    # tier 1: 4 projects, ~1–2 min, on engine/
+pnpm verify                      # lint + format check + tier 0 (what CI and pre-push run)
+pnpm lint / pnpm format          # ESLint --fix / Prettier --write
+pnpm build --trip trips/<slug> --keys ~/.config/relaxjer/google.json   # a real trip; omit --keys for the demo
+pnpm test:release                # the push gate: no real-trip details in engine/
+pnpm parity --live /path/to/legacy-trip-repo --trip trips/<slug>        # renders the same as the live page?
+pnpm release                     # bump version + CHANGELOG from the commits (commit-and-tag-version)
+TRIP_DIR=<trip folder> pnpm test                                        # contract on a real trip (local only)
+TRIP_DIR=<trip folder> pnpm exec playwright test --grep-invert @demo    # trip-agnostic e2e on it
+LEGACY_ENGINE_DIR=/path/to/legacy-trip-repo pnpm test:e2e              # compare against the old engine
 node tests/support/probe.mjs     # debug: page errors of the last built page, with engine line numbers
 ```
 
@@ -35,7 +39,8 @@ node tests/support/probe.mjs     # debug: page errors of the last built page, wi
 - **Demo data stays synthetic.** No real people, bookings or phone numbers, and nothing copied from Google (a contract
   test enforces it).
 - **Tests define done.**
-  - Run `npm run test:all` before calling engine or data work finished.
+  - Run `pnpm test:all` before calling engine or data work finished. Engine changes also keep `pnpm parity` at 0 diffs.
+- **Commits follow Conventional Commits** (`feat(engine): …`, `fix(tw): …`); commitlint checks them and the changelog is built from them.
   - A UI change also gets checked by eye at 390 px and desktop, in Chromium and WebKit.
 - **Known engine debt is a `test.fail()` with a reason.** When a change makes one pass, delete its marker in the same
   change.

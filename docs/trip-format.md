@@ -1,8 +1,8 @@
 # Trip format
 
 A trip is a folder (`trips/<slug>/`, or `examples/demo-trip/` for the committed example) holding `data.js`, the
-`*.json` side files and `img/`. `npm test` checks it against the contract in `tests/support/trip-contract.mjs`
-(`TRIP_DIR=trips/<slug> npm test`). This page covers the settings the engine reads; `examples/demo-trip/data.js` shows
+`*.json` side files and `img/`. `pnpm test` checks it against the contract in `tests/support/trip-contract.mjs`
+(`TRIP_DIR=trips/<slug> pnpm test`). This page covers the settings the engine reads; `examples/demo-trip/data.js` shows
 every field in use.
 
 ## `TRIP`: the trip's own settings

@@ -1,6 +1,6 @@
 # Roadmap
 
-Order matters: every step keeps `npm run test:all` green before the next starts.
+Order matters: every step keeps `ppnpm test:all` green before the next starts.
 
 | Step | What | Done when |
 |---|---|---|

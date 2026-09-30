@@ -29,7 +29,8 @@ relaxjer/
   .claude/                skills/, agents/, rules/, settings.json hooks                               (step 6)
   docs/                   brief, ADRs, roadmap
   AGENTS.md, CLAUDE.md    how an agent works here
-  .cbmignore, .gitignore, .gitleaks.toml, .githooks/, .github/workflows/
+  .cbmignore, .gitignore, .gitleaks.toml, .husky/, .github/workflows/
+  .editorconfig, .prettierrc.yaml, eslint.config.mjs, commitlint.config.mjs, lint-staged.config.mjs, .versionrc   (ADR 0004)
 ```
 
 ### Where this departs from the brief's proposed shape
@@ -43,9 +44,9 @@ relaxjer/
 
 ## Alternatives considered
 
-1. **Monorepo with npm workspaces (`packages/engine`, `packages/pipeline`, …)**
+1. **Monorepo with pnpm workspaces (`packages/engine`, `packages/pipeline`, …)**
    - Rejected for now: one engine, one pipeline and no published packages don't need workspace tooling.
-   - Revisit if `create-relaxjer` (npx scaffolder) or a separately versioned engine appears.
+   - Revisit if `create-relaxjer` (`pnpm create relaxjer` scaffolder) or a separately versioned engine appears.
 2. **Real trips in a separate private repo per family** instead of a gitignored `trips/`.
    - Better history and backup, and it is compatible with this layout: a trip folder can be its own nested git repo
      (the parent ignores it).
@@ -61,7 +62,7 @@ relaxjer/
   - `.gitignore` covers trips, keys, env files, builds and test output.
   - `tests/repo/hygiene.test.mjs` asserts this with `git check-ignore`, and scans every committable file for key
     patterns.
-  - `.githooks/pre-commit` blocks trip and key paths, runs gitleaks on the staged diff and runs the fast tests; it fails
+  - `.husky/pre-commit` blocks trip and key paths, runs gitleaks on the staged diff and runs the fast tests; it fails
     closed when gitleaks is missing.
   - CI repeats the gitleaks scan over the full history.
 - **Code intelligence**

@@ -14,52 +14,68 @@ export const ENGINE = path.join(ROOT, 'engine');
 
 const LEGACY_ENGINE_FILES = ['build.mjs', 'src/app.js', 'src/style.css', 'src/shell.html'];
 // the build reads these from the trip; missing ones fall back to empty data
-export const TRIP_FILES = ['data.js', 'geo.json', 'extra.json', 'drinks.json', 'toilets.json', 'mrt.json', 'transit.json', 'shops.json', 'forecast.json', 'wish-a.json', 'wish-b.json'];
+export const TRIP_FILES = [
+	'data.js',
+	'geo.json',
+	'extra.json',
+	'drinks.json',
+	'toilets.json',
+	'mrt.json',
+	'transit.json',
+	'shops.json',
+	'forecast.json',
+	'wish-a.json',
+	'wish-b.json',
+];
 
 // a bare env: the build must not see keys, share URLs or anything else from the caller's shell
 const BARE_ENV = { PATH: process.env.PATH };
 
 export function resolveEngine(env = process.env) {
-  if (env.LEGACY_ENGINE_DIR) {
-    const dir = path.resolve(env.LEGACY_ENGINE_DIR);
-    const missing = LEGACY_ENGINE_FILES.filter((f) => !fs.existsSync(path.join(dir, f)));
-    if (missing.length) throw new Error(`LEGACY_ENGINE_DIR=${dir} is missing ${missing.join(', ')}`);
-    return { kind: 'legacy', dir };
-  }
-  if (!fs.existsSync(path.join(ENGINE, 'build.mjs'))) throw new Error(`no engine at ${ENGINE}/build.mjs`);
-  return { kind: 'engine', dir: ENGINE };
+	if (env.LEGACY_ENGINE_DIR) {
+		const dir = path.resolve(env.LEGACY_ENGINE_DIR);
+		const missing = LEGACY_ENGINE_FILES.filter((f) => !fs.existsSync(path.join(dir, f)));
+		if (missing.length) throw new Error(`LEGACY_ENGINE_DIR=${dir} is missing ${missing.join(', ')}`);
+		return { kind: 'legacy', dir };
+	}
+	if (!fs.existsSync(path.join(ENGINE, 'build.mjs'))) throw new Error(`no engine at ${ENGINE}/build.mjs`);
+	return { kind: 'engine', dir: ENGINE };
 }
 
 export function resolveTrip(env = process.env) {
-  const dir = path.resolve(env.TRIP_DIR || DEMO_TRIP);
-  if (!fs.existsSync(path.join(dir, 'data.js'))) throw new Error(`TRIP_DIR=${dir} has no data.js`);
-  return { dir, demo: dir === DEMO_TRIP };
+	const dir = path.resolve(env.TRIP_DIR || DEMO_TRIP);
+	if (!fs.existsSync(path.join(dir, 'data.js'))) throw new Error(`TRIP_DIR=${dir} has no data.js`);
+	return { dir, demo: dir === DEMO_TRIP };
 }
 
 /** Builds engine + trip into outDir and returns the built single-file page's path. */
 export function stagePage({ engine, trip, outDir }) {
-  fs.rmSync(outDir, { recursive: true, force: true });
-  let page;
-  if (engine.kind === 'engine') {
-    // --keys none: explicit, so tests never embed a key even if the default changes
-    execFileSync(process.execPath, [path.join(engine.dir, 'build.mjs'), '--trip', trip.dir, '--out', outDir, '--keys', 'none'], { cwd: ROOT, env: BARE_ENV, stdio: 'pipe' });
-    page = path.join(outDir, 'taipei-trip-standalone.html');
-  } else {
-    for (const f of LEGACY_ENGINE_FILES) copy(path.join(engine.dir, f), path.join(outDir, f));
-    for (const f of TRIP_FILES) {
-      const src = path.join(trip.dir, f);
-      if (fs.existsSync(src)) copy(src, path.join(outDir, 'src', f));
-    }
-    const img = path.join(trip.dir, 'img');
-    if (fs.existsSync(img)) fs.cpSync(img, path.join(outDir, 'img'), { recursive: true });
-    execFileSync(process.execPath, ['build.mjs'], { cwd: outDir, env: BARE_ENV, stdio: 'pipe' });
-    page = path.join(outDir, 'dist', 'taipei-trip-standalone.html');
-  }
-  if (!fs.existsSync(page)) throw new Error(`build finished but ${page} is missing`);
-  return page;
+	fs.rmSync(outDir, { recursive: true, force: true });
+	let page;
+	if (engine.kind === 'engine') {
+		// --keys none: explicit, so tests never embed a key even if the default changes
+		execFileSync(process.execPath, [path.join(engine.dir, 'build.mjs'), '--trip', trip.dir, '--out', outDir, '--keys', 'none'], {
+			cwd: ROOT,
+			env: BARE_ENV,
+			stdio: 'pipe',
+		});
+		page = path.join(outDir, 'taipei-trip-standalone.html');
+	} else {
+		for (const f of LEGACY_ENGINE_FILES) copy(path.join(engine.dir, f), path.join(outDir, f));
+		for (const f of TRIP_FILES) {
+			const src = path.join(trip.dir, f);
+			if (fs.existsSync(src)) copy(src, path.join(outDir, 'src', f));
+		}
+		const img = path.join(trip.dir, 'img');
+		if (fs.existsSync(img)) fs.cpSync(img, path.join(outDir, 'img'), { recursive: true });
+		execFileSync(process.execPath, ['build.mjs'], { cwd: outDir, env: BARE_ENV, stdio: 'pipe' });
+		page = path.join(outDir, 'dist', 'taipei-trip-standalone.html');
+	}
+	if (!fs.existsSync(page)) throw new Error(`build finished but ${page} is missing`);
+	return page;
 }
 
 function copy(from, to) {
-  fs.mkdirSync(path.dirname(to), { recursive: true });
-  fs.copyFileSync(from, to);
+	fs.mkdirSync(path.dirname(to), { recursive: true });
+	fs.copyFileSync(from, to);
 }

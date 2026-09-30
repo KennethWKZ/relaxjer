@@ -11,18 +11,18 @@ export const depMinutes = (dep) => (dep < 12 * 60 ? dep + 1440 : dep);
  * is on the day of an after-midnight take-off, so its clock starts a day later.
  */
 export function relMinutes(rel, arr, dep, lastDay) {
-  const base = rel.arr ? arr : dep - (lastDay ? 1440 : 0);
-  const o = rel.arr || rel.dep;
-  let a = o[0] == null ? null : base + o[0];
-  const b = o[1] == null ? null : base + o[1];
-  if (a != null && rel.min != null) a = Math.max(a, rel.min);
-  return { a, b };
+	const base = rel.arr ? arr : dep - (lastDay ? 1440 : 0);
+	const o = rel.arr || rel.dep;
+	let a = o[0] == null ? null : base + o[0];
+	const b = o[1] == null ? null : base + o[1];
+	if (a != null && rel.min != null) a = Math.max(a, rel.min);
+	return { a, b };
 }
 
 /** minutes a planned start s0 moves: every push that begins at or before it, with no fixed start in between */
 export function shiftAt(fixedStarts, s0, pushes) {
-  if (s0 == null || !pushes.length) return 0;
-  return pushes.reduce((m, g) => (g.from <= s0 && !fixedStarts.some((f) => f > g.from && f <= s0) ? m + g.min : m), 0);
+	if (s0 == null || !pushes.length) return 0;
+	return pushes.reduce((m, g) => (g.from <= s0 && !fixedStarts.some((f) => f > g.from && f <= s0) ? m + g.min : m), 0);
 }
 
 /** the stored pushes for a day that are valid ({ from, min > 0 }) */
@@ -30,5 +30,5 @@ export const validPushes = (list) => (Array.isArray(list) ? list.filter((x) => x
 
 /** the fixed item an added stop at minute m runs into: from 45 min before it until its end (or 30 min after start) */
 export function nearFixed(m, fixed) {
-  return fixed.find((x) => m >= x.s - 45 && m <= (x.e != null ? x.e : x.s + 30)) || null;
+	return fixed.find((x) => m >= x.s - 45 && m <= (x.e != null ? x.e : x.s + 30)) || null;
 }

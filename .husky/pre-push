@@ -1,5 +1,4 @@
-#!/bin/sh
-# Blocks pushes that would publish a real trip's details or a secret. Enabled with the pre-commit hook (core.hooksPath).
+# Blocks pushes that would publish a real trip's details or a secret.
 set -eu
 
 # every commit being published, not just the tip: git passes the refs on stdin
@@ -11,5 +10,5 @@ if ! command -v gitleaks >/dev/null 2>&1; then
 fi
 gitleaks git --redact --no-banner --config .gitleaks.toml
 
-npm test --silent
-node --test "tests/release/*.test.mjs"
+pnpm verify
+pnpm test:release

@@ -1,19 +1,21 @@
-  /* ───────── time (the destination's clock) ───────── */
-  function tpNow() {
-    const o = store.get('now', null); // test override "YYYY-MM-DD HH:MM"
-    if (o && /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(o)) return { date: o.slice(0, 10), mins: +o.slice(11, 13) * 60 + +o.slice(14, 16) };
-    return Time.nowIn(TZ);
-  }
-  const dnum = Time.dayNumber;
-  const dateLabel = (s, dow) => Time.dateLabel(s, lang, dow);
-  const parseT = (t) => Time.timesIn(L(t));
-  function nowNext(day, mins) {
-    const items = day.schedule.map((it, i) => ({ it, i, ...parseT(it.t || '') })).filter((x) => x.s != null);
-    let cur = null, next = null;
-    for (let k = 0; k < items.length; k++) {
-      const x = items[k]; const end = x.e != null ? x.e : (items[k + 1] ? items[k + 1].s : x.s + 60);
-      if (x.s <= mins && mins < end) cur = x;
-      if (x.s > mins && !next) next = x;
-    }
-    return { cur, next };
-  }
+/* ───────── time (the destination's clock) ───────── */
+function tpNow() {
+	const o = store.get('now', null); // test override "YYYY-MM-DD HH:MM"
+	if (o && /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(o)) return { date: o.slice(0, 10), mins: +o.slice(11, 13) * 60 + +o.slice(14, 16) };
+	return Time.nowIn(TZ);
+}
+const dnum = Time.dayNumber;
+const dateLabel = (s, dow) => Time.dateLabel(s, lang, dow);
+const parseT = (t) => Time.timesIn(L(t));
+function nowNext(day, mins) {
+	const items = day.schedule.map((it, i) => ({ it, i, ...parseT(it.t || '') })).filter((x) => x.s != null);
+	let cur = null,
+		next = null;
+	for (let k = 0; k < items.length; k++) {
+		const x = items[k];
+		const end = x.e != null ? x.e : items[k + 1] ? items[k + 1].s : x.s + 60;
+		if (x.s <= mins && mins < end) cur = x;
+		if (x.s > mins && !next) next = x;
+	}
+	return { cur, next };
+}

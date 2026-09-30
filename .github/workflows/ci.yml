@@ -28,30 +28,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v6 # the version comes from package.json "packageManager"
       - uses: actions/setup-node@v4
         with:
-          node-version: 24
-          cache: npm
-      - run: npm ci
-      - run: npm test
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm verify # lint + format check + fast tests
 
   e2e:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      # the engine moves into engine/ in roadmap step 1; until then there is nothing to characterise in CI
-      - id: engine
-        run: if [ -f engine/build.mjs ]; then echo "present=true" >> "$GITHUB_OUTPUT"; else echo "::notice::engine/ not in the repo yet; e2e skipped"; fi
-      - if: steps.engine.outputs.present == 'true'
-        uses: actions/setup-node@v4
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v4
         with:
-          node-version: 24
-          cache: npm
-      - if: steps.engine.outputs.present == 'true'
-        run: npm ci && npx playwright install --with-deps chromium webkit
-      - if: steps.engine.outputs.present == 'true'
-        run: npm run test:e2e
-      - if: failure() && steps.engine.outputs.present == 'true'
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile && pnpm exec playwright install --with-deps chromium webkit
+      - run: pnpm test:e2e
+      - if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
