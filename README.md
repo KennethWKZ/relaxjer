@@ -9,7 +9,7 @@ near each stop, and a map with an offline transit planner. The page runs in two 
 own.
 
 > **Status: pre-alpha.** The engine has moved in from the first trip (Taipei, 2026) and is being split and generalised;
-> see [`docs/roadmap.md`](docs/roadmap.md).
+> see [`memory-bank/story-index.md`](memory-bank/story-index.md).
 
 ## Quick start (contributors)
 
@@ -33,12 +33,12 @@ pnpm build --trip examples/demo-trip   # build the demo trip page
 | `tests/`              | Hygiene, trip contract, Playwright characterisation                                                    |
 | `knowledge/`          | Lessons learned across trips and countries                                                             |
 
-Decisions and their trade-offs are in [`docs/adr/`](docs/adr/).
+Decisions and their trade-offs are in [`memory-bank/standards/decision-index.md`](memory-bank/standards/decision-index.md). Agents start at [`AGENTS.md`](AGENTS.md).
 
 ## Google keys
 
 RelaxJer ships no keys and no Google data: each user sets up their own Google Cloud keys, and the page works without them
-(OpenStreetMap map, offline transit planner). See [`docs/adr/0003-google-keys.md`](docs/adr/0003-google-keys.md).
+(OpenStreetMap map, offline transit planner). See [ADR-20260930-google-keys](memory-bank/standards/decisions/ADR-20260930-google-keys.md).
 
 ## Hosting
 

@@ -1,0 +1,1332 @@
+{
+	"schemaVersion": 2,
+	"generatedAt": "2026-09-30T20:53:11.123Z",
+	"title": "Design System: RelaxJer trip page",
+	"extensions": {
+		"colorMeta": {
+			"paper": {
+				"role": "neutral",
+				"displayName": "Day Paper",
+				"cssVar": "--paper",
+				"theme": "light",
+				"canonical": "#ffffff",
+				"oklch": "oklch(100% 0 89.9)",
+				"tonalRamp": [
+					"oklch(15% 0 89.9)",
+					"oklch(26% 0 89.9)",
+					"oklch(37% 0 89.9)",
+					"oklch(48% 0 89.9)",
+					"oklch(60% 0 89.9)",
+					"oklch(72% 0 89.9)",
+					"oklch(84% 0 89.9)",
+					"oklch(95% 0 89.9)"
+				]
+			},
+			"paper-2": {
+				"role": "neutral",
+				"displayName": "Fog Grey",
+				"cssVar": "--paper-2",
+				"theme": "light",
+				"canonical": "#f3f4f7",
+				"oklch": "oklch(96.7% 0.004 271.4)",
+				"tonalRamp": [
+					"oklch(15% 0.002 271.4)",
+					"oklch(26% 0.004 271.4)",
+					"oklch(37% 0.004 271.4)",
+					"oklch(48% 0.004 271.4)",
+					"oklch(60% 0.004 271.4)",
+					"oklch(72% 0.004 271.4)",
+					"oklch(84% 0.004 271.4)",
+					"oklch(95% 0.002 271.4)"
+				]
+			},
+			"paper-3": {
+				"role": "neutral",
+				"displayName": "Mist Grey",
+				"cssVar": "--paper-3",
+				"theme": "light",
+				"canonical": "#e7e9ee",
+				"oklch": "oklch(93.4% 0.007 268.5)",
+				"tonalRamp": [
+					"oklch(15% 0.003 268.5)",
+					"oklch(26% 0.007 268.5)",
+					"oklch(37% 0.007 268.5)",
+					"oklch(48% 0.007 268.5)",
+					"oklch(60% 0.007 268.5)",
+					"oklch(72% 0.007 268.5)",
+					"oklch(84% 0.007 268.5)",
+					"oklch(95% 0.003 268.5)"
+				]
+			},
+			"ink": {
+				"role": "neutral",
+				"displayName": "Ink",
+				"cssVar": "--ink",
+				"theme": "light",
+				"canonical": "#15161a",
+				"oklch": "oklch(20.1% 0.008 274.5)",
+				"tonalRamp": [
+					"oklch(15% 0.004 274.5)",
+					"oklch(26% 0.008 274.5)",
+					"oklch(37% 0.008 274.5)",
+					"oklch(48% 0.008 274.5)",
+					"oklch(60% 0.008 274.5)",
+					"oklch(72% 0.008 274.5)",
+					"oklch(84% 0.008 274.5)",
+					"oklch(95% 0.004 274.5)"
+				]
+			},
+			"ink-2": {
+				"role": "neutral",
+				"displayName": "Ink 2",
+				"cssVar": "--ink-2",
+				"theme": "light",
+				"canonical": "#464a53",
+				"oklch": "oklch(40.9% 0.016 266.5)",
+				"tonalRamp": [
+					"oklch(15% 0.007 266.5)",
+					"oklch(26% 0.016 266.5)",
+					"oklch(37% 0.016 266.5)",
+					"oklch(48% 0.016 266.5)",
+					"oklch(60% 0.016 266.5)",
+					"oklch(72% 0.016 266.5)",
+					"oklch(84% 0.016 266.5)",
+					"oklch(95% 0.007 266.5)"
+				]
+			},
+			"ink-3": {
+				"role": "neutral",
+				"displayName": "Ink 3",
+				"cssVar": "--ink-3",
+				"theme": "light",
+				"canonical": "#545963",
+				"oklch": "oklch(46.3% 0.017 264.4)",
+				"tonalRamp": [
+					"oklch(15% 0.008 264.4)",
+					"oklch(26% 0.017 264.4)",
+					"oklch(37% 0.017 264.4)",
+					"oklch(48% 0.017 264.4)",
+					"oklch(60% 0.017 264.4)",
+					"oklch(72% 0.017 264.4)",
+					"oklch(84% 0.017 264.4)",
+					"oklch(95% 0.008 264.4)"
+				]
+			},
+			"rule": {
+				"role": "neutral",
+				"displayName": "Rule",
+				"cssVar": "--rule",
+				"theme": "light",
+				"canonical": "#dfe2e8",
+				"oklch": "oklch(91.2% 0.009 264.5)",
+				"tonalRamp": [
+					"oklch(15% 0.004 264.5)",
+					"oklch(26% 0.009 264.5)",
+					"oklch(37% 0.009 264.5)",
+					"oklch(48% 0.009 264.5)",
+					"oklch(60% 0.009 264.5)",
+					"oklch(72% 0.009 264.5)",
+					"oklch(84% 0.009 264.5)",
+					"oklch(95% 0.004 264.5)"
+				]
+			},
+			"seal": {
+				"role": "secondary",
+				"displayName": "Seal Red",
+				"cssVar": "--seal",
+				"theme": "light",
+				"canonical": "#c42a1f",
+				"oklch": "oklch(53.6% 0.192 29.2)",
+				"tonalRamp": [
+					"oklch(15% 0.086 29.2)",
+					"oklch(26% 0.192 29.2)",
+					"oklch(37% 0.192 29.2)",
+					"oklch(48% 0.192 29.2)",
+					"oklch(60% 0.192 29.2)",
+					"oklch(72% 0.192 29.2)",
+					"oklch(84% 0.192 29.2)",
+					"oklch(95% 0.086 29.2)"
+				]
+			},
+			"seal-ink": {
+				"role": "secondary",
+				"displayName": "Seal Ink",
+				"cssVar": "--seal-ink",
+				"theme": "light",
+				"canonical": "#ffffff",
+				"oklch": "oklch(100% 0 89.9)",
+				"tonalRamp": [
+					"oklch(15% 0 89.9)",
+					"oklch(26% 0 89.9)",
+					"oklch(37% 0 89.9)",
+					"oklch(48% 0 89.9)",
+					"oklch(60% 0 89.9)",
+					"oklch(72% 0 89.9)",
+					"oklch(84% 0 89.9)",
+					"oklch(95% 0 89.9)"
+				]
+			},
+			"focus": {
+				"role": "tertiary",
+				"displayName": "Focus Blue",
+				"cssVar": "--focus",
+				"theme": "light",
+				"canonical": "#1f5fd1",
+				"oklch": "oklch(51.6% 0.188 261)",
+				"tonalRamp": [
+					"oklch(15% 0.085 261)",
+					"oklch(26% 0.188 261)",
+					"oklch(37% 0.188 261)",
+					"oklch(48% 0.188 261)",
+					"oklch(60% 0.188 261)",
+					"oklch(72% 0.188 261)",
+					"oklch(84% 0.188 261)",
+					"oklch(95% 0.085 261)"
+				]
+			},
+			"link": {
+				"role": "tertiary",
+				"displayName": "Link Blue",
+				"cssVar": "--link",
+				"theme": "light",
+				"canonical": "#1d5bc4",
+				"oklch": "oklch(49.6% 0.176 260.5)",
+				"tonalRamp": [
+					"oklch(15% 0.079 260.5)",
+					"oklch(26% 0.176 260.5)",
+					"oklch(37% 0.176 260.5)",
+					"oklch(48% 0.176 260.5)",
+					"oklch(60% 0.176 260.5)",
+					"oklch(72% 0.176 260.5)",
+					"oklch(84% 0.176 260.5)",
+					"oklch(95% 0.079 260.5)"
+				]
+			},
+			"good": {
+				"role": "tertiary",
+				"displayName": "Status Good",
+				"cssVar": "--good",
+				"theme": "light",
+				"canonical": "#1a7443",
+				"oklch": "oklch(49.5% 0.113 154.2)",
+				"tonalRamp": [
+					"oklch(15% 0.051 154.2)",
+					"oklch(26% 0.113 154.2)",
+					"oklch(37% 0.113 154.2)",
+					"oklch(48% 0.113 154.2)",
+					"oklch(60% 0.113 154.2)",
+					"oklch(72% 0.113 154.2)",
+					"oklch(84% 0.113 154.2)",
+					"oklch(95% 0.051 154.2)"
+				]
+			},
+			"warn": {
+				"role": "tertiary",
+				"displayName": "Status Wait",
+				"cssVar": "--warn",
+				"theme": "light",
+				"canonical": "#9a5700",
+				"oklch": "oklch(52.4% 0.121 62)",
+				"tonalRamp": [
+					"oklch(15% 0.054 62)",
+					"oklch(26% 0.121 62)",
+					"oklch(37% 0.121 62)",
+					"oklch(48% 0.121 62)",
+					"oklch(60% 0.121 62)",
+					"oklch(72% 0.121 62)",
+					"oklch(84% 0.121 62)",
+					"oklch(95% 0.054 62)"
+				]
+			},
+			"bad": {
+				"role": "tertiary",
+				"displayName": "Status Skip",
+				"cssVar": "--bad",
+				"theme": "light",
+				"canonical": "#b3261e",
+				"oklch": "oklch(50.1% 0.178 28.7)",
+				"tonalRamp": [
+					"oklch(15% 0.08 28.7)",
+					"oklch(26% 0.178 28.7)",
+					"oklch(37% 0.178 28.7)",
+					"oklch(48% 0.178 28.7)",
+					"oklch(60% 0.178 28.7)",
+					"oklch(72% 0.178 28.7)",
+					"oklch(84% 0.178 28.7)",
+					"oklch(95% 0.08 28.7)"
+				]
+			},
+			"hl": {
+				"role": "tertiary",
+				"displayName": "Highlighter",
+				"cssVar": "--hl",
+				"theme": "both",
+				"canonical": "#ffe45c",
+				"oklch": "oklch(91.7% 0.155 98)",
+				"tonalRamp": [
+					"oklch(15% 0.07 98)",
+					"oklch(26% 0.155 98)",
+					"oklch(37% 0.155 98)",
+					"oklch(48% 0.155 98)",
+					"oklch(60% 0.155 98)",
+					"oklch(72% 0.155 98)",
+					"oklch(84% 0.155 98)",
+					"oklch(95% 0.07 98)"
+				]
+			},
+			"hl-now": {
+				"role": "tertiary",
+				"displayName": "Highlighter, current hit",
+				"cssVar": "--hl-now",
+				"theme": "both",
+				"canonical": "#ffab3d",
+				"oklch": "oklch(80.6% 0.154 68.9)",
+				"tonalRamp": [
+					"oklch(15% 0.069 68.9)",
+					"oklch(26% 0.154 68.9)",
+					"oklch(37% 0.154 68.9)",
+					"oklch(48% 0.154 68.9)",
+					"oklch(60% 0.154 68.9)",
+					"oklch(72% 0.154 68.9)",
+					"oklch(84% 0.154 68.9)",
+					"oklch(95% 0.069 68.9)"
+				]
+			},
+			"glass": {
+				"role": "neutral",
+				"displayName": "Glass",
+				"cssVar": "--glass",
+				"theme": "light",
+				"canonical": "rgba(255, 255, 255, 0.82)"
+			},
+			"glass-edge": {
+				"role": "neutral",
+				"displayName": "Glass Edge",
+				"cssVar": "--glass-edge",
+				"theme": "light",
+				"canonical": "rgba(21, 22, 26, 0.08)"
+			},
+			"scrim": {
+				"role": "neutral",
+				"displayName": "Scrim",
+				"cssVar": "--scrim",
+				"theme": "light",
+				"canonical": "rgba(12, 14, 20, 0.5)"
+			},
+			"night-paper": {
+				"role": "neutral",
+				"displayName": "Night Sky",
+				"cssVar": "--paper",
+				"theme": "dark",
+				"canonical": "#0c1017",
+				"oklch": "oklch(17.2% 0.016 261.5)",
+				"tonalRamp": [
+					"oklch(15% 0.007 261.5)",
+					"oklch(26% 0.016 261.5)",
+					"oklch(37% 0.016 261.5)",
+					"oklch(48% 0.016 261.5)",
+					"oklch(60% 0.016 261.5)",
+					"oklch(72% 0.016 261.5)",
+					"oklch(84% 0.016 261.5)",
+					"oklch(95% 0.007 261.5)"
+				]
+			},
+			"night-paper-2": {
+				"role": "neutral",
+				"displayName": "Night Fog Grey",
+				"cssVar": "--paper-2",
+				"theme": "dark",
+				"canonical": "#151a23",
+				"oklch": "oklch(21.7% 0.019 262.1)",
+				"tonalRamp": [
+					"oklch(15% 0.009 262.1)",
+					"oklch(26% 0.019 262.1)",
+					"oklch(37% 0.019 262.1)",
+					"oklch(48% 0.019 262.1)",
+					"oklch(60% 0.019 262.1)",
+					"oklch(72% 0.019 262.1)",
+					"oklch(84% 0.019 262.1)",
+					"oklch(95% 0.009 262.1)"
+				]
+			},
+			"night-paper-3": {
+				"role": "neutral",
+				"displayName": "Night Mist Grey",
+				"cssVar": "--paper-3",
+				"theme": "dark",
+				"canonical": "#1e2430",
+				"oklch": "oklch(26% 0.024 264)",
+				"tonalRamp": [
+					"oklch(15% 0.011 264)",
+					"oklch(26% 0.024 264)",
+					"oklch(37% 0.024 264)",
+					"oklch(48% 0.024 264)",
+					"oklch(60% 0.024 264)",
+					"oklch(72% 0.024 264)",
+					"oklch(84% 0.024 264)",
+					"oklch(95% 0.011 264)"
+				]
+			},
+			"night-ink": {
+				"role": "neutral",
+				"displayName": "Night Ink",
+				"cssVar": "--ink",
+				"theme": "dark",
+				"canonical": "#eef0f4",
+				"oklch": "oklch(95.5% 0.006 264.5)",
+				"tonalRamp": [
+					"oklch(15% 0.003 264.5)",
+					"oklch(26% 0.006 264.5)",
+					"oklch(37% 0.006 264.5)",
+					"oklch(48% 0.006 264.5)",
+					"oklch(60% 0.006 264.5)",
+					"oklch(72% 0.006 264.5)",
+					"oklch(84% 0.006 264.5)",
+					"oklch(95% 0.003 264.5)"
+				]
+			},
+			"night-ink-2": {
+				"role": "neutral",
+				"displayName": "Night Ink 2",
+				"cssVar": "--ink-2",
+				"theme": "dark",
+				"canonical": "#bcc1cb",
+				"oklch": "oklch(81% 0.015 264.5)",
+				"tonalRamp": [
+					"oklch(15% 0.007 264.5)",
+					"oklch(26% 0.015 264.5)",
+					"oklch(37% 0.015 264.5)",
+					"oklch(48% 0.015 264.5)",
+					"oklch(60% 0.015 264.5)",
+					"oklch(72% 0.015 264.5)",
+					"oklch(84% 0.015 264.5)",
+					"oklch(95% 0.007 264.5)"
+				]
+			},
+			"night-ink-3": {
+				"role": "neutral",
+				"displayName": "Night Ink 3",
+				"cssVar": "--ink-3",
+				"theme": "dark",
+				"canonical": "#969ca8",
+				"oklch": "oklch(69.2% 0.019 264.4)",
+				"tonalRamp": [
+					"oklch(15% 0.008 264.4)",
+					"oklch(26% 0.019 264.4)",
+					"oklch(37% 0.019 264.4)",
+					"oklch(48% 0.019 264.4)",
+					"oklch(60% 0.019 264.4)",
+					"oklch(72% 0.019 264.4)",
+					"oklch(84% 0.019 264.4)",
+					"oklch(95% 0.008 264.4)"
+				]
+			},
+			"night-rule": {
+				"role": "neutral",
+				"displayName": "Night Rule",
+				"cssVar": "--rule",
+				"theme": "dark",
+				"canonical": "#2a313d",
+				"oklch": "oklch(31.2% 0.024 261.2)",
+				"tonalRamp": [
+					"oklch(15% 0.011 261.2)",
+					"oklch(26% 0.024 261.2)",
+					"oklch(37% 0.024 261.2)",
+					"oklch(48% 0.024 261.2)",
+					"oklch(60% 0.024 261.2)",
+					"oklch(72% 0.024 261.2)",
+					"oklch(84% 0.024 261.2)",
+					"oklch(95% 0.011 261.2)"
+				]
+			},
+			"night-seal": {
+				"role": "secondary",
+				"displayName": "Night Seal Red",
+				"cssVar": "--seal",
+				"theme": "dark",
+				"canonical": "#ff6a5c",
+				"oklch": "oklch(70.8% 0.185 28)",
+				"tonalRamp": [
+					"oklch(15% 0.083 28)",
+					"oklch(26% 0.185 28)",
+					"oklch(37% 0.185 28)",
+					"oklch(48% 0.185 28)",
+					"oklch(60% 0.185 28)",
+					"oklch(72% 0.185 28)",
+					"oklch(84% 0.185 28)",
+					"oklch(95% 0.083 28)"
+				]
+			},
+			"night-seal-ink": {
+				"role": "secondary",
+				"displayName": "Night Seal Ink",
+				"cssVar": "--seal-ink",
+				"theme": "dark",
+				"canonical": "#1a0503",
+				"oklch": "oklch(15.4% 0.04 31.1)",
+				"tonalRamp": [
+					"oklch(15% 0.018 31.1)",
+					"oklch(26% 0.04 31.1)",
+					"oklch(37% 0.04 31.1)",
+					"oklch(48% 0.04 31.1)",
+					"oklch(60% 0.04 31.1)",
+					"oklch(72% 0.04 31.1)",
+					"oklch(84% 0.04 31.1)",
+					"oklch(95% 0.018 31.1)"
+				]
+			},
+			"night-focus": {
+				"role": "tertiary",
+				"displayName": "Night Focus Blue",
+				"cssVar": "--focus",
+				"theme": "dark",
+				"canonical": "#7fb0ff",
+				"oklch": "oklch(75.5% 0.126 259.6)",
+				"tonalRamp": [
+					"oklch(15% 0.057 259.6)",
+					"oklch(26% 0.126 259.6)",
+					"oklch(37% 0.126 259.6)",
+					"oklch(48% 0.126 259.6)",
+					"oklch(60% 0.126 259.6)",
+					"oklch(72% 0.126 259.6)",
+					"oklch(84% 0.126 259.6)",
+					"oklch(95% 0.057 259.6)"
+				]
+			},
+			"night-link": {
+				"role": "tertiary",
+				"displayName": "Night Link Blue",
+				"cssVar": "--link",
+				"theme": "dark",
+				"canonical": "#8ab8ff",
+				"oklch": "oklch(77.8% 0.114 258.9)",
+				"tonalRamp": [
+					"oklch(15% 0.051 258.9)",
+					"oklch(26% 0.114 258.9)",
+					"oklch(37% 0.114 258.9)",
+					"oklch(48% 0.114 258.9)",
+					"oklch(60% 0.114 258.9)",
+					"oklch(72% 0.114 258.9)",
+					"oklch(84% 0.114 258.9)",
+					"oklch(95% 0.051 258.9)"
+				]
+			},
+			"night-good": {
+				"role": "tertiary",
+				"displayName": "Night Status Good",
+				"cssVar": "--good",
+				"theme": "dark",
+				"canonical": "#5fd49a",
+				"oklch": "oklch(78.7% 0.136 159.3)",
+				"tonalRamp": [
+					"oklch(15% 0.061 159.3)",
+					"oklch(26% 0.136 159.3)",
+					"oklch(37% 0.136 159.3)",
+					"oklch(48% 0.136 159.3)",
+					"oklch(60% 0.136 159.3)",
+					"oklch(72% 0.136 159.3)",
+					"oklch(84% 0.136 159.3)",
+					"oklch(95% 0.061 159.3)"
+				]
+			},
+			"night-warn": {
+				"role": "tertiary",
+				"displayName": "Night Status Wait",
+				"cssVar": "--warn",
+				"theme": "dark",
+				"canonical": "#f3b35a",
+				"oklch": "oklch(81% 0.129 73.2)",
+				"tonalRamp": [
+					"oklch(15% 0.058 73.2)",
+					"oklch(26% 0.129 73.2)",
+					"oklch(37% 0.129 73.2)",
+					"oklch(48% 0.129 73.2)",
+					"oklch(60% 0.129 73.2)",
+					"oklch(72% 0.129 73.2)",
+					"oklch(84% 0.129 73.2)",
+					"oklch(95% 0.058 73.2)"
+				]
+			},
+			"night-bad": {
+				"role": "tertiary",
+				"displayName": "Night Status Skip",
+				"cssVar": "--bad",
+				"theme": "dark",
+				"canonical": "#ff8a80",
+				"oklch": "oklch(75.9% 0.144 26.1)",
+				"tonalRamp": [
+					"oklch(15% 0.065 26.1)",
+					"oklch(26% 0.144 26.1)",
+					"oklch(37% 0.144 26.1)",
+					"oklch(48% 0.144 26.1)",
+					"oklch(60% 0.144 26.1)",
+					"oklch(72% 0.144 26.1)",
+					"oklch(84% 0.144 26.1)",
+					"oklch(95% 0.065 26.1)"
+				]
+			},
+			"night-glass": {
+				"role": "neutral",
+				"displayName": "Night Glass",
+				"cssVar": "--glass",
+				"theme": "dark",
+				"canonical": "rgba(12, 16, 23, 0.8)"
+			},
+			"night-glass-edge": {
+				"role": "neutral",
+				"displayName": "Night Glass Edge",
+				"cssVar": "--glass-edge",
+				"theme": "dark",
+				"canonical": "rgba(238, 240, 244, 0.08)"
+			},
+			"night-scrim": {
+				"role": "neutral",
+				"displayName": "Night Scrim",
+				"cssVar": "--scrim",
+				"theme": "dark",
+				"canonical": "rgba(0, 0, 0, 0.62)"
+			},
+			"lantern-1": {
+				"role": "primary",
+				"displayName": "Firecracker Red",
+				"cssVar": "--l1",
+				"theme": "both",
+				"canonical": "#d9352b",
+				"oklch": "oklch(58.3% 0.202 28.6)",
+				"tonalRamp": [
+					"oklch(15% 0.09 28.6)",
+					"oklch(26% 0.2 28.6)",
+					"oklch(37% 0.2 28.6)",
+					"oklch(48% 0.2 28.6)",
+					"oklch(60% 0.2 28.6)",
+					"oklch(72% 0.2 28.6)",
+					"oklch(84% 0.2 28.6)",
+					"oklch(95% 0.09 28.6)"
+				],
+				"note": "The seven lantern papers cycle per trip day; the engine writes the active pair to --c / --ci (engine/src/app/02-helpers.js colorVars)."
+			},
+			"lantern-1-ink": {
+				"role": "primary",
+				"displayName": "Lantern 1 Ink",
+				"cssVar": "--l1-ink",
+				"theme": "both",
+				"canonical": "#ffffff",
+				"oklch": "oklch(100% 0 89.9)",
+				"tonalRamp": [
+					"oklch(15% 0 89.9)",
+					"oklch(26% 0 89.9)",
+					"oklch(37% 0 89.9)",
+					"oklch(48% 0 89.9)",
+					"oklch(60% 0 89.9)",
+					"oklch(72% 0 89.9)",
+					"oklch(84% 0 89.9)",
+					"oklch(95% 0 89.9)"
+				]
+			},
+			"lantern-2": {
+				"role": "primary",
+				"displayName": "Temple Blue",
+				"cssVar": "--l2",
+				"theme": "both",
+				"canonical": "#2466c8",
+				"oklch": "oklch(52.5% 0.167 258.8)",
+				"tonalRamp": [
+					"oklch(15% 0.075 258.8)",
+					"oklch(26% 0.167 258.8)",
+					"oklch(37% 0.167 258.8)",
+					"oklch(48% 0.167 258.8)",
+					"oklch(60% 0.167 258.8)",
+					"oklch(72% 0.167 258.8)",
+					"oklch(84% 0.167 258.8)",
+					"oklch(95% 0.075 258.8)"
+				]
+			},
+			"lantern-2-ink": {
+				"role": "primary",
+				"displayName": "Lantern 2 Ink",
+				"cssVar": "--l2-ink",
+				"theme": "both",
+				"canonical": "#ffffff",
+				"oklch": "oklch(100% 0 89.9)",
+				"tonalRamp": [
+					"oklch(15% 0 89.9)",
+					"oklch(26% 0 89.9)",
+					"oklch(37% 0 89.9)",
+					"oklch(48% 0 89.9)",
+					"oklch(60% 0 89.9)",
+					"oklch(72% 0 89.9)",
+					"oklch(84% 0 89.9)",
+					"oklch(95% 0 89.9)"
+				]
+			},
+			"lantern-3": {
+				"role": "primary",
+				"displayName": "Persimmon",
+				"cssVar": "--l3",
+				"theme": "both",
+				"canonical": "#ec6a1c",
+				"oklch": "oklch(67.3% 0.18 45.7)",
+				"tonalRamp": [
+					"oklch(15% 0.081 45.7)",
+					"oklch(26% 0.18 45.7)",
+					"oklch(37% 0.18 45.7)",
+					"oklch(48% 0.18 45.7)",
+					"oklch(60% 0.18 45.7)",
+					"oklch(72% 0.18 45.7)",
+					"oklch(84% 0.18 45.7)",
+					"oklch(95% 0.081 45.7)"
+				]
+			},
+			"lantern-3-ink": {
+				"role": "primary",
+				"displayName": "Lantern 3 Ink",
+				"cssVar": "--l3-ink",
+				"theme": "both",
+				"canonical": "#1c0d02",
+				"oklch": "oklch(17.8% 0.035 61.2)",
+				"tonalRamp": [
+					"oklch(15% 0.016 61.2)",
+					"oklch(26% 0.035 61.2)",
+					"oklch(37% 0.035 61.2)",
+					"oklch(48% 0.035 61.2)",
+					"oklch(60% 0.035 61.2)",
+					"oklch(72% 0.035 61.2)",
+					"oklch(84% 0.035 61.2)",
+					"oklch(95% 0.016 61.2)"
+				]
+			},
+			"lantern-4": {
+				"role": "primary",
+				"displayName": "Jade",
+				"cssVar": "--l4",
+				"theme": "both",
+				"canonical": "#1b7f52",
+				"oklch": "oklch(53% 0.114 158.3)",
+				"tonalRamp": [
+					"oklch(15% 0.051 158.3)",
+					"oklch(26% 0.114 158.3)",
+					"oklch(37% 0.114 158.3)",
+					"oklch(48% 0.114 158.3)",
+					"oklch(60% 0.114 158.3)",
+					"oklch(72% 0.114 158.3)",
+					"oklch(84% 0.114 158.3)",
+					"oklch(95% 0.051 158.3)"
+				]
+			},
+			"lantern-4-ink": {
+				"role": "primary",
+				"displayName": "Lantern 4 Ink",
+				"cssVar": "--l4-ink",
+				"theme": "both",
+				"canonical": "#ffffff",
+				"oklch": "oklch(100% 0 89.9)",
+				"tonalRamp": [
+					"oklch(15% 0 89.9)",
+					"oklch(26% 0 89.9)",
+					"oklch(37% 0 89.9)",
+					"oklch(48% 0 89.9)",
+					"oklch(60% 0 89.9)",
+					"oklch(72% 0 89.9)",
+					"oklch(84% 0 89.9)",
+					"oklch(95% 0 89.9)"
+				]
+			},
+			"lantern-5": {
+				"role": "primary",
+				"displayName": "Plum",
+				"cssVar": "--l5",
+				"theme": "both",
+				"canonical": "#8a3ca6",
+				"oklch": "oklch(50.6% 0.173 316)",
+				"tonalRamp": [
+					"oklch(15% 0.078 316)",
+					"oklch(26% 0.173 316)",
+					"oklch(37% 0.173 316)",
+					"oklch(48% 0.173 316)",
+					"oklch(60% 0.173 316)",
+					"oklch(72% 0.173 316)",
+					"oklch(84% 0.173 316)",
+					"oklch(95% 0.078 316)"
+				]
+			},
+			"lantern-5-ink": {
+				"role": "primary",
+				"displayName": "Lantern 5 Ink",
+				"cssVar": "--l5-ink",
+				"theme": "both",
+				"canonical": "#ffffff",
+				"oklch": "oklch(100% 0 89.9)",
+				"tonalRamp": [
+					"oklch(15% 0 89.9)",
+					"oklch(26% 0 89.9)",
+					"oklch(37% 0 89.9)",
+					"oklch(48% 0 89.9)",
+					"oklch(60% 0 89.9)",
+					"oklch(72% 0 89.9)",
+					"oklch(84% 0 89.9)",
+					"oklch(95% 0 89.9)"
+				]
+			},
+			"lantern-6": {
+				"role": "primary",
+				"displayName": "Peach Blossom",
+				"cssVar": "--l6",
+				"theme": "both",
+				"canonical": "#ee82a6",
+				"oklch": "oklch(73.5% 0.137 359.8)",
+				"tonalRamp": [
+					"oklch(15% 0.062 359.8)",
+					"oklch(26% 0.137 359.8)",
+					"oklch(37% 0.137 359.8)",
+					"oklch(48% 0.137 359.8)",
+					"oklch(60% 0.137 359.8)",
+					"oklch(72% 0.137 359.8)",
+					"oklch(84% 0.137 359.8)",
+					"oklch(95% 0.062 359.8)"
+				]
+			},
+			"lantern-6-ink": {
+				"role": "primary",
+				"displayName": "Lantern 6 Ink",
+				"cssVar": "--l6-ink",
+				"theme": "both",
+				"canonical": "#25070f",
+				"oklch": "oklch(18.6% 0.052 6.9)",
+				"tonalRamp": [
+					"oklch(15% 0.023 6.9)",
+					"oklch(26% 0.052 6.9)",
+					"oklch(37% 0.052 6.9)",
+					"oklch(48% 0.052 6.9)",
+					"oklch(60% 0.052 6.9)",
+					"oklch(72% 0.052 6.9)",
+					"oklch(84% 0.052 6.9)",
+					"oklch(95% 0.023 6.9)"
+				]
+			},
+			"lantern-7": {
+				"role": "primary",
+				"displayName": "Imperial Gold",
+				"cssVar": "--l7",
+				"theme": "both",
+				"canonical": "#e0b020",
+				"oklch": "oklch(78% 0.153 87.8)",
+				"tonalRamp": [
+					"oklch(15% 0.069 87.8)",
+					"oklch(26% 0.153 87.8)",
+					"oklch(37% 0.153 87.8)",
+					"oklch(48% 0.153 87.8)",
+					"oklch(60% 0.153 87.8)",
+					"oklch(72% 0.153 87.8)",
+					"oklch(84% 0.153 87.8)",
+					"oklch(95% 0.069 87.8)"
+				]
+			},
+			"lantern-7-ink": {
+				"role": "primary",
+				"displayName": "Lantern 7 Ink",
+				"cssVar": "--l7-ink",
+				"theme": "both",
+				"canonical": "#1d1502",
+				"oklch": "oklch(20.1% 0.037 88.3)",
+				"tonalRamp": [
+					"oklch(15% 0.017 88.3)",
+					"oklch(26% 0.037 88.3)",
+					"oklch(37% 0.037 88.3)",
+					"oklch(48% 0.037 88.3)",
+					"oklch(60% 0.037 88.3)",
+					"oklch(72% 0.037 88.3)",
+					"oklch(84% 0.037 88.3)",
+					"oklch(95% 0.017 88.3)"
+				]
+			},
+			"metro-red": {
+				"role": "data",
+				"displayName": "Metro Red line",
+				"cssVar": "--mrt-red",
+				"theme": "both",
+				"canonical": "#e3002c",
+				"oklch": "oklch(57.8% 0.233 23.7)",
+				"tonalRamp": [
+					"oklch(15% 0.09 23.7)",
+					"oklch(26% 0.2 23.7)",
+					"oklch(37% 0.2 23.7)",
+					"oklch(48% 0.2 23.7)",
+					"oklch(60% 0.2 23.7)",
+					"oklch(72% 0.2 23.7)",
+					"oklch(84% 0.2 23.7)",
+					"oklch(95% 0.09 23.7)"
+				],
+				"note": "Data, not decoration: the region's own line colour. Currently hard-coded in style.css :root; belongs with the destination."
+			},
+			"metro-orange": {
+				"role": "data",
+				"displayName": "Metro Orange line",
+				"cssVar": "--mrt-orange",
+				"theme": "both",
+				"canonical": "#f8b61c",
+				"oklch": "oklch(81.6% 0.163 81.2)",
+				"tonalRamp": [
+					"oklch(15% 0.074 81.2)",
+					"oklch(26% 0.163 81.2)",
+					"oklch(37% 0.163 81.2)",
+					"oklch(48% 0.163 81.2)",
+					"oklch(60% 0.163 81.2)",
+					"oklch(72% 0.163 81.2)",
+					"oklch(84% 0.163 81.2)",
+					"oklch(95% 0.074 81.2)"
+				],
+				"note": "Data, not decoration: the region's own line colour. Currently hard-coded in style.css :root; belongs with the destination."
+			},
+			"metro-blue": {
+				"role": "data",
+				"displayName": "Metro Blue line",
+				"cssVar": "--mrt-blue",
+				"theme": "both",
+				"canonical": "#0070bd",
+				"oklch": "oklch(53.4% 0.147 248.8)",
+				"tonalRamp": [
+					"oklch(15% 0.066 248.8)",
+					"oklch(26% 0.147 248.8)",
+					"oklch(37% 0.147 248.8)",
+					"oklch(48% 0.147 248.8)",
+					"oklch(60% 0.147 248.8)",
+					"oklch(72% 0.147 248.8)",
+					"oklch(84% 0.147 248.8)",
+					"oklch(95% 0.066 248.8)"
+				],
+				"note": "Data, not decoration: the region's own line colour. Currently hard-coded in style.css :root; belongs with the destination."
+			},
+			"metro-green": {
+				"role": "data",
+				"displayName": "Metro Green line",
+				"cssVar": "--mrt-green",
+				"theme": "both",
+				"canonical": "#008659",
+				"oklch": "oklch(54.8% 0.122 161)",
+				"tonalRamp": [
+					"oklch(15% 0.055 161)",
+					"oklch(26% 0.122 161)",
+					"oklch(37% 0.122 161)",
+					"oklch(48% 0.122 161)",
+					"oklch(60% 0.122 161)",
+					"oklch(72% 0.122 161)",
+					"oklch(84% 0.122 161)",
+					"oklch(95% 0.055 161)"
+				],
+				"note": "Data, not decoration: the region's own line colour. Currently hard-coded in style.css :root; belongs with the destination."
+			},
+			"metro-brown": {
+				"role": "data",
+				"displayName": "Metro Brown line",
+				"cssVar": "--mrt-brown",
+				"theme": "both",
+				"canonical": "#c48c31",
+				"oklch": "oklch(67.9% 0.124 75.4)",
+				"tonalRamp": [
+					"oklch(15% 0.056 75.4)",
+					"oklch(26% 0.124 75.4)",
+					"oklch(37% 0.124 75.4)",
+					"oklch(48% 0.124 75.4)",
+					"oklch(60% 0.124 75.4)",
+					"oklch(72% 0.124 75.4)",
+					"oklch(84% 0.124 75.4)",
+					"oklch(95% 0.056 75.4)"
+				],
+				"note": "Data, not decoration: the region's own line colour. Currently hard-coded in style.css :root; belongs with the destination."
+			},
+			"metro-airport": {
+				"role": "data",
+				"displayName": "Airport line",
+				"cssVar": "--mrt-airport",
+				"theme": "both",
+				"canonical": "#8246af",
+				"oklch": "oklch(51.5% 0.165 308)",
+				"tonalRamp": [
+					"oklch(15% 0.074 308)",
+					"oklch(26% 0.165 308)",
+					"oklch(37% 0.165 308)",
+					"oklch(48% 0.165 308)",
+					"oklch(60% 0.165 308)",
+					"oklch(72% 0.165 308)",
+					"oklch(84% 0.165 308)",
+					"oklch(95% 0.074 308)"
+				],
+				"note": "Data, not decoration: the region's own line colour. Currently hard-coded in style.css :root; belongs with the destination."
+			}
+		},
+		"typographyMeta": {
+			"display-countdown": {
+				"displayName": "Countdown",
+				"purpose": "The Now/Next countdown number only."
+			},
+			"brush-wish": {
+				"displayName": "Brush Wish",
+				"purpose": "The day's goal on its lantern. 3.25rem from 720px, 2.125rem below 600px. Face is TRIP.brushFont, subset at build."
+			},
+			"brush-brand": {
+				"displayName": "Brush Brand",
+				"purpose": "Trip name in the header."
+			},
+			"display-driver": {
+				"displayName": "Driver Card",
+				"purpose": "Destination name in the show-the-driver sheet."
+			},
+			"headline": {
+				"displayName": "Section Title",
+				"purpose": "Section titles (--fs-xl)."
+			},
+			"title": {
+				"displayName": "Route Title",
+				"purpose": "The day's route title on its lantern (--fs-lg)."
+			},
+			"subhead": {
+				"displayName": "Sub-section",
+				"purpose": "Sub-sections within a day (--fs-md)."
+			},
+			"time-fixed": {
+				"displayName": "Fixed Time",
+				"purpose": "Time of a fixed anchor on the string."
+			},
+			"body": {
+				"displayName": "Body",
+				"purpose": "Running text (--fs-base); root follows -apple-system-body."
+			},
+			"body-sm": {
+				"displayName": "Body Small",
+				"purpose": "Notes, chips, buttons, meta (--fs-sm, the most used size)."
+			},
+			"time": {
+				"displayName": "Time",
+				"purpose": "Schedule times, right-aligned, tabular."
+			},
+			"label": {
+				"displayName": "Label",
+				"purpose": "Compact labels only: header dates, chart axes, table heads (--fs-2xs)."
+			}
+		},
+		"shadows": [
+			{
+				"name": "glass-underline",
+				"value": "0 1px 0 var(--glass-edge)",
+				"purpose": "Sticky header and sticky day bar underline."
+			},
+			{
+				"name": "lantern-day",
+				"value": "0 10px 24px -14px color-mix(in srgb, var(--c) 80%, #000)",
+				"purpose": "Every lantern panel in light mode; tinted with the day colour."
+			},
+			{
+				"name": "lantern-night",
+				"value": "0 16px 40px -18px color-mix(in srgb, var(--c) 90%, transparent)",
+				"purpose": "Lantern glow bloom in dark mode."
+			},
+			{
+				"name": "lantern-night-fill",
+				"value": "radial-gradient(130% 95% at 50% 115%, color-mix(in srgb, var(--c) 62%, #fff4c9), var(--c) 62%)",
+				"purpose": "Dark-mode lantern background: light rising from below the base (a background, recorded here as depth)."
+			},
+			{
+				"name": "float",
+				"value": "0 10px 28px -10px rgba(0, 0, 0, 0.45)",
+				"purpose": "Back pill; the sections button uses 0.55 alpha."
+			},
+			{
+				"name": "toast",
+				"value": "0 10px 30px -10px rgba(0, 0, 0, 0.4)",
+				"purpose": "Toast."
+			},
+			{
+				"name": "results",
+				"value": "0 18px 40px -12px rgba(0, 0, 0, 0.28)",
+				"purpose": "Search results sheet under the header."
+			},
+			{
+				"name": "sheet",
+				"value": "0 30px 80px -20px rgba(0, 0, 0, 0.5)",
+				"purpose": "Dialogs over the scrim."
+			},
+			{
+				"name": "segment-pressed",
+				"value": "0 1px 3px rgba(0, 0, 0, 0.12)",
+				"purpose": "Selected option in the segmented control."
+			},
+			{
+				"name": "knot-now",
+				"value": "0 0 0 5px color-mix(in srgb, var(--c) 28%, transparent)",
+				"purpose": "Halo on the current stop's knot."
+			},
+			{
+				"name": "focus-ring",
+				"value": "outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 6px",
+				"purpose": "Global :focus-visible treatment."
+			},
+			{
+				"name": "glass-blur",
+				"value": "backdrop-filter: blur(20px) saturate(180%)",
+				"purpose": "Header glass (day bar: blur(16px) saturate(170%)). Solid paper under prefers-reduced-transparency or without backdrop-filter support."
+			}
+		],
+		"motion": [
+			{
+				"name": "ease-out",
+				"value": "cubic-bezier(0.23, 1, 0.32, 1)",
+				"cssVar": "--ease-out",
+				"purpose": "Default easing for everything that moves: presses, fades, slides, the landing glow."
+			},
+			{
+				"name": "ease-in-out",
+				"value": "cubic-bezier(0.77, 0, 0.175, 1)",
+				"cssVar": "--ease-in-out",
+				"purpose": "Declared on :root but not referenced by any rule in the shipped stylesheet."
+			},
+			{
+				"name": "duration-press",
+				"value": "160ms",
+				"purpose": "Press feedback: scale 0.94 (icon), 0.96 (tabs, links, pills, segments), 0.97 (go button, route legs); background-colour swaps on buttons."
+			},
+			{
+				"name": "duration-state",
+				"value": "200ms",
+				"purpose": "Tab colour change, toast, Back pill and sections button show/hide (fade + 12–14 px drop), sticky day bar fade-in (fade + 4 px), checkbox tick draw."
+			},
+			{
+				"name": "duration-stripe",
+				"value": "240ms",
+				"purpose": "The sticky bar's --now stripe colour change; the full-screen map entrance (map-full-in)."
+			},
+			{
+				"name": "duration-sheet",
+				"value": "220ms",
+				"purpose": "Dialog open/close: opacity + scale from 0.96 via @starting-style."
+			},
+			{
+				"name": "duration-progress",
+				"value": "300ms",
+				"purpose": "Checklist progress fill."
+			},
+			{
+				"name": "landing-flash",
+				"value": "background-color 900ms var(--ease-out)",
+				"purpose": "Highlighter tint (hl at 55%) on the exact element a search or link jump lands on, then fades."
+			},
+			{
+				"name": "landing-glow",
+				"value": "animation: landed 1000ms var(--ease-out) both",
+				"purpose": "After a tab jump (which lands instantly), the target section title or lantern shows a 3 px ring in its day colour at 55% that fades to transparent. Class removed after 1100 ms."
+			},
+			{
+				"name": "location-pulse",
+				"value": "me-pulse 1.8s ease-out infinite",
+				"purpose": "The live-location dot on the map."
+			},
+			{
+				"name": "reduced-motion",
+				"value": "@media (prefers-reduced-motion: reduce)",
+				"purpose": "html scroll-behavior auto; all transitions forced to 1ms; toast, results and dialogs keep only a 150ms opacity fade with no transform; landing glow removed; full-screen map entrance removed; location pulse frozen at 0.35 opacity, scale 1.8; scroll-spy jumps use behavior auto instead of smooth."
+			}
+		],
+		"breakpoints": [
+			{
+				"name": "col",
+				"value": "46rem",
+				"purpose": "Max width of the single reading column (--col)."
+			},
+			{
+				"name": "xs",
+				"value": "max-width: 380px",
+				"purpose": "Time column narrows to 4rem; method grid two-up."
+			},
+			{
+				"name": "phone-narrow",
+				"value": "max-width: 440px",
+				"purpose": "Header drops the trip dates."
+			},
+			{
+				"name": "phone",
+				"value": "max-width: 599px",
+				"purpose": "Compaction: icon-only secondary buttons (labels kept for screen readers), wish 2.125rem, blocks 16px apart, hanging cards 12px padding, sections button a 52px square."
+			},
+			{
+				"name": "tablet",
+				"value": "min-width: 720px",
+				"purpose": "Wish 3.25rem, photos three-up, methods two-up, tiers three-up, day bar gets bottom corners."
+			},
+			{
+				"name": "wide",
+				"value": "min-width: 900px",
+				"purpose": "Tab strip widens to 76rem and centres."
+			}
+		],
+		"themes": {
+			"default": "light (the page starts light regardless of the system setting; the theme button cycles light → dark → system)",
+			"darkSelectors": [
+				":root[data-theme='dark']",
+				"@media (prefers-color-scheme: dark) :root:not([data-theme='light'])"
+			],
+			"dayColourVars": "--c / --ci per day element, --now on the sticky bar, --lc on metro line badges"
+		},
+		"accessibility": {
+			"tapTargetMin": "44px",
+			"floatingTargetMin": "52px",
+			"rootFont": "font: -apple-system-body; font-size: max(100%, 1rem)",
+			"reducedTransparency": "glass header and day bar become solid paper",
+			"highContrast": "prefers-contrast: more sets --rule #8a8f99 and --ink-3 #464a53 on :root (light only; the dark blocks outrank it)"
+		}
+	},
+	"components": [
+		{
+			"name": "Go Button",
+			"kind": "button",
+			"refersTo": "button-go",
+			"description": "The one primary action on a card.",
+			"html": "<button class=\"ds-go\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 6 9 17l-5-5\"/></svg>Open checklist</button>",
+			"css": ".ds-go{display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:0 18px;border:0;border-radius:12px;background:var(--ink,#15161a);color:var(--paper,#fff);font:700 17px/1.2 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;cursor:pointer;transition:transform 160ms var(--ease-out,cubic-bezier(0.23,1,0.32,1))}.ds-go:active{transform:scale(0.97)}.ds-go:focus-visible{outline:3px solid var(--focus,#1f5fd1);outline-offset:2px}"
+		},
+		{
+			"name": "Link Button",
+			"kind": "button",
+			"refersTo": "button-link",
+			"description": "Map, route and site links under every stop.",
+			"html": "<a class=\"ds-mlink\" href=\"#\"><svg viewBox=\"0 0 24 24\" width=\"15\" height=\"15\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z\"/><circle cx=\"12\" cy=\"10\" r=\"2.5\"/></svg>Map</a>",
+			"css": ".ds-mlink{display:inline-flex;align-items:center;gap:5px;min-height:44px;padding:4px 12px;border-radius:9px;background:var(--paper-2,#f3f4f7);color:var(--link,#1d5bc4);text-decoration:none;font:700 15px/1.2 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;transition:transform 160ms var(--ease-out,cubic-bezier(0.23,1,0.32,1)),background-color 160ms ease}.ds-mlink:hover{background:var(--paper-3,#e7e9ee)}.ds-mlink:active{transform:scale(0.96);background:var(--paper-3,#e7e9ee)}.ds-mlink:focus-visible{outline:3px solid var(--focus,#1f5fd1);outline-offset:2px;border-radius:6px}"
+		},
+		{
+			"name": "Search Field",
+			"kind": "input",
+			"refersTo": "search-field",
+			"description": "Header search; 17px input text so iOS never zooms.",
+			"html": "<label class=\"ds-search\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\"><circle cx=\"11\" cy=\"11\" r=\"7\"/><path d=\"m20 20-3.5-3.5\"/></svg><input placeholder=\"Search: hot spring, rain, NT$…\"></label>",
+			"css": ".ds-search{display:flex;align-items:center;gap:8px;height:44px;padding:0 12px;background:var(--paper-3,#e7e9ee);border-radius:12px;color:var(--ink-3,#545963);max-width:360px}.ds-search input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:var(--ink,#15161a);font:400 17px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}.ds-search:focus-within{outline:3px solid var(--focus,#1f5fd1);outline-offset:2px}"
+		},
+		{
+			"name": "Day Tabs",
+			"kind": "nav",
+			"refersTo": "day-tab",
+			"description": "Header strip: one tab per day in its lantern colour; the current day fills with its pair.",
+			"html": "<nav class=\"ds-tabs\"><a class=\"ds-tab\" href=\"#\">Overview</a><a class=\"ds-tab ds-day ds-cur\" style=\"--c:#d9352b;--ci:#fff\" href=\"#\"><b>13</b><small>Sat</small></a><a class=\"ds-tab ds-day\" style=\"--c:#2466c8;--ci:#fff\" href=\"#\"><b>14</b><small>Sun</small></a><a class=\"ds-tab ds-day\" style=\"--c:#ec6a1c;--ci:#1c0d02\" href=\"#\"><b>15</b><small>Mon</small></a></nav>",
+			"css": ".ds-tabs{display:flex;gap:6px;padding:4px 0 8px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}.ds-tab{position:relative;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;min-width:48px;height:44px;padding:0 11px;border-radius:10px;background:var(--paper-2,#f3f4f7);color:var(--ink-2,#464a53);text-decoration:none;font-size:15px;font-weight:650;line-height:1.1;transition:background-color 200ms ease,color 200ms ease,transform 160ms var(--ease-out,cubic-bezier(0.23,1,0.32,1))}.ds-tab:hover{background:var(--paper-3,#e7e9ee)}.ds-tab:active{transform:scale(0.96)}.ds-tab:focus-visible{outline:3px solid var(--focus,#1f5fd1);outline-offset:2px}.ds-day{padding-top:3px}.ds-day::before{content:'';position:absolute;top:5px;left:50%;width:18px;height:3px;margin-left:-9px;border-radius:2px;background:var(--c)}.ds-day b{font-size:16px;font-weight:750}.ds-day small{font-size:11px;opacity:.85}.ds-cur{background:var(--c);color:var(--ci)}.ds-cur:hover{background:var(--c)}.ds-cur::before{background:currentColor;opacity:.5}"
+		},
+		{
+			"name": "Chip",
+			"kind": "chip",
+			"refersTo": "chip",
+			"description": "Focus, cost and what-to-wear chips on a lantern, tinted with the day ink.",
+			"html": "<div class=\"ds-chiprow\" style=\"--c:#1b7f52;--ci:#fff\"><span class=\"ds-chip\">Per person NT$460–620 (est.)</span><span class=\"ds-chip\">Short sleeves + light jacket</span></div>",
+			"css": ".ds-chiprow{display:flex;flex-wrap:wrap;gap:8px;padding:14px;border-radius:18px;background:var(--c);color:var(--ci)}.ds-chip{display:inline-flex;align-items:center;min-height:32px;padding:5px 10px;border-radius:8px;background:color-mix(in srgb,var(--ci) 14%,transparent);font:650 15px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}"
+		},
+		{
+			"name": "Now/Next Card",
+			"kind": "card",
+			"refersTo": "now-card",
+			"description": "Countdown at monumental scale, then key/value rows of what is next.",
+			"html": "<div class=\"ds-now\"><div class=\"ds-count\"><span class=\"ds-num\">163</span><span class=\"ds-unit\">days to go</span></div><div class=\"ds-row\"><span class=\"ds-k\">Next</span><span class=\"ds-v\">Weather check: long-range forecast</span></div><div class=\"ds-row\"><span class=\"ds-k\">Then</span><span class=\"ds-v\">Fill in the arrival card</span></div></div>",
+			"css": ".ds-now{display:grid;gap:14px;padding:18px 18px 16px;border-radius:18px;background:var(--paper-2,#f3f4f7);color:var(--ink,#15161a);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-variant-numeric:tabular-nums;max-width:420px}.ds-count{display:flex;align-items:baseline;gap:10px}.ds-num{font-size:68px;font-weight:800;line-height:.95;letter-spacing:-.04em}.ds-unit{font-size:19px;font-weight:700}.ds-row{display:grid;grid-template-columns:5.25rem 1fr;gap:10px;align-items:baseline}.ds-k{font-size:15px;font-weight:750;color:var(--ink-3,#545963)}.ds-v{font-size:17px;font-weight:650}"
+		},
+		{
+			"name": "Lantern",
+			"kind": "custom",
+			"refersTo": "lantern",
+			"description": "A day panel: brush wish on lantern paper with fibre texture, bamboo rings and a colour-tinted shadow.",
+			"html": "<article class=\"ds-lantern\" style=\"--c:#d9352b;--ci:#fff\"><div class=\"ds-meta\">Day 1 · Sat</div><div class=\"ds-wish\">平安到</div><div class=\"ds-ltitle\">Arrive → Hotel → Night market</div><button class=\"ds-lbtn\">Copy for the group</button></article>",
+			"css": ".ds-lantern{position:relative;isolation:isolate;overflow:hidden;max-width:420px;padding:22px 18px 18px;border-radius:18px;background:var(--c);color:var(--ci);box-shadow:0 10px 24px -14px color-mix(in srgb,var(--c) 80%,#000);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}.ds-lantern::after{content:'';position:absolute;left:0;right:0;top:9px;bottom:9px;z-index:-1;border-top:1.5px solid color-mix(in srgb,var(--ci) 22%,transparent);border-bottom:1.5px solid color-mix(in srgb,var(--ci) 22%,transparent)}.ds-meta{font-size:15px;font-weight:750;opacity:.92}.ds-wish{margin-top:8px;font-family:'Ma Shan Zheng','STKaiti','KaiTi','Kaiti SC','BiauKai',serif;font-size:42px;line-height:1.12;letter-spacing:.03em}.ds-ltitle{margin-top:12px;font-size:23px;font-weight:800;letter-spacing:-.015em}.ds-lbtn{margin-top:14px;min-height:44px;padding:0 14px;border-radius:11px;border:1.5px solid color-mix(in srgb,var(--ci) 40%,transparent);background:transparent;color:var(--ci);font:700 15px/1 inherit;font-family:inherit;cursor:pointer;transition:transform 160ms var(--ease-out,cubic-bezier(0.23,1,0.32,1)),background-color 160ms ease}.ds-lbtn:active{transform:scale(.96);background:color-mix(in srgb,var(--ci) 14%,transparent)}.ds-lbtn:focus-visible{outline:3px solid var(--focus,#1f5fd1);outline-offset:2px}"
+		},
+		{
+			"name": "Schedule String",
+			"kind": "custom",
+			"refersTo": "seal",
+			"description": "Stops threaded on the day-colour string; a fixed anchor gets the seal-red diamond knot, larger time and brush seal stamp.",
+			"html": "<ol class=\"ds-sched\" style=\"--c:#d9352b\"><li class=\"ds-stop ds-fixed\"><span class=\"ds-t\">13:30</span><span class=\"ds-knot\"></span><span class=\"ds-b\"><b>Land at the airport</b><span class=\"ds-seal\"><i>定</i>fixed time</span></span></li><li class=\"ds-stop\"><span class=\"ds-t\">~13:45</span><span class=\"ds-knot\"></span><span class=\"ds-b\"><b>Immigration, bags, transit card</b></span></li></ol>",
+			"css": ".ds-sched{list-style:none;margin:0;padding:0;max-width:420px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:var(--ink,#15161a)}.ds-stop{display:grid;grid-template-columns:4.6rem 18px 1fr;column-gap:10px}.ds-t{padding:11px 0;text-align:right;font-size:15px;font-weight:750;color:var(--ink-2,#464a53);font-variant-numeric:tabular-nums}.ds-fixed .ds-t{padding-top:8px;font-size:21px;color:var(--ink,#15161a);letter-spacing:-.02em}.ds-knot{position:relative}.ds-knot::before{content:'';position:absolute;top:0;bottom:0;left:8px;width:2px;background:color-mix(in srgb,var(--c) 55%,transparent)}.ds-knot::after{content:'';position:absolute;top:14px;left:3px;width:12px;height:12px;border-radius:50%;background:var(--paper,#fff);border:2.5px solid var(--c);box-sizing:border-box}.ds-fixed .ds-knot::after{border-radius:3px;background:var(--seal,#c42a1f);border-color:var(--seal,#c42a1f);transform:rotate(45deg)}.ds-b{padding:10px 0 12px;border-bottom:1px solid var(--rule,#dfe2e8);font-size:17px}.ds-seal{display:inline-flex;align-items:center;gap:5px;margin-left:6px;font-size:12px;font-weight:750;color:var(--seal,#c42a1f)}.ds-seal i{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:3px;background:var(--seal,#c42a1f);color:var(--seal-ink,#fff);font:400 15px/1 'Ma Shan Zheng','STKaiti','KaiTi',serif;transform:rotate(-4deg)}"
+		},
+		{
+			"name": "Back Pill",
+			"kind": "button",
+			"refersTo": "back-pill",
+			"description": "Floating bottom-left return after a jump; slides away when not needed.",
+			"html": "<button class=\"ds-back\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M15 18l-6-6 6-6\"/></svg>Back</button>",
+			"css": ".ds-back{display:inline-flex;align-items:center;gap:8px;min-width:52px;min-height:52px;padding:0 14px;border:1px solid var(--rule,#dfe2e8);border-radius:16px;background:var(--paper,#fff);color:var(--ink,#15161a);font:750 15px/1 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;cursor:pointer;box-shadow:0 10px 28px -10px rgba(0,0,0,.45);transition:opacity 200ms var(--ease-out,cubic-bezier(0.23,1,0.32,1)),transform 200ms var(--ease-out,cubic-bezier(0.23,1,0.32,1))}.ds-back:active{transform:scale(.96)}.ds-back:focus-visible{outline:3px solid var(--focus,#1f5fd1);outline-offset:2px}"
+		},
+		{
+			"name": "Sticky Bar Now Stripe",
+			"kind": "nav",
+			"refersTo": "section-tab-current",
+			"description": "Glass header whose 3px bottom stripe takes the colour of the day in view (--now), rule between days.",
+			"html": "<header class=\"ds-bar\" style=\"--now:#2466c8\"><span class=\"ds-brand\">示范行</span><span class=\"ds-seg\"><button aria-pressed=\"true\">中</button><button>EN</button></span></header>",
+			"css": ".ds-bar{position:relative;display:flex;align-items:center;gap:8px;min-height:52px;padding:6px 16px;background:rgba(255,255,255,.82);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);box-shadow:0 1px 0 rgba(21,22,26,.08);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}.ds-bar::after{content:'';position:absolute;left:0;right:0;bottom:-3px;height:3px;background:var(--now,#dfe2e8);transition:background-color 240ms ease}.ds-brand{margin-right:auto;font:400 26px/1 'Ma Shan Zheng','STKaiti','KaiTi',serif;letter-spacing:.02em}.ds-seg{display:inline-flex;padding:3px;gap:2px;background:var(--paper-3,#e7e9ee);border-radius:11px}.ds-seg button{min-width:44px;height:44px;padding:0 10px;border:0;border-radius:8px;background:transparent;color:var(--ink-2,#464a53);font:700 15px/1 inherit;font-family:inherit;cursor:pointer;transition:background-color 160ms ease,color 160ms ease}.ds-seg button[aria-pressed='true']{background:var(--paper,#fff);color:var(--ink,#15161a);box-shadow:0 1px 3px rgba(0,0,0,.12)}.ds-seg button:focus-visible{outline:3px solid var(--focus,#1f5fd1);outline-offset:2px}"
+		}
+	],
+	"narrative": {
+		"northStar": "Sky Lanterns on a Working String",
+		"overview": "**Creative North Star: \"Sky Lanterns on a Working String\"** *(name inferred from the direction contract's thesis)*\n\nEach trip day is one sky-lantern panel. The day's goal is brush-inked on lantern paper in that day's colour, and the working plan (times, transport, budget, rain rule) is printed plainly underneath on white paper, threaded on a lantern string. The world has two layers. The lantern layer (brush lettering, lantern paper, seal stamps, strings) is atmosphere and identity. The operated layer (system sans, large tabular numbers, 44 px+ targets, plain rows) is what the group actually uses on a phone, often with seniors, in bright sunlight or a dark hotel room. The operated layer never borrows the lantern layer's ornament.\n\nThe page is dense but calm: one phone-first column, generous type (a 17 px body that follows the phone's text-size setting), and flat paper-grey containers. By day it is white paper. In dark mode it is a night sky, and each lantern glows from inside with a warm light rising from its base. The first viewport is a translucent sticky header (brush brand, search, theme, language switch) over a scrollable strip of day tabs in the lantern colours, then the Now/Next card with a monumental countdown, then the week as a list of small lanterns, then the days.\n\nIt rejects the travel-app default: stock hero photo, teal accent, identical icon cards.",
+		"keyCharacteristics": [
+			"One lantern colour per trip day, cycling through seven, carried by the tab, the lantern, the string, the knots, the sticky day bar and the map pins.",
+			"Brush lettering for the brand, the day's wish and the seal glyph only; system sans for everything operated.",
+			"A lantern string runs down every schedule; fixed anchors are red diamond knots with a brush-lettered seal.",
+			"Flat paper-grey containers; shadows only on things that float and on lanterns.",
+			"Motion is short, press-scale feedback and state fades; jumps land instantly and glow once."
+		],
+		"rules": [
+			{
+				"name": "The One Lantern Per Day Rule",
+				"body": "A lantern colour means \"this day\" and nothing else. Every element that belongs to a day takes that day's `--c` / `--ci` pair; nothing that belongs to no day uses a lantern colour.",
+				"section": "colors"
+			},
+			{
+				"name": "The Seal Means Fixed Rule",
+				"body": "Seal red is reserved for anchors that never move (fixed times) and the today marker. A seal on something that can shift is a lie.",
+				"section": "colors"
+			},
+			{
+				"name": "The Data Colour Rule",
+				"body": "Line colours come from the region and are data. Don't restyle them to match the brand, and don't use them as decoration.",
+				"section": "colors"
+			},
+			{
+				"name": "The Brush Is For Names Rule",
+				"body": "The brush face letters the brand, the day's wish and the seal glyph. Never a time, price, instruction or button.",
+				"section": "typography"
+			},
+			{
+				"name": "The Phone Decides The Size Rule",
+				"body": "Type is set in rem on a root that takes `-apple-system-body` where supported (never smaller than 1rem), so the phone's text-size setting scales the whole page. Don't pin text in px.",
+				"section": "typography"
+			},
+			{
+				"name": "The One Column Rule",
+				"body": "Everything the group reads lives in the 46rem column. Wider screens get more margin, not more columns, except for grids of equals (methods, tiers, photos).",
+				"section": "layout"
+			},
+			{
+				"name": "The Glow From Inside Rule",
+				"body": "At night the page stays flat and dark; only lanterns give off light. Don't add glows to anything else.",
+				"section": "elevation"
+			},
+			{
+				"name": "The Float Earns A Shadow Rule",
+				"body": "A shadow means \"this is above the page and will move\". Content rows and containers stay flat.",
+				"section": "elevation"
+			}
+		],
+		"dos": [
+			"**Do** give every day-owned element the day's `--c` / `--ci` pair, and nothing else a lantern colour.",
+			"**Do** keep every tap target at 44 px or more, and the main floating actions at 52 px.",
+			"**Do** mark every number that is not the plan's own as an estimate: a \"(估)\" / \"≈\" in text, a dashed 22 % tint on charts.",
+			"**Do** show a decision's rule with go / wait / skip marks in `good` / `warn` / `bad` tints, and the fallback beside it.",
+			"**Do** keep lantern ink at 4.5:1 or better against the paper it actually sits on, in both themes, including the lit base of a night lantern.",
+			"**Do** land jumps instantly and glow the target once, and keep the Back pill available to undo the jump.",
+			"**Do** set type in rem so the phone's text-size setting and `-apple-system-body` scale it.",
+			"**Do** honour `prefers-reduced-motion`, `prefers-reduced-transparency` (glass becomes solid paper) and `prefers-contrast: more`."
+		],
+		"donts": [
+			"**Don't** open with a stock hero photo, use a teal accent, or build a grid of identical icon cards.",
+			"**Don't** set times, prices, instructions or buttons in the brush face.",
+			"**Don't** use seal red for anything that can move; it marks fixed anchors and today only.",
+			"**Don't** restyle or reuse metro line colours; they belong to the region's data.",
+			"**Don't** add shadows to content rows or containers; shadows are for floating surfaces and lanterns.",
+			"**Don't** add glows to anything but the lanterns at night.",
+			"**Don't** add a second content column for reading; wide screens get margin.",
+			"**Don't** describe people on the page by family relationship; use \"the group\" or names.",
+			"*(open question)* **Don't** assume the lantern world is permanent: a future destination pack may be allowed to re-theme the own world (paper colours, brush face, lantern ornament) while the operated layer (type scale, tap targets, fixed-time seals, states) stays unchanged. This is undecided."
+		]
+	}
+}

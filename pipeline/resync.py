@@ -18,7 +18,7 @@ Steps (the trip's pipeline.json "steps"; each is found in the trip's region pack
     shops    the trip's shopping list for the free day
   Weather: Open-Meteo daily forecast (free, no key) for pipeline.json "forecast_spots" on trip days within 16 days.
   Links: every website link in the data is fetched; broken ones are listed (not changed).
-After --write: run the tests, check the page, then republish (docs/roadmap.md, "The live Taipei page")."""
+After --write: run the tests, check the page, then republish (the publish-htmlapp skill, .agents/skills/publish-htmlapp/)."""
 import json, os, re, subprocess, sys, urllib.error, urllib.parse, urllib.request
 from concurrent.futures import ThreadPoolExecutor
 HERE = os.path.dirname(os.path.abspath(__file__)); REPO = os.path.dirname(HERE)

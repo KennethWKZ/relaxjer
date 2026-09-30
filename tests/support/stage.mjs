@@ -3,7 +3,7 @@
 // LEGACY_ENGINE_DIR still points the tests at the old single-trip repo (to compare the two engines): its build.mjs +
 // src/{app.js,style.css,shell.html} are copied into the scratch folder with the trip data and built there, so the old
 // repo is never written to and its keys are never read. Trip data comes from TRIP_DIR (default: the committed demo trip).
-// docs/adr/0002-test-strategy.md explains why.
+// memory-bank/standards/decisions/ADR-20260930-test-strategy.md explains why.
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';

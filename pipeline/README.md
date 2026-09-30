@@ -9,7 +9,7 @@ pnpm resync --trip trips/<slug> --write    # write the trip's files, rebuild the
 ```
 
 Needs [uv](https://docs.astral.sh/uv/) (it installs Python 3.13 and the two dependencies, `opencc` and `pillow`) and
-node. Google calls use **your own key** (ADR 0003): `~/.config/relaxjer/google-places.key` (mode 600), with Places API
+node. Google calls use **your own key** ([ADR-20260930-google-keys](../memory-bank/standards/decisions/ADR-20260930-google-keys.md)): `~/.config/relaxjer/google-places.key` (mode 600), with Places API
 (New) and Routes API on. It runs from your machine only and never goes into a page.
 
 | Where                                        | What                                                                                                                              |
@@ -26,7 +26,7 @@ chains, shopping list, weather spots, which places are stations or districts) is
 Caches go to `trips/<slug>/.cache/`, gitignored with the rest of the trip.
 
 **Google's terms** limit how long Places content may be kept and shown. The cache and the trip files keep it; that is
-your call for your own private trip page (ADR 0003). Don't publish a trip's data.
+your call for your own private trip page ([ADR-20260930-google-keys](../memory-bank/standards/decisions/ADR-20260930-google-keys.md)). Don't publish a trip's data.
 
 Moved from the first trip's repo on 2026-10-01. On the same inputs its output is byte-identical to the old scripts',
 except where old bugs were fixed: two places the old regex skipped, the hotel's hand-checked Google id (it was

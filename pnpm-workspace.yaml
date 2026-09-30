@@ -1,4 +1,4 @@
-# pnpm settings (no workspace packages yet; see docs/adr/0001-repo-layout.md)
+# pnpm settings (no workspace packages yet; see memory-bank/standards/decisions/ADR-20260930-repo-layout.md)
 # a new release must be 3 days old before it installs: time for a hijacked package to be caught and pulled
 minimumReleaseAge: 4320
 engineStrict: true

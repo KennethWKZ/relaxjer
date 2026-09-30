@@ -27,3 +27,10 @@ node_modules/
 __pycache__/
 *.pyc
 .venv/
+
+# Agent tooling: local-only state
+/.claude/.write-flag
+/.claude/settings.local.json
+/.impeccable/hook.cache.json
+/.impeccable/review/
+/.impeccable/live/

@@ -9,3 +9,8 @@ blob-report/
 .share/
 .secrets/
 examples/**/*.json
+# vendored third-party skills: not our code
+.agents/skills/animate/
+.agents/skills/apple-design/
+.agents/skills/improve-animations/
+.agents/skills/review-animations/

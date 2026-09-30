@@ -1,6 +1,6 @@
 """Google Places / Routes calls with a response cache, shared by every step.
 
-The key is the user's own (ADR 0003): ~/.config/relaxjer/google-places.key (mode 600), or RELAXJER_GOOGLE_KEY_FILE.
+The key is the user's own (ADR-20260930-google-keys): ~/.config/relaxjer/google-places.key (mode 600), or RELAXJER_GOOGLE_KEY_FILE.
 It runs from the user's machine only and never goes into a page.
 Cache: <trip>/.cache/google-cache.json. With RESYNC_REUSE=1 (resync.py --reuse) a call already in the cache is not
 made again. Saving merges into the file, so a fresh run keeps the answers of the other steps.
@@ -21,7 +21,7 @@ NEW = [0]  # calls made this run (not answered from the cache)
 def key():
     global _key
     if _key is None:
-        if not os.path.exists(KEY_FILE): raise SystemExit(f'no Google key at {KEY_FILE} (see docs/adr/0003-google-keys.md)')
+        if not os.path.exists(KEY_FILE): raise SystemExit(f'no Google key at {KEY_FILE} (see memory-bank/standards/decisions/ADR-20260930-google-keys.md)')
         _key = open(KEY_FILE).read().strip()
     return _key
 

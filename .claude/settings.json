@@ -1,0 +1,44 @@
+{
+	"$schema": "https://json.schemastore.org/claude-code-settings.json",
+	"permissions": {
+		"deny": ["Read(~/.config/relaxjer/**)", "Edit(~/.config/relaxjer/**)", "Write(~/.config/relaxjer/**)"]
+	},
+	"hooks": {
+		"PreToolUse": [
+			{
+				"matcher": "Bash",
+				"hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-bash.mjs\"", "timeout": 10 }]
+			},
+			{
+				"matcher": "Write|Edit|MultiEdit",
+				"hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-write.mjs\"", "timeout": 10 }]
+			}
+		],
+		"PostToolUse": [
+			{
+				"matcher": "Write|Edit|MultiEdit",
+				"hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/mark-write.mjs\"", "timeout": 10 }]
+			}
+		],
+		"Stop": [
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/stop-checks.mjs\"",
+						"timeout": 180,
+						"statusMessage": "Checking: lint, format, tier-0 tests"
+					}
+				]
+			}
+		]
+	},
+	"extraKnownMarketplaces": {
+		"impeccable": { "source": { "source": "github", "repo": "pbakaus/impeccable" } },
+		"diagram-design": { "source": { "source": "github", "repo": "cathrynlavery/diagram-design" } }
+	},
+	"enabledPlugins": {
+		"impeccable@impeccable": true,
+		"diagram-design@diagram-design": true
+	}
+}

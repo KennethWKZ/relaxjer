@@ -1,0 +1,494 @@
+---
+name: RelaxJer trip page
+description: One installable, offline-friendly page per trip; each day a sky lantern, the working plan printed plainly beneath it.
+colors:
+  paper: '#ffffff'
+  paper-2: '#f3f4f7'
+  paper-3: '#e7e9ee'
+  ink: '#15161a'
+  ink-2: '#464a53'
+  ink-3: '#545963'
+  rule: '#dfe2e8'
+  seal: '#c42a1f'
+  seal-ink: '#ffffff'
+  focus: '#1f5fd1'
+  link: '#1d5bc4'
+  good: '#1a7443'
+  warn: '#9a5700'
+  bad: '#b3261e'
+  hl: '#ffe45c'
+  hl-now: '#ffab3d'
+  glass: 'rgba(255, 255, 255, 0.82)'
+  glass-edge: 'rgba(21, 22, 26, 0.08)'
+  scrim: 'rgba(12, 14, 20, 0.5)'
+  night-paper: '#0c1017'
+  night-paper-2: '#151a23'
+  night-paper-3: '#1e2430'
+  night-ink: '#eef0f4'
+  night-ink-2: '#bcc1cb'
+  night-ink-3: '#969ca8'
+  night-rule: '#2a313d'
+  night-seal: '#ff6a5c'
+  night-seal-ink: '#1a0503'
+  night-focus: '#7fb0ff'
+  night-link: '#8ab8ff'
+  night-good: '#5fd49a'
+  night-warn: '#f3b35a'
+  night-bad: '#ff8a80'
+  night-glass: 'rgba(12, 16, 23, 0.8)'
+  night-glass-edge: 'rgba(238, 240, 244, 0.08)'
+  night-scrim: 'rgba(0, 0, 0, 0.62)'
+  lantern-1: '#d9352b'
+  lantern-1-ink: '#ffffff'
+  lantern-2: '#2466c8'
+  lantern-2-ink: '#ffffff'
+  lantern-3: '#ec6a1c'
+  lantern-3-ink: '#1c0d02'
+  lantern-4: '#1b7f52'
+  lantern-4-ink: '#ffffff'
+  lantern-5: '#8a3ca6'
+  lantern-5-ink: '#ffffff'
+  lantern-6: '#ee82a6'
+  lantern-6-ink: '#25070f'
+  lantern-7: '#e0b020'
+  lantern-7-ink: '#1d1502'
+  metro-red: '#e3002c'
+  metro-orange: '#f8b61c'
+  metro-blue: '#0070bd'
+  metro-green: '#008659'
+  metro-brown: '#c48c31'
+  metro-airport: '#8246af'
+typography:
+  display-countdown:
+    fontFamily: "-apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Microsoft YaHei', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
+    fontSize: '4.25rem'
+    fontWeight: 800
+    lineHeight: 0.95
+    letterSpacing: '-0.04em'
+    fontFeature: 'tnum'
+  brush-wish:
+    fontFamily: "'Ma Shan Zheng', 'STKaiti', 'KaiTi', 'Kaiti SC', 'BiauKai', serif"
+    fontSize: '2.625rem'
+    fontWeight: 400
+    lineHeight: 1.12
+    letterSpacing: '0.03em'
+  brush-brand:
+    fontFamily: "'Ma Shan Zheng', 'STKaiti', 'KaiTi', 'Kaiti SC', 'BiauKai', serif"
+    fontSize: '1.625rem'
+    fontWeight: 400
+    lineHeight: 1
+    letterSpacing: '0.02em'
+  display-driver:
+    fontFamily: "-apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Microsoft YaHei', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
+    fontSize: '2.25rem'
+    fontWeight: 800
+    lineHeight: 1.2
+    letterSpacing: '0.01em'
+  headline:
+    fontFamily: "-apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Microsoft YaHei', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
+    fontSize: '1.75rem'
+    fontWeight: 800
+    lineHeight: 1.25
+    letterSpacing: '-0.02em'
+  title:
+    fontFamily: "-apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Microsoft YaHei', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
+    fontSize: '1.4375rem'
+    fontWeight: 800
+    lineHeight: 1.25
+    letterSpacing: '-0.015em'
+  subhead:
+    fontFamily: "-apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Microsoft YaHei', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
+    fontSize: '1.1875rem'
+    fontWeight: 750
+    lineHeight: 1.25
+    letterSpacing: '-0.01em'
+  time-fixed:
+    fontFamily: "-apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Microsoft YaHei', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
+    fontSize: '1.3125rem'
+    fontWeight: 750
+    lineHeight: 1.35
+    letterSpacing: '-0.02em'
+    fontFeature: 'tnum'
+  body:
+    fontFamily: "-apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Microsoft YaHei', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
+    fontSize: '1.0625rem'
+    fontWeight: 400
+    lineHeight: 1.55
+    fontFeature: 'tnum'
+  body-sm:
+    fontFamily: "-apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Microsoft YaHei', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
+    fontSize: '0.9375rem'
+    fontWeight: 650
+    lineHeight: 1.45
+  time:
+    fontFamily: "-apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Microsoft YaHei', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
+    fontSize: '0.9375rem'
+    fontWeight: 750
+    lineHeight: 1.35
+    fontFeature: 'tnum'
+  label:
+    fontFamily: "-apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Microsoft YaHei', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
+    fontSize: '0.8125rem'
+    fontWeight: 600
+    lineHeight: 1.3
+rounded:
+  stamp: '3px'
+  sm: '8px'
+  control: '10px'
+  md: '12px'
+  float: '16px'
+  lg: '18px'
+  sheet: '20px'
+  round: '999px'
+spacing:
+  2xs: '4px'
+  xs: '6px'
+  sm: '8px'
+  md: '12px'
+  gutter: '16px'
+  block: '22px'
+  section: '36px'
+  day: '40px'
+components:
+  button-go:
+    backgroundColor: '{colors.ink}'
+    textColor: '{colors.paper}'
+    rounded: '{rounded.md}'
+    padding: '0 18px'
+    height: '48px'
+  button-link:
+    backgroundColor: '{colors.paper-2}'
+    textColor: '{colors.link}'
+    rounded: '9px'
+    padding: '4px 12px'
+    height: '44px'
+  button-link-active:
+    backgroundColor: '{colors.paper-3}'
+    textColor: '{colors.link}'
+  button-icon:
+    backgroundColor: 'transparent'
+    textColor: '{colors.ink}'
+    rounded: '{rounded.md}'
+    size: '44px'
+  button-text:
+    backgroundColor: 'transparent'
+    textColor: '{colors.link}'
+    rounded: '{rounded.control}'
+    padding: '0 8px'
+    height: '44px'
+  segmented-option:
+    backgroundColor: 'transparent'
+    textColor: '{colors.ink-2}'
+    typography: '{typography.body-sm}'
+    rounded: '{rounded.sm}'
+    padding: '0 10px'
+    height: '44px'
+  segmented-option-pressed:
+    backgroundColor: '{colors.paper}'
+    textColor: '{colors.ink}'
+  filter-button:
+    backgroundColor: '{colors.paper}'
+    textColor: '{colors.ink-2}'
+    rounded: '{rounded.control}'
+    padding: '0 12px'
+    height: '44px'
+  filter-button-pressed:
+    backgroundColor: '{colors.ink}'
+    textColor: '{colors.paper}'
+  search-field:
+    backgroundColor: '{colors.paper-3}'
+    textColor: '{colors.ink}'
+    typography: '{typography.body}'
+    rounded: '{rounded.md}'
+    padding: '0 12px'
+    height: '44px'
+  day-tab:
+    backgroundColor: '{colors.paper-2}'
+    textColor: '{colors.ink-2}'
+    rounded: '{rounded.control}'
+    padding: '0 11px'
+    height: '44px'
+    width: '48px'
+  day-tab-current:
+    backgroundColor: '{colors.lantern-1}'
+    textColor: '{colors.lantern-1-ink}'
+  section-tab-current:
+    backgroundColor: '{colors.ink}'
+    textColor: '{colors.paper}'
+  now-card:
+    backgroundColor: '{colors.paper-2}'
+    textColor: '{colors.ink}'
+    rounded: '{rounded.lg}'
+    padding: '18px 18px 16px'
+  lantern:
+    backgroundColor: '{colors.lantern-1}'
+    textColor: '{colors.lantern-1-ink}'
+    rounded: '{rounded.lg}'
+    padding: '22px 18px 18px'
+  lantern-button:
+    backgroundColor: 'transparent'
+    textColor: '{colors.lantern-1-ink}'
+    rounded: '11px'
+    padding: '0 14px'
+    height: '44px'
+  route-leg:
+    textColor: '{colors.lantern-1-ink}'
+    rounded: '11px'
+    padding: '6px 10px'
+    height: '46px'
+  route-leg-all:
+    backgroundColor: '{colors.lantern-1-ink}'
+    textColor: '{colors.lantern-1}'
+  chip:
+    textColor: '{colors.ink}'
+    typography: '{typography.body-sm}'
+    rounded: '{rounded.sm}'
+    padding: '5px 10px'
+    height: '32px'
+  tag:
+    backgroundColor: '{colors.paper}'
+    textColor: '{colors.ink}'
+    rounded: '7px'
+    padding: '3px 10px'
+    height: '30px'
+  seal:
+    backgroundColor: '{colors.seal}'
+    textColor: '{colors.seal-ink}'
+    rounded: '{rounded.stamp}'
+    size: '20px'
+  hang:
+    backgroundColor: '{colors.paper}'
+    textColor: '{colors.ink}'
+    rounded: '{rounded.md}'
+    padding: '16px'
+  back-pill:
+    backgroundColor: '{colors.paper}'
+    textColor: '{colors.ink}'
+    rounded: '{rounded.float}'
+    padding: '0 14px'
+    height: '52px'
+  sections-button:
+    backgroundColor: '{colors.ink}'
+    textColor: '{colors.paper}'
+    rounded: '{rounded.float}'
+    padding: '0 18px 0 15px'
+    height: '52px'
+  toast:
+    backgroundColor: '{colors.ink}'
+    textColor: '{colors.paper}'
+    rounded: '{rounded.md}'
+    padding: '12px 18px'
+  sheet:
+    backgroundColor: '{colors.paper}'
+    textColor: '{colors.ink}'
+    rounded: '{rounded.sheet}'
+    padding: '22px 20px 20px'
+---
+
+# Design System: RelaxJer trip page
+
+## Overview
+
+**Creative North Star: "Sky Lanterns on a Working String"** _(name inferred from the direction contract's thesis)_
+
+Each trip day is one sky-lantern panel. The day's goal is brush-inked on lantern paper in that day's colour, and the working plan (times, transport, budget, rain rule) is printed plainly underneath on white paper, threaded on a lantern string. The world has two layers. The lantern layer (brush lettering, lantern paper, seal stamps, strings) is atmosphere and identity. The operated layer (system sans, large tabular numbers, 44 px+ targets, plain rows) is what the group actually uses on a phone, often with seniors, in bright sunlight or a dark hotel room. The operated layer never borrows the lantern layer's ornament.
+
+The page is dense but calm: one phone-first column, generous type (a 17 px body that follows the phone's text-size setting), and flat paper-grey containers. By day it is white paper. In dark mode it is a night sky, and each lantern glows from inside with a warm light rising from its base. The first viewport is a translucent sticky header (brush brand, search, theme, language switch) over a scrollable strip of day tabs in the lantern colours, then the Now/Next card with a monumental countdown, then the week as a list of small lanterns, then the days.
+
+It rejects the travel-app default: stock hero photo, teal accent, identical icon cards.
+
+**Key Characteristics:**
+
+- One lantern colour per trip day, cycling through seven, carried by the tab, the lantern, the string, the knots, the sticky day bar and the map pins.
+- Brush lettering for the brand, the day's wish and the seal glyph only; system sans for everything operated.
+- A lantern string runs down every schedule; fixed anchors are red diamond knots with a brush-lettered seal.
+- Flat paper-grey containers; shadows only on things that float and on lanterns.
+- Motion is short, press-scale feedback and state fades; jumps land instantly and glow once.
+
+## Colors
+
+White paper and near-black ink carry the operated layer; seven saturated lantern papers carry the days; one seal red marks what does not move.
+
+### Primary
+
+- **Lantern Papers** (`lantern-1` to `lantern-7`: Firecracker Red, Temple Blue, Persimmon, Jade, Plum, Peach Blossom, Imperial Gold): one per trip day, assigned in order and cycling after seven. The engine writes the day's pair into `--c` / `--ci` on each day's elements, so a day's colour is its identity everywhere it appears. Each paper has its own ink (`-ink`): white on the four deep papers, a near-black of the same hue on Persimmon, Peach Blossom and Gold. All seven pairs reach at least 4.6:1 on flat paper.
+
+### Secondary
+
+- **Seal Red** (`seal`; `night-seal` in dark): the vermilion of a name stamp. It marks fixed-time anchors (the diamond knot, the seal stamp and its "fixed" label) and the red today dot on a day tab. Nothing else.
+
+### Tertiary
+
+- **Link Blue** (`link`) and **Focus Blue** (`focus`): links, link-buttons and the 3 px focus ring.
+- **Highlighter** (`hl`, `hl-now`): search hits, the current hit, the landing flash and the yellow callout tint. Same value in both themes.
+- **Status inks** (`good`, `warn`, `bad`): go / wait / skip decisions, checked items and the progress fill, always as a 14–18 % tint behind a full-strength icon.
+
+### Neutral
+
+- **Day Paper** (`paper`): page ground, hanging cards, tags, the Back pill.
+- **Fog Grey** (`paper-2`): the default container: Now/Next card, week rows, link-buttons, decision rows, unselected tabs.
+- **Mist Grey** (`paper-3`): pressed states, the search field, the segmented control's track, image placeholders.
+- **Ink** (`ink`), **Ink 2** (`ink-2`), **Ink 3** (`ink-3`): text, secondary text, tertiary labels. Ink 3 still clears 6.3:1 on Fog Grey.
+- **Rule** (`rule`): 1 px hairlines between rows and around hanging cards. It is also the sticky bar's stripe colour when no day is in view.
+- **Glass** (`glass`, `glass-edge`) and **Scrim** (`scrim`): the translucent header and day bar, their 1 px underline, and the dialog backdrop.
+- **Night Sky** (`night-*`): the dark theme's paper, ink, rule, glass and scrim, a blue-black ground (`night-paper`) with cool grey inks.
+
+### Data colours (from the region, not the brand)
+
+- **Metro line colours** (`metro-*`) are the transit operator's own line colours, currently the Taipei Metro set in the stylesheet, and transit-planner lines take their colour from the region's data. They identify a line, not a mood. A new destination brings its own set; they are never reused as accents.
+
+### Named Rules
+
+**The One Lantern Per Day Rule.** A lantern colour means "this day" and nothing else. Every element that belongs to a day takes that day's `--c` / `--ci` pair; nothing that belongs to no day uses a lantern colour.
+
+**The Seal Means Fixed Rule.** Seal red is reserved for anchors that never move (fixed times) and the today marker. A seal on something that can shift is a lie.
+
+**The Data Colour Rule.** Line colours come from the region and are data. Don't restyle them to match the brand, and don't use them as decoration.
+
+## Typography
+
+**Display Font:** the trip's brush face, `TRIP.brushFont` (default Ma Shan Zheng), with STKaiti / KaiTi / Kaiti SC / BiauKai as fallbacks. The build subsets it through Google Fonts to only the glyphs the page letters: the brand, each day's wish, the principle's wish and the seal glyph.
+**Body Font:** the phone's system sans (`-apple-system`, PingFang SC, Noto Sans SC, Segoe UI, Roboto…), with tabular numerals on by default.
+
+**Character:** a hand-inked calligraphic voice for names and wishes, set against a heavy, plain system sans that reads at arm's length in sunlight. Weights sit high (650–800) for anything a person has to act on.
+
+### Hierarchy
+
+- **Display, countdown** (800, 4.25rem, 0.95, −0.04em): the Now/Next countdown number only. Monumental on purpose.
+- **Display, driver card** (800, 2.25rem, 1.2): the destination name in the "show the driver" sheet, read by someone else across a car.
+- **Brush, wish** (400, 2.625rem; 3.25rem from 720 px; 2.125rem below 600 px; 1.12): the day's goal on its lantern.
+- **Brush, brand** (400, 1.625rem, 1): the trip name in the header.
+- **Headline** (800, 1.75rem, −0.02em): section titles.
+- **Title** (800, 1.4375rem, −0.015em): the day's route title on its lantern.
+- **Subhead** (750, 1.1875rem, −0.01em): sub-sections inside a day (schedule, route, rain plan).
+- **Time, fixed** (750, 1.3125rem, −0.02em): the time of a fixed anchor, larger than every other time on the string.
+- **Body** (400, 1.0625rem, 1.55): running text and stop names (at 700). Section ledes cap at 38rem.
+- **Body small** (600–750, 0.9375rem): notes, chips, buttons, times, meta. This is the most used size in the system.
+- **Label** (600, 0.8125rem): compact labels only: header dates, chart axes, table heads, search counts.
+
+### Named Rules
+
+**The Brush Is For Names Rule.** The brush face letters the brand, the day's wish and the seal glyph. Never a time, price, instruction or button.
+
+**The Phone Decides The Size Rule.** Type is set in rem on a root that takes `-apple-system-body` where supported (never smaller than 1rem), so the phone's text-size setting scales the whole page. Don't pin text in px.
+
+## Layout
+
+One phone-first column, `--col` (46rem) wide, centred, with a 16 px gutter. Only the header's tab strip widens past it (to 76rem, centred) from 900 px. Sections open with 36 px above them; each day starts 40 px below the previous one; blocks inside a day sit 22 px apart (16 px on phones). Internal gaps step through 4 / 6 / 8 / 10 / 12 / 14 px. The main column reserves 88 px at the bottom so the last row scrolls clear of the floating buttons.
+
+The header is sticky and translucent (20 px blur, 180 % saturation) and measures its own height into `--bar-h`. Below it, each day has a sticky 40 px day bar (the day's swatch, date and route) that fades in when that day's lantern scrolls under the header. Anchored targets keep a scroll margin of `--bar-h` + 12–56 px so a jump never lands under the header.
+
+A schedule row is a three-column grid: time (4.6rem, right-aligned), the 18 px string, then the stop. Now/Next rows and fact rows are two-column key/value grids (5.25rem and 6.5rem keys).
+
+**Phone compaction (below 600 px, checked at 390 px):** secondary button labels collapse to icons and stay available to screen readers; the brush wish drops to 2.125rem; blocks tighten to 16 px and hanging cards to 12 px padding; the sections button becomes a 52 px square. From 440 px down the header drops the trip dates; from 380 px down the time column narrows to 4rem. From 720 px up the wish grows to 3.25rem, photos run three to a row, travel methods go two-up and tiers three-up.
+
+### Named Rules
+
+**The One Column Rule.** Everything the group reads lives in the 46rem column. Wider screens get more margin, not more columns, except for grids of equals (methods, tiers, photos).
+
+## Elevation & Depth
+
+Hybrid. Content is flat and tonal: Fog Grey and Mist Grey containers on white paper, separated by hairline rules, with no shadow at rest. Shadows belong to two things only: surfaces that float above the page (header glass, results sheet, toast, Back pill, sections button, dialogs) and the lanterns themselves, whose shadow is tinted with their own colour so they read as lit paper, not cards. In dark mode the lanterns switch from a flat fill to a radial glow rising from below the base (the paper mixed 38 % toward warm `#fff4c9`), and their shadow blooms in their own hue.
+
+### Shadow Vocabulary
+
+- **Glass underline** (`box-shadow: 0 1px 0 var(--glass-edge)`): the sticky header and day bar.
+- **Lantern, day** (`box-shadow: 0 10px 24px -14px color-mix(in srgb, var(--c) 80%, #000)`): every lantern panel in light mode.
+- **Lantern, night** (`box-shadow: 0 16px 40px -18px color-mix(in srgb, var(--c) 90%, transparent)`): the lantern's glow in dark mode.
+- **Float** (`box-shadow: 0 10px 28px -10px rgba(0, 0, 0, 0.45)`): the Back pill (0.55 on the sections button).
+- **Toast** (`box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.4)`).
+- **Sheet** (`box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.5)`): dialogs over the scrim.
+- **Pressed segment** (`box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12)`): the selected option in a segmented control.
+
+### Named Rules
+
+**The Glow From Inside Rule.** At night the page stays flat and dark; only lanterns give off light. Don't add glows to anything else.
+
+**The Float Earns A Shadow Rule.** A shadow means "this is above the page and will move". Content rows and containers stay flat.
+
+## Shapes
+
+Softly rounded paper. Containers use 12 px (`md`) and the two hero surfaces (Now/Next card and lanterns) use 18 px (`lg`). Controls sit between them at 8–12 px, with 10 px as the common control radius. Floating buttons use 16 px, dialogs 20 px. Full rounding is used only for dots, the live-location marker and metro line badges.
+
+The lantern has three details. It has a paper-fibre texture (fractal noise in soft-light at 22 % opacity) and two bamboo-ring hairlines inset 9 px from its top and bottom. Its bottom also carries a divider that picks up the day ink at 22 %. The schedule string is a 2 px line in the day colour at 55 %. Ordinary stops are 12 px rings (paper fill, 2.5 px day-colour border). A fixed anchor is a solid seal-red square rotated 45° into a diamond. The current stop is a filled knot with a 5 px halo. The seal stamp is a 20 px, 3 px-radius red square holding one brush glyph, tilted −4°. Optional items hang below on a short 2 px string. The rain plan hangs from its lantern as a dashed 1.5 px border in the day colour.
+
+## Components
+
+Every control is a plain, heavy-lettered rectangle with a 44 px floor (48–52 px for the main actions). Press feedback is a scale to 0.94–0.97 and a Mist Grey fill. Hover exists only on fine pointers.
+
+### Buttons
+
+- **Shape:** 12 px for the go button, 9–11 px for link and lantern buttons.
+- **Go (primary):** ink fill, paper text, 700 weight, 48 px tall, 0 18px padding. The one action that matters on a card (for example "open checklist").
+- **Link button:** Fog Grey fill, link-blue text, 0.9375rem at 700, 44 px, with a 15 px line icon. Map, route and site links under every stop. Below 600 px, icon-only variants are 44 px squares.
+- **Lantern button:** transparent, 1.5 px border in the day ink at 40 %, day ink text. On press it fills with the ink at 14 %.
+- **Route legs:** a two-up grid of 46 px tiles tinted with the day ink at 13 %. The "whole route" leg spans both columns and inverts: day-ink fill, day-colour text.
+- **Icon and text buttons:** 44 px, transparent; the text button is link blue at 600.
+- **Hover / Focus:** hover only under `(hover: hover) and (pointer: fine)`, one step darker paper. Focus is a 3 px Focus Blue outline, 2 px offset, 6 px radius, everywhere.
+
+### Chips
+
+- **Style:** 32 px, 8 px radius, 0.9375rem at 650. On a lantern they tint with the day ink at 14 %. A two-line cost chip shows each person's amount on top and the group's below.
+- **Tags:** 30 px, 7 px radius, paper fill with a hairline rule border.
+- **Metro line badge:** a full-round pill tinted with the line colour at 16 %, holding a solid line-colour code badge.
+
+### Cards / Containers
+
+- **Corner Style:** 12 px for rows and hanging cards, 18 px for the Now/Next card and lanterns.
+- **Background:** Fog Grey for containers; paper plus a hairline border for hanging cards; lantern paper for days.
+- **Shadow Strategy:** flat (see Elevation & Depth).
+- **Border:** 1 px `rule` on hanging cards; a 1.5 px dashed day-colour border on the rain plan.
+- **Internal Padding:** 12–16 px for rows and cards, 18 px for the Now/Next card, 22 px 18px 18px for lanterns.
+
+### Inputs / Fields
+
+- **Search field:** Mist Grey fill, 12 px radius, 44 px, no border, a leading search icon in Ink 3. Input text is 1.0625rem so iOS never zooms.
+- **Segmented control:** Mist Grey track (3 px padding, 11 px radius). The pressed option lifts to paper with a small shadow. Used for the language switch.
+- **Filter buttons:** paper with a hairline border. Pressed inverts to ink. Day filters take the day colour's border and invert to the day's pair when pressed.
+- **Checkboxes:** custom boxes that fill with `good` and draw the tick in 200 ms.
+- **Focus:** the global 3 px Focus Blue ring.
+
+### Navigation
+
+- **Header:** translucent glass bar with the brush brand (the trip dates hidden below 440 px), search, theme and a 中 / EN segmented switch, a search row, then the tab strip.
+- **Day tabs:** 44 px tall, at least 48 px wide, 10 px radius, Fog Grey. Each shows the date number (1rem at 750) and weekday (0.6875rem) under a short 3 px bar in the day colour. The current day tab fills with its lantern pair, and the non-day section tabs fill with ink. The strip scrolls sideways with no visible scrollbar.
+- **Now stripe:** a 3 px stripe under the sticky header takes the colour of the day in view (`--now`), fading over 240 ms, and falls back to `rule` between days.
+- **Sections button:** a floating 52 px ink button, bottom right, that opens the sections sheet.
+- **Back pill:** a floating 52 px paper button, bottom left, with a hairline border and the float shadow. After a jump it returns the reader to where they were, then slides away (fades and drops 14 px).
+
+### Signature: the Lantern and its string
+
+A lantern panel holds the day meta line (day number and date), the brush wish, the route title, chips (focus, cost, what to wear), today's route legs and the action buttons. Below it, the schedule hangs on the string. Fixed anchors show the diamond knot, the larger fixed time and the seal stamp with a "fixed time" label. Stops that are already done fade to Ink 3 and can fold away. The rain plan and optional items hang below.
+
+### Signature: the Now/Next card
+
+A Fog Grey 18 px card. It leads with the countdown at display scale and a unit in the subhead size, then key/value rows (date or Now / Next keys at 750 in Ink 3), then optional prompts and a go button. On a trip day it shows the day's colour chip.
+
+### Motion
+
+Easing is `--ease-out` for anything that moves. Presses take 160 ms (scale). Tab colours, toasts, the Back pill, the sections button and the day bar take 200 ms. The now stripe takes 240 ms and dialogs 220 ms. The landing flash fades out over 900 ms, and the landing glow (a 3 px ring in the day colour at 55 %) fades over 1000 ms. A tab jump lands instantly, and the target's heading or lantern glows once so the reader sees where they arrived. Reduced motion drops all transitions to 1 ms, keeps only opacity fades on the toast, results and dialogs, removes the landing glow and the full-screen map entrance, and freezes the location pulse.
+
+## Do's and Don'ts
+
+### Do:
+
+- **Do** give every day-owned element the day's `--c` / `--ci` pair, and nothing else a lantern colour.
+- **Do** keep every tap target at 44 px or more, and the main floating actions at 52 px.
+- **Do** mark every number that is not the plan's own as an estimate: a "(估)" / "≈" in text, a dashed 22 % tint on charts.
+- **Do** show a decision's rule with go / wait / skip marks in `good` / `warn` / `bad` tints, and the fallback beside it.
+- **Do** keep lantern ink at 4.5:1 or better against the paper it actually sits on, in both themes, including the lit base of a night lantern.
+- **Do** land jumps instantly and glow the target once, and keep the Back pill available to undo the jump.
+- **Do** set type in rem so the phone's text-size setting and `-apple-system-body` scale it.
+- **Do** honour `prefers-reduced-motion`, `prefers-reduced-transparency` (glass becomes solid paper) and `prefers-contrast: more`.
+
+### Don't:
+
+- **Don't** open with a stock hero photo, use a teal accent, or build a grid of identical icon cards.
+- **Don't** set times, prices, instructions or buttons in the brush face.
+- **Don't** use seal red for anything that can move; it marks fixed anchors and today only.
+- **Don't** restyle or reuse metro line colours; they belong to the region's data.
+- **Don't** add shadows to content rows or containers; shadows are for floating surfaces and lanterns.
+- **Don't** add glows to anything but the lanterns at night.
+- **Don't** add a second content column for reading; wide screens get margin.
+- **Don't** describe people on the page by family relationship; use "the group" or names.
+- _(open question)_ **Don't** assume the lantern world is permanent: a future destination pack may be allowed to re-theme the own world (paper colours, brush face, lantern ornament) while the operated layer (type scale, tap targets, fixed-time seals, states) stays unchanged. This is undecided.

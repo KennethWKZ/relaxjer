@@ -8,7 +8,7 @@ over the country) into the page's `Pack`. A trip without a destination builds to
 | ------------------------------ | ------------------------------------------------------------------------------------------------ |
 | `<cc>/pack.mjs`                | the country: name, currency symbol, tourist tax refund, visitor programmes (Taiwan's lucky draw) |
 | `<cc>/regions/<city>/pack.mjs` | the city: its name, what the metro is called, the taxi meter, the bike share's live-count API    |
-| `<cc>/knowledge.md`            | what matters when planning there (roadmap step 6)                                                |
+| `<cc>/knowledge.md`            | what matters when planning there: lessons, with the date they were checked                       |
 
 Pack files are pure modules, like `engine/src/core/`: no imports, no DOM, no trip globals, named exports only. The build
 inlines them; `tests/unit/packs.test.mjs` checks that and unit-tests every pack.
@@ -26,3 +26,5 @@ What the engine reads from `Pack`, each optional:
 | `bikeShare: { name, request(nos), parse(json) }`                      | live bike and dock counts on bike-share pins                   |
 
 The first pack is `tw` with `regions/taipei`.
+
+A new country or city: the `destination-pack` skill (`.agents/skills/destination-pack/`).

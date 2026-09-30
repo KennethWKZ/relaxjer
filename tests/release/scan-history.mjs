@@ -34,7 +34,9 @@ for (const c of commits) {
 if (hits.length) {
 	console.error("pre-push: these commits would publish a real trip's details:");
 	for (const h of hits) console.error(`  ${h}`);
-	console.error('Rewrite them before pushing (for example squash into one clean commit); see docs/roadmap.md.');
+	console.error(
+		'Rewrite them before pushing (for example squash into one clean commit); see memory-bank/standards/patterns/trip-data.md ("Real trips").',
+	);
 	process.exit(1);
 }
 console.log(`pre-push: ${commits.size} commit(s) scanned, no real-trip details`);

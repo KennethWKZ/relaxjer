@@ -32,6 +32,7 @@
 		"lint:check": "eslint --max-warnings=0 .",
 		"format": "prettier --write .",
 		"format:check": "prettier --check .",
+		"gen:adr-index": "node scripts/docs-update/adr/gen-decision-index.mjs",
 		"verify": "pnpm lint:check && pnpm format:check && pnpm test && pnpm test:pipeline",
 		"prepare": "husky",
 		"release": "commit-and-tag-version"

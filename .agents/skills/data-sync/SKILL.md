@@ -1,0 +1,56 @@
+---
+name: data-sync
+description: Refresh a RelaxJer trip's outside data with the pipeline — Google places, pins, hours and route legs, drinks and rest spots, toilets, metro and bike share, shops, the weather forecast and a link check — then rebuild. Use when a trip folder is new, before a trip, during a trip ("update the hours", "refresh the weather"), or when places look wrong. Dry run first, then --write.
+---
+
+# Data sync: `pnpm resync`
+
+Read first: `pipeline/README.md` (commands, folders), `memory-bank/standards/patterns/pipeline.md` (sources and steps),
+`knowledge/data-hygiene.md`.
+
+## Before you run it
+
+- Needs [uv](https://docs.astral.sh/uv/) and node. Google calls need the user's own **server key** in
+  `~/.config/relaxjer/google-places.key` (mode 600). Without one, run with `--no-google`: weather and link checks still
+  work.
+- What the trip searches for lives in `trips/<slug>/pipeline.json`: `steps`, `chains`, `shops`, `pin_queries`,
+  `forecast_spots`, `stations`, `skip_nearby`, `no_hours`, `area`. The steps look themselves up in the trip's region
+  pack, then its country pack, then `pipeline/steps/`.
+
+## Run
+
+```sh
+pnpm resync --trip trips/<slug>             # dry run: fetch, print what would change
+pnpm resync --trip trips/<slug> --write     # write the trip's files and rebuild the page
+#   --reuse   answer from the cache; new Google calls only for misses (cheaper re-runs)
+#   --no-google  --no-weather  --no-links  --no-build
+```
+
+Always dry-run first, and read the diff before `--write`:
+
+- **A place that moved far, or changed type, is a mismatch.** Check it (a car park is not an airport terminal, the inn
+  next door is not the hotel). Pin a hand-checked Google id in `PLACES[k].gpid`, and note why.
+- **Toilets:** filter offices, gyms and shops tagged as toilets.
+- **Near-misses:** keep a sit-down tea house, dessert shop, café or bar as a rest spot; drop only true noise.
+- **Transit:** drop partial OSM lines.
+- **Links** it lists as broken are reported, not changed. Fix them in the data by hand.
+- **Weather** covers only trip days within 16 days.
+
+## After `--write`
+
+1. `TRIP_DIR=trips/<slug> pnpm test`: the contract still holds.
+2. `pnpm test:all`, and `pnpm parity --live <legacy repo> --trip trips/<slug>` while the first trip is live. Parity's
+   text diffs now include fresh data, so read them rather than counting them.
+3. `verify-page`, then `publish-htmlapp` if the page is published.
+
+## Never
+
+- Commit anything under `trips/` or paste its data elsewhere. The cache in `trips/<slug>/.cache/` is gitignored with it.
+- Print, log or copy the server key.
+- Change a step to fit one trip. Put what one trip searches for in its `pipeline.json`, and give a new step a test in
+  `pipeline/tests/` (`pnpm test:pipeline`).
+
+## Done when
+
+The dry run's changes are explained, `--write` is applied, the contract and `pnpm test:all` pass, and the new places
+were checked for mismatches.

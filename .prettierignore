@@ -7,9 +7,16 @@ test-results/
 playwright-report/
 pnpm-lock.yaml
 CHANGELOG.md
-# data fixtures (pulled from Google, rewritten by the pipeline) and prose docs (hand-wrapped)
+# data fixtures (pulled from Google, rewritten by the pipeline)
 examples/**/*.json
-docs/
+# vendored third-party skills keep their upstream bytes, and the skills CLI writes its own lock (.agents/README.md)
+skills-lock.json
+.agents/skills/animate/
+.agents/skills/apple-design/
+.agents/skills/improve-animations/
+.agents/skills/review-animations/
+# the impeccable sidecar is written by the tool
+.impeccable/
 # the page shell carries {{placeholders}} and inline markup the build fills in
 engine/src/shell.html
 # the two halves of the IIFE the build wraps around engine/src/app/*.js; neither parses alone

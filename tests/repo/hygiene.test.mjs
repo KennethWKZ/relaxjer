@@ -6,6 +6,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { ROOT } from '../support/stage.mjs';
+import { secretsIn } from '../support/secret-patterns.mjs';
 
 const git = (...args) => execFileSync('git', args, { cwd: ROOT, encoding: 'utf8' });
 const ignored = (p) => {
@@ -54,7 +55,11 @@ test('the framework files stay tracked', () => {
 		'examples/demo-trip/geo.json',
 		'tests/e2e/boot.spec.mjs',
 		'.env.example',
-		'docs/adr/0001-repo-layout.md',
+		'memory-bank/standards/decisions/ADR-20260930-repo-layout.md',
+		'AGENTS.md',
+		'skills-lock.json',
+		'.claude/settings.json',
+		'.agents/skills/trip-intake/SKILL.md',
 	];
 	assert.deepEqual(mustTrack.filter(ignored), []);
 });
@@ -71,21 +76,14 @@ test('the code graph ignores trips, builds and data fixtures', () => {
 test('no file that would be committed holds a key or a real trip', () => {
 	// everything git would pick up: tracked plus untracked-but-not-ignored
 	const files = git('ls-files', '--cached', '--others', '--exclude-standard').split('\n').filter(Boolean);
-	const SECRETS = [
-		[/AIza[0-9A-Za-z_-]{35}/, 'Google API key'],
-		[/-----BEGIN [A-Z ]*PRIVATE KEY-----/, 'private key'],
-		[/\bgh[pousr]_[0-9A-Za-z]{36}\b/, 'GitHub token'],
-		[/\bsk-ant-[0-9A-Za-z_-]{20,}/, 'Anthropic key'],
-		[/ht_ml_pwd=[A-Za-z0-9%._~-]{6,}/, 'ht-ml.app password cookie'],
-		[/update[_-]?key["']?\s*[:=]\s*["']?[0-9A-Za-z_-]{16,}/i, 'ht-ml.app update key'],
-	];
 	const hits = [];
 	for (const f of files) {
 		if (f.startsWith('trips/') && f !== 'trips/README.md') hits.push(`${f}: real trip file`);
 		const abs = path.join(ROOT, f);
-		if (!fs.existsSync(abs) || fs.statSync(abs).size > 2e6) continue;
-		const text = fs.readFileSync(abs, 'utf8');
-		for (const [re, what] of SECRETS) if (re.test(text)) hits.push(`${f}: ${what}`);
+		// a skill link (.claude/skills/<name> → .agents/skills/<name>) is listed as a file; its target is scanned there
+		const st = fs.existsSync(abs) && fs.lstatSync(abs);
+		if (!st || !st.isFile() || st.size > 2e6) continue;
+		for (const what of secretsIn(fs.readFileSync(abs, 'utf8'))) hits.push(`${f}: ${what}`);
 	}
 	assert.deepEqual(hits, []);
 });

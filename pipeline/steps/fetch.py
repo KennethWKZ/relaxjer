@@ -78,7 +78,7 @@ stations = {v['id'] for v in out['mrt'].values() if v}
 with ThreadPoolExecutor(8) as ex: en = dict(zip(stations, ex.map(lambda i: (details(i, 'en').get('displayName') or {}).get('text'), stations)))
 out['station_en'] = en
 # 5) each day's route legs, at a plausible time of day
-LEGS = {d['id']: [tuple(l) for l in d['route']] for d in DAYS if d.get('route')}  # each day's route (docs/trip-format.md)
+LEGS = {d['id']: [tuple(l) for l in d['route']] for d in DAYS if d.get('route')}  # each day's route (memory-bank/standards/trip-format.md)
 DATES = {d['id']: d['date'] for d in DAYS}
 MODE = {'transit': 'TRANSIT', 'walking': 'WALK', 'driving': 'DRIVE', 'bicycling': 'BICYCLE'}
 def leg(item):

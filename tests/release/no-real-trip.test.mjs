@@ -18,7 +18,9 @@ test("no committable file carries a real trip's details", () => {
 	const hits = [];
 	for (const f of files) {
 		const abs = path.join(ROOT, f);
-		if (!fs.existsSync(abs) || fs.statSync(abs).size > 5e6) continue;
+		// a skill link (.claude/skills/<name>) is listed as a file; its target is scanned under .agents/skills/
+		const st = fs.existsSync(abs) && fs.lstatSync(abs);
+		if (!st || !st.isFile() || st.size > 5e6) continue;
 		for (const h of findRealTrip(fs.readFileSync(abs, 'utf8'), tokens)) hits.push(`${f}: ${h}`);
 	}
 	assert.deepEqual(hits, [], 'push blocked: move these into trip data or reword them');
