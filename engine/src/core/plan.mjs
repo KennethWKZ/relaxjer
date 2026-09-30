@@ -55,3 +55,12 @@ export function dayRoles(days, ret) {
  * trip start date, so two trips opened from the same site never share state.
  */
 export const storeKey = (trip) => trip.storageKey || `rj.${trip.start}.`;
+
+/**
+ * Each day's hotel (place id): one hotel for the whole trip (TRIP.hotel, default 'hotel'), or DAYS[i].hotel from the
+ * night the group moves; a day without one keeps the night before's. → { d1: 'hotel', d2: 'hotel', d3: 'onsen', … }
+ */
+export function hotelsByDay(days, tripHotel) {
+	let h = tripHotel || 'hotel';
+	return Object.fromEntries(days.map((d) => [d.id, (h = d.hotel || h)]));
+}

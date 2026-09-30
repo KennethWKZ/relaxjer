@@ -174,7 +174,11 @@ const hayOf = (p) =>
 		.filter(Boolean)
 		.join(' ')
 		.toLowerCase());
-const farAway = () => !!meLL && km(meLL, placeLL(HOTEL)) > 60; // still at home: distances in the thousands of km help no one
+const farAway = () =>
+	!!meLL &&
+	HOTELS.map(placeLL)
+		.filter(Boolean)
+		.every((h) => km(meLL, h) > 60); // still at home: distances in the thousands of km help no one
 function mapMatches() {
 	const q = ($('#mapq') || {}).value ? $('#mapq').value.trim().toLowerCase() : '';
 	const words = q.split(/\s+/).filter(Boolean);
@@ -228,7 +232,7 @@ async function gSearch(q) {
 		const { places } = await Place.searchByText({
 			textQuery: q,
 			fields: ['id', 'displayName', 'formattedAddress', 'location'],
-			locationBias: { center: meLL && !farAway() ? meLL : placeLL(HOTEL), radius: 30000 },
+			locationBias: { center: meLL && !farAway() ? meLL : placeLL(hotelNow()), radius: 30000 },
 			maxResultCount: 8,
 			language: lang === 'en' ? 'en' : 'zh-TW',
 			region: 'tw',
@@ -318,7 +322,7 @@ function mountLive(url) {
 		m = new maplibregl.Map({
 			container: el,
 			style: url,
-			center: [placeLL(HOTEL).lng, placeLL(HOTEL).lat], // until the first map view fits
+			center: [placeLL(hotelNow()).lng, placeLL(hotelNow()).lat], // until the first map view fits
 			zoom: 12.3,
 			attributionControl: { compact: true },
 			localIdeographFontFamily: '"PingFang TC","PingFang SC","Noto Sans TC","Noto Sans SC","Microsoft JhengHei",sans-serif',

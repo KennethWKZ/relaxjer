@@ -53,12 +53,14 @@ take-off, else the flight's own day; a day after it that holds only the early ta
 
 ## Places, sites and the airport section
 
-The engine looks up no place or site by a fixed name. The hotel is `PLACES[TRIP.hotel]` (default `'hotel'`); every
+The engine looks up no place or site by a fixed name. The hotel is `PLACES[TRIP.hotel]` (default `'hotel'`), or one
+per night (`DAYS[i].hotel`); every
 other place or site is named by the data that uses it, and the contract checks that each one exists.
 
 | Field | Example | What it drives |
 |---|---|---|
-| `TRIP.hotel` | `'hotel'` | the hotel's place id: "from the hotel", distances, the map's first centre |
+| `TRIP.hotel` | `'hotel'` | the hotel's place id when one hotel serves the whole trip |
+| `DAYS[i].hotel` | `'onsen'` | a trip with several hotels: the hotel from that night on (a day without one keeps the night before's). The airport evening uses the last night's hotel, where the bags are |
 | `AIRPORT.terminals` | `[{ place: 'tpe1', code: 'T1' }, …]` | the arrival and going-home route links; the first is where the group lands and leaves |
 | `AIRPORT.sites`, `AIRPORT.departSites` | `['tymetro']`, `[{ site: 'uber', label: [zh, en] }]` | site links under the arrival steps and the going-home links |
 | `AIRPORT.route`, `routeTitle`, `routeAlt` | | the rail diagram from the airport, its heading and its accessible title |

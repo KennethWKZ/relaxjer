@@ -9,7 +9,7 @@ import os from 'node:os';
 import path from 'node:path';
 import vm from 'node:vm';
 import { rangeLabel } from './src/core/time.mjs';
-import { dayRoles, storeKey } from './src/core/plan.mjs';
+import { dayRoles, hotelsByDay, storeKey } from './src/core/plan.mjs';
 
 const argv = process.argv.slice(2);
 const arg = (name, fallback) => {
@@ -253,10 +253,10 @@ console.log(
 			site: p.site,
 		};
 	};
-	const HOTEL = TRIP.hotel || 'hotel';
-	(K.transport || [HOTEL]).forEach((pid) => {
+	const HOTELS = [...new Set(Object.values(hotelsByDay(DAYS, TRIP.hotel)))]; // one or one per night
+	[...new Set([...(K.transport || []), ...HOTELS])].forEach((pid) => {
 		const it = placeItem(pid);
-		if (it) add('hotel', pid, { ...it, kind: pid === HOTEL ? '酒店 Hotel' : '交通 Transport' });
+		if (it) add('hotel', pid, { ...it, kind: HOTELS.includes(pid) ? '酒店 Hotel' : '交通 Transport' });
 	});
 	planDays.forEach((d) => {
 		d.schedule.forEach((s) => {

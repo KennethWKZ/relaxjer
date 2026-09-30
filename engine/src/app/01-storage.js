@@ -36,8 +36,16 @@ const BRAND = TRIP.brand;
 const METRO = Pack.metro || ['地铁', 'metro'];
 const BIKES = (Pack.bikeShare && Pack.bikeShare.name) || ['共享单车', 'bike share'];
 const Cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
-// the hotel's place id (PLACES), for "from the hotel", distances and the map's centre
-const HOTEL = TRIP.hotel || 'hotel';
+// the hotels (PLACES ids): one for the trip, or one per night (Plan.hotelsByDay). hotelOf(day) is where the group
+// sleeps that night (on the airport evening: where the bags are); hotelNow() is today's, else the first night's
+const HOTEL_OF = Plan.hotelsByDay(DAYS, TRIP.hotel);
+const HOTELS = [...new Set(Object.values(HOTEL_OF))];
+const hotelOf = (dayId) => HOTEL_OF[dayId] || HOTELS[0];
+const isHotel = (pid) => HOTELS.includes(pid);
+const hotelNow = () => {
+	const d = DAYS.find((x) => x.date === tpNow().date);
+	return hotelOf(d ? d.id : DAYS[0].id);
+};
 // the trip's themed shop list (SNOW: the first trip's was snowboard gear): its heading, pin kind, icon and photo
 const SHOPLIST = { h: ['商店', 'Shops'], group: ['商店', 'Shops'], kind: ['商店', 'Shop'], icon: 'bag', photo: '', ...SNOW };
 // the build's output name (TRIP.fileName), for the My Maps download

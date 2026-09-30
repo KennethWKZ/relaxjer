@@ -136,7 +136,7 @@ function mapMsg(kind, why) {
 			? `<p>${Z('地图载入中…', 'Loading the map…')}</p>`
 			: kind === 'slow'
 				? `<p class="small">${Z('地图载入比较慢，还在继续。', 'The map is slow and still loading.')}</p><button type="button" class="mlink primary" data-retry-map>${icon('route')}${Z('重新载入', 'Reload map')}</button>`
-				: `<p class="pop-name">${Z('地图载入不了', "The map couldn't load")}</p><p class="small muted">${WHY[why] || WHY.net} ${list}</p><div class="links-row"><button type="button" class="mlink primary" data-retry-map>${icon('route')}${Z('再试一次', 'Try again')}</button>${ext(gmSearch(PLACES[HOTEL].maps), Z('Google 地图看酒店', 'Hotel in Google Maps'), 'pin')}</div>`;
+				: `<p class="pop-name">${Z('地图载入不了', "The map couldn't load")}</p><p class="small muted">${WHY[why] || WHY.net} ${list}</p><div class="links-row"><button type="button" class="mlink primary" data-retry-map>${icon('route')}${Z('再试一次', 'Try again')}</button>${ext(gmSearch(PLACES[hotelNow()].maps), Z('Google 地图看酒店', 'Hotel in Google Maps'), 'pin')}</div>`;
 }
 const canWebGL = () => {
 	try {

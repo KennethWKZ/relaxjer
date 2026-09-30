@@ -18,9 +18,9 @@ function renderNow() {
 			.sort((a, b) => a.due.localeCompare(b.due))
 			.slice(0, 3);
 		el.innerHTML = `<div class="now-count"><span class="now-num">${n}</span><span class="now-unit">${Z('天后出发', n === 1 ? 'day to go' : 'days to go')}</span></div>
-        <p class="muted">${Z(`${Time.dateLabel(FLIGHTS.out.date, 'zh', DAYS[0].dow)} 飞${TRIP.arriveCity[0]}，第一晚住`, `Fly to ${TRIP.arriveCity[1]} on ${Time.dateLabel(FLIGHTS.out.date, 'en', DAYS[0].dow)}; first night at`)} ${esc(L(PLACES.hotel.name))}</p>
+        <p class="muted">${Z(`${Time.dateLabel(FLIGHTS.out.date, 'zh', DAYS[0].dow)} 飞${TRIP.arriveCity[0]}，第一晚住`, `Fly to ${TRIP.arriveCity[1]} on ${Time.dateLabel(FLIGHTS.out.date, 'en', DAYS[0].dow)}; first night at`)} ${esc(L(PLACES[hotelOf(ROLE.arrive)].name))}</p>
         ${todo.length ? `<div class="now-rows">${todo.map((i) => `<div class="now-row"><span class="now-k">${esc(dateLabel(i.due))}</span><span class="now-v">${fmt(i.t)}</span></div>`).join('')}</div>` : ''}
-        <div class="links-row"><a class="go-btn" href="#checklist">${icon('check')}${Z('打开清单', 'Open checklist')}</a><a class="go-btn ghost" href="#d1">${icon('arrow')}Day 1</a></div>`;
+        <div class="links-row"><a class="go-btn" href="#checklist">${icon('check')}${Z('打开清单', 'Open checklist')}</a><a class="go-btn ghost" href="#${ROLE.arrive}">${icon('arrow')}Day ${dayById[ROLE.arrive].n}</a></div>`;
 		return;
 	}
 	if (td > t1) {

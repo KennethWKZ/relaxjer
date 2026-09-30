@@ -119,7 +119,7 @@ function mealGroup(d, it, meal, slots) {
 	const c = pts.length
 		? { lat: pts.reduce((a, f) => a + +f.lat, 0) / pts.length, lng: pts.reduce((a, f) => a + +f.lng, 0) / pts.length }
 		: spec.some(([sl]) => HOTEL_AREA.has(sl))
-			? placeLL(HOTEL)
+			? placeLL(hotelOf(d.id))
 			: it.place
 				? placeLL(it.place)
 				: null;
@@ -150,7 +150,7 @@ const NEAR_KINDS = new Set(['shop', 'market', 'souvenir', 'sight', 'temple', 'na
 const mustB = (w) => (w.must ? `<b class="must-b">${Z('必去', 'Must')}</b>` : '');
 function nearWish(d, it) {
 	// wishlist shops and sights an easy walk from this stop
-	if (!it.place || it.place === HOTEL) return '';
+	if (!it.place || isHotel(it.place)) return '';
 	const at = placeLL(it.place);
 	if (!at) return '';
 	const rows = WISH.filter((w) => w.status !== 'closed' && NEAR_KINDS.has(w.kind))
@@ -173,7 +173,7 @@ function nearWish(d, it) {
 function nearDrinks(d, it) {
 	// a drink within a few minutes' walk: best rated first
 	if (!it.place || !DRINKS.length) return '';
-	if (it.place === HOTEL) return ''; // the hotel has its own food section; a pickup stop is no time for a drink list
+	if (isHotel(it.place)) return ''; // the hotel has its own food section; a pickup stop is no time for a drink list
 	const n = (rest) => spotsNear(it.place, rest, d.date).length;
 	const dr = n(false),
 		rs = n(true);
@@ -481,7 +481,7 @@ function routeCard(day) {
 	const ids = [legs[0][0], ...legs.map((l) => l[1])];
 	const chunks = []; // ≤3 waypoints per link on phones, so a long day is split; each part says where it starts and ends
 	for (let i = 0; i < ids.length - 1; i += 4) chunks.push(ids.slice(i, Math.min(i + 5, ids.length)));
-	const end = (pid) => (pid === HOTEL ? Z('酒店', 'hotel') : nm(pid));
+	const end = (pid) => (isHotel(pid) ? Z('酒店', 'hotel') : nm(pid));
 	const multi = chunks
 		.map(
 			(c, i) =>

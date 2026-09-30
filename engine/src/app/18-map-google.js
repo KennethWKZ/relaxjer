@@ -72,7 +72,7 @@ function mountGoogle() {
 	const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 	const m = new g.Map(el, {
 		mapId: GM.mapId,
-		center: placeLL(HOTEL), // until the first map view fits
+		center: placeLL(hotelNow()), // until the first map view fits
 		zoom: 12.3,
 		colorScheme: isDark() ? g.ColorScheme.DARK : g.ColorScheme.LIGHT,
 		gestureHandling: mapFullOn ? 'greedy' : 'cooperative',

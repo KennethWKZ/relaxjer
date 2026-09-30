@@ -1,6 +1,6 @@
 /* ───────── sections ───────── */
 function secOverview() {
-	const hotelAddr = addrFor(HOTEL);
+	const hotelAddr = addrFor(hotelOf(ROLE.arrive)); // the facts' address line: the first night's hotel
 	return `<section class="sec" id="top" data-sec="top">
       <h1 class="sr-only">${esc(L(TRIP.name))}</h1>
       <div class="now-card" id="now" aria-live="polite"></div>
@@ -253,8 +253,9 @@ function leaveStep(T, x) {
 	return `<li><b>${x.by ? `${Z('最晚', 'By')} ` : ''}${at}</b> ${esc(text)}</li>`;
 }
 const toHotelMin = (ll) => {
-	const w = walkMin(ll, placeLL(HOTEL));
-	return w <= 15 ? Math.round(w) : Math.round(((km(ll, placeLL(HOTEL)) * 1.3) / 22) * 60 + 4 + 6);
+	const H = placeLL(hotelOf(ROLE.leave)); // back to where the bags are, on the airport evening
+	const w = walkMin(ll, H);
+	return w <= 15 ? Math.round(w) : Math.round(((km(ll, H) * 1.3) / 22) * 60 + 4 + 6);
 }; // walk, or a taxi incl. hailing
 function leaveBudgetHTML() {
 	const T = leaveTimes();
@@ -290,7 +291,7 @@ function leaveBudgetHTML() {
 const ideaRow = (n, meta, lat, lng, gpid, q, addr) =>
 	`<li class="idea"><div class="idea-b"><span class="idea-n">${esc(n)}</span>${meta ? `<span class="idea-m">${meta.html != null ? meta.html : esc(meta)}</span>` : ''}</div>${addBtn(n, lat, lng, gpid, q, addr)}</li>`;
 const awayHotel = (ll) => {
-	const k = km(placeLL(HOTEL), ll);
+	const k = km(placeLL(hotelOf(ROLE.free)), ll); // the free-time day's hotel
 	return k < 0.1 ? Z('就在酒店旁', 'next to the hotel') : Z(`离酒店${distLabel(k)}`, `${distLabel(k)} from hotel`);
 };
 // the country's tourist tax refund (Pack.taxRefund): which of our shops have it, and the minimum spend
@@ -488,7 +489,7 @@ function gapContext(dayId, key) {
 		t = r15(t);
 		if (nx != null && t >= nx) t = Math.max((pt.s || 0) + 30, nx - 30);
 	}
-	const ll = llOfStop(it) || d.schedule.slice(0, i).reverse().map(llOfStop).find(Boolean) || placeLL(HOTEL);
+	const ll = llOfStop(it) || d.schedule.slice(0, i).reverse().map(llOfStop).find(Boolean) || placeLL(hotelOf(d.id));
 	return { t: t != null ? hm(t) : null, prev: L(it.what).replace(/\*\*/g, ''), ll };
 }
 let addDay = null;
@@ -595,7 +596,7 @@ async function addFindGoogle(q) {
 		const { places } = await Place.searchByText({
 			textQuery: q,
 			fields: ['id', 'displayName', 'formattedAddress', 'location'],
-			locationBias: { center: meLL && !farAway() ? meLL : placeLL(HOTEL), radius: 30000 },
+			locationBias: { center: meLL && !farAway() ? meLL : placeLL(hotelNow()), radius: 30000 },
 			maxResultCount: 8,
 			language: lang === 'en' ? 'en' : 'zh-TW',
 			region: 'tw',
@@ -875,7 +876,7 @@ function secAirport() {
 					: ''
 			}
       <ol class="list steps">${A.steps.map((s) => `<li>${fmt(s)}</li>`).join('')}</ol>
-      <div class="links-row">${TERM[0] ? placeLinks(TERM[0].place, { noDriver: true }) : ''}${(A.sites || []).map((k) => siteLink(k)).join('')}${TERM.map((t) => ext(gmDir(PLACES[HOTEL].maps, 'transit', PLACES[t.place].maps), Z(`${t.code} → 酒店（搭车）`, `${t.code} → hotel (transit)`), 'route')).join('')}</div>
+      <div class="links-row">${TERM[0] ? placeLinks(TERM[0].place, { noDriver: true }) : ''}${(A.sites || []).map((k) => siteLink(k)).join('')}${TERM.map((t) => ext(gmDir(PLACES[hotelOf(ROLE.arrive)].maps, 'transit', PLACES[t.place].maps), Z(`${t.code} → 酒店（搭车）`, `${t.code} → hotel (transit)`), 'route')).join('')}</div>
       <h3 class="sub">${icon('clock')}${Z('当天怎么决定', 'Deciding on the day')}</h3>
       <div class="decide">${A.rule.map(optRow).join('')}</div>
       ${
@@ -889,7 +890,7 @@ function secAirport() {
       <h3 class="sub" id="depart">${icon('plane')}${Z(`回程：${Time.dateLabel(departEve(), 'zh')}晚到机场`, `Going home: to the airport on ${Time.dateLabel(departEve(), 'en')}`)}</h3>
       <p>${fmt(A.depart.lede)}</p>
       ${list(A.depart.list)}
-      <div class="links-row">${TERM.map((t) => ext(gmDir(PLACES[t.place].maps, 'driving', PLACES[HOTEL].maps), Z(`酒店 → ${t.code}（开车）`, `Hotel → ${t.code} (drive)`), 'car')).join('')}${TERM[0] ? ext(gmDir(PLACES[TERM[0].place].maps, 'transit', PLACES[HOTEL].maps), Z(`酒店 → ${TERM[0].code}（搭车）`, `Hotel → ${TERM[0].code} (transit)`), 'train') : ''}${(A.departSites || []).map((x) => (typeof x === 'string' ? siteLink(x) : siteLink(x.site, 'ext', x.label))).join('')}</div>
+      <div class="links-row">${TERM.map((t) => ext(gmDir(PLACES[t.place].maps, 'driving', PLACES[hotelOf(ROLE.leave)].maps), Z(`酒店 → ${t.code}（开车）`, `Hotel → ${t.code} (drive)`), 'car')).join('')}${TERM[0] ? ext(gmDir(PLACES[TERM[0].place].maps, 'transit', PLACES[hotelOf(ROLE.leave)].maps), Z(`酒店 → ${TERM[0].code}（搭车）`, `Hotel → ${TERM[0].code} (transit)`), 'train') : ''}${(A.departSites || []).map((x) => (typeof x === 'string' ? siteLink(x) : siteLink(x.site, 'ext', x.label))).join('')}</div>
       <p class="xsmall" style="margin-top:10px">${fmt(A.sourceNote)}</p>
     </section>`;
 }

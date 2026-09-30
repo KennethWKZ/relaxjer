@@ -140,3 +140,12 @@ test('Plan: day roles come from the trip, any length', () => {
 	const marked = days(5).map((d) => (d.id === 'd2' ? { ...d, freeFrom: '14:00' } : d));
 	assert.equal(Plan.dayRoles(marked, { dep: '10:00', date: '2027-03-17' }).free, 'd2');
 });
+
+test('Plan: one hotel for the trip, or one per night', () => {
+	const days = ['d1', 'd2', 'd3', 'd4'].map((id) => ({ id }));
+	assert.deepEqual(Plan.hotelsByDay(days), { d1: 'hotel', d2: 'hotel', d3: 'hotel', d4: 'hotel' });
+	assert.deepEqual(Plan.hotelsByDay(days, 'inn'), { d1: 'inn', d2: 'inn', d3: 'inn', d4: 'inn' });
+	// moving on night 3: the new hotel from then on, the leave day keeps where the bags are
+	days[2].hotel = 'onsen';
+	assert.deepEqual(Plan.hotelsByDay(days, 'inn'), { d1: 'inn', d2: 'inn', d3: 'onsen', d4: 'onsen' });
+});

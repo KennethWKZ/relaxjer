@@ -28,7 +28,8 @@ map areas, meal slots, shopping notes, the per-person share gaps (all now trip d
   since 2026-10-01 (`docs/trip-format.md`, `destinations/README.md`)
 - ~~YouBike by name, the snowboard section's labels, `taipei-trip*` file names, the `tp5.` storage prefix, the brush
   font~~: pack or trip data since 2026-10-01 (`TRIP.fileName`, `storageKey`, `brushFont`, `SNOW.h/kind/icon`)
-- one hotel per trip (`TRIP.hotel`): a multi-city trip (Hokkaido) needs a hotel per day
+- ~~one hotel per trip~~: one or one per night since 2026-10-01 (`DAYS[i].hotel`, `Plan.hotelsByDay`; the 4-day test
+  trip moves hotel on night 2)
 - the themed shop list is still called `SNOW` in trip data: rename it when a second trip needs one
 - UI languages fixed to Chinese + English (`Z(zh, en)`), Chinese group numerals (五人), the Traditional → Simplified
   search: roadmap step 4

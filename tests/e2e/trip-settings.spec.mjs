@@ -2,6 +2,7 @@
 // (these started as test.fail() debt markers and pass since roadmap step 3). New engine debt goes here the same way:
 // a test.fail(true, reason) that states the behaviour we want.
 import { test, expect, openTrip } from '../support/fixtures.mjs';
+import { setStored } from '../support/page.mjs';
 
 /* global DAYS, FLIGHTS -- the trip data, read inside the page */
 
@@ -52,4 +53,16 @@ test("the shop list shows the free-time day's own opening hours", async ({ page 
 	test.skip((await rows.count()) === 0, 'this trip lists no shops');
 	for (const t of await rows.allTextContents())
 		if (/\d{1,2}:\d{2}|24 h|closed/.test(t)) expect(t, 'hours are for the free-time day').toContain(` ${dow} `);
+});
+
+test("before the trip, the card names the first night's hotel", async ({ page }) => {
+	await openTrip(page);
+	// the day before this trip starts, whatever trip it is
+	const start = await page.evaluate(() => TRIP.start);
+	await setStored(page, { now: `${new Date(Date.parse(start) - 864e5).toISOString().slice(0, 10)} 09:00` });
+	const name = await page.evaluate(() => {
+		/* global PLACES, TRIP */
+		return PLACES[DAYS[0].hotel || TRIP.hotel || 'hotel'].name[1];
+	});
+	await expect(page.locator('#now')).toContainText(name);
 });

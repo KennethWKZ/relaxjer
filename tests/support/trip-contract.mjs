@@ -132,8 +132,10 @@ export function checkTrip(trip) {
 	});
 	if (!DAYS.some((d) => d.schedule.some((it) => it.fixed))) bad('no fixed times: flights at least are fixed');
 	// places and sites the data points at must exist (the engine looks none up by a fixed name)
+	// one hotel for the trip (TRIP.hotel, default "hotel") or one per night (DAYS[i].hotel from the night it changes)
 	const hotel = TRIP.hotel || 'hotel';
-	if (!PLACES[hotel]) bad(`missing the hotel's place "${hotel}" (TRIP.hotel, default "hotel")`);
+	if (!DAYS[0]?.hotel && !PLACES[hotel]) bad(`missing the hotel's place "${hotel}" (TRIP.hotel, default "hotel")`);
+	for (const d of DAYS) if (d.hotel && !PLACES[d.hotel]) bad(`${d.id}: hotel "${d.hotel}" is not a known place`);
 	const { AIRPORT, ENTRY, WEATHER } = trip;
 	for (const [k, t] of (AIRPORT?.terminals || []).entries())
 		if (!PLACES[t.place] || !t.code) bad(`AIRPORT.terminals[${k}]: needs a known place and a code, got ${JSON.stringify(t)}`);
