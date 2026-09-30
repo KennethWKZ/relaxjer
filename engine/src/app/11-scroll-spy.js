@@ -175,6 +175,7 @@ const homeSync = () => {
 	const b = $('#homeBtn');
 	if (!b) return;
 	b.hidden = !canHome();
+	$('.home-lab', b).textContent = Z('安装', 'Install');
 	b.setAttribute('aria-label', Z('加到手机主画面（像 App 一样打开）', 'Add to the home screen (opens like an app)'));
 	b.title = Z('加到手机主画面', 'Add to the home screen');
 };

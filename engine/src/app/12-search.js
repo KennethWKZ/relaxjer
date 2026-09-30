@@ -160,7 +160,7 @@ function landed(el) {
 	el.classList.remove('landed');
 	void el.offsetWidth;
 	el.classList.add('landed');
-	setTimeout(() => el.classList.remove('landed'), 1100);
+	setTimeout(() => el.classList.remove('landed'), 2400);
 }
 function flash(el) {
 	el.classList.remove('flash', 'fade');

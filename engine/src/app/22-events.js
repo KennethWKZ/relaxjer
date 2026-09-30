@@ -82,10 +82,11 @@ document.addEventListener('click', (e) => {
 		history.back();
 		return;
 	}
-	if (t.id === 'themeBtn') {
+	if (t.id === 'themeBtn' || t.matches('[data-theme-cycle]')) {
 		themePref = THEME_NEXT[themePref];
 		store.set('theme', themePref);
 		applyTheme();
+		if (t.matches('[data-theme-cycle]')) t.outerHTML = themeRow();
 		toast(`${Z('主题', 'Theme')}：${themeName(themePref)}`);
 		return;
 	}

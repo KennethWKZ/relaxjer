@@ -2108,6 +2108,18 @@ dialog.sheet::backdrop {
 		--rule: #8a8f99;
 		--ink-3: #464a53;
 	}
+	/* no glass, and every link button and tab gets an edge */
+	.bar,
+	.day-bar {
+		background: var(--paper);
+		-webkit-backdrop-filter: none;
+		backdrop-filter: none;
+		border-bottom: 1px solid var(--ink-3);
+	}
+	.mlink,
+	.tab {
+		box-shadow: inset 0 0 0 1px var(--ink-3);
+	}
 }
 
 /* ───────── added components ───────── */
@@ -5148,26 +5160,67 @@ dialog.toc {
 	line-height: 1.45;
 }
 
-/* a tab jump lands instantly; the section title glows once so you see where you are */
+/* a tab jump lands instantly; a ring holds for 1.5 s, then fades, so you see where you arrived. The day colour is
+   darkened with ink (lightened at night) so even a gold lantern's ring reaches 3:1 on the paper */
+.landed {
+	--land: color-mix(in srgb, var(--c, var(--ink)) 55%, var(--ink));
+}
 @keyframes landed {
-	from {
-		box-shadow: 0 0 0 3px color-mix(in srgb, var(--c, var(--ink)) 55%, transparent);
+	0%,
+	65% {
+		box-shadow: 0 0 0 3px var(--land);
 	}
-	to {
+	100% {
 		box-shadow: 0 0 0 3px transparent;
 	}
 }
 h2.landed {
 	border-radius: 8px;
-	animation: landed 1000ms var(--ease-out) both;
+	animation: landed 2300ms linear both;
 }
 .lantern.landed {
-	animation: landed 1000ms var(--ease-out) both;
+	animation: landed 2300ms linear both;
 }
 @media (prefers-reduced-motion: reduce) {
 	h2.landed,
 	.lantern.landed {
 		animation: none;
+		box-shadow: 0 0 0 3px var(--land);
+	}
+}
+
+/* press feedback starts on touch-down: the press-in is instant, the release still eases back */
+:is(button, a, summary):active {
+	transition-duration: 0s;
+}
+
+/* the install button says what it does; on phones the theme switch moves to the Sections sheet (labelled there) */
+.icon-btn.home-hd:not([hidden]) {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	width: auto;
+	padding: 0 10px 0 8px;
+	font-size: var(--fs-sm);
+	font-weight: 750;
+	white-space: nowrap;
+}
+.toc-theme {
+	width: 100%;
+	margin-top: 8px;
+	border: 0;
+	font: inherit;
+	font-weight: 700;
+	cursor: pointer;
+}
+@media (max-width: 599px) {
+	#themeBtn {
+		display: none;
+	}
+}
+@media (min-width: 600px) {
+	.toc-theme {
+		display: none;
 	}
 }
 

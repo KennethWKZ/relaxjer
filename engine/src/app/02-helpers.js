@@ -103,9 +103,12 @@ const axisHTML = (ax) =>
 	`<div class="bar-axis"><span></span><div class="bar-axis-t">${ax.marks.map((v) => `<span>${num(v)}</span>`).join('')}</div></div>`;
 const ext = (href, label, ic = 'ext', cls = 'mlink') =>
 	`<a class="${cls}" href="${esc(href)}" target="_blank" rel="noopener">${icon(ic)}${esc(label)}</a>`;
-// same, but icon-only on phones (the label stays for screen readers): for the 地图 / 路线 / 官网 rows repeated on every card
+// same, but icon-only on phones (the label stays for screen readers): for the 地图 / 路线 rows repeated on every card. Only
+// conventional glyphs go icon-only; the generic "ext" glyph doesn't say "website", so 官网 keeps its label
 const extI = (href, label, ic = 'ext') =>
-	`<a class="mlink ic" href="${esc(href)}" target="_blank" rel="noopener">${icon(ic)}<span class="dlbl">${esc(label)}</span></a>`;
+	ic === 'ext'
+		? ext(href, label)
+		: `<a class="mlink ic" href="${esc(href)}" target="_blank" rel="noopener">${icon(ic)}<span class="dlbl">${esc(label)}</span></a>`;
 const MODES = {
 	transit: ['搭车', 'Transit', 'train'],
 	driving: ['开车', 'Drive', 'car'],

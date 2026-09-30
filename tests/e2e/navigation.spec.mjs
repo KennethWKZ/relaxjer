@@ -1,4 +1,4 @@
-// Getting around: instant tab jumps with a landing glow, the Back pill, the Sections menu, site search, offline notice.
+// Getting around: instant tab jumps with a landing ring, the Back pill, the Sections menu, site search, offline notice.
 import { test, expect, openTrip } from '../support/fixtures.mjs';
 import { settle } from '../support/page.mjs';
 
@@ -6,9 +6,9 @@ const top = (page, sel) => page.locator(sel).evaluate((e) => e.getBoundingClient
 // a landed section sits just under the sticky bar; the legacy suites allowed a few px of sub-pixel overshoot
 const LANDED = { min: -5, max: 260 };
 
-test('a tab jump is instant and lands with a glow that fades', async ({ page }) => {
+test('a tab jump is instant and lands with a ring that holds, then goes', async ({ page }) => {
 	await openTrip(page);
-	// watch from the tap: scroll positions for 600 ms, and when the landing glow comes and goes (for up to 3 s)
+	// watch from the tap: scroll positions for 600 ms, and when the landing ring comes and goes (for up to 4 s)
 	const run = await page.evaluate(
 		() =>
 			new Promise((done) => {
@@ -25,7 +25,7 @@ test('a tab jump is instant and lands with a glow that fades', async ({ page }) 
 				document.querySelector('.tab[href="#budget"]').click();
 				const tick = () => {
 					if (performance.now() - t0 < 600) seen.add(Math.round(scrollY));
-					if (performance.now() - t0 < 3000 && glow.off == null) requestAnimationFrame(tick);
+					if (performance.now() - t0 < 4000 && glow.off == null) requestAnimationFrame(tick);
 					else {
 						mo.disconnect();
 						done({ positions: seen.size, ...glow });
@@ -42,7 +42,9 @@ test('a tab jump is instant and lands with a glow that fades', async ({ page }) 
 	expect(t).toBeLessThan(LANDED.max);
 	expect(run.on, 'the landing glow appeared').not.toBeNull();
 	expect(run.off, 'and faded').not.toBeNull();
-	expect(run.off - run.on, 'glow lasts about a second').toBeLessThan(1500);
+	// affordances rule 20: long enough to find where you landed (1.5 s or more), gone before it's noise
+	expect(run.off - run.on, 'the ring holds 1.5–3 s').toBeGreaterThanOrEqual(1500);
+	expect(run.off - run.on).toBeLessThanOrEqual(3000);
 });
 
 test('the Back pill returns to where the reader was before a jump', async ({ page }) => {

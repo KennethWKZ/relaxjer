@@ -1,7 +1,7 @@
 // Affordance rules from memory-bank/standards/patterns/affordances.md, measured on the page (rule numbers in brackets):
 // every control can be hit, looks like what it is, and shows its state.
 import { test, expect, openTrip } from '../support/fixtures.mjs';
-import { openAllDetails } from '../support/page.mjs';
+import { openAllDetails, scrollBy } from '../support/page.mjs';
 
 test('every control is at least 44 px [1]', async ({ page }) => {
 	await openTrip(page);
@@ -135,4 +135,53 @@ test('disabled is dimmed, and a location request in flight says so [18]', async 
 	await expect(on).toHaveAttribute('aria-busy', 'true');
 	await expect(on).toBeDisabled();
 	await expect(on).toContainText('Finding you');
+});
+
+test('a website link keeps its word, and phones switch the theme from the Sections sheet [9]', async ({ page }) => {
+	await openTrip(page);
+	const bare = await page.evaluate(
+		() =>
+			[...document.querySelectorAll('#app a.mlink')]
+				.filter((a) => a.querySelector('use[href="#i-ext"]') && a.getBoundingClientRect().width)
+				.filter((a) => {
+					const r = document.createRange();
+					r.selectNodeContents(a);
+					return !a.textContent.trim() || a.querySelector('.dlbl');
+				}).length,
+	);
+	expect(bare, 'website links with no visible word').toBe(0);
+	if ((page.viewportSize()?.width || 0) >= 600) return;
+	await expect(page.locator('#themeBtn')).toBeHidden();
+	await scrollBy(page, 1200); // the Sections button shows once you're past the first screen
+	await expect(page.locator('#tocBtn')).toHaveAttribute('data-show', '1');
+	await page.locator('#tocBtn').click();
+	const row = page.locator('[data-theme-cycle]');
+	await expect(row).toContainText('Theme');
+	const before = await row.textContent();
+	await row.click();
+	await expect(page.locator('[data-theme-cycle]')).not.toHaveText(before);
+});
+
+test('a jump holds a ring on where it landed, even with reduced motion [20]', async ({ page }) => {
+	await page.emulateMedia({ reducedMotion: 'reduce' });
+	await openTrip(page);
+	await page.locator('.tab.day').nth(1).click();
+	const ring = () =>
+		page.evaluate(() => (document.querySelector('.landed') ? getComputedStyle(document.querySelector('.landed')).boxShadow : 'none'));
+	await expect.poll(ring).not.toBe('none');
+	await page.waitForTimeout(1200);
+	expect(await ring(), 'still there after a second').not.toBe('none');
+});
+
+test('high contrast makes the bars solid and edges the link buttons [23]', async ({ page }) => {
+	await page.emulateMedia({ contrast: 'more' });
+	await openTrip(page);
+	const [bar, link] = await page.evaluate(() =>
+		[getComputedStyle(document.querySelector('#bar')), getComputedStyle(document.querySelector('#app .mlink'))].map((c) => [
+			c.backdropFilter || c.webkitBackdropFilter || 'none',
+			c.boxShadow,
+		]),
+	);
+	expect(bar[0]).toBe('none');
+	expect(link[1]).not.toBe('none');
 });
