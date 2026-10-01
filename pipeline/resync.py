@@ -3,6 +3,7 @@
 
     uv run --project pipeline pipeline/resync.py --trip trips/<slug>            # dry run: print what would change
     uv run --project pipeline pipeline/resync.py --trip trips/<slug> --write    # apply to the trip's files, rebuild
+                                                       (with ~/.config/relaxjer/google.json and sync/<slug>.json when present)
     options: --fresh (ask Google again for everything)  --yes (the planner agrees to pay)  --no-google  --no-weather
              --no-links  --no-build   (--reuse: the default now; still accepted)
 
@@ -109,6 +110,9 @@ if '--no-links' not in args:
 if WRITE and '--no-build' not in args:
     step('Build')
     keys = os.path.expanduser('~/.config/relaxjer/google.json')
-    r = subprocess.run(['node', 'engine/build.mjs', '--trip', S, '--keys', keys if os.path.exists(keys) else 'none'], cwd=REPO, capture_output=True, text=True)
+    # a trip with group sync keeps it: a rebuild without its sync file would turn sync off on the next publish
+    sync = os.path.expanduser(f'~/.config/relaxjer/sync/{os.path.basename(os.path.abspath(S))}.json')
+    build = ['node', 'engine/build.mjs', '--trip', S, '--keys', keys if os.path.exists(keys) else 'none'] + (['--sync', sync] if os.path.exists(sync) else [])
+    r = subprocess.run(build, cwd=REPO, capture_output=True, text=True)
     print(r.stdout.strip().splitlines()[-1] if r.stdout.strip() else r.stderr[-400:])
     print('\nNext: run the tests (pnpm test:all, pnpm parity), check the page, then republish to the same link.')
