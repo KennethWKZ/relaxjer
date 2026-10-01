@@ -20,6 +20,20 @@ What the first trip taught about a page a whole group uses, seniors included, on
 - **The next thing is one glance away.** The Now/Next card leads the page.
 - **Decisions show their rule**: when to go, when to skip, and the fallback, so the group can decide in the chat.
 
+## A shared plan
+
+Learned designing group sync ([ADR-20261002-sync-planners](../memory-bank/standards/decisions/ADR-20261002-sync-planners.md)):
+
+- **A removal that can't be undone is the main risk.** With one shared plan, one slip on one phone changes everyone's
+  page. Offer Undo on the toast, and keep a list of what left the plan, so a stop can come back after the toast is gone.
+- **Undo beats a list.** The people most likely to slip are the ones least likely to open a list to fix it, so the
+  toast comes first and the list is the fallback.
+- **Show who did it.** Mark each added stop with the name of who added it. Ask for the name once, the first time a phone
+  opens the page, and again where the person is already acting (the add sheet), never only two taps deep in a menu.
+- **Let a person change only what they added.** A planner can change anything. Guard stops only: a pushed-back time or a
+  tick is something everyone needs to do.
+- **Say what the guard is.** If the page enforces it, it stops mistakes, not someone who has the page.
+
 ## Testing it like the group
 
 Walk the group's real journeys yourself before calling a page change done, at 390 px, one-handed, as a senior would:
