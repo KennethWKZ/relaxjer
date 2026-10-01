@@ -52,6 +52,9 @@ const addByLink = async (page, name, day = 'd3', t = '16:00') => {
 
 // tagged @demo: the day, the shared checklist group and its items are the demo trip's
 test.describe('group sync', { tag: '@demo' }, () => {
+	// two phones, a page each, and the add sheet's checks on every stop: CI's Linux WebKit needs more than 30 s for the
+	// longer journeys (blocking a phone, putting the plan back), so the group gets three times the budget
+	test.slow();
 	test.skip(() => !hasSyncPage(), 'the legacy engine has no group sync');
 	let b;
 	test.beforeEach(async ({ browser, request, tripNow, tripLang, page, context }, testInfo) => {
