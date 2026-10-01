@@ -2,21 +2,32 @@
 
 The key is the user's own (ADR-20260930-google-keys): ~/.config/relaxjer/google-places.key (mode 600), or RELAXJER_GOOGLE_KEY_FILE.
 It runs from the user's machine only and never goes into a page.
-Cache: <trip>/.cache/google-cache.json. With RESYNC_REUSE=1 (resync.py --reuse) a call already in the cache is not
-made again. Saving merges into the file, so a fresh run keeps the answers of the other steps.
+Cache: <trip>/.cache/google-cache.json. Every call is paid for, so a call already in the cache is answered from it, and
+a re-run pays only for what's new (ADR-20261001-resync-cost-guard). RESYNC_FRESH=1 (resync.py --fresh) starts from an
+empty cache instead; saving merges into the file, so the answers of the other steps stay.
+Without RESYNC_PAID=1 (resync.py --yes: the planner agreed to the cost) a step stops after MAX_NEW new calls, and what
+it fetched is saved on the way out.
 RELAXJER_OFFLINE=1 (tests): a call not in the cache raises instead of going to the network."""
-import json, math, os, threading, time, urllib.error, urllib.request
+import atexit, json, math, os, threading, time, urllib.error, urllib.request
 from lib.trip import CACHE_DIR, cfg
 
 KEY_FILE = os.environ.get('RELAXJER_GOOGLE_KEY_FILE') or os.path.expanduser('~/.config/relaxjer/google-places.key')
 CF = CACHE_DIR + 'google-cache.json'
 OUT = CACHE_DIR + 'google-out.json'
 OFFLINE = os.environ.get('RELAXJER_OFFLINE') == '1'
-CACHE = json.load(open(CF)) if os.path.exists(CF) and (os.environ.get('RESYNC_REUSE') == '1' or OFFLINE) else {}
+FRESH = os.environ.get('RESYNC_FRESH') == '1' and not OFFLINE
+PAID = os.environ.get('RESYNC_PAID') == '1'
+MAX_NEW = 200  # new calls one step may make without the planner's go: about US$7 at most, at list price
+CACHE = json.load(open(CF)) if os.path.exists(CF) and not FRESH else {}
 LOCK = threading.Lock()
 LANG, REGION = cfg('google', {}).get('language', 'zh-TW'), cfg('google', {}).get('region', 'TW')
 _key = None
 NEW = [0]  # calls made this run (not answered from the cache)
+ASKED = [0]  # calls started this run, counted before they go out, so threads can't overshoot MAX_NEW
+SAVED = [0]  # NEW when the cache was last written
+
+class TooMany(SystemExit):
+    """a SystemExit, so a step's `except Exception` can't swallow it"""
 
 def key():
     global _key
@@ -25,11 +36,20 @@ def key():
         _key = open(KEY_FILE).read().strip()
     return _key
 
+# a key or quota problem, a busy server, no network: not an answer worth keeping (Google doesn't bill these)
+AGAIN = {401, 403, 429, 500, 502, 503, 504, 'net'}
+def failed(r): return isinstance(r, dict) and r.get('_err') in AGAIN
+
 def call(tag, url, body=None, mask='', method='POST'):
     k = tag + '|' + json.dumps(body, sort_keys=True, ensure_ascii=False) + '|' + url + '|' + mask
     with LOCK:
-        if k in CACHE: return CACHE[k]
-    if OFFLINE: raise RuntimeError(f'offline and not cached: {tag} {url}')
+        # a failed call is asked again, so a run the quota stopped finishes on the next one; a 404 (gone) is an answer
+        if k in CACHE and (OFFLINE or not failed(CACHE[k])): return CACHE[k]
+        if OFFLINE: raise RuntimeError(f'offline and not cached: {tag} {url}')
+        if not PAID and ASKED[0] >= MAX_NEW:
+            raise TooMany(f'stopped: this step needs more than {MAX_NEW} Google calls the cache doesn\'t hold. What it fetched '
+                          'is kept. Paying for the rest is the planner\'s call: they add --yes to the same command.')
+        ASKED[0] += 1
     h = {'X-Goog-Api-Key': key(), 'X-Goog-FieldMask': mask}
     if body is not None: h['Content-Type'] = 'application/json'
     for attempt in range(3):
@@ -49,6 +69,46 @@ def save():
     """write the cache, keeping what other steps stored"""
     old = json.load(open(CF)) if os.path.exists(CF) else {}
     os.umask(0o077); json.dump({**old, **CACHE}, open(CF, 'w'), ensure_ascii=False)
+    SAVED[0] = NEW[0]
+
+@atexit.register
+def _keep_paid_answers():
+    """a step that stops early (TooMany, an error, Ctrl-C) still keeps the answers it paid for"""
+    if NEW[0] != SAVED[0]: save()
+
+# list price per 1,000 calls, by product and the dearest field a call asks for (Google's price list, checked 2026-10-01).
+# The free monthly amounts come off the bill; an estimate leaves them out, so it errs high.
+PRICE = {'text': {'ids': 0, 'essentials': 32, 'pro': 32, 'enterprise': 35, 'atmosphere': 40},
+         'nearby': {'ids': 32, 'essentials': 32, 'pro': 32, 'enterprise': 35, 'atmosphere': 40},
+         'details': {'ids': 0, 'essentials': 5, 'pro': 17, 'enterprise': 20, 'atmosphere': 25},
+         'routes': 5, 'other': 40}
+TIER = {**dict.fromkeys(['id', 'name', 'attributions', 'nextPageToken'], 'ids'),
+        **dict.fromkeys('displayName businessStatus googleMapsUri googleMapsLinks primaryType primaryTypeDisplayName '
+                        'accessibilityOptions utcOffsetMinutes iconBackgroundColor iconMaskBaseUri containingPlaces '
+                        'subDestinations pureServiceAreaBusiness'.split(), 'pro'),
+        **dict.fromkeys('rating userRatingCount regularOpeningHours currentOpeningHours regularSecondaryOpeningHours '
+                        'currentSecondaryOpeningHours nationalPhoneNumber internationalPhoneNumber websiteUri priceLevel '
+                        'priceRange'.split(), 'enterprise'),
+        **dict.fromkeys('restroom goodForChildren goodForGroups goodForWatchingSports reviews reviewSummary editorialSummary '
+                        'generativeSummary neighborhoodSummary takeout delivery dineIn curbsidePickup reservable '
+                        'outdoorSeating liveMusic menuForChildren allowsDogs parkingOptions paymentOptions fuelOptions '
+                        'evChargeOptions evChargeAmenitySummary routingSummaries'.split(), 'atmosphere')}
+ORDER = ['ids', 'essentials', 'pro', 'enterprise', 'atmosphere']
+
+def cost(k):
+    """list price in US$ of asking one cached call again"""
+    url, mask = k.rsplit('|', 2)[-2:]
+    if 'routes.googleapis.com' in url: return PRICE['routes'] / 1000
+    kind = 'text' if 'places:searchText' in url else 'nearby' if 'places:searchNearby' in url else 'details' if '/v1/places/' in url else 'other'
+    if kind == 'other': return PRICE['other'] / 1000
+    fields = [f.removeprefix('places.').split('.')[0] for f in mask.split(',') if f]
+    tier = max((TIER.get(f, 'atmosphere' if f.startswith('serves') else 'essentials') for f in fields), key=ORDER.index, default='ids')
+    return PRICE[kind][tier] / 1000
+
+def estimate(keys):
+    """(calls, US$ at list price) for asking these cached calls again"""
+    keys = list(keys)
+    return len(keys), sum(map(cost, keys))
 
 DET = 'id,displayName,formattedAddress,location,regularOpeningHours.weekdayDescriptions,rating,userRatingCount,businessStatus,nationalPhoneNumber,googleMapsUri,primaryType'
 def details(pid, lang=None): return call('det', f'https://places.googleapis.com/v1/places/{pid}?languageCode={lang or LANG}', None, DET, 'GET')

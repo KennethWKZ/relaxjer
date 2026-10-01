@@ -4,7 +4,6 @@ PLACES[k].gpid when set (hand-checked), else geo.json, else a Google text search
 whose place type makes no sense (a car park for an airport terminal) is searched again. --write to save."""
 import json, os, sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-os.environ.setdefault('RESYNC_REUSE', '1')
 from lib.trip import S, PLACES, cfg
 from lib import google as F
 G = json.load(open(S + 'geo.json'))

@@ -40,10 +40,27 @@ From [Google's price list](https://developers.google.com/maps/billing-and-pricin
 | The data refresh's place details             | Place Details Pro / Enterprise | 5,000 / 1,000   | US$17 / US$20   |
 | The data refresh's walking and transit legs  | Compute Routes Essentials      | 10,000          | US$5            |
 
-**A family trip usually costs nothing.** Eight phones opening the map 20 times a day for a week is about 1,100 map
-loads (11% of the free amount). Ratings, photos and a data refresh or two stay under 1,000 each. A group that taps
-photos a lot might pay a few dollars. What does cost money is a **leaked, unrestricted key**, which is why the
-restrictions and quotas below aren't optional.
+**The page usually costs nothing.** Eight phones opening the map 20 times a day for a week is about 1,100 map loads
+(11% of the free amount), and the group's ratings and photos stay under 1,000 each. A group that taps photos a lot
+might pay a few dollars.
+
+**A full data refresh does cost money.** It asks Google about every place, nearby drink stand, toilet and shop the
+trip has, and a week-long trip has thousands: the first trip's cache holds about 4,600 answers, half of them text
+searches at US$35 per 1,000. Asking them all is about US$130 at list price, before the free amounts take off the
+first 1,000–5,000 of each product. On 2026-10-01 one such run, started only to test a new key, showed as RM520 on the
+bill within minutes. So the refresh guards the spend
+([ADR-20261001-resync-cost-guard](../memory-bank/standards/decisions/ADR-20261001-resync-cost-guard.md)):
+
+- **It answers from the trip's cache** and asks Google only what's new, or what failed last time.
+- **A step stops after 200 new calls** (about US$7) unless you add `--yes`. What it fetched is kept.
+- **`--fresh` asks everything again**, for when you want it all current, such as right before the trip. It prints
+  how many calls that is and what they cost, and goes ahead only when you type `yes` (or add `--yes`). A trip's first
+  run, with no cache yet, asks the same way.
+- **To test a key, make one call per API, not a refresh** (the check in step 5 below).
+- **Set the quotas in step 7 before the first refresh.** A daily cap limits what a mistake costs; a budget alert only
+  emails you, hours later.
+
+What also costs money is a **leaked, unrestricted key**, which is why the restrictions and quotas below aren't optional.
 
 ## Setup
 
@@ -96,6 +113,20 @@ address. Serve it instead (`node tests/support/serve.mjs trips/<slug>/dist 8124`
 2. **"API restrictions"** → **"Restrict key"** → tick **Places API (New)** and **Routes API** only.
 3. **"Application restrictions"**: choose **"IP addresses"** only if your home connection has a fixed IP. Otherwise
    leave it off, and keep this key on your computer. It never goes into a page.
+4. Once it's in place (step 6), **check it with one call per API**, never with a refresh. The Places call asks for
+   place ids only, which Google doesn't charge for; the Routes call is one of the 10,000 free each month. It prints
+   each API's status (`200` means the key works), never the key:
+
+```sh
+node --input-type=module -e "
+const key = (await import('node:fs')).readFileSync(process.env.HOME + '/.config/relaxjer/google-places.key', 'utf8').trim();
+const call = (url, body, mask) => fetch(url, { method: 'POST', body: JSON.stringify(body),
+  headers: { 'Content-Type': 'application/json', 'X-Goog-Api-Key': key, 'X-Goog-FieldMask': mask } }).then((r) => r.status);
+console.log('Places', await call('https://places.googleapis.com/v1/places:searchText', { textQuery: 'Tokyo Tower' }, 'places.id'));
+console.log('Routes', await call('https://routes.googleapis.com/directions/v2:computeRoutes',
+  { origin: { address: 'Tokyo Station' }, destination: { address: 'Tokyo Tower' }, travelMode: 'WALK' }, 'routes.duration'));
+"
+```
 
 ### 6. Put the keys on your computer, outside the repo
 
@@ -115,7 +146,8 @@ Then build with the key, and refresh your trip's data with the other:
 
 ```sh
 pnpm build --trip trips/<slug> --keys ~/.config/relaxjer/google.json
-pnpm resync --trip trips/<slug>            # a dry run first; then --write
+pnpm resync --trip trips/<slug>            # a dry run first: the first one says what it costs Google, and asks
+pnpm resync --trip trips/<slug> --write    # then write what it fetched, from the cache
 ```
 
 The build prints whether a key went in. Build the demo, and any page you share outside your group, without `--keys`.
@@ -127,6 +159,12 @@ The build prints whether a key went in. Build the demo, and any page you share o
 - **Quotas, which do stop spending:** **"Google Maps Platform"** → **"Quotas"**, pick each API, and lower its limits
   (for example, Places requests per minute) to a little above what your group could use. When a quota is reached, the
   API pauses until it resets, instead of billing you.
+  - Places API (New) counts each method on its own (Text Search, Place Details, Nearby Search), so cap each one.
+  - A per-minute limit only slows a refresh down. Where the console offers a per-day limit, that's what caps the
+    spend.
+  - Size the per-day limits to one full refresh (for the first trip: about 2,200 text searches, 1,300 place details,
+    900 nearby searches). That stops a runaway loop or a stolen key at one refresh's cost a day. A refresh the quota
+    cut short finishes the next day: the next run asks again only what failed.
 - Keep the restrictions from steps 3 and 5. An unrestricted browser key is visible to anyone who opens the page.
 
 ## Google's terms, in short

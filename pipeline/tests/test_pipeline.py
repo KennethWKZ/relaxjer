@@ -1,4 +1,5 @@
 import json, os, unittest
+from unittest import mock
 from lib import trip, hours, google
 
 class Trip(unittest.TestCase):
@@ -52,6 +53,79 @@ class Google(unittest.TestCase):
         google.save()
         saved = json.load(open(google.CF))
         self.assertIn('other|step', saved); self.assertIn(k, saved)
+
+    URL = 'https://places.googleapis.com/v1/places/{}?languageCode=zh-TW'
+
+    def online(self, asked, **patch):
+        """Google faked: every call answers with the place id it asked for, and is noted in `asked`"""
+        class Answer:
+            def __init__(self, url): self.url = url
+            def read(self): return json.dumps({'id': self.url.split('/')[-1].split('?')[0]}).encode()
+        def urlopen(req, timeout): asked.append(req.full_url); return Answer(req.full_url)
+        return mock.patch.multiple(google, OFFLINE=False, key=lambda: 'k', ASKED=[0], **patch), \
+            mock.patch.object(google.urllib.request, 'urlopen', urlopen)
+
+    def test_a_call_that_failed_is_asked_again_and_a_place_that_is_gone_is_not(self):
+        busy, gone = (f'det|null|{self.URL.format(p)}|{google.DET}' for p in ('ChIJbusy', 'ChIJgone'))
+        google.CACHE[busy] = {'_err': 429, '_msg': 'quota'}  # a run the quota stopped
+        google.CACHE[gone] = {'_err': 404, '_msg': 'not found'}  # a place Google no longer has: pins.py re-pins it
+        asked = []
+        a, b = self.online(asked)
+        with a, b:
+            self.assertEqual(google.details('ChIJbusy'), {'id': 'ChIJbusy'})
+            self.assertEqual(google.details('ChIJgone')['_err'], 404)
+        self.assertEqual(asked, [self.URL.format('ChIJbusy')])
+        self.assertEqual(google.details('ChIJbusy'), {'id': 'ChIJbusy'})  # and the answer is kept
+
+    def test_a_step_stops_after_its_new_calls_unless_the_planner_said_yes(self):
+        asked = []
+        a, b = self.online(asked, MAX_NEW=2, PAID=False)
+        with a, b:
+            google.details('ChIJnew1'); google.details('ChIJnew2')
+            with self.assertRaises(google.TooMany) as stop: google.details('ChIJnew3')
+            self.assertIn('--yes', str(stop.exception.code))
+            self.assertEqual(google.details('ChIJnew1'), {'id': 'ChIJnew1'})  # answers it has still come from the cache
+        self.assertEqual(len(asked), 2)
+        a, b = self.online(asked, MAX_NEW=2, PAID=True)
+        with a, b: google.details('ChIJnew3')
+        self.assertEqual(len(asked), 3)
+
+    def test_the_estimate_prices_each_call_by_the_dearest_field_it_asks_for(self):
+        k = lambda url, mask: f'x|null|{url}|{mask}'
+        text, near = 'https://places.googleapis.com/v1/places:searchText', 'https://places.googleapis.com/v1/places:searchNearby'
+        calls = [
+            k(text, 'places.id'),  # ids only: free
+            k(text, 'places.' + google.DET.replace(',', ',places.')),  # rating, hours: Text Search Enterprise
+            k(near, 'places.id,places.displayName,places.location'),  # Nearby Search Pro
+            k(self.URL.format('ChIJx'), 'id,restroom'),  # Place Details Enterprise + Atmosphere
+            k('https://routes.googleapis.com/directions/v2:computeRoutes', 'routes.duration'),  # Compute Routes Essentials
+        ]
+        n, usd = google.estimate(calls)
+        self.assertEqual(n, 5)
+        self.assertAlmostEqual(usd, (0 + 35 + 32 + 25 + 5) / 1000)
+
+class Resync(unittest.TestCase):
+    def run_resync(self, *flags, cache=None):
+        import subprocess, sys, tempfile
+        d = tempfile.mkdtemp(prefix='relaxjer-resync-test-')
+        if cache is not None: json.dump(cache, open(os.path.join(d, 'google-cache.json'), 'w'))
+        env = dict(os.environ, RELAXJER_CACHE_DIR=d)
+        return subprocess.run([sys.executable, os.path.join(trip.REPO, 'pipeline', 'resync.py'), '--trip', trip.TRIP_DIR, *flags,
+                               '--no-weather', '--no-links', '--no-build'], env=env, stdin=subprocess.DEVNULL, capture_output=True, text=True)
+
+    def test_fresh_says_what_it_costs_and_stops_without_a_yes(self):
+        k = 'txt|{}|https://places.googleapis.com/v1/places:searchText|places.rating'
+        r = self.run_resync('--fresh', cache={k: {'places': []}})
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn('all 1 calls in the cache: about US$0', r.stdout)
+        self.assertIn('stopped before asking Google anything', r.stderr)
+        self.assertNotIn('── Google', r.stdout)  # no step ran
+
+    def test_a_trip_with_no_cache_yet_asks_first_too(self):
+        r = self.run_resync()
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn('no Google cache yet', r.stdout)
+        self.assertIn('stopped before asking Google anything', r.stderr)
 
     def test_distance(self):
         self.assertAlmostEqual(google.dist((25.0, 121.5), (25.01, 121.5)), 1112, delta=2)

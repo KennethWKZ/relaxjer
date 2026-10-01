@@ -8,7 +8,6 @@ OSM has the Danhai LRT Blue Coast line with one stop only, so it is rebuilt here
 Green Mountain line track, then 臺北海洋大學 → 沙崙 → 淡水漁人碼頭 (CNA, 2020-11-14). Writes mrt.json with --write."""
 import json, math, os, re, sys, urllib.parse, urllib.request
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../../../pipeline'))
-os.environ.setdefault('RESYNC_REUSE', '1')
 from lib.trip import S, CACHE_DIR, DAYS, TODAY, utc_at
 from lib import google as F
 CACHE = CACHE_DIR + 'osm-mrt.json'

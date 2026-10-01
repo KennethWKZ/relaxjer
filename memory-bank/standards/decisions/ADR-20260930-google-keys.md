@@ -41,7 +41,10 @@ ships that data, or tells thousands of people to cache it, is not.
 - **Without keys the page still works:** MapLibre + OpenStreetMap map, the offline transit planner, hand-entered or
   open-data places. Google is recommended (better hours, place detail and search in Asia), never required.
 - What each user caches for their own trip is their responsibility under their own agreement with Google. The docs state
-  the terms, and the pipeline offers a "refresh before the trip" run (`pnpm resync`) rather than long-lived caches.
+  the terms, and the pipeline offers a "refresh before the trip" run rather than long-lived caches. Amended on
+  2026-10-01 (Kenneth): day-to-day refreshes answer from the cache, and the full one is `pnpm resync --fresh`, which
+  prints its cost and waits for the planner's yes
+  ([ADR-20261001-resync-cost-guard](ADR-20261001-resync-cost-guard.md)).
 - **Setup is a guide, not a skill's memory:** `guides/google-maps.md` holds the steps, the costs, the guardrails and the
   comparison with the free map. Skills and the landing page link to it.
 

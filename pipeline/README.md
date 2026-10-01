@@ -3,10 +3,16 @@
 Refreshes a trip's data from outside sources, then rebuilds its page:
 
 ```sh
-pnpm resync --trip trips/<slug>            # dry run: fetch, print what would change
+pnpm resync --trip trips/<slug>            # dry run: print what would change
 pnpm resync --trip trips/<slug> --write    # write the trip's files, rebuild the page
-#   --reuse (answer from the cache; new calls only for misses)  --no-google  --no-weather  --no-links  --no-build
+#   --fresh (ask Google again for everything)  --yes (the planner agrees to pay)  --no-google  --no-weather  --no-links  --no-build
 ```
+
+Google bills every call, so a run answers from the trip's cache, asks only what's new or what failed, and stops a step
+after 200 new calls without `--yes`. `--fresh`, or a trip with no cache yet, prints what it would cost (a week-long
+trip: a few thousand calls, about US$130 at list price) and needs a yes
+([ADR-20261001-resync-cost-guard](../memory-bank/standards/decisions/ADR-20261001-resync-cost-guard.md)). Never refresh
+to test a key ([`guides/google-maps.md`](../guides/google-maps.md), step 5).
 
 Needs [uv](https://docs.astral.sh/uv/) (it installs Python 3.13 and the two dependencies, `opencc` and `pillow`) and
 node. Google calls use **your own key** ([ADR-20260930-google-keys](../memory-bank/standards/decisions/ADR-20260930-google-keys.md)): `~/.config/relaxjer/google-places.key` (mode 600), with Places API

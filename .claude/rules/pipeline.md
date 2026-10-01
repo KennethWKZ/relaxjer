@@ -14,4 +14,6 @@ Read `memory-bank/standards/patterns/pipeline.md` (SSoT) and `knowledge/data-hyg
   `pipeline.json`.
 - Stable output: sort before writing; never depend on set or dict order.
 - The server key is never printed, logged, committed or put in a page.
+- Google bills every call: go through `lib/google.py`'s `call()`, never around its cache, and never pass `--yes` or
+  `RESYNC_PAID`. Paying for a refresh is the planner's call.
 - Every step has an offline test in `pipeline/tests/` (`pnpm test:pipeline`).

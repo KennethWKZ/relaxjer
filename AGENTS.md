@@ -91,7 +91,7 @@ pnpm verify                      # lint + format check + tier 0 + pipeline tests
 pnpm lint / pnpm format          # ESLint --fix / Prettier --write
 pnpm gen:adr-index               # regenerate memory-bank/standards/decision-index.md after an ADR change
 pnpm build --trip trips/<slug> --keys ~/.config/relaxjer/google.json   # a real trip; omit --keys for the demo
-pnpm resync --trip trips/<slug> [--write]   # refresh a trip's data (Google, weather, links), see pipeline/README.md
+pnpm resync --trip trips/<slug> [--write]   # refresh a trip's data from its cache; paying for more is the planner's call (data-sync)
 pnpm test:pipeline               # the pipeline's offline tests (needs uv)
 pnpm test:release                # the push gate: no real trip's details in anything published
 pnpm sync init --trip trips/<slug> --db <url>   # group sync for a trip (rules|init|end|status), see the sync-setup skill

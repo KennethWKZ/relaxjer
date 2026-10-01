@@ -39,3 +39,7 @@ lessons in [`../../../knowledge/data-hygiene.md`](../../../knowledge/data-hygien
   goes into a page, a trip folder, a test or a log line.
 - Google's terms limit how long Places content may be kept. The cache lives in the trip's gitignored `.cache/`, and a
   trip's data is never published or committed ([ADR-20260930-google-keys](../decisions/ADR-20260930-google-keys.md)).
+- Google bills every call, so every Google call goes through `lib/google.py`'s `call()`: it answers from the cache,
+  asks again only what failed, stops a step after `MAX_NEW` new calls without the planner's yes, and keeps what it
+  paid for when a step stops early. `--fresh` and a trip's first run print their cost and wait for a yes; an agent
+  never gives one ([ADR-20261001-resync-cost-guard](../decisions/ADR-20261001-resync-cost-guard.md)).

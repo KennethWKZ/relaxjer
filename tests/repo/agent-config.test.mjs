@@ -148,6 +148,31 @@ test('the Bash guard blocks the hook bypasses and lets ordinary git through', ()
 	for (const command of allowed) assert.equal(hook('guard-bash.mjs', { tool_input: { command } }), 0, `blocked: ${command}`);
 });
 
+test('the Bash guard leaves paying Google for a refresh to the planner', () => {
+	// built here, like the git ones above
+	const yes = ['-', '-yes'].join('');
+	const paid = ['RESYNC', 'PAID'].join('_');
+	const blocked = [
+		{ command: `pnpm resync --trip trips/x --fresh ${yes}` },
+		{ command: `pnpm resync --trip trips/x --write ${yes} --no-weather` },
+		{ command: `uv run --project pipeline pipeline/resync.py --trip trips/x ${yes}` },
+		{ command: `${paid}=1 uv run --project pipeline python pipeline/steps/fetch.py` },
+		{ command: `python - <<'EOF'\nimport subprocess; subprocess.run(['pnpm', 'resync', '--trip', 'x', '${yes}'])\nEOF` },
+		{ code: `import os; os.environ['${paid}'] = '1'` },
+		{ code: `subprocess.run(['pnpm', 'resync', '--trip', 'x'], env=dict(os.environ, ${paid}='1'))` },
+		{ commands: [{ label: 'x', command: `pnpm resync --trip trips/x ${yes}` }] },
+	];
+	const allowed = [
+		{ command: 'pnpm resync --trip trips/x' },
+		{ command: 'pnpm resync --trip trips/x --fresh' },
+		{ command: 'pnpm resync --trip trips/x --write --no-weather' },
+		{ command: `grep -n ${paid} pipeline/lib/google.py` },
+		{ command: `npx -y firebase-tools@15.32.1 login ${yes}` },
+	];
+	for (const t of blocked) assert.equal(hook('guard-bash.mjs', { tool_input: t }), 2, `not blocked: ${JSON.stringify(t)}`);
+	for (const t of allowed) assert.equal(hook('guard-bash.mjs', { tool_input: t }), 0, `blocked: ${JSON.stringify(t)}`);
+});
+
 test('the write guard blocks keys and key files, and lets ordinary writes through', () => {
 	const googleKey = 'AIza' + 'B'.repeat(35);
 	const anthropicKey = ['sk', 'ant', 'x'.repeat(24)].join('-');

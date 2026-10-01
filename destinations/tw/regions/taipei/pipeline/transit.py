@@ -5,7 +5,6 @@
 Writes transit.json with --write; otherwise prints a summary."""
 import json, os, re, sys, urllib.request
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../../../pipeline'))
-os.environ.setdefault('RESYNC_REUSE', '1')
 import opencc; T2S = opencc.OpenCC('t2s').convert
 from lib.trip import S, TODAY, cfg
 from lib import google as F

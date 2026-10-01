@@ -7,7 +7,7 @@
 	"hooks": {
 		"PreToolUse": [
 			{
-				"matcher": "Bash|Monitor",
+				"matcher": "Bash|Monitor|mcp__.*ctx_(batch_execute|execute_file|execute)",
 				"hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-bash.mjs\"", "timeout": 10 }]
 			},
 			{

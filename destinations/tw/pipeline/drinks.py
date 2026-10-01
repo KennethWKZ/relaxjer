@@ -3,7 +3,6 @@ from Google (the user's own key). Each shop gets cat "drink" (grab and go) or "r
 Writes drinks.json with --write; otherwise prints a summary. Run via pipeline/resync.py."""
 import json, math, os, re, sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../pipeline'))
-os.environ.setdefault('RESYNC_REUSE', '1')
 import opencc; T2S = opencc.OpenCC('t2s').convert
 from lib.trip import S, HOTELS, TODAY, cfg
 from lib import google as F

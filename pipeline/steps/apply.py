@@ -3,7 +3,7 @@ status, the chains' branch lists (pipeline.json "chains"), nearest metro, route-
 Run via pipeline/resync.py."""
 import json, os, re, sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-os.environ['RESYNC_REUSE'] = '1'
+os.environ['RESYNC_FRESH'] = '0'  # apply reads what fetch just fetched, even in a --fresh run
 import opencc; T2S = opencc.OpenCC('t2s').convert
 from lib.trip import S, PLACES, HOTEL_OF, ROLES, TODAY, cfg
 from lib import google as F

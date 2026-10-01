@@ -4,7 +4,6 @@ pipeline.json "shops": [[search, kind, why zh, why en, tax refund 'yes' | 'no' |
 Writes shops.json with --write. Run via pipeline/resync.py."""
 import json, os, sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-os.environ.setdefault('RESYNC_REUSE', '1')
 import opencc; T2S = opencc.OpenCC('t2s').convert
 from lib.trip import S, HOTEL_OF, ROLES, cfg
 from lib import google as F

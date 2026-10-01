@@ -52,7 +52,8 @@ use it, exclude your trips before the first build (`graphmind exclude add trips`
    back to a free map.
 2. **Describe the trip** to your agent: dates, flights, who's coming (seniors?), hotels, what's booked, what you'd
    love. It writes `trips/<slug>/`, which is gitignored and never committed.
-3. **Refresh, build, check:** `pnpm resync --trip trips/<slug> --write`, then
+3. **Refresh, build, check:** `pnpm resync --trip trips/<slug> --write` (the first run says what it costs Google
+   and asks you first, [why](guides/google-maps.md#what-it-costs)), then
    `pnpm build --trip trips/<slug> --keys ~/.config/relaxjer/google.json`, then the tests and a look on your phone.
 4. **Publish behind a password** (ht-ml.app), and share the link in your group chat.
 

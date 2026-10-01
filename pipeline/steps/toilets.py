@@ -8,7 +8,6 @@
 Writes toilets.json with --write; otherwise prints a summary."""
 import json, os, re, sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-os.environ.setdefault('RESYNC_REUSE', '1')
 import opencc; T2S = opencc.OpenCC('t2s').convert
 from lib.trip import S, TODAY, cfg
 from lib import google as F
