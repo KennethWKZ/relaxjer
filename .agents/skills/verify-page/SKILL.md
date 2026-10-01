@@ -16,7 +16,8 @@ TRIP_DIR=trips/<slug> pnpm test                                      # the contr
 TRIP_DIR=trips/<slug> pnpm exec playwright test --grep-invert @demo  # every trip-agnostic e2e on this trip
 ```
 
-While the first trip is live, an engine change also runs parity, which should show only the known diffs:
+While the first trip is live, the maintainer also runs parity on an engine change, which should show only the known
+diffs (anyone can compare with an earlier commit: `pnpm parity --ref <commit> --trip trips/<slug>`):
 
 ```sh
 pnpm parity --live <legacy repo> --trip trips/<slug>
@@ -74,6 +75,15 @@ At 390 px, one-handed, as a senior would (`knowledge/group-ux.md`):
     the header, and its Add name opens Group sync. Then a second phone sees who added a stop, can't change it, and a
     planner phone can. A planner blocks that second phone: its stops go, its bar says it's blocked, Undo brings it all
     back, and Unblock sends what waited.
+
+11. Add a stop from a "+": the getting-there check (walk, taxi, metro), a time too early ("Use HH:MM"), a clash with a
+    fixed time, and Undo after removing it.
+12. A day that splits: the fork, its rule, switching plans, the route on the map, the rejoin stop.
+13. An optional plan's "Nearby options" chip opens its card over the day, and closing it keeps your place.
+14. Push the day back from a stop: flexible stops move, fixed ones hold, and the banner says what moved. Type a flight
+    delay, then Back to booked.
+15. The header: search in the other language, the theme (light, dark, follow the phone), the language switch keeping
+    your place, the Sections menu, and Install.
 
 Count taps and long scrolls. A dead end, a back trap, a tiny target or squeezed text is a bug: fix it, or file it in
 the story index's "Known issues".

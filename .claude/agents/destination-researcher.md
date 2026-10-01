@@ -26,7 +26,7 @@ example) and `knowledge/data-hygiene.md`.
 
 1. **Facts table:** fact, value, source, checked date, confidence.
 2. **Proposed exports**, mapped to the table in `destinations/README.md` (`country`, `sym`, `taxRefund`, `city`,
-   `metro`, `transitCard`, `metroToiletTip`, `taxiFare(km, minsNow)`, `bikeShare`…). For a function, give its formula
+   `metro`, `transitCard`, `metroToiletTip`, `drinkGuide`, `taxiFare(km, minsNow)`, `bikeShare`…). For a function, give its formula
    and three worked cases that a unit test can assert.
 3. **Data traps** for the pipeline: misleading Google place types, chains that matter, where OSM beats Google.
 4. **For seniors and groups:** what makes the destination easier or harder (stairs, distances, taxis, toilets).

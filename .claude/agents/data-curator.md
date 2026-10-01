@@ -30,7 +30,15 @@ Read first: `memory-bank/standards/trip-format.md`, `memory-bank/standards/patte
    - partial OSM transit lines.
 7. **The demo only:** nothing copied from Google (`gpid`, ratings, reviews, Google photo URLs), and nothing real (people,
    bookings, phone numbers).
-8. **A published trip:** `TRIP.fileName` and `TRIP.storageKey` unchanged from the last publish.
+8. **A published trip:** `TRIP.fileName`, `TRIP.storageKey` and every existing id (days, checklist items, shop lists,
+   optional plans) unchanged from the last publish: an id is a key on every phone.
+9. **The features the data turns on** (`guides/trip-page.md` § What turns each part on):
+   - a day split's `who` names no relationship, its `go` rows give the rule and the fallback, and each plan's `join` is
+     a stop time on that day;
+   - an optional plan's `near` points at stops it really suits, on days it's open;
+   - only groups everyone ticks once for all (bookings, tickets) are `shared: true`, never passports or packing;
+   - each day has a lantern colour `c` (1–7), a rain plan, and a `wear` line when the weather calls for one;
+   - `pipeline.json` names its `steps` when the trip isn't in Taiwan, and `wish-a.json` / `wish-b.json` exist.
 
 ## Return
 

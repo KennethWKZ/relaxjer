@@ -17,11 +17,12 @@ pnpm build --trip trips/<slug> --keys … --sync ~/.config/relaxjer/sync/<slug>.
 
 In `<out>` (default `trips/<slug>/dist/`, gitignored):
 
-| File                         | What                                                        |
-| ---------------------------- | ----------------------------------------------------------- |
-| `<fileName>-standalone.html` | **the page to publish**: one file, photos and icons inlined |
-| `<fileName>.html`            | the same page without inlined images                        |
-| `<fileName>-mymaps.kml`      | a Google My Maps export of the trip's places                |
+| File                         | What                                                                        |
+| ---------------------------- | --------------------------------------------------------------------------- |
+| `<fileName>-standalone.html` | **the page to publish**: one file, photos and icons inlined                 |
+| `<fileName>.html`            | the page's body only (no head, policy, build id or icons): never publish it |
+| `<fileName>-mymaps.kml`      | a Google My Maps export of the trip's places, one layer per day             |
+| `mymaps/NN-<layer>.kml`      | the same, one file per layer (My Maps imports one layer at a time)          |
 
 `<fileName>` is `TRIP.fileName` (default `trip`). The build prints its size and whether a key went in. Read that line:
 a page meant for anyone outside the group must say no key.
@@ -47,6 +48,10 @@ a page meant for anyone outside the group must say no key.
   grep -o 'relaxjer-build" content="[0-9a-f]*' trips/<slug>/dist/*-standalone.html
   ```
 
+- **`SHARE_URL`**, set in the environment at build, is the live page's address: Copy link and the share links point at
+  it. Without it they use the address the page was opened at.
+- **Photos and the home-screen icon** come from the trip's `img/` (`img/credits.json`, `img/icon/`); a page without
+  icons still installs, with the browser's default icon (`pipeline/README.md` § Photos and icons).
 - Nothing under `dist/` is ever committed (`.gitignore`, the pre-commit guard).
 
 ## If it fails

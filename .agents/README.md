@@ -8,7 +8,9 @@ out this way: `memory-bank/standards/decisions/ADR-20261001-memory-bank-agent-co
 
 | Skill              | For                                                               |
 | ------------------ | ----------------------------------------------------------------- |
+| `planner-setup`    | a fresh clone → the tools, the install, the demo opened, the keys |
 | `trip-intake`      | requirements → a trip folder that passes the contract             |
+| `trip-customize`   | the planner's changes → the trip's data, and where each one shows |
 | `data-sync`        | refresh a trip's places, hours, weather and links (`pnpm resync`) |
 | `build-page`       | build the single-file page                                        |
 | `verify-page`      | tests, then a real-browser pass and the group's journeys          |

@@ -13,7 +13,7 @@ Read first: `pipeline/README.md` (commands, folders), `memory-bank/standards/pat
 - Needs [uv](https://docs.astral.sh/uv/) and node. Google calls need the user's own **server key** in
   `~/.config/relaxjer/google-places.key` (mode 600). Without one, run with `--no-google`: weather and link checks still
   work.
-- What the trip searches for lives in `trips/<slug>/pipeline.json`: `steps`, `chains`, `shops`, `pin_queries`,
+- What the trip searches for lives in `trips/<slug>/pipeline.json` ([every key](../../../pipeline/README.md#pipelinejson)): `steps`, `chains`, `shops`, `pin_queries`,
   `forecast_spots`, `stations`, `skip_nearby`, `no_hours`, `area`. The steps look themselves up in the trip's region
   pack, then its country pack, then `pipeline/steps/`.
 
@@ -21,7 +21,7 @@ Read first: `pipeline/README.md` (commands, folders), `memory-bank/standards/pat
 
 ```sh
 pnpm resync --trip trips/<slug>             # dry run: print what would change (answers from the cache)
-pnpm resync --trip trips/<slug> --write     # write the trip's files and rebuild the page
+pnpm resync --trip trips/<slug> --write     # write the trip's files and rebuild the page (with google.json and the trip's sync file when present)
 #   --fresh   ask Google again for everything (prints the cost, needs the planner's yes)
 #   --no-google  --no-weather  --no-links  --no-build
 ```
@@ -54,7 +54,7 @@ Always dry-run first, and read the diff before `--write`:
 ## After `--write`
 
 1. `TRIP_DIR=trips/<slug> pnpm test`: the contract still holds.
-2. `pnpm test:all`, and `pnpm parity --live <legacy repo> --trip trips/<slug>` while the first trip is live. Parity's
+2. `pnpm test:all`, and (the maintainer, while the first trip is live) `pnpm parity --live <legacy repo> --trip trips/<slug>`. Parity's
    text diffs now include fresh data, so read them rather than counting them.
 3. `verify-page`, then `publish-htmlapp` if the page is published.
 

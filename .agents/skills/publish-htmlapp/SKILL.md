@@ -62,8 +62,9 @@ Never read or copy the secrets another way. The script:
 2. Saves the live copy as `~/.config/relaxjer/publish/<slug>-rollback-<build id>.html`. To undo a bad publish, the
    planner publishes that file.
 3. Reads the update key (the Keychain first; `--check` and `--dry-run` never read it), then shares the page to the same
-   site. A "Deny" in the Keychain dialog stops the publish; it never falls back to a copy on disk. Without `--password`
-   or `--private`, the viewer password stays as it is.
+   site. A "Deny" in the Keychain dialog stops the publish; it never falls back to a copy on disk. The viewer password
+   stays as it is unless you pass `--new-password` (below). The phone checks in step 5 need the Playwright browsers
+   (`pnpm setup:e2e`).
 4. Polls the live build id for about 3 minutes. The CDN can serve the old copy for minutes, and `?v=` doesn't bust it,
    so after a minute it shares once more (that fixed a stale copy within a minute on the first trip).
 5. Checks that the live page's Content-Security-Policy reads the same as the built one (the host re-serialises the HTML

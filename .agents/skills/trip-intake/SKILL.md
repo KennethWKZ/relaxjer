@@ -45,12 +45,14 @@ requirements. No demo content may survive: its hotel, stalls and prices are inve
 - `DAYS`: ids `d1`…`dN` in order. Booked or timed items are `fixed: true`; flight-tied items use `rel: { arr }` or
   `rel: { dep }`. Give each day a route, a rain plan and slack around fixed items. Seniors' walking counts ×1.4, and a
   long leg suggests a taxi first.
-- Money: group figures as `"<sym>a–b / N人"` (zh) and `"<sym>a–b for N"` (en). The page adds the per-person share.
+- Money: group figures as `"<sym>a–b / 五人"` (zh, with the Chinese numeral up to ten) and `"<sym>a–b for 5"` (en).
+  The page adds the per-person share.
 - `PLACES`: every place a day or list names. Positions come from Google through `data-sync`, so a rough position is
   fine for now.
 - Wording: never describe people by family relationship. Say "the group", "seniors", "adults".
-- `trips/<slug>/pipeline.json`: what `data-sync` should search for (the `steps`, `chains`, `shops`, `pin_queries`,
-  `forecast_spots`, `stations`). Copy the keys another trip uses, never its values.
+- `trips/<slug>/pipeline.json`: what `data-sync` should search for. Every key and a synthetic example are in
+  [`pipeline/README.md`](../../../pipeline/README.md#pipelinejson). A trip outside Taiwan names its own `steps`. Create
+  empty `wish-a.json` and `wish-b.json` (`{ "items": [] }`) if the group has no wishlist yet: the refresh expects them.
 - `trips/<slug>/never-publish.txt`: one literal per line, for anything private the release gate can't derive (a
   nickname, a booking code).
 
@@ -64,14 +66,19 @@ unsure; the page works without Google too.
 Ask them to confirm both keys' restrictions in the Cloud console before the first build. **Never ask for a key in the chat,
 and never write one yourself.** They paste it into the file.
 
-## 5. Check
+## 5. Shape it, then check
+
+Walk the planner through the first draft day by day, and apply what they change with `trip-customize`. Travel
+questions ("is this too much for the seniors?", "what needs booking?") go to the read-only `relaxbro` agent in Claude
+Code, or to your own research with sources and dates.
 
 ```sh
 TRIP_DIR=trips/<slug> pnpm test     # the contract on this trip: every place exists, every pin inside the map, day ids in order
 ```
 
 Fix every contract failure in the data, never in the contract. Then hand over to `data-sync` (places, hours,
-weather), then `build-page`.
+weather), then `build-page`. [`guides/trip-page.md`](../../../guides/trip-page.md) says what each field becomes on the
+page, so you can show the planner what they'll get.
 
 ## Done when
 
