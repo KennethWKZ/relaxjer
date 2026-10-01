@@ -114,6 +114,13 @@ const OSM_RASTER = {
 };
 const JS_ALT = 'https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.js';
 const CSS_ALT = 'https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.css';
+// subresource integrity: both CDNs serve the same pinned 5.24.0 files byte for byte, so one hash each covers both. A file
+// that doesn't match is refused like a failed download: the next CDN, then the drawn map. A version bump needs new hashes
+// (`curl -s <url> | openssl dgst -sha384 -binary | openssl base64 -A`)
+const SRI = {
+	js: 'sha384-5+cfbwT0iiub6VsQAdn6yz16nr6sDiQoHx6tm4O8OVYXHYOxcffFmCJBL0dgdvGp',
+	css: 'sha384-uTttxo/aOKbdE5RlD/SPzSDoDmNvGlUYPjONi2MN/b7c9HPSvW07OIuyP7uL6jxK',
+};
 function mapMsg(kind, why) {
 	const el = $('#mapmsg');
 	if (!el) return;
@@ -168,14 +175,14 @@ async function startLiveMap() {
 	}
 	const loadLib = async () => {
 		try {
-			await loadTag('link', { rel: 'stylesheet', href: LIVE.css });
-			await loadTag('script', { src: LIVE.js });
+			await loadTag('link', { rel: 'stylesheet', href: LIVE.css, integrity: SRI.css, crossOrigin: 'anonymous' });
+			await loadTag('script', { src: LIVE.js, integrity: SRI.js, crossOrigin: 'anonymous' });
 		} catch {
 			/* try the second CDN */
 		}
 		if (!window.maplibregl) {
-			await loadTag('link', { rel: 'stylesheet', href: CSS_ALT }).catch(() => {});
-			await loadTag('script', { src: JS_ALT }).catch(() => {});
+			await loadTag('link', { rel: 'stylesheet', href: CSS_ALT, integrity: SRI.css, crossOrigin: 'anonymous' }).catch(() => {});
+			await loadTag('script', { src: JS_ALT, integrity: SRI.js, crossOrigin: 'anonymous' }).catch(() => {});
 		}
 		return !!window.maplibregl;
 	};

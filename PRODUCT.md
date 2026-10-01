@@ -52,7 +52,9 @@ offline on a tired phone, and doesn't split every cost per person.
 - The airport transfer compares the options (train or metro with a transit card, taxi or ride-hail, a pre-booked van)
   with prices for the whole group, decided on the day.
 - Optional items (shops, extra sights) are never scheduled.
-- No shared backend: state is per phone (`localStorage`) for checklist ticks, added stops and preferences.
+- State is per phone (`localStorage`) for checklist ticks, added stops and preferences. With group sync on (the
+  planner's choice, per trip), added stops, pushed-back times, flight changes and the ticks of shared lists reach
+  everyone's phone; the rest stays on each one.
 - Two UI languages (today Simplified Chinese and English), with the destination's own names for drivers and signs.
 
 ## Evidence on Hand

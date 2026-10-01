@@ -37,3 +37,6 @@ __pycache__/
 
 # editor config written by `graphmind init` (paths on one machine)
 /.vscode/mcp.json
+
+# Firebase emulator logs (pnpm test:sync-rules)
+*-debug.log

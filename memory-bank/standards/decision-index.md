@@ -1,5 +1,5 @@
 ---
-total_decisions: 7
+total_decisions: 9
 last_updated: 2026-10-01
 ---
 
@@ -14,12 +14,14 @@ decision, add a file there (frontmatter `id`, `date`, `title`, `domain`, `status
 **Ids** are `ADR-YYYYMMDD-slug`, never a shared counter, so parallel branches and pull requests never collide. A
 merged id never changes; a new ADR that collides takes a fresh slug.
 
-| #                                                                                           | Date       | Decision                                                                                          | Domain  | Status   |
-| ------------------------------------------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------- | ------- | -------- |
-| [ADR-20260930-google-keys](decisions/ADR-20260930-google-keys.md)                           | 2026-09-30 | Each User Brings Their Own Google Keys; RelaxJer Ships No Keys and No Google Content              | data    | accepted |
-| [ADR-20260930-name-relaxjer](decisions/ADR-20260930-name-relaxjer.md)                       | 2026-09-30 | The Project Is Named RelaxJer                                                                     | naming  | accepted |
-| [ADR-20260930-repo-layout](decisions/ADR-20260930-repo-layout.md)                           | 2026-09-30 | Repository Layout: One Framework Repo, Destination Packs, Gitignored Trips                        | layout  | accepted |
-| [ADR-20260930-test-strategy](decisions/ADR-20260930-test-strategy.md)                       | 2026-09-30 | Test Strategy: Characterise First, Then Split                                                     | testing | accepted |
-| [ADR-20261001-live-page-on-relaxjer](decisions/ADR-20261001-live-page-on-relaxjer.md)       | 2026-10-01 | The First Trip's Live Page Is Built by RelaxJer                                                   | hosting | accepted |
-| [ADR-20261001-memory-bank-agent-config](decisions/ADR-20261001-memory-bank-agent-config.md) | 2026-10-01 | Project Context Lives in memory-bank/; Agent Tooling Works for Any Agent, With Claude Code Extras | agents  | accepted |
-| [ADR-20261001-project-tooling](decisions/ADR-20261001-project-tooling.md)                   | 2026-10-01 | Project Tooling Follows the Maintainer's Standard Setup                                           | tooling | accepted |
+| #                                                                                           | Date       | Decision                                                                                             | Domain   | Status   |
+| ------------------------------------------------------------------------------------------- | ---------- | ---------------------------------------------------------------------------------------------------- | -------- | -------- |
+| [ADR-20260930-google-keys](decisions/ADR-20260930-google-keys.md)                           | 2026-09-30 | Each User Brings Their Own Google Keys; RelaxJer Ships No Keys and No Google Content                 | data     | accepted |
+| [ADR-20260930-name-relaxjer](decisions/ADR-20260930-name-relaxjer.md)                       | 2026-09-30 | The Project Is Named RelaxJer                                                                        | naming   | accepted |
+| [ADR-20260930-repo-layout](decisions/ADR-20260930-repo-layout.md)                           | 2026-09-30 | Repository Layout: One Framework Repo, Destination Packs, Gitignored Trips                           | layout   | accepted |
+| [ADR-20260930-test-strategy](decisions/ADR-20260930-test-strategy.md)                       | 2026-09-30 | Test Strategy: Characterise First, Then Split                                                        | testing  | accepted |
+| [ADR-20261001-group-sync](decisions/ADR-20261001-group-sync.md)                             | 2026-10-01 | Group Sync Through the Planner's Own Firebase Realtime Database, Over Its Plain HTTPS API            | data     | accepted |
+| [ADR-20261001-live-page-on-relaxjer](decisions/ADR-20261001-live-page-on-relaxjer.md)       | 2026-10-01 | The First Trip's Live Page Is Built by RelaxJer                                                      | hosting  | accepted |
+| [ADR-20261001-memory-bank-agent-config](decisions/ADR-20261001-memory-bank-agent-config.md) | 2026-10-01 | Project Context Lives in memory-bank/; Agent Tooling Works for Any Agent, With Claude Code Extras    | agents   | accepted |
+| [ADR-20261001-page-csp](decisions/ADR-20261001-page-csp.md)                                 | 2026-10-01 | The Trip Page Carries Its Own Content-Security-Policy, and MapLibre Loads With Subresource Integrity | security | accepted |
+| [ADR-20261001-project-tooling](decisions/ADR-20261001-project-tooling.md)                   | 2026-10-01 | Project Tooling Follows the Maintainer's Standard Setup                                              | tooling  | accepted |

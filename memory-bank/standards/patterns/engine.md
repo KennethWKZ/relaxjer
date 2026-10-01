@@ -62,3 +62,8 @@ pack export instead, document it in `trip-format.md`, and have the contract chec
   carry the old section heights over, and hold for 2 s.
 - Google `AdvancedMarker` content must be a `div`, not a `button`, or clicks recurse.
 - The place sheet strips ids from its copy, so use `data-` attributes inside sheets.
+- The first `render()` runs at the end of `25-theme.js`, before later fragments (`26-sync.js`) have run. Anything it
+  calls from a later fragment must be a `function` declaration (hoisted), and must not touch that fragment's `const` or
+  `let` (still in its temporal dead zone); keep such state in `01-storage.js`.
+- `26-sync.js` wraps `store.set`: a write to a shared key (`Sync.KEYS`) is queued for the group. Write remote changes
+  back with its `quiet` flag, or they echo.

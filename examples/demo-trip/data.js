@@ -1008,6 +1008,8 @@ const CHECKLIST = [
 	{
 		id: 'before',
 		h: ['出发前', 'Before the trip'],
+		// group sync: one person books, everyone sees it ticked (only when the page is built with --sync)
+		shared: true,
 		items: [
 			{ id: 'passport', t: ['护照有效期6个月以上', 'Passports valid 6+ months'] },
 			{ id: 'arrival', t: ['填好入境登记表', 'Fill in the arrival card'], site: 'twac' },

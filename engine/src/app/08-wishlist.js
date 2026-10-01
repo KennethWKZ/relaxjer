@@ -221,10 +221,17 @@ function secChecklist() {
 	const groups = [ENTRY_CHECKS, ...CHECKLIST];
 	return `<section class="sec" id="checklist" data-sec="checklist">
       <h2 class="sec-title">${icon('check')}${Z('出发前清单', 'Before we go')}</h2>
-      <p class="sec-lede">${Z('勾选只保存在这台手机上；每个人各自勾。', 'Ticks stay on this phone only; per person.')}</p>
+      <p class="sec-lede">${
+				SHARED_GROUPS.length
+					? Z(
+							'标着「全组」的清单，勾选会出现在每个人的手机上；其他的只保存在这台手机，各自勾。',
+							'Ticks in lists marked Shared show on everyone’s phone; the rest stay on this phone, per person.',
+						)
+					: Z('勾选只保存在这台手机上；每个人各自勾。', 'Ticks stay on this phone only; per person.')
+			}</p>
       <div class="progress"><span id="prog-text"></span><div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div></div>
-      ${groups.map((g) => `<h3 class="sub">${fmt(g.h)}</h3>${checkList(g.items.map((it) => ({ ...it, id: `${g.id}-${it.id}` })))}`).join('')}
-      <div class="links-row" style="margin-top:14px"><button type="button" class="mlink" id="reset-ask">${icon('x')}${Z('清除全部勾选', 'Clear all ticks')}</button><span id="reset-confirm" hidden><button type="button" class="mlink danger" id="reset-yes">${Z('确定清除', 'Yes, clear')}</button><button type="button" class="mlink" id="reset-no">${Z('取消', 'Cancel')}</button></span></div>
+      ${groups.map((g) => `<h3 class="sub">${fmt(g.h)}${SHARED_GROUPS.includes(g.id) ? `<span class="sync-tag">${icon('users')}${Z('全组', 'Shared')}</span>` : ''}</h3>${checkList(g.items.map((it) => ({ ...it, id: `${g.id}-${it.id}` })))}`).join('')}
+      <div class="links-row" style="margin-top:14px"><button type="button" class="mlink" id="reset-ask">${icon('x')}${SHARED_GROUPS.length ? Z('清除我自己的勾选（全组的保留）', 'Clear my own ticks (shared lists stay)') : Z('清除全部勾选', 'Clear all ticks')}</button><span id="reset-confirm" hidden><button type="button" class="mlink danger" id="reset-yes">${Z('确定清除', 'Yes, clear')}</button><button type="button" class="mlink" id="reset-no">${Z('取消', 'Cancel')}</button></span></div>
     </section>`;
 }
 

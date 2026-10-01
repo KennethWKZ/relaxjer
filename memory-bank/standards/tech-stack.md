@@ -13,18 +13,22 @@ The tools and the posture. The decisions and their trade-offs live in the ADRs
 **Static pages, no backend, nothing always on.** A trip page is one HTML file on a static host, its state stays on
 each phone (`localStorage` under the trip's storage key), and the only network it needs is for extras: map tiles,
 Google, live bike counts, the brush font. Adding a server, accounts or shared state takes a superseding ADR, not an
-incremental change.
+incremental change. The one such ADR so far: a trip may opt in to group sync through the planner's own Firebase
+database, which the page reaches over plain HTTPS ([ADR-20261001-group-sync](./decisions/ADR-20261001-group-sync.md));
+RelaxJer still runs nothing.
 
 ## Runtime baseline
 
-| Area         | Choice                                                                                                                                                                                                                          |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Page         | Vanilla JS and CSS, no framework and no bundler. `engine/build.mjs` joins the sections into one IIFE, inlines the core modules, the packs, the trip data, photos and icons                                                      |
-| Map          | MapLibre GL 5.24 from cdnjs (jsDelivr as fallback) on OpenFreeMap styles (liberty, dark): free, no key. Google Maps JavaScript + Places when the build gets the user's browser key (`--keys`)                                   |
-| Fonts        | The phone's system sans for everything operated. The brush face comes from Google Fonts at view time, subset to the page's own glyphs (`text=`); offline, the system Kaiti faces take over                                      |
-| Build, tests | Node 24, pnpm 11 (Corepack, `packageManager`), `node:test`, Playwright 1.63 (Chromium + WebKit)                                                                                                                                 |
-| Pipeline     | Python ≥ 3.12 via uv (`pipeline/pyproject.toml`): `opencc` (Traditional → Simplified names), `pillow` (images). Google Places (New) + Routes with the user's server key; Open-Meteo weather; OpenStreetMap Overpass as fallback |
-| Hosting      | Real trips: ht-ml.app behind a password (one file, no service worker). The project: a landing page on GitHub Pages (story step 6b), never a trip page                                                                           |
+| Area         | Choice                                                                                                                                                                                                                                                                              |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Page         | Vanilla JS and CSS, no framework and no bundler. `engine/build.mjs` joins the sections into one IIFE, inlines the core modules, the packs, the trip data, photos and icons                                                                                                          |
+| Map          | MapLibre GL 5.24 from cdnjs (jsDelivr as fallback) on OpenFreeMap styles (liberty, dark): free, no key. Google Maps JavaScript + Places when the build gets the user's browser key (`--keys`)                                                                                       |
+| Fonts        | The phone's system sans for everything operated. The brush face comes from Google Fonts at view time, subset to the page's own glyphs (`text=`); offline, the system Kaiti faces take over                                                                                          |
+| Build, tests | Node 24, pnpm 11 (Corepack, `packageManager`), `node:test`, Playwright 1.63 (Chromium + WebKit)                                                                                                                                                                                     |
+| Pipeline     | Python ≥ 3.12 via uv (`pipeline/pyproject.toml`): `opencc` (Traditional → Simplified names), `pillow` (images). Google Places (New) + Routes with the user's server key; Open-Meteo weather; OpenStreetMap Overpass as fallback                                                     |
+| Group sync   | Optional, per trip: the planner's own Firebase Realtime Database (Spark plan, or Blaze when it shares the Maps project), reached with `fetch` and `EventSource`, records AES-GCM encrypted on the phone; `firebase-tools` 15.32.1 through npx for the planner's setup (`pnpm sync`) |
+| Security     | The page's own Content-Security-Policy (inline scripts by hash) and subresource integrity on MapLibre ([ADR-20261001-page-csp](./decisions/ADR-20261001-page-csp.md))                                                                                                               |
+| Hosting      | Real trips: ht-ml.app behind a password (one file, no service worker). The project: a landing page on GitHub Pages (story step 6b), never a trip page                                                                                                                               |
 
 ## Tooling ([ADR-20261001-project-tooling](./decisions/ADR-20261001-project-tooling.md))
 

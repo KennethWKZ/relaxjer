@@ -129,6 +129,15 @@ document.addEventListener('click', (e) => {
 		resetAll();
 		return;
 	}
+	if (t.matches('[data-sync-open]')) {
+		closeDialog(t.closest('dialog'));
+		whenSettled(() => openSheet(syncSheet()));
+		return;
+	}
+	if (t.matches('[data-sync-now]')) {
+		syncNow();
+		return;
+	}
 	if (t.matches('[data-upd]')) {
 		if (navigator.onLine === false) toast(Z('没有网络：先用这一版，有网络再更新', 'Offline: keep this copy and update when you’re online'));
 		else location.reload();
@@ -413,10 +422,11 @@ document.addEventListener('click', (e) => {
 		return;
 	}
 	if (t.id === 'reset-yes') {
-		checks = {};
+		// with group sync on, the ticks in shared lists are the group's: clearing this phone leaves them be
+		checks = Object.fromEntries(Object.entries(checks).filter(([k]) => sharedTick(k)));
 		store.set('checks', checks);
 		$$('[data-check]').forEach((b) => {
-			b.checked = false;
+			b.checked = !!checks[b.dataset.check];
 		});
 		$('#reset-confirm').hidden = true;
 		$('#reset-ask').hidden = false;

@@ -9,27 +9,31 @@ Use these words, as written, in code, tests, docs and commit messages, so names 
 
 ## Trips and data
 
-| Term                    | Meaning                                                                                                                                                       |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| trip                    | A folder with `data.js`, the `*.json` side files and `img/`: a real one in `trips/<slug>/` (gitignored), or the committed `examples/demo-trip/`               |
-| demo trip               | `examples/demo-trip/`: a fictional group of five, one week in Taipei. Synthetic, safe to publish, the trip every test and doc runs on                         |
-| short trip              | A 4-day trip generated from the demo (`tests/support/short-trip.mjs`) that proves any trip length and a mid-trip hotel change                                 |
-| requirements            | `trips/<slug>/requirements.md`: the planner's own words about the trip, the input to `trip-intake`                                                            |
-| trip contract           | The rules a trip's data must follow before the engine can render it (`tests/support/trip-contract.mjs`)                                                       |
-| trip settings           | `TRIP`: the trip's own name, dates, group size, time zone, currency and pack choice ([`../standards/trip-format.md`](../standards/trip-format.md))            |
-| real-trip details       | A real trip's name, hotel, flight numbers, dates and `never-publish.txt` lines. The release gate derives them locally and blocks them from anything published |
-| fixed item              | A schedule item with `fixed: true`. It never moves: re-plans and delays work around it                                                                        |
-| flight-relative time    | `rel: { arr: [a, b] }` or `{ dep: [a, b] }`: minutes after landing or before take-off; it follows a typed delay                                               |
-| day role                | What a day is for, read from the data (`Plan.dayRoles`): the arrival, the leave day, a flight-only day, the free-time day                                     |
-| leave day               | The day the group leaves for the airport: the evening before an after-midnight take-off, else the flight's own day                                            |
-| group figure            | A cost for the whole group, written `"NT$1,200–1,800 / 五人"` (zh) and `"NT$1,200–1,800 for 5"` (en). The page adds the per-person share                      |
-| per-person share        | A group figure divided by `TRIP.pax`, shown next to it. Per-vehicle costs (charter, taxi) don't shrink with fewer people                                      |
-| home currency           | The group's own currency (`TRIP.currency.home`). Every figure also shows it, at a rate the reader can edit                                                    |
-| near me, near each stop | Food, drinks, rest spots and toilets around the reader or around a stop                                                                                       |
-| rest spot               | Somewhere to sit when tired: a sit-down tea house, dessert shop, café or bar (`cat: 'rest'`)                                                                  |
-| added stop              | A stop the reader adds to a day. It is checked for clashes and deadlines, and shared as a `#add=` link                                                        |
-| running-late re-plan    | A suggestion from time and location for what to drop or shift. It never moves anything by itself                                                              |
-| shop list               | A themed list in the Optional section (`SHOPLISTS`); `SNOW` is the older single-list form                                                                     |
+| Term                    | Meaning                                                                                                                                                          |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| trip                    | A folder with `data.js`, the `*.json` side files and `img/`: a real one in `trips/<slug>/` (gitignored), or the committed `examples/demo-trip/`                  |
+| demo trip               | `examples/demo-trip/`: a fictional group of five, one week in Taipei. Synthetic, safe to publish, the trip every test and doc runs on                            |
+| short trip              | A 4-day trip generated from the demo (`tests/support/short-trip.mjs`) that proves any trip length and a mid-trip hotel change                                    |
+| requirements            | `trips/<slug>/requirements.md`: the planner's own words about the trip, the input to `trip-intake`                                                               |
+| trip contract           | The rules a trip's data must follow before the engine can render it (`tests/support/trip-contract.mjs`)                                                          |
+| trip settings           | `TRIP`: the trip's own name, dates, group size, time zone, currency and pack choice ([`../standards/trip-format.md`](../standards/trip-format.md))               |
+| real-trip details       | A real trip's name, hotel, flight numbers, dates and `never-publish.txt` lines. The release gate derives them locally and blocks them from anything published    |
+| fixed item              | A schedule item with `fixed: true`. It never moves: re-plans and delays work around it                                                                           |
+| flight-relative time    | `rel: { arr: [a, b] }` or `{ dep: [a, b] }`: minutes after landing or before take-off; it follows a typed delay                                                  |
+| day role                | What a day is for, read from the data (`Plan.dayRoles`): the arrival, the leave day, a flight-only day, the free-time day                                        |
+| leave day               | The day the group leaves for the airport: the evening before an after-midnight take-off, else the flight's own day                                               |
+| group figure            | A cost for the whole group, written `"NT$1,200–1,800 / 五人"` (zh) and `"NT$1,200–1,800 for 5"` (en). The page adds the per-person share                         |
+| per-person share        | A group figure divided by `TRIP.pax`, shown next to it. Per-vehicle costs (charter, taxi) don't shrink with fewer people                                         |
+| home currency           | The group's own currency (`TRIP.currency.home`). Every figure also shows it, at a rate the reader can edit                                                       |
+| near me, near each stop | Food, drinks, rest spots and toilets around the reader or around a stop                                                                                          |
+| rest spot               | Somewhere to sit when tired: a sit-down tea house, dessert shop, café or bar (`cat: 'rest'`)                                                                     |
+| added stop              | A stop the reader adds to a day. It is checked for clashes and deadlines, and shared as a `#add=` link, or by group sync                                         |
+| group sync              | A trip's opt-in sharing of added stops, pushed-back times, flight changes and shared ticks through the planner's own Firebase database (ADR-20261001-group-sync) |
+| shared list             | A `CHECKLIST` group with `shared: true`: with group sync on, its ticks reach everyone's phone. Every other tick is personal                                      |
+| sync file               | `~/.config/relaxjer/sync/<slug>.json` from `pnpm sync init`: the trip's database, id, write token and sync key. Never in the repo; a rebuild keeps the same one  |
+| write token             | The secret the sync database's rules check on every record; it lives at `/keys/<trip>`, which no phone can read                                                  |
+| running-late re-plan    | A suggestion from time and location for what to drop or shift. It never moves anything by itself                                                                 |
+| shop list               | A themed list in the Optional section (`SHOPLISTS`); `SNOW` is the older single-list form                                                                        |
 
 ## Engine and packs
 

@@ -30,6 +30,13 @@ try {
 let lang = store.get('lang', 'zh') === 'en' ? 'en' : 'zh';
 let themePref = ['dark', 'system'].includes(store.get('theme', 'light')) ? store.get('theme') : 'light';
 let checks = store.get('checks', {}) || {};
+// group sync (ADR-20261001-group-sync): on when the build put the trip's database in (pnpm build --sync). Then added
+// stops, pushed-back times, flight changes and the ticks of checklist groups marked `shared` reach everyone's phone
+// (26-sync.js); everything else stays on this one. syncStatus is what the page says about it, set by 26-sync.js
+const SYNC = window.SYNC || null;
+const SHARED_GROUPS = SYNC ? (typeof CHECKLIST !== 'undefined' ? CHECKLIST : []).filter((g) => g && g.shared).map((g) => g.id) : [];
+const sharedTick = (key) => SHARED_GROUPS.some((g) => String(key).startsWith(`${g}-`));
+let syncStatus = { state: SYNC ? 'starting' : 'off', at: 0, waiting: 0 };
 // the trip's own settings (data.js TRIP): group size, currency, the destination's clock, the name on the home screen
 const PAX = TRIP.pax;
 const CUR = TRIP.currency; // { sym: 'NT$', home: 'RM', rate: 7.8, rateNote: [zh, en] }: the destination's and the group's home currency

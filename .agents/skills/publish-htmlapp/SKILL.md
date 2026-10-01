@@ -39,7 +39,16 @@ It prints the URL, a generated viewer password and a secret update key, **each s
 pnpm publish:trip trips/<slug>             # after the planner said yes to this change
 pnpm publish:trip trips/<slug> --dry-run   # the checks and the rollback copy, no publish
 pnpm publish:trip trips/<slug> --check     # only prove what's live and that it opens
+pnpm publish:trip trips/<slug> --audit [--candidate <page>]   # read-only: what the host sends and changes, and how a
+                                                              # candidate build behaves at the live address
 ```
+
+Run `--audit` before publishing a change to how the page loads or what it may reach (its Content-Security-Policy, a new
+outside host, group sync). It reads only the viewer password, publishes nothing, and opens the candidate (by default the
+trip's `dist/` page; build a candidate with `--out .cache/audit` to keep `dist/` equal to what's live) at the live
+address on an iPhone and an Android phone, served in place of the live copy: what the policy refused, what failed to
+load, page errors, and whether the map came up. It also says whether the host serves the page byte for byte and every
+inline script unchanged (the policy's hashes depend on it).
 
 `scripts/publish-trip.mjs` reads the secrets itself, so none reaches the chat. **Publishing has one door**: that
 command, alone in Bash. Claude Code asks the planner before every `pnpm publish:trip` (a settings "ask" rule, which
@@ -57,7 +66,9 @@ Never read or copy the secrets another way. The script:
    or `--private`, the viewer password stays as it is.
 4. Polls the live build id for about 3 minutes. The CDN can serve the old copy for minutes, and `?v=` doesn't bust it,
    so after a minute it shares once more (that fixed a stale copy within a minute on the first trip).
-5. Opens the live page past the gate on an iPhone (WebKit) and an Android phone (Chromium) and fails on page errors.
+5. Checks that the live page's Content-Security-Policy reads the same as the built one (the host re-serialises the HTML
+   it stores), then opens the live page past the gate on an iPhone (WebKit) and an Android phone (Chromium) and fails on
+   page errors or anything the policy refused. On a failure, republish the rollback copy.
 
 It reads either layout: one value per file (`<slug>.viewer`, `<slug>.site`, and `<slug>.update-key` when the key isn't
 in the Keychain), or the first trip's labelled files (`<slug>.txt` as lavish-axi printed it, `<slug>-viewer.txt`). If
@@ -65,6 +76,21 @@ the key still sits in a file on a Mac, it says so; the planner moves it into the
 `TRIP.storageKey` unchanged from the last publish (`build-page`), or the group loses its saved state.
 
 Phones that hold the old copy on their home screen show an update bar once they're back online.
+
+## Change the page password
+
+When the page password may have leaked (it showed in a chat, a log, or to someone outside the group), or the group
+wants a new one. The planner writes the new one themselves, so it never passes through a chat:
+
+```sh
+printf '%s\n' '<new password>' > ~/.config/relaxjer/publish/<slug>.viewer.new && chmod 600 ~/.config/relaxjer/publish/<slug>.viewer.new
+pnpm publish:trip trips/<slug> --new-password   # with the next build, or alone: the same build gets the new password
+```
+
+The script reads it from that file, shares with it (`lavish-axi … --password`), and once the host confirms, saves it as
+`<slug>.viewer` and deletes the `.new` file. It then proves the live page opens with the new password. Everyone, seniors
+included, has to type the new one at the gate, so tell the group first, in the group chat, and pick something they can
+type.
 
 ## Done when
 

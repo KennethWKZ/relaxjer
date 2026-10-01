@@ -1,0 +1,26 @@
+{
+	"rules": {
+		".read": false,
+		".write": false,
+		"keys": {
+			".read": false,
+			".write": false
+		},
+		"trips": {
+			"$trip": {
+				".read": "root.child('keys').child($trip).exists()",
+				"r": {
+					"$rid": {
+						".write": "newData.exists() && root.child('keys').child($trip).val() === newData.child('k').val() && (!data.exists() || newData.child('u').val() > data.child('u').val() || (newData.child('u').val() === data.child('u').val() && newData.child('d').val() > data.child('d').val()))",
+						".validate": "$rid.matches(/^[A-Za-z0-9_-]{22}$/) && newData.hasChildren(['c', 'u', 'd', 'k'])",
+						"c": { ".validate": "newData.isString() && newData.val().length <= 4096" },
+						"u": { ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() <= now + 86400000" },
+						"d": { ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z0-9_-]{6,24}$/)" },
+						"k": { ".validate": "newData.isString()" },
+						"$other": { ".validate": false }
+					}
+				}
+			}
+		}
+	}
+}

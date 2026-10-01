@@ -652,7 +652,8 @@ function resetAll() {
 	]
 		.filter(Boolean)
 		.join(Z('、', ', '));
-	if (!confirm(Z(`恢复原计划：${what}？（清单打勾会保留）`, `Back to the original plan: ${what}? (Checklist ticks stay.)`))) return;
+	const all = SYNC ? Z('全组每个人的页面都会改。', ' This changes everyone’s page.') : '';
+	if (!confirm(Z(`恢复原计划：${what}？（清单打勾会保留）${all}`, `Back to the original plan: ${what}? (Checklist ticks stay.)${all}`))) return;
 	mineSet([]);
 	store.set('fltArr', '');
 	store.set('fltDep', '');

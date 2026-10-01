@@ -72,7 +72,9 @@ What every trip page keeps. It came from the first trip, and the tests character
 
 - **One file.** The page is a single self-contained HTML file: fonts subset, photos and icons inlined, no service worker.
 - **Offline.** It renders and works without network, apart from the live map tiles, Google and live bike counts, and
-  says so when offline.
+  says so when offline. Group sync, when a trip has it, waits for a connection and never blocks the page.
+- **Locked down.** The page carries its own Content-Security-Policy, and its one CDN library loads with an integrity
+  hash ([ADR-20261001-page-csp](../standards/decisions/ADR-20261001-page-csp.md)).
 - **Phones first.** 390 px is the reference width, with iPhone WebKit and Android Chromium as the reference browsers.
   Tier 1 runs Chromium and WebKit at 390 px and desktop.
 - **No page errors.** Any page or console error fails a test.

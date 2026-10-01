@@ -89,6 +89,17 @@ Themed shop lists for the Optional section, as many as the trip wants (snowboard
 
 The older single-list form, `const SNOW = { … }`, still works: it becomes the list with id `snow`.
 
+## Checklist (`CHECKLIST`)
+
+The "Before we go" lists, as many groups as the trip wants:
+
+| Field     | What it drives                                                                                                                                                                                                                   |
+| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`      | the group's tick keys, `<id>-<item id>`; lower case, unique, and no group's id followed by a dash may start another's (the contract checks it)                                                                                   |
+| `h`       | its heading                                                                                                                                                                                                                      |
+| `items[]` | `{ id, t, sub, due, site, link }`: each tick's id, text, note, date it's due by, and a site or in-page link                                                                                                                      |
+| `shared`  | `true`: on a page with group sync ([ADR-20261001-group-sync](./decisions/ADR-20261001-group-sync.md)), this group's ticks reach everyone's phone. Leave it off for anything each person does for themselves (passports, packing) |
+
 ## The airport evening (`FLIGHTS.ret.plan`)
 
 The leave day's timeline, worked back from take-off (and recomputed when someone types a delay):

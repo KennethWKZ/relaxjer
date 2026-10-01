@@ -167,6 +167,13 @@ export function checkTrip(trip) {
 		for (const f of ['h', 'kind']) if (l[f] != null && !isLabel(l[f])) bad(`shop list ${l.id}: ${f} must be [zh, en]`);
 		for (const [j, x] of (l.shops || []).entries()) if (!PLACES[x.place]) bad(`shop list ${l.id} shop ${j}: unknown place "${x.place}"`);
 	}
+	// checklist groups: `shared: true` sends a group's ticks to everyone's phone when the page has group sync. A tick's key
+	// is `<group id>-<item id>`, so one group's id followed by a dash must not start another's
+	const groups = Array.isArray(trip.CHECKLIST) ? trip.CHECKLIST : [];
+	for (const g of groups) {
+		if (g.shared != null && typeof g.shared !== 'boolean') bad(`CHECKLIST ${g.id}: shared must be true or false`);
+		for (const o of groups) if (o !== g && String(o.id).startsWith(`${g.id}-`)) bad(`CHECKLIST ${o.id}: starts with another group's id "${g.id}-"`);
+	}
 	for (const [where, list] of [...lists.map((l) => [`shop list ${l.id}`, l.shops]), ['WEATHER.outfits', trip.WEATHER?.outfits]])
 		for (const [k, x] of (list || []).entries()) if (x.day && !dayIds.has(x.day)) bad(`${where}[${k}].day: no day "${x.day}" in this trip`);
 	const plan = FLIGHTS?.ret?.plan;

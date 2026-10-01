@@ -1,6 +1,6 @@
 // Build: engine/src/* + a trip's data and img/ → <name>.html (artifact body) and <name>-standalone.html (single file,
 // images inlined), plus the My Maps KML. Moved verbatim from the first trip's repo; only where files are read and written changed.
-//   node engine/build.mjs --trip <trip dir> [--out <dir>] [--keys <google.json>]
+//   node engine/build.mjs --trip <trip dir> [--out <dir>] [--keys <google.json>] [--sync <sync.json>]
 // The trip dir holds data.js, the *.json side files and img/. The Google browser key + Map ID go in only when --keys
 // names a file (keep it outside the repo, e.g. ~/.config/relaxjer/google.json, mode 600): a page built without it,
 // like the demo, can be shared without leaking a key. Without one the page keeps the free MapLibre map.
@@ -21,8 +21,9 @@ const engine = path.dirname(new URL(import.meta.url).pathname);
 const trip = path.resolve(arg('trip', ''));
 const out = path.resolve(arg('out', path.join(trip, 'dist')));
 const keysFile = arg('keys', 'none').replace(/^~(?=\/)/, os.homedir());
+const syncFile = arg('sync', 'none').replace(/^~(?=\/)/, os.homedir());
 if (!arg('trip') || !fs.existsSync(path.join(trip, 'data.js'))) {
-	console.error('usage: node engine/build.mjs --trip <dir with data.js> [--out <dir>] [--keys <google.json>]');
+	console.error('usage: node engine/build.mjs --trip <dir with data.js> [--out <dir>] [--keys <google.json>] [--sync <sync.json>]');
 	process.exit(2);
 }
 fs.mkdirSync(out, { recursive: true });
@@ -84,6 +85,38 @@ const gmaps = (() => {
 	}
 })();
 
+// group sync (ADR-20261001-group-sync): the trip's own Firebase database and its keys, from a file outside the repo
+// (`pnpm sync init` writes ~/.config/relaxjer/sync/<slug>.json). A rebuild must keep the same file, or the group's phones
+// start over on a new database. Without one, everything stays on each phone. A bad file stops the build (a planner who
+// asked for sync should get it), and no value is ever printed.
+const sync = (() => {
+	if (syncFile === 'none') return null;
+	let s;
+	try {
+		s = JSON.parse(fs.readFileSync(syncFile, 'utf8'));
+	} catch {
+		throw new Error(`--sync ${syncFile}: not a readable sync file (pnpm sync init writes one)`);
+	}
+	const u = (() => {
+		try {
+			return new URL(s.url);
+		} catch {
+			return null;
+		}
+	})();
+	// a real database is a Firebase Realtime Database root; the tests' stand-in is the local test server
+	const local = u && u.protocol === 'http:' && /^(127\.0\.0\.1|localhost)$/.test(u.hostname);
+	const firebase = u && u.protocol === 'https:' && /\.(firebasedatabase\.app|firebaseio\.com)$/.test(u.hostname) && u.pathname === '/';
+	const bad = [
+		!(local || firebase) && 'url (https://<name>.<region>.firebasedatabase.app)',
+		!/^[A-Za-z0-9_-]{22}$/.test(s.trip || '') && 'trip',
+		!/^[A-Za-z0-9_-]{32,}$/.test(s.writeToken || '') && 'writeToken',
+		!/^[A-Za-z0-9_-]{43}$/.test(s.syncKey || '') && 'syncKey',
+	].filter(Boolean);
+	if (bad.length) throw new Error(`--sync ${syncFile}: bad ${bad.join(', ')}`);
+	return { url: u.href.replace(/\/$/, ''), trip: s.trip, token: s.writeToken, key: s.syncKey };
+})();
+
 // credits: keep only photos whose files exist
 const credits = readJSON('img/credits.json', []).filter((c) => fs.existsSync(path.join(trip, 'img', `${c.id}.webp`)));
 const geoFull = readJSON('src/geo.json', null);
@@ -127,6 +160,46 @@ if (ctx.TRIP.destination) {
 }
 // each part in its own scope (the country and the city may both define helpers); later parts override earlier ones
 const pack = `  const Pack = Object.freeze(Object.assign({}, ${packParts.map((p) => `(() => {\n${p.body}\n  return { ${p.names.join(', ')} };\n  })()`).join(', ')}));`;
+// the outside hosts a pack's code calls (its bike share's live counts…): the page may connect to them, nothing else of theirs
+const packHosts = [...new Set(packParts.flatMap((p) => [...p.body.matchAll(/https:\/\/[a-z0-9.-]+\.[a-z]{2,}/g)].map((m) => m[0])))];
+
+// Content-Security-Policy for the single-file page (ADR-20261001-page-csp). Every inline script is allowed by its
+// hash, and code, data and images may only come from or go to the hosts the page uses: a tampered library can read the
+// page, but can't send what it reads anywhere else. Google's Maps JavaScript API needs its documented allowlist and
+// 'unsafe-eval', so a page built with a Google key carries those too.
+const GOOGLE = [
+	'https://*.googleapis.com',
+	'https://*.gstatic.com',
+	'https://*.google.com',
+	'https://*.googleusercontent.com',
+	'https://*.ggpht.com',
+];
+const MAP_CDNS = ['https://cdnjs.cloudflare.com', 'https://cdn.jsdelivr.net']; // MapLibre, with subresource integrity
+const MAP_TILES = ['https://tiles.openfreemap.org', 'https://tile.openstreetmap.org'];
+function contentSecurityPolicy(html) {
+	const hashes = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(
+		(m) => `'sha256-${crypto.createHash('sha256').update(m[1]).digest('base64')}'`,
+	);
+	const g = gmaps ? GOOGLE : [];
+	const dirs = {
+		'default-src': ["'none'"],
+		'script-src': [...hashes, ...MAP_CDNS, 'blob:', ...(gmaps ? [...GOOGLE, "'unsafe-eval'"] : [])],
+		'style-src': ["'unsafe-inline'", 'https://fonts.googleapis.com', ...MAP_CDNS],
+		'font-src': ['data:', 'https://fonts.gstatic.com'],
+		'img-src': ["'self'", 'data:', 'blob:', ...MAP_TILES, ...g],
+		'connect-src': ["'self'", ...MAP_TILES, ...packHosts, ...(sync ? [new URL(sync.url).origin] : []), ...g, ...(gmaps ? ['data:', 'blob:'] : [])],
+		'worker-src': ['blob:'],
+		'child-src': ['blob:'],
+		'frame-src': gmaps ? ['https://*.google.com'] : ["'none'"],
+		'manifest-src': ['data:'],
+		'object-src': ["'none'"],
+		'base-uri': ["'none'"],
+		'form-action': ["'none'"],
+	};
+	return Object.entries(dirs)
+		.map(([k, v]) => `${k} ${[...new Set(v)].join(' ')}`)
+		.join('; ');
+}
 const app = [appParts[0], ...core, pack, ...appParts.slice(1)].join('\n');
 const title = `${brand} ${ctx.TRIP.start.slice(0, 4)}`;
 const htmlEsc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
@@ -159,7 +232,7 @@ const head = `<title>${htmlEsc(title)}</title>
 const scripts = (
 	imgMap,
 	kmlB64,
-) => `<script>window.CREDITS=${safe(credits)};window.GEO=${safe(geo)};window.EXTRA=${safe(extra)};window.WISH=${safe(wish)};window.SHARE_URL=${safe(shareUrl)};window.APP_ICONS=${safe(APP_ICONS)};window.GMAPS=${safe(gmaps)};window.FORECAST=${safe(forecast)};window.DRINKS=${safe(drinks)};window.TOILETS=${safe(toilets)};window.MRT=${safe(mrt)};window.YB=${safe(transit.yb)};window.BUS=${safe(transit.bus)};window.SHOPS=${safe(shops)};window.KML_B64=${safe(kmlB64 || '')};${imgMap ? `window.IMG=${imgMap ? 'null' : 'null'};` : ''}</script>
+) => `<script>window.CREDITS=${safe(credits)};window.GEO=${safe(geo)};window.EXTRA=${safe(extra)};window.WISH=${safe(wish)};window.SHARE_URL=${safe(shareUrl)};window.APP_ICONS=${safe(APP_ICONS)};window.GMAPS=${safe(gmaps)};window.SYNC=${safe(sync)};window.FORECAST=${safe(forecast)};window.DRINKS=${safe(drinks)};window.TOILETS=${safe(toilets)};window.MRT=${safe(mrt)};window.YB=${safe(transit.yb)};window.BUS=${safe(transit.bus)};window.SHOPS=${safe(shops)};window.KML_B64=${safe(kmlB64 || '')};${imgMap ? `window.IMG=${imgMap ? 'null' : 'null'};` : ''}</script>
 <script>${data}</script>
 <script>${app}</script>`;
 
@@ -182,6 +255,7 @@ const writePages = (kmlB64) => {
 <head>
 <meta charset="utf-8">
 <meta name="relaxjer-build" content="{{build}}">
+<meta http-equiv="Content-Security-Policy" content="{{csp}}">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="${htmlEsc(brand)}">
@@ -198,9 +272,11 @@ ${scripts(imgMap, kmlB64)}
 </body>
 </html>
 `;
+	// the policy hashes the page's own inline scripts, so it's written once they're final
+	const withCsp = draft.replace('{{csp}}', () => htmlEsc(contentSecurityPolicy(draft)));
 	// the page's own version, first bytes of the file: a paused home-screen app reads the live copy's to offer an update
-	const build = crypto.createHash('sha256').update(draft).digest('hex').slice(0, 12);
-	const standalone = draft.replace('{{build}}', build);
+	const build = crypto.createHash('sha256').update(withCsp).digest('hex').slice(0, 12);
+	const standalone = withCsp.replace('{{build}}', build);
 	fs.writeFileSync(path.join(out, `${fileBase}-standalone.html`), standalone);
 
 	const kb = (s) => (Buffer.byteLength(s) / 1024).toFixed(0) + ' KB';
@@ -208,7 +284,7 @@ ${scripts(imgMap, kmlB64)}
 };
 const { artifact, standalone, kb } = writePages('');
 console.log(
-	`google key ${gmaps ? 'yes' : 'no'} · artifact ${kb(artifact)} · standalone ${kb(standalone)} · photos ${credits.length} · geo ${geo ? 'yes' : 'no'} · food ${extra.food?.length || 0} · tickets ${extra.tickets?.length || 0} · wish ${wish.length} · brush glyphs ${brush.size}`,
+	`google key ${gmaps ? 'yes' : 'no'} · group sync ${sync ? 'yes' : 'no'} · artifact ${kb(artifact)} · standalone ${kb(standalone)} · photos ${credits.length} · geo ${geo ? 'yes' : 'no'} · food ${extra.food?.length || 0} · tickets ${extra.tickets?.length || 0} · wish ${wish.length} · brush glyphs ${brush.size}`,
 );
 
 // 3) Google My Maps export (KML): one combined file + one file per layer

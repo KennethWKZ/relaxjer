@@ -38,6 +38,15 @@ Tier 0 (`pnpm test`) runs on every commit, so keep it under a few seconds: no ne
 - **Selectors live in the helpers.** When markup changes, change `tests/support/page.mjs`, not the invariants in the
   specs.
 - **Don't fake the Playwright clock:** the engine's 2 s scroll holds measure real time.
+- **The page's Content-Security-Policy is on in every test.** A refusal fails the test like a page error
+  ([ADR-20261001-page-csp](../decisions/ADR-20261001-page-csp.md)); a test that triggers one on purpose takes it off
+  `pageErrors` itself (`tests/e2e/policy.spec.mjs`).
+- **Group sync runs two phones** (`tests/e2e/sync.spec.mjs`): global setup also builds `trip-sync.html`, pointed at the
+  test server's stand-in database (`tests/support/fake-rtdb.mjs`, the same rules as the real one) with keys made fresh
+  per run. Each test gets its own space in it (the `rtdb_ns` cookie, `tests/support/sync.mjs`), because tests run in
+  parallel and every sync page holds the same trip id.
+- **The real database rules run on Firebase's emulator,** not in CI: `pnpm test:sync-rules` (needs Java; firebase-tools
+  comes through npx). Run it after any change to `scripts/sync/database.rules.json`, and change the stand-in to match.
 
 ## Running
 
@@ -48,6 +57,7 @@ pnpm test:all                     # both + the short trip: before calling engine
 TRIP_DIR=trips/<slug> pnpm test   # the contract on a real trip
 LEGACY_ENGINE_DIR=/path/to/legacy pnpm test:e2e    # the same specs on the legacy engine
 node tests/support/probe.mjs      # page errors of the last build, with engine line numbers
+pnpm test:sync-rules              # the group-sync rules on Firebase's emulator (local, needs Java)
 ```
 
 WebKit desktop flakes about once in 140 runs under full parallel load (story index, "Known issues"). A single retry in

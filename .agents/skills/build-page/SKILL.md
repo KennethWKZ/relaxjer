@@ -9,6 +9,7 @@ description: Build a RelaxJer trip page — one self-contained, offline-friendly
 pnpm build --trip examples/demo-trip                                    # the demo, never with a key
 pnpm build --trip trips/<slug>                                          # a real trip on the free MapLibre map
 pnpm build --trip trips/<slug> --keys ~/.config/relaxjer/google.json   # with the user's own browser key + Map ID
+pnpm build --trip trips/<slug> --keys … --sync ~/.config/relaxjer/sync/<slug>.json   # with group sync (sync-setup skill)
 #   --out <dir>   default <trip>/dist
 ```
 
@@ -31,6 +32,11 @@ a page meant for anyone outside the group must say no key.
   without one. Never pass a key file inside the repo.
 - **A published page keeps `TRIP.fileName` and `TRIP.storageKey`** across rebuilds. Changing them breaks the link's file
   name and loses the group's saved state (checklist, language, rate, added stops, flight delay).
+- **A page with group sync keeps the same `--sync` file** across rebuilds. A new one (`pnpm sync init --force`) is a new
+  database: every phone starts over. Leaving `--sync` out turns sync off for the next copy. The build prints
+  `group sync yes|no`; check it.
+- **The page carries its own Content-Security-Policy** ([ADR-20261001-page-csp](../../../memory-bank/standards/decisions/ADR-20261001-page-csp.md)).
+  A new outside host in the engine needs a line in `engine/build.mjs`; a pack's hosts come from its code.
 - **Every build gets a new build id** (`<meta name="relaxjer-build">`, 12 hex characters). The page uses it to offer an
   update to phones holding an older copy, and `publish-htmlapp` uses it to prove the live page is the new one. Note it
   after each build:

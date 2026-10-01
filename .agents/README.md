@@ -13,6 +13,7 @@ out this way: `memory-bank/standards/decisions/ADR-20261001-memory-bank-agent-co
 | `build-page`       | build the single-file page                                        |
 | `verify-page`      | tests, then a real-browser pass and the group's journeys          |
 | `publish-htmlapp`  | publish or republish behind a password, and prove the live copy   |
+| `sync-setup`       | group sync for a trip on the planner's own Firebase (`pnpm sync`) |
 | `destination-pack` | a new country or city: pack, pipeline steps, knowledge, tests     |
 | `trip-retro`       | lessons from a trip, proposed as a reviewed change                |
 

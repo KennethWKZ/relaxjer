@@ -11,6 +11,11 @@ What the first trip taught about publishing a trip page. The step-by-step is the
 ## ht-ml.app
 
 - **It serves one file only.** So there's no service worker, and the web manifest and icons go in as `data:` URLs.
+- **It re-serialises the HTML it stores, but leaves scripts alone** (audited 2026-10-01, `pnpm publish:trip … --audit`):
+  markup comes back reformatted (`r="7"/>` becomes `r="7" />`), every inline script byte for byte, and the response
+  carries only `content-type` and the host's cache tag: no headers of its own, no injected tags. That's why the page's
+  Content-Security-Policy can allow its scripts by hash, and why a publish checks the live policy reads as built.
+- **Each site is its own origin** (`https://<site id>.ht-ml.app/`), so `'self'` in a page's policy is only that trip.
 - **Publishing:** `lavish-axi share <file> --private` creates the site and prints the URL, a generated viewer password
   and a secret update key, each once. Save the update key and password outside the repo
   (`~/.config/relaxjer/publish/<slug>.txt`, mode 600). Never paste the update key into a chat, a file in the repo or a

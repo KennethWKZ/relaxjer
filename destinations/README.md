@@ -13,6 +13,10 @@ over the country) into the page's `Pack`. A trip without a destination builds to
 Pack files are pure modules, like `engine/src/core/`: no imports, no DOM, no trip globals, named exports only. The build
 inlines them; `tests/unit/packs.test.mjs` checks that and unit-tests every pack.
 
+Any `https://` host a pack's code names (a bike share's live-count API) is what the page may connect to: the build adds
+it to the page's Content-Security-Policy ([ADR-20261001-page-csp](../memory-bank/standards/decisions/ADR-20261001-page-csp.md)).
+A pack that builds a URL from parts must still spell its host out in full.
+
 What the engine reads from `Pack`, each optional:
 
 | Export                                                                | Used for                                                       |

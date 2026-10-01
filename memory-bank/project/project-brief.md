@@ -46,7 +46,9 @@ page is built from here now. The step-by-step status is in [`../story-index.md`]
 
 ### Out of scope / deferred
 
-- A backend, accounts or shared state: the page is static, and state stays on each phone.
+- A backend or accounts of RelaxJer's own: the page is static, and state stays on each phone. A trip may opt in to
+  group sync through the planner's own Firebase database
+  ([ADR-20261001-group-sync](../standards/decisions/ADR-20261001-group-sync.md)); RelaxJer runs nothing for it.
 - Hosting real trip pages on GitHub Pages, or anywhere public.
 - Shipping Google keys or Google-derived content ([ADR-20260930-google-keys](../standards/decisions/ADR-20260930-google-keys.md)).
 - A framework rewrite of the engine (React, Svelte): the host serves one file, and the quality bar lives in the legacy

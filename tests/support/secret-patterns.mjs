@@ -7,6 +7,9 @@ export const SECRETS = [
 	[/\bsk-ant-[0-9A-Za-z_-]{20,}/, 'Anthropic key'],
 	[/ht_ml_pwd=[A-Za-z0-9%._~-]{6,}/, 'ht-ml.app password cookie'],
 	[/update[_-]?key["']?\s*[:=]\s*["']?[0-9A-Za-z_-]{16,}/i, 'ht-ml.app update key'],
+	// a trip's group-sync file (pnpm sync init → ~/.config/relaxjer/sync/<slug>.json)
+	[/"writeToken"\s*:\s*"[0-9A-Za-z_-]{32,}"/, 'group-sync write token'],
+	[/"syncKey"\s*:\s*"[0-9A-Za-z_-]{43}"/, 'group-sync key'],
 ];
 
 /** what each matching pattern is, for a text; never echoes the match itself */

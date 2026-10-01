@@ -3,7 +3,7 @@
 // - a pinned trip clock through the engine's own override (localStorage <prefix>now = "YYYY-MM-DD HH:MM", in the
 //   trip's time zone; the prefix is the trip's, tests/support/store-key.mjs);
 // - a pinned UI language (<prefix>lang), seeded once per tab so reloads keep what the page stored;
-// - a failure if the page throws or logs an error.
+// - a failure if the page throws or logs an error, or its Content-Security-Policy refuses anything.
 import { test as base, expect } from '@playwright/test';
 import { STORE_KEY } from './store-key.mjs';
 
@@ -31,6 +31,10 @@ export const test = base.extend({
 	pageErrors: [
 		async ({ page }, use) => {
 			const errors = [];
+			// the page's Content-Security-Policy refusing anything is an error too, whichever browser words it how
+			await page.addInitScript(() =>
+				document.addEventListener('securitypolicyviolation', (e) => console.error(`CSP refused ${e.effectiveDirective}: ${e.blockedURI}`)),
+			);
 			page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
 			page.on('console', (m) => {
 				// blocked hosts log "Failed to load resource"; that is the network guard working, not a page bug

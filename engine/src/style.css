@@ -5220,6 +5220,54 @@ h2.landed {
 		display: none;
 	}
 }
+/* group sync (26-sync.js): its row in the sections menu, the tag on a shared checklist, the sheet's name field */
+.toc-sync {
+	width: 100%;
+	margin-top: 8px;
+	border: 0;
+	font: inherit;
+	font-weight: 700;
+	text-align: start;
+	cursor: pointer;
+}
+.sync-tag {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 1px 8px;
+	border-radius: 6px;
+	background: var(--paper-2);
+	color: var(--ink-2);
+	font-size: var(--fs-xs);
+	font-weight: 750;
+	letter-spacing: 0;
+}
+.sync-tag svg.i {
+	width: 1em;
+	height: 1em;
+}
+.sync-state {
+	margin: 0 0 8px;
+	font-weight: 750;
+}
+.sync-name {
+	display: grid;
+	gap: 6px;
+	margin: 14px 0;
+	font-size: var(--fs-sm);
+	font-weight: 700;
+}
+.sync-name input {
+	min-height: 44px;
+	padding: 4px 12px;
+	border: 1px solid var(--rule);
+	border-radius: 10px;
+	background: var(--paper);
+	color: var(--ink);
+	font: inherit;
+	font-size: 17px;
+	font-weight: 600;
+}
 @media (min-width: 600px) {
 	.toc-theme {
 		display: none;
