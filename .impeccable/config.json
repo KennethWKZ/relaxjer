@@ -17,6 +17,12 @@
         "value": "sfmono-regular",
         "createdAt": "2026-09-30T22:01:27.050Z",
         "reason": "build thread decision: the monospace stack is used only for command code blocks (code content), not as a display or UI face"
+      },
+      {
+        "rule": "overused-font",
+        "value": "roboto",
+        "createdAt": "2026-10-01T13:00:28.804Z",
+        "reason": "agent triage: .gattr is the 'Google Maps' text attribution beside Google ratings (05-render-small-parts.js gstars); Google Maps Platform attribution guidelines specify Roboto for it"
       }
     ]
   }
