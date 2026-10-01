@@ -221,10 +221,12 @@ function mineMerge(d, planned) {
 			.find((r) => r.ll);
 		rows.splice(at, 0, { s: m, ll: x, html: mineStopHTML(d, x, prev && prev.ll) });
 	});
-	return (
-		rows.map((r) => r.html).join('') +
-		`<li class="mine-bar"><button type="button" class="mlink" data-mine-share="${d.id}">${icon('link')}${Z('把我加的分享给大家', 'Share my added stops')}</button>${resetBtn()}</li>`
-	);
+	// with group sync everyone already has every added stop, so the share link would only resend other people's
+	const share = SYNC
+		? ''
+		: `<button type="button" class="mlink" data-mine-share="${d.id}">${icon('link')}${Z('把我加的分享给大家', 'Share my added stops')}</button>`;
+	const bar = share + resetBtn();
+	return rows.map((r) => r.html).join('') + (bar ? `<li class="mine-bar">${bar}</li>` : '');
 }
 /* Day 6: the free afternoon, worked back from the flight. Checked bags for 5: at the airport 3 h before take-off
      (most counters close 60 min before); hotel → airport ~60 min door to door (+15 by train via A1); 45 min to collect bags. */
@@ -420,7 +422,7 @@ function mineStopHTML(d, x, prevLL) {
 	const k = prevLL ? km(prevLL, x) : null;
 	const wk = prevLL ? Math.max(1, Math.round(walkMin(prevLL, x))) : 0;
 	return `<li class="stop mine" id="${esc(x.id)}" data-s="${tMin(x.t)}"><div class="stop-t">${esc(x.t)}</div><div class="stop-knot">${gapBtn(d, x.id)}</div><div class="stop-b">
-      <p class="stop-name">${esc(x.name)}<span class="mine-tag">${Z('我加的', 'Added')}</span></p>
+      <p class="stop-name">${esc(x.name)}<span class="mine-tag">${SYNC && x.by ? esc(Z(`${x.by}${/[!-~]$/.test(x.by) ? ' ' : ''}加的`, `Added by ${x.by}`)) : Z('我加的', 'Added')}</span></p>
       ${x.addr ? `<p class="stop-note">${esc(x.addr)}</p>` : ''}
       ${cl ? `<p class="warn">${icon('alert')}${esc(Z(`接近固定行程：${L(cl.t)} ${L(cl.what).replace(/\*\*/g, '')}`, `Close to a fixed time: ${L(cl.t)} ${L(cl.what).replace(/\*\*/g, '')}`))}</p>` : ''}
       ${
@@ -436,6 +438,76 @@ function mineStopHTML(d, x, prevLL) {
       <div class="stop-links">${extI(gmSearch(x.q, x.gpid), Z('地图', 'Map'), 'pin')}${extI(gmDir(x.q, 'transit', undefined, x.gpid), Z('路线', 'Directions'), 'route')}<button type="button" class="mlink" data-mine-edit="${esc(x.id)}">${icon('clock')}<span class="dlbl">${Z('改时间', 'Change')}</span></button><button type="button" class="mlink" data-mine-del="${esc(x.id)}" aria-label="${Z('删除', 'Remove')}">${icon('x')}<span class="dlbl">${Z('删除', 'Remove')}</span></button></div>
       ${nearDrinks(d, { place: x.id })}
     </div></li>`;
+}
+/* a day that splits (DAYS[].split, trip-format.md): part of the group takes its own plan for a few hours. It hangs,
+   folded, on the string where it forks: its go / wait / skip rule, a switch between its plans (times, bike docks with
+   live counts, a route for the map), and a note on the stop where they come back. Its times are the plan's own and
+   don't move with a push-back; the switch is remembered per phone. */
+function splitPick(d) {
+	const id = (store.get('splitPick', {}) || {})[d.id];
+	const opts = d.split.options;
+	return opts.find((o) => o.id === id) || opts.find((o) => o.default) || opts[0];
+}
+const splitSum = (o) => [o.km && `≈${o.km} km`, o.back && Z(`约 ${o.back} 回来`, `back ≈${o.back}`)].filter(Boolean).join(' · ');
+const ybSpot = (p) => (p.yb ? `<span class="yb-live" data-yb="${esc(p.yb)}">${Z('打开后查可借车辆…', 'Checking live bikes…')}</span>` : '');
+function splitDir(o) {
+	const at = (p) => `${p.lat},${p.lng}`;
+	const via = (o.via || []).map((p) => p.join(',')).join('|');
+	return `https://www.google.com/maps/dir/?api=1&origin=${at(o.start)}&destination=${at(o.end)}${via ? `&waypoints=${encodeURIComponent(via)}` : ''}&travelmode=bicycling`;
+}
+function splitPanel(d, o, on) {
+	const back = d.schedule.find((it) => parseT(it.t || '').s === tMin(o.join));
+	const rows = [
+		o.km && [
+			Z('距离', 'Distance'),
+			`≈${o.km} km${o.ride ? Z(` · 骑约 ${o.ride} 分钟${o.stops ? `，休息 ${o.stops} 分钟` : ''}`, ` · ≈${o.ride} min riding${o.stops ? `, ${o.stops} min stops` : ''}`) : ''}`,
+		],
+		o.start && [Z('借车', 'Pick up'), `${o.leave ? `${esc(o.leave)} · ` : ''}${esc(L(o.start.name))}${ybSpot(o.start)}`],
+		o.end && [
+			Z('还车', 'Return'),
+			`${o.back ? `≈${esc(o.back)} · ` : ''}${esc(L(o.end.name))}${ybSpot(o.end)}${o.alt ? `<span class="split-alt">${Z('满了就还到', 'Full? Return at')} ${esc(L(o.alt.name))}</span>${ybSpot(o.alt)}` : ''}`,
+		],
+		...(o.rows || []).map(([k, v]) => [esc(L(k)), fmt(v)]),
+		[Z('会合', 'Rejoin'), `${esc(o.join)}${back ? ` · ${fmt(back.what)}` : ''}`],
+		o.fee && [Z('费用', 'Cost'), fmt(o.fee)],
+	].filter(Boolean);
+	const links = [
+		o.line &&
+			`<button type="button" class="mlink" data-split-map="${d.id}|${esc(o.id)}">${icon('map')}${Z('在地图上看路线', 'Route on the map')}</button>`,
+		o.start && o.end && ext(splitDir(o), Z('Google 导航', 'Directions'), 'route'),
+		o.place && placeLinks(o.place, { noDriver: true }),
+	].filter(Boolean);
+	return `<div class="split-opt" data-split-opt="${esc(o.id)}"${on ? '' : ' hidden'}>
+      <dl class="kv">${rows.map(([k, v]) => `<div><dt>${k}</dt><dd class="wrap">${v}</dd></div>`).join('')}</dl>
+      ${o.rule ? `<p class="warn">${icon('clock')}${fmt(o.rule)}</p>` : ''}
+      ${links.length ? `<div class="links-row">${links.join('')}</div>` : ''}
+    </div>`;
+}
+function splitHTML(d) {
+	const sp = d.split;
+	const cur = splitPick(d);
+	const opts = sp.options;
+	return `<li class="stop split" id="${d.id}-split" data-s="${tMin(sp.at)}"><div class="stop-t">${esc(sp.at)}</div><div class="stop-knot"></div><div class="stop-b">
+      <p class="stop-name">${esc(L(sp.h))}<span class="split-who">${esc(L(sp.who))}</span></p>
+      ${sp.sub ? `<p class="stop-note">${fmt(sp.sub)}</p>` : ''}
+      <details class="more split-card"><summary>${icon(sp.icon || 'bike')}<span class="split-h"><span class="split-name">${Z('路线与规则', 'Plans and rules')}</span><span class="split-sum" data-split-sum>${esc(`${L(cur.name)} · ${splitSum(cur)}`)}</span></span>${icon('chev', 'chev')}</summary>
+        <div class="more-body stack">
+          ${sp.go ? `<div class="decide">${sp.go.map(optRow).join('')}</div>` : ''}
+          ${opts.length > 1 ? `<div class="seg split-seg" role="group" aria-label="${Z('选一个', 'Pick one')}">${opts.map((o) => `<button type="button" aria-pressed="${o === cur}" data-split-pick="${d.id}|${esc(o.id)}">${esc(L(o.name))}</button>`).join('')}</div>` : ''}
+          ${opts.map((o) => splitPanel(d, o, o === cur)).join('')}
+          ${(sp.lists || []).map((g) => `<p class="tail-sub">${fmt(g.h)}</p>${list(g.list)}`).join('')}
+          ${sp.note ? `<p class="note">${fmt(sp.note)}</p>` : ''}
+        </div>
+      </details></div></li>`;
+}
+// on the stop where they come back: who rejoins here, and on which plans
+function splitBack(d, it) {
+	if (!d.split) return '';
+	const s = parseT(it.t || '').s;
+	const here = d.split.options.filter((o) => tMin(o.join) === s).map((o) => L(o.name));
+	if (s == null || !here.length) return '';
+	const who = L(d.split.who);
+	return `<p class="split-back">${icon(d.split.icon || 'bike')}${esc(Z(`${who}在这里会合（${here.join('、')}）`, `${who} rejoins here (${here.join(', ')})`))}</p>`;
 }
 // "add to my plan": pick a day and a time
 let addItem = null;
@@ -741,6 +813,7 @@ function secDay(d, today) {
 		return `<li class="${cls}${it._sh ? ' shifted' : ''}" id="${d.id}-s${i}" ${pt.s != null ? `data-s="${pt.s}"` : ''}><div class="stop-t">${esc(t)}${it._sh ? `<span class="t-was">${esc(Z(`原 ${L(it._base)}`, `was ${L(it._base)}`))}</span>` : ''}</div><div class="stop-knot">${gapBtn(d, `${i}`)}</div><div class="stop-b">
         <p class="stop-name"${alt(other(it.what))}>${fmt(it.what)}${it.fixed ? seal() : ''}<span class="flag-slot"></span></p>
         ${it.note ? `<p class="stop-note">${fmt(it.note)}</p>` : ''}
+        ${splitBack(d, it)}
         ${it.shops ? shopBoxHTML() : ''}
         ${it._clash ? `<p class="warn">${icon('alert')}${esc(Z(`推迟后会撞到 ${L(it._clash.t)}「${stopName(it._clash)}」：这一项缩短或跳过`, `Now runs into the fixed ${L(it._clash.t)} ${stopName(it._clash)}: shorten or skip this`))}</p>` : ''}
         ${it.place || it.link ? `<div class="stop-links">${it.place ? placeLinks(it.place, { noDriver: true, noSite: false }) : ''}${it.link ? `<a class="mlink" href="${it.link}">${icon('arrow')}${Z('看详情', 'Details')}</a>` : ''}</div>` : ''}
@@ -749,6 +822,11 @@ function secDay(d, today) {
         ${nearDrinks(d, it)}
         ${it.photo ? thumb(it.photo) : ''}</div></li>`;
 	});
+	if (d.split) {
+		// it forks after the last stop that starts by then; added stops still sort around it by time
+		const at = d.schedule.reduce((k, it, j) => (parseT(it.t || '').s != null && parseT(it.t || '').s <= tMin(d.split.at) ? j : k), -1);
+		if (at >= 0) planned[at] += splitHTML(d);
+	}
 	const sched = mineMerge(d, planned);
 	const foodSlots = d.foodSlots || []; // the day's researched food slots (extra.json food[].slot)
 	const tickets = d.tickets || []; // the day's ticket/booking cards (ids in extra.json tickets)

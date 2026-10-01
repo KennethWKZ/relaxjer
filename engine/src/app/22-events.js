@@ -135,7 +135,7 @@ document.addEventListener('click', (e) => {
 		return;
 	}
 	if (t.matches('[data-sync-now]')) {
-		syncNow();
+		syncNow(t);
 		return;
 	}
 	if (t.matches('[data-upd]')) {
@@ -287,11 +287,13 @@ document.addEventListener('click', (e) => {
 				gpid: addItem.gpid,
 				q: addItem.q,
 				addr: addItem.addr,
+				...addedBy(),
 			});
 		mineSet(list);
 		closeDialog($('#placeSheet'));
 		addItem = null;
-		whenSettled(() => mineRerender(Z(`已加入 Day ${dayById[day].n} ${tm}`, `Added to Day ${dayById[day].n}, ${tm}`)));
+		const added = Z(`已加入 Day ${dayById[day].n} ${tm}`, `Added to Day ${dayById[day].n}, ${tm}`);
+		whenSettled(() => mineRerender(SYNC ? `${added}${Z('（大家的页面都有）', ' · on everyone’s page')}` : added));
 		return;
 	}
 	if (t.matches('[data-mine-edit]')) {
@@ -304,7 +306,8 @@ document.addEventListener('click', (e) => {
 	}
 	if (t.matches('[data-mine-del]')) {
 		const x = MINE[t.dataset.mineDel];
-		if (!x || !confirm(Z(`从行程删除「${x.name}」？`, `Remove "${x.name}" from the plan?`))) return;
+		const everyone = SYNC ? Z('所有人的页面都会删掉它。', ' It goes from everyone’s page.') : '';
+		if (!x || !confirm(Z(`从行程删除「${x.name}」？${everyone}`, `Remove "${x.name}" from the plan?${everyone}`))) return;
 		mineSet(mineAll().filter((y) => y.id !== x.id));
 		const sh = $('#placeSheet');
 		if (sh && sh.open) closeDialog(sh);
@@ -324,7 +327,7 @@ document.addEventListener('click', (e) => {
 		let n = 0;
 		(mineIncoming || []).forEach((x) => {
 			if (!list.some((y) => y.day === x.day && y.t === x.t && y.name === x.name)) {
-				list.push({ id: `mine-${Date.now().toString(36)}${n}`, q: x.name, ...x });
+				list.push({ id: `mine-${Date.now().toString(36)}${n}`, q: x.name, ...x, ...addedBy() });
 				n++;
 			}
 		});
@@ -401,6 +404,35 @@ document.addEventListener('click', (e) => {
 		withMap(() => map.select(pid));
 		return;
 	}
+	// a day that splits: switch its plan (remembered on this phone), or show a plan's route on the map
+	const splitOpt = (v) => {
+		const [day, id] = String(v).split('|');
+		const d = dayById[day];
+		return d && d.split ? [d, d.split.options.find((o) => o.id === id)] : [];
+	};
+	if (t.matches('[data-split-pick]')) {
+		const [d, o] = splitOpt(t.dataset.splitPick);
+		const card = t.closest('.split-card');
+		if (!o || !card) return;
+		store.set('splitPick', { ...(store.get('splitPick', {}) || {}), [d.id]: o.id });
+		card.querySelectorAll('[data-split-pick]').forEach((b) => b.setAttribute('aria-pressed', String(b === t)));
+		card.querySelectorAll('[data-split-opt]').forEach((p) => (p.hidden = p.dataset.splitOpt !== o.id));
+		card.querySelector('[data-split-sum]').textContent = `${L(o.name)} · ${splitSum(o)}`;
+		ybFill(card);
+		return;
+	}
+	if (t.matches('[data-split-map]')) {
+		const [d, o] = splitOpt(t.dataset.splitMap);
+		if (!o || !o.line) return;
+		if (liveFailed) {
+			window.open(splitDir(o), '_blank', 'noopener');
+			return;
+		}
+		const color = getComputedStyle(document.documentElement).getPropertyValue(`--l${d.c}`).trim() || '#1a73e8';
+		mapFull(true);
+		withMap(() => map.ride && map.ride(o.line, color));
+		return;
+	}
 	if (t.matches('[data-retry-map]')) {
 		liveArmed = true;
 		startLiveMap();
@@ -471,6 +503,15 @@ document.addEventListener('change', (e) => {
 		if (c.dataset.check.startsWith('entry-')) renderNow();
 	}
 });
+// a split day's plan, opened: the live bike counts at its docks (the request goes out only then)
+document.addEventListener(
+	'toggle',
+	(e) => {
+		const d = e.target;
+		if (d instanceof HTMLDetailsElement && d.open && d.classList.contains('split-card')) ybFill(d);
+	},
+	true,
+);
 // a hairline under the pinned sheet header once the list has scrolled under it
 document.addEventListener(
 	'scroll',

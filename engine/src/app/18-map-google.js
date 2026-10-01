@@ -151,6 +151,7 @@ function mountGoogle() {
 	let meMk = null;
 	let meCirc = null;
 	let meLine = null;
+	let rideLine = null; // a split day's route (07-sections.js splitHTML), dashed in the day's colour
 	m.controls[g.ControlPosition.RIGHT_BOTTOM].push(loc);
 	const VIEWS = { all: GEO.bbox, ...Object.fromEntries((TRIP.mapViews || []).map((v) => [v.id, v.bbox])) };
 	const bounds = (b) => ({ west: b[0], south: b[1], east: b[2], north: b[3] });
@@ -233,6 +234,23 @@ function mountGoogle() {
 			if (!meLL) return;
 			m.panTo(meLL);
 			if (m.getZoom() < 15) m.setZoom(16);
+		},
+		ride(line, color) {
+			if (rideLine) rideLine.setMap(null);
+			rideLine = null;
+			if (!line || line.length < 2) return;
+			iw.close();
+			const path = line.map(([lat, lng]) => ({ lat, lng }));
+			rideLine = new g.Polyline({
+				map: m,
+				path,
+				strokeOpacity: 0,
+				clickable: false,
+				zIndex: 4,
+				icons: [{ icon: { path: 'M 0,-1 0,1', strokeOpacity: 0.9, strokeColor: color, strokeWeight: 4, scale: 3 }, offset: '0', repeat: '12px' }],
+			});
+			fitTo(path);
+			$$('[data-view]').forEach((x) => x.setAttribute('aria-pressed', 'false'));
 		},
 	};
 	map.view(FIRST_VIEW);

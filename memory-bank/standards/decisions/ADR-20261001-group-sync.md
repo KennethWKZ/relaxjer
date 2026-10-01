@@ -38,6 +38,8 @@ the phone being online at the same moment as the others.
   send changes, `EventSource` for live changes. No Firebase SDK: the page already keeps its own copy on the phone,
   which is the part the SDK can't do in a web page, and the SDK would add 287 KB of outside code that could read the
   keys.
+- **Who added a stop travels with it** (`by`, the name the phone gives in the Group sync sheet). A name given later
+  is put on the stops that phone added, so every phone sees it.
 - **What syncs is a set of records** (`engine/src/core/sync.mjs`): `stop:<id>`, `shift:<date>`, `flt:arr|dep`,
   `tick:<group>-<item>` for groups with `shared: true`. Everything else (language, theme, rate, personal ticks) stays
   on the phone. Each record's newest version wins: the later edit, a tie to the larger device id.

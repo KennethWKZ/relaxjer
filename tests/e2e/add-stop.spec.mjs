@@ -20,6 +20,7 @@ test.describe('your own stops', { tag: '@demo' }, () => {
 		const mine = page.locator('#d2 .stop.mine');
 		await expect(mine).toHaveCount(1);
 		await expect(mine.locator('.mine-tag')).toHaveText('Added');
+		await expect(page.locator('#d2 [data-mine-share]'), 'without group sync, a link is how stops travel').toBeVisible();
 		// sits between the 14:00 stop and the 17:00 stop
 		const order = await page.locator('#d2 .sched > li.stop').evaluateAll((ls) => ls.map((l) => (l.classList.contains('mine') ? 'mine' : l.id)));
 		expect(order.indexOf('mine')).toBe(order.indexOf('d2-s4') + 1);

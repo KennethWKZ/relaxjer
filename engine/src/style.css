@@ -4562,6 +4562,99 @@ dialog.toc {
 	margin: 4px 0 0;
 	padding-left: calc(4.6rem + 28px);
 }
+
+/* a day that splits: part of the group's own plan hangs, folded, where the string forks. A dashed knot in the day's
+   colour (it can move, so never the seal); a quiet "rejoins here" on the stop they come back to */
+.stop.split .stop-knot::after {
+	border-style: dashed;
+	background: color-mix(in srgb, var(--c) 14%, var(--paper));
+}
+.stop.split .stop-b > * {
+	grid-column: 1 / -1; /* the body's second column is for a photo; a split has none */
+}
+.split-card {
+	margin-top: 8px;
+}
+.split-card > summary {
+	padding-block: 10px;
+}
+.split-card > summary > svg.i:first-child {
+	flex: none;
+	color: var(--ink-2);
+}
+.split-h {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 0;
+}
+.split-sum {
+	font-size: var(--fs-sm);
+	font-weight: 650;
+	color: var(--ink-2);
+}
+.split-who {
+	display: inline-block;
+	margin-left: 8px;
+	padding: 1px 7px;
+	border-radius: 6px;
+	border: 1px solid var(--rule);
+	background: var(--paper);
+	font-size: var(--fs-xs);
+	font-weight: 750;
+	color: var(--ink-2);
+	vertical-align: 2px;
+}
+/* inside the grey card, decisions are paper rows (no grey on grey), and a value reads left to right */
+.split-card .opt {
+	background: var(--paper);
+	padding: 10px 12px;
+}
+.split-opt .kv {
+	grid-template-columns: minmax(4.5rem, auto) minmax(0, 1fr);
+}
+.split-opt .kv dd {
+	text-align: left;
+	font-weight: 650;
+}
+/* phones: the open card uses the full width (under the time column too), like the meal options */
+@media (max-width: 599px) {
+	.split-card {
+		margin-left: calc(-4.6rem - 28px);
+		position: relative;
+		z-index: 1;
+	}
+}
+.split-seg {
+	display: flex;
+	width: 100%;
+}
+.split-seg button {
+	flex: 1;
+}
+.split-opt .kv dd .yb-live,
+.split-alt {
+	display: block;
+}
+.split-alt {
+	margin-top: 4px;
+	font-weight: 600;
+	color: var(--ink-2);
+}
+.split-back {
+	grid-column: 1 / -1; /* inside an ordinary stop, never in its photo column */
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin-top: 6px;
+	font-size: var(--fs-sm);
+	font-weight: 700;
+	color: var(--ink-2);
+}
+.split-back svg.i {
+	flex: none;
+}
 @media (max-width: 599px) {
 	.mine-bar {
 		padding-left: 0;
@@ -5249,6 +5342,28 @@ h2.landed {
 .sync-state {
 	margin: 0 0 8px;
 	font-weight: 750;
+}
+/* "Sync now": the arrows turn while it asks; then a tick on green, or the reason on amber, for a moment */
+.sync-now[data-state='busy'] svg.i {
+	animation: sync-turn 900ms linear infinite;
+}
+.sync-now[data-state='done'] {
+	background: var(--good);
+	color: var(--paper);
+}
+.sync-now[data-state='fail'] {
+	background: color-mix(in srgb, var(--warn) 22%, var(--paper));
+	color: var(--ink);
+}
+@keyframes sync-turn {
+	to {
+		transform: rotate(360deg);
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.sync-now[data-state='busy'] svg.i {
+		animation: none;
+	}
 }
 .sync-name {
 	display: grid;

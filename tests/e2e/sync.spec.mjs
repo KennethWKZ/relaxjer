@@ -94,6 +94,63 @@ test.describe('group sync', { tag: '@demo' }, () => {
 		await expect(b.page.locator('#toast')).toContainText('Ken ticked', { timeout: 15_000 });
 	});
 
+	test('an added stop says who put it in the plan, and removing it says it goes for everyone', async ({ page }) => {
+		await openSync(b.page);
+		await openSync(page);
+		await syncRow(page);
+		await page.locator('#toc [data-sync-open]').click();
+		const name = page.locator('#placeSheet [data-sync-name]');
+		await name.fill('Ken');
+		await name.dispatchEvent('change');
+		await page.locator('#placeSheet [data-close]').click();
+		await page.goto('about:blank'); // a hash change alone doesn't reload the page, and the link is read on load
+		await openSync(page, stopLink('Demo Named Stop'));
+		await page.locator('#placeSheet [data-mine-import]').click();
+		const row = b.page.locator('#d3 .stop.mine', { hasText: 'Demo Named Stop' });
+		await expect(row.locator('.mine-tag'), 'the other phone sees who added it').toHaveText('Added by Ken', { timeout: 15_000 });
+		await expect(page.locator('#d3 [data-mine-share]'), 'everyone has the stops already: no share link').toHaveCount(0);
+
+		const asked = [];
+		b.page.on('dialog', (d) => asked.push(d.message()));
+		await row.locator('[data-mine-del]').click();
+		expect(asked.join(' ')).toContain('everyone');
+		await expect(page.locator('#d3 .stop.mine', { hasText: 'Demo Named Stop' }), 'gone from the first phone too').toHaveCount(0, {
+			timeout: 15_000,
+		});
+	});
+
+	test('a name given after adding a stop goes on that stop too, on every phone', async ({ page }) => {
+		await openSync(b.page);
+		await openSync(page, stopLink('Demo Early Stop'));
+		await page.locator('#placeSheet [data-mine-import]').click();
+		const there = b.page.locator('#d3 .stop.mine', { hasText: 'Demo Early Stop' });
+		await expect(there.locator('.mine-tag'), 'no name yet').toHaveText('Added', { timeout: 15_000 });
+		await syncRow(page);
+		await page.locator('#toc [data-sync-open]').click();
+		const name = page.locator('#placeSheet [data-sync-name]');
+		await name.fill('Ken');
+		await name.dispatchEvent('change');
+		await expect(page.locator('#toast')).toContainText('put on the 1 stop you added');
+		await expect(there.locator('.mine-tag'), 'the other phone gets the name').toHaveText('Added by Ken', { timeout: 15_000 });
+	});
+
+	test('Sync now says it is working, then that it is done, and a second press meanwhile does nothing', async ({ page }) => {
+		await openSync(page);
+		await syncRow(page);
+		await page.locator('#toc [data-sync-open]').click();
+		const btn = page.locator('#placeSheet [data-sync-now]');
+		await expect(btn).toHaveText('Sync now');
+		await btn.click();
+		await expect(btn).toHaveAttribute('aria-busy', 'true');
+		await expect(btn).toHaveText('Syncing…');
+		await expect(btn).toHaveText('Up to date', { timeout: 15_000 });
+		await expect(btn).toHaveAttribute('data-state', 'done');
+		await btn.click(); // ignored while it shows the result
+		await expect(btn).not.toHaveAttribute('aria-busy', 'true');
+		await expect(btn).toHaveText('Sync now', { timeout: 5_000 });
+		await expect(btn).not.toHaveAttribute('data-state', /./);
+	});
+
 	test('when the planner ends sync, the page says so and keeps its own copy', async ({ page, request }, testInfo) => {
 		await openSync(page, '#checklist');
 		await tick(page, 'before-charter');

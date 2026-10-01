@@ -704,6 +704,37 @@ function mountLive(url) {
 			center() {
 				if (meLL) m.easeTo({ center: [meLL.lng, meLL.lat], zoom: Math.max(m.getZoom(), 15.5), duration: reduce ? 0 : 500 });
 			},
+			// a split day's route (07-sections.js splitHTML), dashed in the day's colour
+			ride(line, color) {
+				const data = {
+					type: 'FeatureCollection',
+					features:
+						line && line.length > 1
+							? [{ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: line.map(([lat, lng]) => [lng, lat]) } }]
+							: [],
+				};
+				try {
+					const src = m.getSource('ride-line');
+					if (src) {
+						src.setData(data);
+						m.setPaintProperty('ride-line', 'line-color', color);
+					} else if (data.features.length) {
+						m.addSource('ride-line', { type: 'geojson', data });
+						m.addLayer({
+							id: 'ride-line',
+							type: 'line',
+							source: 'ride-line',
+							layout: { 'line-cap': 'round', 'line-join': 'round' },
+							paint: { 'line-color': color, 'line-width': 4, 'line-dasharray': [1.6, 1.4] },
+						});
+					}
+				} catch {
+					/* style still loading */
+				}
+				if (popup) popup.remove();
+				if (data.features.length) fitTo(line.map(([lat, lng]) => ({ lat, lng })));
+				$$('[data-view]').forEach((x) => x.setAttribute('aria-pressed', 'false'));
+			},
 		};
 		$$('[data-view]').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.view === FIRST_VIEW)));
 		new ResizeObserver(() => m.resize()).observe(wrap);

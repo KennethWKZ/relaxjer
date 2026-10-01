@@ -51,7 +51,9 @@ offline on a tired phone, and doesn't split every cost per person.
 - Every group cost also shows a per-person share, in the destination's currency and the group's home currency.
 - The airport transfer compares the options (train or metro with a transit card, taxi or ride-hail, a pre-booked van)
   with prices for the whole group, decided on the day.
-- Optional items (shops, extra sights) are never scheduled.
+- Optional items (shops, extra sights) are never scheduled. A day can split: when part of the group takes its own
+  plan for a few hours (a ride, a visit), it hangs where the day forks, with its rule, its choices and where they
+  rejoin.
 - State is per phone (`localStorage`) for checklist ticks, added stops and preferences. With group sync on (the
   planner's choice, per trip), added stops, pushed-back times, flight changes and the ticks of shared lists reach
   everyone's phone; the rest stays on each one.

@@ -21,6 +21,37 @@ test('a 4-day trip follows the contract', () => {
 	assert.deepEqual(checkTrip(trip), []);
 });
 
+test('a day that splits forks before it rejoins, at stops the day has, with plans the page can draw', () => {
+	const trip = loadTrip(DEMO_TRIP);
+	const sp = trip.DAYS[4].split;
+	assert.ok(sp, 'the demo splits Day 5');
+	assert.deepEqual(checkTrip(trip), []);
+	sp.options[0].join = '13:00'; // before the fork, and no stop starts then
+	sp.options[1].id = sp.options[0].id;
+	sp.options[1].line = [[25.05, 121.5]];
+	sp.options[1].via = [
+		[1, 1],
+		[2, 2],
+		[3, 3],
+		[4, 4],
+	];
+	sp.options[0].default = true;
+	sp.options[0].start.lat = 'north';
+	sp.go[0].k = 'maybe';
+	const problems = checkTrip(trip).join('\n');
+	for (const want of [
+		'join "13:00" must be the start time of a stop',
+		'rejoins (13:00) before it forks',
+		'option ids must be unique',
+		'at most one option is the default',
+		'line must be [lat, lng] points',
+		'via holds at most 3',
+		'start needs a',
+		'go must be rows of',
+	])
+		assert.match(problems, new RegExp(want.replace(/[()[\]]/g, '.')), want);
+});
+
 test('day ids must run d1…dN, and one free-time day at most', () => {
 	const trip = loadTrip(DEMO_TRIP);
 	trip.DAYS[2].id = 'd9';

@@ -51,6 +51,38 @@ trip's own currency symbol and group size; the page adds the per-person share. `
 | `foodSlots`    | the researched food slots listed under the day ("Where to eat")                                                                                    |
 | `freeEvening`  | `true`: wishlist items that fit "any evening" are suggested on this day                                                                            |
 | `freeFrom`     | `'13:00'`: this day has free time from then; it gets the free-time ideas list (one day at most)                                                    |
+| `split`        | part of the group takes its own plan for a few hours (below)                                                                                       |
+
+### A day that splits (`DAYS[i].split`)
+
+When one or some of the group do something else for part of a day (a ride, a visit), the plan hangs, folded, on the
+day's string where it forks, and the stop where they come back says so
+([ADR-20261001-day-split](decisions/ADR-20261001-day-split.md)). Its times are the plan's own: a push-back doesn't
+move them. Which plan a phone shows is remembered on that phone and isn't synced.
+
+| Field     | What it is                                                                                |
+| --------- | ----------------------------------------------------------------------------------------- |
+| `at`      | `'13:45'`: where it forks; it hangs after the last stop that starts by then               |
+| `who`     | `[zh, en]`, for example `['一人', 'One of us']`; never a family relationship              |
+| `h`       | `[zh, en]`: what they do instead                                                          |
+| `sub`     | `[zh, en]`, optional: when it applies and what it skips                                   |
+| `icon`    | optional sprite icon, `bike` by default                                                   |
+| `go`      | the decision rows, `[{ k: 'go' \| 'wait' \| 'stop', name: [zh, en] }, …]`                 |
+| `options` | 1–4 plans, the switch between them (one may be `default: true`); each plan's fields below |
+| `lists`   | optional `[{ h: [zh, en], list: [[zh, en], …] }, …]`: the bike, what to carry             |
+| `note`    | `[zh, en]`, optional: where the numbers come from (mark estimates "≈")                    |
+
+A plan (`options[]`): `id`, `name: [zh, en]`, and `join: 'HH:MM'`, the start time of the stop where they come back
+(after `at`). Everything else is optional and shows only when present:
+
+- `km`, `ride` and `stops` (minutes), `leave` and `back` (`'HH:MM'`), and `fee: [zh, en]`;
+- `start`, `end` and `alt` (a second place to return the bike): `{ name: [zh, en], lat, lng, yb }`, where `yb` is
+  the bike-share station number, and the page shows its live bikes and docks when the plan opens;
+- `via`: up to 3 `[lat, lng]` points for the directions link (Google Maps, by bike, from `start` to `end`);
+- `line`: `[[lat, lng], …]`, the route drawn dashed in the day's colour on the map. Take it from a free router
+  (OpenStreetMap bike routing), never from Google's;
+- `rule: [zh, en]` (a turn-back time, a cut-off), `rows: [[[zh, en], [zh, en]], …]` (more key / value rows), and
+  `place` (a `PLACES` key, for a plan that's a visit).
 
 Days can be any number, ids `d1`…`dN` in order. The engine reads each day's role from the data (`Plan.dayRoles`):
 the first day is the arrival; the day the group leaves for the airport is the evening before an after-midnight

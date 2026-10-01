@@ -242,12 +242,38 @@ function groupSync() {
 		if (!document.hidden && Object.keys(meta.pending).length) push();
 		else syncPaint(); // "synced 2 min ago" keeps counting
 	}, 30000);
+	// the name: kept as it's typed (a phone that closes the sheet without a "change" still has it), and once it's
+	// settled, put on the stops this phone added before it had one (or had another), so everyone sees who added them
+	document.addEventListener('input', (e) => {
+		const inp = e.target.closest('[data-sync-name]');
+		if (!inp) return;
+		meta.name = inp.value.trim().slice(0, 24);
+		save();
+	});
+	let namedAs = meta.name;
 	document.addEventListener('change', (e) => {
 		const inp = e.target.closest('[data-sync-name]');
 		if (!inp) return;
 		meta.name = inp.value.trim().slice(0, 24);
 		save();
-		toast(Z('名字已保存', 'Name saved'));
+		const ownStop = (x) => {
+			const v = meta.pending[`stop:${x.id}`] || meta.known[`stop:${x.id}`];
+			return !v || v.d === meta.dev; // no record yet means it was made here, before sync heard of it
+		};
+		let n = 0;
+		const list = mineAll().map((x) =>
+			meta.name && ownStop(x) && (!x.by || x.by === namedAs) && x.by !== meta.name ? (n++, { ...x, by: meta.name }) : x,
+		);
+		namedAs = meta.name;
+		if (n) {
+			mineSet(list);
+			whenSettled(() => mineRerender());
+		}
+		toast(
+			n
+				? Z(`名字已保存，也写到你加的 ${n} 个行程上`, `Name saved, and put on the ${n} stop${n > 1 ? 's' : ''} you added`)
+				: Z('名字已保存', 'Name saved'),
+		);
 	});
 
 	function status(state) {
@@ -307,7 +333,8 @@ function syncSheet() {
       <p class="sync-state" data-sync-state role="status">${Cap(syncState())}</p>
       <p class="small">${Z(`加的行程、往后推的时间、改过的航班时间${lists ? `和${lists}的勾选` : ''}，会出现在全组每个人的手机上。语言、主题、其他勾选只留在这台手机。`, `Added stops, pushed-back times and changed flight times${lists ? `, and ticks in ${lists},` : ''} show up on everyone’s phone. Language, theme and other ticks stay on this one.`)}</p>
       <label class="sync-name">${Z('你的名字（别人收到你的改动时看到）', 'Your name (others see it on your changes)')}<input type="text" data-sync-name maxlength="24" value="${esc(name)}" autocomplete="nickname" enterkeyhint="done"></label>
-      <div class="links-row"><button type="button" class="go-btn" data-sync-now>${icon('check')}${Z('现在同步', 'Sync now')}</button></div>`;
+      <div class="links-row"><button type="button" class="go-btn sync-now" data-sync-now>${icon('sync')}${Z('现在同步', 'Sync now')}</button></div>
+      <p class="small muted">${Z('改动会自动同步；这个按钮只是马上再查一次。', 'Changes sync by themselves; this checks again right away.')}</p>`;
 }
 function syncPaint() {
 	$$('[data-sync-label]').forEach((el) => {
@@ -317,10 +344,45 @@ function syncPaint() {
 		el.textContent = Cap(syncState());
 	});
 }
-function syncNow() {
+// "Sync now": busy while it asks (disabled, aria-busy, its label says so), then for a moment how it went (a tick and
+// "Up to date", or why not), during which another press does nothing; then back to "Sync now"
+let syncNowBusy = false;
+function syncNow(b) {
 	if (!syncApi) return toast(syncLabel());
-	if (navigator.onLine === false) return toast(Z('没有网络：改动先存在这台手机', 'Offline: changes wait on this phone'));
-	syncApi.now().then(() => toast(syncLabel()));
+	if (syncNowBusy) return;
+	if (navigator.onLine === false)
+		return toast(Z('没有网络：改动先存在这台手机，有网络会自动同步', 'Offline: changes wait on this phone and sync by themselves once it’s back'));
+	const show = (ic, text, state) => {
+		if (!b || !b.isConnected) return;
+		b.innerHTML = `${icon(ic)}${text}`;
+		if (state) b.dataset.state = state;
+		else delete b.dataset.state;
+	};
+	syncNowBusy = true;
+	if (b) {
+		b.disabled = true;
+		b.setAttribute('aria-busy', 'true');
+	}
+	show('sync', Z('正在同步…', 'Syncing…'), 'busy');
+	const t0 = Date.now();
+	Promise.resolve()
+		.then(() => syncApi.now())
+		.catch(() => {})
+		.then(() => new Promise((r) => setTimeout(r, Math.max(0, 600 - (Date.now() - t0))))) // long enough to be seen
+		.then(() => {
+			const ok = syncStatus.state === 'ok';
+			if (b) {
+				b.removeAttribute('aria-busy');
+				b.disabled = false;
+				b.setAttribute('aria-disabled', 'true');
+			}
+			show(ok ? 'check' : 'alert', ok ? Z('已是最新', 'Up to date') : Cap(syncState()), ok ? 'done' : 'fail');
+			setTimeout(() => {
+				syncNowBusy = false;
+				if (b) b.removeAttribute('aria-disabled');
+				show('sync', Z('现在同步', 'Sync now'));
+			}, 2500);
+		});
 }
 // "Ken added Night market · Day 3 19:30": what a change from someone else did, in a toast
 const tickName = (key) => {

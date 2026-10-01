@@ -133,7 +133,40 @@ export function checkTrip(trip) {
 				if (!PLACES[p]) bad(`${d.id} ${b.type} block: unknown place "${p}"`);
 			if (b.type === 'budget' && !(b.min <= b.max)) bad(`${d.id} budget block: min ${b.min} > max ${b.max}`);
 		}
+		if (d.split) splitChecks(d);
 	});
+	// a day that splits (DAYS[].split, trip-format.md): part of the group takes its own plan for a few hours, forking
+	// off the string at `at` and coming back at a stop of the day
+	function splitChecks(d) {
+		const sp = d.split;
+		const w = `${d.id} split`;
+		const starts = new Set(d.schedule.map((it) => minutes(it.t)).filter((m) => m != null));
+		const ll = (p) => Array.isArray(p) && p.length === 2 && Math.abs(p[0]) <= 90 && Math.abs(p[1]) <= 180;
+		const spot = (p) => p && isLabel(p.name) && Number.isFinite(p.lat) && Number.isFinite(p.lng) && (p.yb == null || /^\w{1,20}$/.test(p.yb));
+		if (minutes(sp.at) == null) bad(`${w}: at must be HH:MM, where it forks off the string`);
+		for (const k of ['who', 'h']) if (!isLabel(sp[k])) bad(`${w}: ${k} must be [zh, en]`);
+		if (!Array.isArray(sp.go) || !sp.go.every((o) => ['go', 'wait', 'stop'].includes(o.k) && isLabel(o.name)))
+			bad(`${w}: go must be rows of { k: go|wait|stop, name: [zh, en] }`);
+		const opts = Array.isArray(sp.options) ? sp.options : [];
+		if (!opts.length || opts.length > 4) bad(`${w}: options must hold 1–4 plans`);
+		if (new Set(opts.map((o) => o.id)).size !== opts.length) bad(`${w}: option ids must be unique`);
+		if (opts.filter((o) => o.default).length > 1) bad(`${w}: at most one option is the default`);
+		for (const o of opts) {
+			const wo = `${w} option ${o.id}`;
+			if (!/^[\w-]{1,20}$/.test(o.id || '') || !isLabel(o.name)) bad(`${wo}: needs an id and a [zh, en] name`);
+			if (!starts.has(minutes(o.join))) bad(`${wo}: join ${JSON.stringify(o.join)} must be the start time of a stop that day`);
+			if (minutes(o.join) <= minutes(sp.at)) bad(`${wo}: it rejoins (${o.join}) before it forks (${sp.at})`);
+			for (const k of ['leave', 'back']) if (o[k] != null && minutes(o[k]) == null) bad(`${wo}: ${k} must be HH:MM`);
+			for (const k of ['km', 'ride', 'stops']) if (o[k] != null && !(o[k] > 0)) bad(`${wo}: ${k} must be a positive number`);
+			for (const k of ['start', 'end', 'alt'])
+				if (o[k] != null && !spot(o[k])) bad(`${wo}: ${k} needs a [zh, en] name, lat, lng (and a station number)`);
+			if (o.line != null && !(Array.isArray(o.line) && o.line.length >= 2 && o.line.every(ll))) bad(`${wo}: line must be [lat, lng] points`);
+			if (o.via != null && !(Array.isArray(o.via) && o.via.length <= 3 && o.via.every(ll))) bad(`${wo}: via holds at most 3 [lat, lng] points`);
+			if (o.place && !PLACES[o.place]) bad(`${wo}: unknown place "${o.place}"`);
+			for (const r of o.rows || [])
+				if (!(Array.isArray(r) && r.length === 2 && isLabel(r[0]) && isLabel(r[1]))) bad(`${wo}: rows are [[zh, en], [zh, en]] pairs`);
+		}
+	}
 	if (!DAYS.some((d) => d.schedule.some((it) => it.fixed))) bad('no fixed times: flights at least are fixed');
 	// places and sites the data points at must exist (the engine looks none up by a fixed name)
 	// one hotel for the trip (TRIP.hotel, default "hotel") or one per night (DAYS[i].hotel from the night it changes)

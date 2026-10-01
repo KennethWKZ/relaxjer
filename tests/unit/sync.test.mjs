@@ -50,6 +50,10 @@ test('Sync: a record from another phone is checked like a share link', () => {
 	assert.equal(Sync.cleanRecord('stop:mine-b', stop('mine-b', { lat: 'north' })), undefined);
 	assert.equal(Sync.cleanRecord('stop:mine-b', stop('mine-b', { t: 'soon' })), undefined);
 	assert.equal(Sync.cleanRecord('stop:mine-b', null), null, 'removed');
+	// who added it travels with the stop, cut like a name; anything that isn't a name is dropped
+	assert.equal(Sync.cleanRecord('stop:mine-b', stop('mine-b', { by: ` ${'K'.repeat(40)} ` })).by, 'K'.repeat(24));
+	assert.equal('by' in Sync.cleanRecord('stop:mine-b', stop('mine-b', { by: { n: 'x' } })), false);
+	assert.equal('by' in Sync.cleanRecord('stop:mine-b', stop('mine-b', { by: '  ' })), false);
 	assert.deepEqual(
 		Sync.cleanRecord('shift:2027-03-14', [
 			{ from: 600, min: 30 },

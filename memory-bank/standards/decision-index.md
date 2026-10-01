@@ -1,5 +1,5 @@
 ---
-total_decisions: 10
+total_decisions: 11
 last_updated: 2026-10-01
 ---
 
@@ -20,6 +20,7 @@ merged id never changes; a new ADR that collides takes a fresh slug.
 | [ADR-20260930-name-relaxjer](decisions/ADR-20260930-name-relaxjer.md)                       | 2026-09-30 | The Project Is Named RelaxJer                                                                        | naming   | accepted |
 | [ADR-20260930-repo-layout](decisions/ADR-20260930-repo-layout.md)                           | 2026-09-30 | Repository Layout: One Framework Repo, Destination Packs, Gitignored Trips                           | layout   | accepted |
 | [ADR-20260930-test-strategy](decisions/ADR-20260930-test-strategy.md)                       | 2026-09-30 | Test Strategy: Characterise First, Then Split                                                        | testing  | accepted |
+| [ADR-20261001-day-split](decisions/ADR-20261001-day-split.md)                               | 2026-10-01 | A Day Can Split: Part of the Group Takes Its Own Plan, Hung Where the String Forks                   | data     | accepted |
 | [ADR-20261001-group-sync](decisions/ADR-20261001-group-sync.md)                             | 2026-10-01 | Group Sync Through the Planner's Own Firebase Realtime Database, Over Its Plain HTTPS API            | data     | accepted |
 | [ADR-20261001-live-page-on-relaxjer](decisions/ADR-20261001-live-page-on-relaxjer.md)       | 2026-10-01 | The First Trip's Live Page Is Built by RelaxJer                                                      | hosting  | accepted |
 | [ADR-20261001-memory-bank-agent-config](decisions/ADR-20261001-memory-bank-agent-config.md) | 2026-10-01 | Project Context Lives in memory-bank/; Agent Tooling Works for Any Agent, With Claude Code Extras    | agents   | accepted |

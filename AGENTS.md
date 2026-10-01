@@ -6,7 +6,7 @@ in `memory-bank/` and states the rules that bind.
 
 **Status:** story steps 0–3b and 5 are done (engine moved, split and generalised; the `tw` pack; the pipeline). Step 6,
 the agent tooling, is in flight, and the landing page (6b) is built but not yet deployed. Group sync and the page's
-security policy (6d) are built and tested; they wait on a real Firebase database. Next: i18n (step 4), the affordance
+security policy (6d) are live on the first trip; a day can split for part of the group. Next: i18n (step 4), the affordance
 fixes (6c), a second destination (7). See
 [`memory-bank/story-index.md`](memory-bank/story-index.md).
 

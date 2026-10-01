@@ -66,6 +66,7 @@ export function cleanRecord(rid, v) {
 			lng,
 			gpid: v.gpid ? text(v.gpid, 120) : null,
 			addr: text(v.addr, 120),
+			...(typeof v.by === 'string' && v.by.trim() ? { by: text(v.by.trim(), 24) } : {}), // who added it
 		};
 	}
 	if (kind === 'shift') {

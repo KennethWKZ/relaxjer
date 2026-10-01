@@ -197,6 +197,11 @@ function mineSet(list) {
 	MINE = Object.fromEntries(list.map((x) => [x.id, x]));
 }
 MINE = Object.fromEntries(mineAll().map((x) => [x.id, x]));
+/** with group sync, who put a stop in the plan: the name this phone gives in the Group sync sheet, shown on the row */
+function addedBy() {
+	const by = SYNC && syncApi ? syncApi.name() : '';
+	return by ? { by } : {};
+}
 const placeTitle = (pk) => (PLACES[pk] ? L(PLACES[pk].name) : MINE[pk] ? MINE[pk].name : pk);
 const gpidOfPk = (pk) => ((GEO.places || {})[pk] || {}).gpid || (MINE[pk] || {}).gpid || null;
 const nearOf = (x, pk) => {
