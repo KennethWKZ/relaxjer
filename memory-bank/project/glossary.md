@@ -43,6 +43,13 @@ Use these words, as written, in code, tests, docs and commit messages, so names 
 | running-late re-plan    | A suggestion from time and location for what to drop or shift. It never moves anything by itself                                                                                                                                                                                 |
 | shop list               | A themed list in the Optional section (`SHOPLISTS`); `SNOW` is the older single-list form                                                                                                                                                                                        |
 | optional plan           | An `OPTIONAL` entry: a sight or idea that is never scheduled. With `near`, a "Nearby options" chip at the stops it suits opens its card over the day                                                                                                                             |
+| wishlist                | The group's would-love-to places (`wish-a.json`, `wish-b.json`): its own section, "Nearby" chips under stops, and suggestions on days with `freeEvening`                                                                                                                         |
+| free-time ideas         | The list on the free-time day (`freeFrom`): wishlist places, optional sights and each shop list, each with ＋                                                                                                                                                                    |
+| shop box                | The nearest supermarkets and pharmacies (`shops.json`) under the stop marked `shops: true`, with the tax-refund tag                                                                                                                                                              |
+| getting-there check     | The add sheet working out the trip from the stop before (or the phone): walk ×1.4, taxi and metro minutes, "Use HH:MM" when too early, and when to leave for the next timed stop                                                                                                 |
+| Copy for chat           | A day's plan as text for the group chat: times, notes, each person's budget, the rain plan and the link                                                                                                                                                                          |
+| driver card             | "Show the driver": a full-screen card with a place's local name, address and phone, for a taxi                                                                                                                                                                                   |
+| countdown               | The Overview before the trip: days to go, the flight, the first night, and the to-dos coming due                                                                                                                                                                                 |
 | day split               | `DAYS[i].split`: part of the group takes its own plan for a few hours, hung at a dashed knot where the day's string forks (ADR-20261001-day-split)                                                                                                                               |
 | rejoin stop             | The stop of a split day where the group comes back together; it says `Rejoining here: <who> (<plans>)`                                                                                                                                                                           |
 
@@ -81,12 +88,13 @@ Use these words, as written, in code, tests, docs and commit messages, so names 
 
 ## Keys, hosting and agents
 
-| Term           | Meaning                                                                                                                                  |
-| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| browser key    | The user's own Google key for the page (Maps JavaScript + Places), restricted to their host and `localhost`. Embedded only with `--keys` |
-| server key     | The user's own Google key for the pipeline (Places + Routes). Never in a page                                                            |
-| ht-ml.app      | The password-gated static host for trip pages. A site has an id, a secret update key, and a viewer password                              |
-| lesson         | An entry in `knowledge/` or `destinations/<cc>/knowledge.md`: something a trip taught. Proposed by a retro, reviewed before it lands     |
-| skill          | A workflow an agent loads by name, in `.agents/skills/<name>/SKILL.md`                                                                   |
-| vendored skill | A third-party skill copied in by the skills CLI and pinned in `skills-lock.json`                                                         |
-| seniors        | Older travellers in the group. Count their walking time ×1.4, and suggest a taxi first for long legs                                     |
+| Term           | Meaning                                                                                                                                                   |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| browser key    | The user's own Google key for the page (Maps JavaScript + Places), restricted to their host and `localhost`. Embedded only with `--keys`                  |
+| server key     | The user's own Google key for the pipeline (Places + Routes). Never in a page                                                                             |
+| ht-ml.app      | The password-gated static host for trip pages. A site has an id, a secret update key, and a viewer password                                               |
+| lesson         | An entry in `knowledge/` or `destinations/<cc>/knowledge.md`: something a trip taught. Proposed by a retro, reviewed before it lands                      |
+| skill          | A workflow an agent loads by name, in `.agents/skills/<name>/SKILL.md`                                                                                    |
+| relaxbro       | The read-only travel agent (`.claude/agents/relaxbro.md`): itinerary, pace, bookings and rain plans, sourced and dated; it proposes, the main agent edits |
+| vendored skill | A third-party skill copied in by the skills CLI and pinned in `skills-lock.json`                                                                          |
+| seniors        | Older travellers in the group. Count their walking time ×1.4, and suggest a taxi first for long legs                                                      |

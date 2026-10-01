@@ -19,15 +19,17 @@ A pack that builds a URL from parts must still spell its host out in full.
 
 What the engine reads from `Pack`, each optional:
 
-| Export                                                                | Used for                                                       |
-| --------------------------------------------------------------------- | -------------------------------------------------------------- |
-| `country`, `sym`                                                      | `[zh, en]` name; the currency symbol the pack's amounts are in |
-| `taxRefund: { min }`                                                  | the tax-refund tag on shops and the "NT$2,000+" chip           |
-| `luckyDraw: { repeat, companion, since }`, `luckyShares(pax, repeat)` | the lucky-draw calculator (Entry section)                      |
-| `city`, `metro`                                                       | `[zh, en]`: "not in Taipei yet", "by MRT"                      |
-| `metroToiletTip`                                                      | `[zh, en]` tip under the toilet list                           |
-| `taxiFare(km, minsNow)`                                               | `[low, high]` per car in the "from where you are" plan         |
-| `bikeShare: { name, request(nos), parse(json) }`                      | live bike and dock counts on bike-share pins                   |
+| Export                                                                | Used for                                                         |
+| --------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `country`, `sym`                                                      | `[zh, en]` name; the currency symbol the pack's amounts are in   |
+| `taxRefund: { min }`                                                  | the tax-refund tag on shops and the "NT$2,000+" chip             |
+| `luckyDraw: { repeat, companion, since }`, `luckyShares(pax, repeat)` | the lucky-draw calculator (Entry section)                        |
+| `city`, `metro`                                                       | `[zh, en]`: "not in Taipei yet", "by MRT"                        |
+| `metroToiletTip`                                                      | `[zh, en]` tip under the toilet list                             |
+| `transitCard`                                                         | `[zh, en]`: the stored-value card's name (budget, airport)       |
+| `drinkGuide`                                                          | `[[term, text], …]`: how to order a drink (sugar, ice, toppings) |
+| `taxiFare(km, minsNow)`                                               | `[low, high]` per car in the "from where you are" plan           |
+| `bikeShare: { name, request(nos), parse(json) }`                      | live bike and dock counts on bike-share pins                     |
 
 The first pack is `tw` with `regions/taipei`.
 

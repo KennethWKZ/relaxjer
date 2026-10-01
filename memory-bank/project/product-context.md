@@ -54,7 +54,8 @@ code that makes the first one.
 
 ## The Quality Bar
 
-What every trip page keeps. It came from the first trip, and the tests characterise it.
+What every trip page keeps. It came from the first trip, and the tests characterise it. Every part of the page, for
+planners, is in [`guides/trip-page.md`](../../guides/trip-page.md).
 
 - **Costs:** per-person costs next to group totals, both converted to the home currency (the rate is editable).
 - **Timeline:**
@@ -62,8 +63,9 @@ What every trip page keeps. It came from the first trip, and the tests character
   - times tied to the flights, and a flight-delay editor;
   - a running-late re-plan that uses location and time, only suggests, never moves anything by itself, with fixed items
     anchoring the day;
-  - your own added stops: a per-day button, a "+" under each timeline dot, clash and deadline checks, a caution when a
-    day already has 4 added stops, and Undo on the toast after a removal (every page). With group sync, a link isn't
+  - your own added stops: a per-day button, a "+" under each timeline dot that lands right after its stop, a
+    getting-there check (walk ×1.4, taxi, metro; "Use HH:MM" when too early; when to leave for the next timed stop),
+    clash and deadline checks, a caution when a day already has 4 added stops, and Undo on the toast after a removal (every page). With group sync, a link isn't
     needed: they reach every phone marked with who added them. Each phone changes or removes only the stops it added,
     and "Remove the N stops I added" clears them; a planner can change any, clear one phone's, block one, and put the
     whole plan back. A phone's "Recently removed" list (30 kept, the newest 10 shown) offers Put back. Only stops are
@@ -71,7 +73,9 @@ What every trip page keeps. It came from the first trip, and the tests character
   - a day that splits: part of the group takes its own plan for a few hours, forked from the day's string with its
     go / wait / skip rule, and the stop where they come back says so.
 - **Near each stop, and "near me":** food, drinks, rest spots and toilets (plus places that let you borrow a toilet),
-  and the optional plans the trip suggests at that stop, which open over the day.
+  the group's wishlist where it fits, and the optional plans the trip suggests at that stop, which open over the day.
+- **Each day:** Now and Next on a trip day (a countdown and the to-dos coming due before it), Copy for chat and Copy
+  link, today's route as one navigation link per leg, decide-on-the-day options, and the rain plan.
 - **Map:**
   - Google first, MapLibre as fallback;
   - categories, search, a list and sorting;
@@ -90,7 +94,9 @@ What every trip page keeps. It came from the first trip, and the tests character
   - with group sync, a phone's first open asks once for a name in a welcome sheet (Not now is fine), and until it has
     one a bar under the header asks again (Add name, or Later, which hides it for a day). Group sync itself stays a row
     in the Sections menu;
-  - a language switch that keeps your place.
+  - a language switch that keeps your place, and a theme switch (light, dark, follow the phone);
+  - search in both languages (a Traditional character finds its Simplified form), with highlights and previous / next;
+  - location asked for only from a card that explains a refusal, a forgotten answer or an approximate position.
 - **Speed and build:**
   - closed lists built only when opened, late-loaded images, section skipping only where the browser has scroll
     anchoring;

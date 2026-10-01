@@ -205,5 +205,6 @@ This guide isn't legal advice. To stay closest to the terms:
   to it is an engine change.
 - **OpenFreeMap** serves the tiles free, with no key, funded by donations, and without a service guarantee. The map
   shows "OpenFreeMap © OpenMapTiles Data from OpenStreetMap" automatically.
-- **OpenStreetMap** data is © OpenStreetMap contributors, under the ODbL. RelaxJer doesn't use OpenStreetMap's own tile
-  servers, whose policy forbids offline use and heavy traffic.
+- **OpenStreetMap** data is © OpenStreetMap contributors, under the ODbL. Only when OpenFreeMap fails does the
+  page fall back to OpenStreetMap's own raster tiles, for that view; their policy forbids offline use and heavy
+  traffic, so RelaxJer never stores them or makes them the default.

@@ -21,7 +21,7 @@ requirements.md ──trip-intake──▶ trips/<slug>/            data.js, *.j
                                       │    + core/*.mjs + Pack (country ⊕ city) + trip data + photos/icons
                                       │    + the page's Content-Security-Policy, and the sync file's keys and planner hash if --sync
                                       ▼
-                         trips/<slug>/dist/<fileName>-standalone.html   (+ <fileName>.html, <fileName>-mymaps.kml)
+                         trips/<slug>/dist/<fileName>-standalone.html   (+ <fileName>.html, <fileName>-mymaps.kml, mymaps/*.kml)
                                       │
                          tests: contract (TRIP_DIR), trip-agnostic e2e, parity, real browser
                                       ▼

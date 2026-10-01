@@ -41,17 +41,27 @@ trip's own currency symbol and group size; the page adds the per-person share. `
 
 ## Per day (`DAYS[i]`)
 
-| Field          | What it drives                                                                                                                                     |
-| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `schedule[]`   | the timeline. `fixed: true` never moves; `rel: { arr: [a, b] }` or `{ dep: [a, b] }` follows the flights (minutes after landing / before take-off) |
-| `route`        | the day's route card: `[[from place, to place, 'transit' \| 'walking' \| 'driving' \| 'bicycling'], …]`                                            |
-| `mealAt`       | which stops are meals and which researched food slots (`extra.json`) suit them: `[[/stop name/, [[meal, [slot, …]]]], …]`                          |
-| `tickets`      | ticket / booking cards for the day (ids from `extra.json` `tickets`)                                                                               |
-| `forecastSpot` | the forecast spot for that day                                                                                                                     |
-| `foodSlots`    | the researched food slots listed under the day ("Where to eat")                                                                                    |
-| `freeEvening`  | `true`: wishlist items that fit "any evening" are suggested on this day                                                                            |
-| `freeFrom`     | `'13:00'`: this day has free time from then; it gets the free-time ideas list (one day at most)                                                    |
-| `split`        | part of the group takes its own plan for a few hours (below)                                                                                       |
+| Field                | What it drives                                                                                                                                                                              |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`, `n`            | the day's anchor (`d1`…`dN`, in order) and its number                                                                                                                                       |
+| `date`, `dow`        | `'2027-03-13'` and the weekday `['六', 'Sat']` (the zh one bare: the page adds 周); dates run on from `TRIP.start` with no gap                                                              |
+| `c`                  | the day's lantern colour, `1`–`7`: its tab, its string of stops, its map pins                                                                                                               |
+| `title`              | `[zh, en]`: the day's heading, also in the week list, the day bar, the Sections menu and search                                                                                             |
+| `focus`, `lede`      | `[zh, en]`: the one line under the title in the week list; an optional paragraph under the day's heading                                                                                    |
+| `wish`, `gloss`      | a short brushed Chinese wish for the day (`'平安到'`) and its gloss `['', 'Arrive safe']`                                                                                                   |
+| `wear`, `budgetChip` | `[zh, en]` chips under the heading: what to wear, and the day's spend. The spend chip shows only when `budgetChip` is set; with a `budget` card it takes the card's figures and links to it |
+| `photos`             | photo ids (`img/credits.json`) shown on the day                                                                                                                                             |
+| `stepsTitle`         | `[zh, en]`: the timeline's heading, when "Schedule" doesn't fit (a free day's ideas)                                                                                                        |
+| `schedule[]`         | the timeline. `fixed: true` never moves; `rel: { arr: [a, b] }` or `{ dep: [a, b] }` follows the flights (minutes from landing / from take-off; negative is before)                         |
+| `blocks[]`           | the cards under the timeline (below)                                                                                                                                                        |
+| `route`              | the day's route card: `[[from place, to place, 'transit' \| 'walking' \| 'driving' \| 'bicycling'], …]`                                                                                     |
+| `mealAt`             | which stops are meals and which researched food slots (`extra.json`) suit them: `[[/stop name/, [[meal, [slot, …]]]], …]`; the pattern matches the stop's zh name                           |
+| `tickets`            | ticket / booking cards for the day (ids from `extra.json` `tickets`)                                                                                                                        |
+| `forecastSpot`       | the forecast spot for that day                                                                                                                                                              |
+| `foodSlots`          | the researched food slots listed under the day ("Where to eat")                                                                                                                             |
+| `freeEvening`        | `true`: wishlist items that fit "any evening" are suggested on this day                                                                                                                     |
+| `freeFrom`           | `'13:00'`: this day has free time from then; it gets the free-time ideas list (one day at most; without one, the leave day gets it)                                                         |
+| `split`              | part of the group takes its own plan for a few hours (below)                                                                                                                                |
 
 ### A day that splits (`DAYS[i].split`)
 
@@ -85,14 +95,48 @@ A plan (`options[]`): `id`, `name: [zh, en]`, and `join: 'HH:MM'`, the start tim
 - `rule: [zh, en]` (a turn-back time, a cut-off), `rows: [[[zh, en], [zh, en]], …]` (more key / value rows), and
   `place` (a `PLACES` key, for a plan that's a visit).
 
+### A stop (`DAYS[i].schedule[]`)
+
+| Field   | What it is                                                                                                                                                                                                                                                                 |
+| ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `t`     | `'HH:MM'`, `'~HH:MM–HH:MM'` (`~` reads "about"), or a `[zh, en]` label with no clock time ("Evening"). Planned times never run backwards (the contract checks it)                                                                                                          |
+| `what`  | `[zh, en]`: the stop                                                                                                                                                                                                                                                       |
+| `place` | a `PLACES` key: its map and directions links, and the food, drinks, rest spots and toilets near it                                                                                                                                                                         |
+| `link`  | a `SITES` key, an in-page anchor (`'#airport'`) or a URL                                                                                                                                                                                                                   |
+| `note`  | `[zh, en]`: the line under the stop                                                                                                                                                                                                                                        |
+| `fixed` | `true`: booked or timed. It carries the red seal, a push-back stops at it, and the running-late check treats it as a deadline                                                                                                                                              |
+| `rel`   | follows a flight: `arr` (minutes after landing) or `dep` (minutes from take-off, negative before: `[-425, -350]`) as `[start, end]`; `about: 1` writes "~"; `min` is the earliest start (minutes after midnight); `next: 1` adds "next day"; `from` labels a missing start |
+| `shops` | `true`: the trip's shop box (`shops.json`) hangs under this stop                                                                                                                                                                                                           |
+| `step`  | a step number shown instead of a clock time (with the day's `stepsTitle`), for a free day's ideas; a step is never pushed back                                                                                                                                             |
+
+### Day cards (`DAYS[i].blocks[]`)
+
+Each card is `{ type, h: [zh, en], icon, … }`. `places` (place keys) and `sites` (`SITES` keys) add link rows to most.
+
+| `type`        | Shows                                                         | Fields                                                                        |
+| ------------- | ------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| `text`        | paragraphs, an optional total with its per-person share       | `p: [[zh, en], …]`, `total: { amt, per, min, max }`, `link: [href, [zh, en]]` |
+| `list`        | a bullet list                                                 | `list`, `note`                                                                |
+| `kv`, `costs` | label / value rows (`costs` for prices)                       | `rows: [[[zh, en], [zh, en]], …]`, `note`                                     |
+| `table`       | a table                                                       | `cols`, `rows`                                                                |
+| `route`       | a line of stations or stops, with metro line colours          | `stops: [{ name, line, code, isLine }]`, `note`, `total`, `note2`, `plain`    |
+| `decide`      | options A / B to pick on the day, each with its cost and rule | `opts: [{ k, mark, name, cost, when, list, place }]`                          |
+| `weather`     | go / wait / stop rows for a weather-dependent plan            | `opts: [{ k: 'go' \| 'wait' \| 'stop', name, list, body }]`, `flow`           |
+| `wear`        | what to wear and bring                                        | `main`, `bring`, `note`                                                       |
+| `budget`      | the day's costs, each with its share, and a total             | `rows: [[[zh, en], amount, …]]`, `total`, `min`, `max`, `est`, `note`         |
+| `rain`        | the rain plan                                                 | `list`, or `groups: [{ h, list }]`                                            |
+| `checklist`   | ticks kept on the phone                                       | `id`, `items: [[zh, en], …]`                                                  |
+| `groups`      | two side-by-side lists                                        | `groups: [{ h, list }]`, `note`                                               |
+
 Days can be any number, ids `d1`…`dN` in order. The engine reads each day's role from the data (`Plan.dayRoles`):
 the first day is the arrival; the day the group leaves for the airport is the evening before an after-midnight
 take-off, else the flight's own day; a day after it that holds only the early take-off takes no added stops.
 
 ## Places, sites and the airport section
 
-The engine looks up no place or site by a fixed name. The hotel is `PLACES[TRIP.hotel]` (default `'hotel'`), or one
-per night (`DAYS[i].hotel`); every
+The engine looks up no place or site by a fixed name, with one exception still in the engine: keep a `hotel` key,
+because the Overview's hotel fact and the route card's "back to the hotel" read `PLACES.hotel`. The hotel is
+`PLACES[TRIP.hotel]` (default `'hotel'`), or one per night (`DAYS[i].hotel`); every
 other place or site is named by the data that uses it, and the contract checks that each one exists.
 
 | Field                                                         | Example                                              | What it drives                                                                                                                                                             |
@@ -107,6 +151,63 @@ other place or site is named by the data that uses it, and the contract checks t
 | `MONEY.transitCard`                                           | `[zh, en]`                                           | the transit card in the budget's cash-and-cards block                                                                                                                      |
 | `WEATHER.sites`, `ENTRY.sites`, `ENTRY.lucky.sites`           | `['cwa', 'cwaEn']`                                   | site links under the forecast, the entry rules and the lucky draw                                                                                                          |
 | `ENTRY.sources`                                               | `[zh, en]`                                           | "Sources: …" under the entry rules                                                                                                                                         |
+
+### A place (`PLACES[key]`)
+
+| Field            | What it drives                                                                                                        |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `name`           | `[zh, en]`                                                                                                            |
+| `maps`           | the text a map or directions link searches for                                                                        |
+| `trad`           | the destination's own spelling (Traditional Chinese in Taiwan): search, and the "show the driver" card                |
+| `addr`, `addrEn` | the address in the local language and in English (the driver card, the hotel fact)                                    |
+| `tel`, `note`    | the phone number (the driver card), and a note (`[zh, en]`)                                                           |
+| `site`           | the place's own website                                                                                               |
+| `gpid`           | a hand-checked Google place id, pinned so the data refresh can't swap it for a neighbour                              |
+| `gname`          | the name Google Maps still lists, when the place renamed: the hotel fact warns that a search for the new one misleads |
+
+Positions and hours aren't written here: the data refresh puts them in `geo.json` (`data-sync`).
+
+## The overview, money, weather, flights and entry
+
+| Block          | Fields                                                                                                                                                                 | What it drives                                                                                                                                 |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SITES`        | `{ key: { name: [zh, en], url } }`                                                                                                                                     | every outside link the data names by key                                                                                                       |
+| `FACTS`        | `[{ k, v, place }]`                                                                                                                                                    | the Overview's trip facts; `place` adds that place's links, with the first night's hotel address and `PLACES.hotel`'s note, phone and old name |
+| `BACKUPS`      | `[[zh, en], …]`                                                                                                                                                        | the Overview's fallback chips (rain, tired, an optional sight)                                                                                 |
+| `PRIORITIES`   | `{ must, should, mood }`                                                                                                                                               | the Rules section's must / should / mood lists                                                                                                 |
+| `PRINCIPLE`    | `{ wish, p }`                                                                                                                                                          | the trip's brushed motto and its rules                                                                                                         |
+| `BUDGET`       | `excludes`, `rows: [[label, text, min, max, anchor?]]`, `total`, `totalMin`, `totalMax`, `split`, `suggest`, `pool`, `poolText`, `airportNote`, `chartNote`            | the Budget section: the chart (estimates dashed), each row's share, the group pot                                                              |
+| `MONEY`        | `cash: { amt, uses }`, `card`, `transitCard`                                                                                                                           | the cash-and-cards block                                                                                                                       |
+| `TAX`          | `h`, `list`, `shops`, `note`                                                                                                                                           | the tourist tax refund card (the minimum spend comes from the pack)                                                                            |
+| `WEATHER`      | `sites`, `lede`, `when: [{ d, t, v }]`, `items`, `outfits: [{ h, main, note, day }]`                                                                                   | the Weather section; the forecast itself comes from `forecast.json`                                                                            |
+| `FLIGHTS`      | `out` and `ret`: `no`, `dep`, `arr`, `date`, `ret.plan` (below); `from`, `to` and `dur` are notes the page doesn't show                                                | the delay editor, the flight-tied times, the day roles                                                                                         |
+| `ENTRY`        | `sites`, `sources`, `rules: [{ h, p, site }]`, `lucky: { sites, name, period, deadline, who, how, unsure }`                                                            | the Entry section; `lucky` is a visitor programme (Taiwan's lucky draw, with the pack's calculator)                                            |
+| `ENTRY_CHECKS` | a checklist group (`id: 'entry'`, `h`, `items`); the countdown reads that id                                                                                           | the entry ticks (arrival card, registrations), with due dates                                                                                  |
+| `AIRPORT`      | `terminals`, `sites`, `departSites`, `route`, `routeTitle`, `routeAlt`, `lede`, `facts`, `rule`, `steps`, `depart`, `methods`, `transitCard*`, `mrtFare`, `sourceNote` | the Airport section (the table above holds the place links)                                                                                    |
+
+`AIRPORT.methods[]` are the ways to the hotel, compared for the whole group and picked on the day: `id`, `pick` (the
+recommended one), `icon`, `short`, `name`, `sub`, `min` / `max` (group cost, for the chart), `cost`, `per`, `time`,
+`xfer`, `bags`, `list`, `when`, and `ticket`.
+
+## Side files
+
+Beside `data.js`; most are written by the data refresh (`data-sync`), and the build reads each one only if it's there.
+A food slot or a wishlist branch in them can carry `hours_lock: true` to keep its own hours over Google's. Builds
+also read the `SHARE_URL` environment variable: the live page's address, for Copy link and share links.
+
+| File                          | Holds                                                                                                                                                                                                             | Written by                                                                          |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `geo.json`                    | each place's Google id, position, hours, closed dates and nearest station; route legs (walking and transit times); the map's bbox                                                                                 | `data-sync`                                                                         |
+| `extra.json`                  | `food[]` (researched food slots: `slot`, name, position, hours), `tickets[]` (booking cards), `sites`                                                                                                             | by hand or `data-sync`                                                              |
+| `drinks.json`, `toilets.json` | drinks and rest spots near each stop; toilets, and places that let you borrow one                                                                                                                                 | `data-sync`                                                                         |
+| `shops.json`                  | the shop box (supermarkets, pharmacies) with the tax-refund tag                                                                                                                                                   | `data-sync`                                                                         |
+| `transit.json`, `mrt.json`    | bike-share stations and bus stops; the metro network for the offline transit planner                                                                                                                              | the region's steps                                                                  |
+| `forecast.json`               | the weather forecast for the trip's spots (days within 16 days)                                                                                                                                                   | `data-sync`                                                                         |
+| `wish-a.json`, `wish-b.json`  | the wishlist: `items[]`, each with `branches[]` (position, hours, closed dates, rating) and `fits[]` (the days it suits); an item without a branch is dropped                                                     | by hand, then `data-sync`                                                           |
+| `img/` + `img/credits.json`   | photos (`<id>.webp`, a square `<id>-sq.webp`, lighter copies in `img/lite/`) and their credits; the home-screen icon in `img/icon/` (`icon-192.png`, `icon-512.png`, `icon-180.png`, `icon-32.png`)               | by hand ([`pipeline/README.md`](../../pipeline/README.md#photos-and-icons-by-hand)) |
+| `pipeline.json`               | what the refresh searches for: `steps`, `google`, `area`, `chains`, `pin_queries`, `stations`, `no_hours`, `areas`, `skip_nearby`, `shops`, `forecast_spots` ([every key](../../pipeline/README.md#pipelinejson)) | by hand (`trip-intake`)                                                             |
+| `requirements.md`             | the planner's own words; never read by the build                                                                                                                                                                  | the planner                                                                         |
+| `never-publish.txt`           | literals the release gate must refuse (a nickname, a booking code, part of a name), one per line                                                                                                                  | the planner                                                                         |
 
 ## Optional plans (`OPTIONAL`)
 

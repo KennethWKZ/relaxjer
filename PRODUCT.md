@@ -46,7 +46,11 @@ offline on a tired phone, and doesn't split every cost per person.
 
 ## Capabilities and Constraints
 
-- A sticky header that stays visible while scrolling; quick jumps between days; text search across the whole plan.
+Every part of the page, and what turns it on, is in `guides/trip-page.md`. The ones that shape the design:
+
+- A sticky header that stays visible while scrolling; quick jumps between days; text search across the whole plan, in
+  both languages; a theme switch (light, dark, follow the phone); a Sections menu that leads with Now and Next.
+- Now and Next on a trip day, and before it a countdown with the to-dos coming due.
 - Fixed times never move; everything else can be re-planned, but only as a suggestion.
 - Every group cost also shows a per-person share, in the destination's currency and the group's home currency.
 - The airport transfer compares the options (train or metro with a transit card, taxi or ride-hail, a pre-booked van)
@@ -60,7 +64,11 @@ offline on a tired phone, and doesn't split every cost per person.
   everyone's phone; the rest stays on each one. Each phone changes only the stops it added; a planner phone, one that
   gave the trip's planner code, can change any, and can block a phone whose changes should stop reaching the group.
   Every removal can be undone, so a slip costs one tap.
-- Two UI languages (today Simplified Chinese and English), with the destination's own names for drivers and signs.
+- Adding a stop checks its time against getting there (walking for seniors, a taxi, the metro) and the fixed times.
+- Food, drinks, rest spots and toilets hang under every stop, and the group's wishlist suggests what fits the day.
+- Location is asked for only from a card that says why, and stays on the phone.
+- Two UI languages (today Simplified Chinese and English), with the destination's own names for drivers and signs (a
+  "show the driver" card).
 
 ## Evidence on Hand
 

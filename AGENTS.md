@@ -4,12 +4,13 @@ RelaxJer turns a family's trip requirements into one offline-friendly, installab
 AI agent (Claude Code, Codex, Cursor, Gemini CLI, Copilot…) and every person working in the repo. It maps the context
 in `memory-bank/` and states the rules that bind.
 
-**Status:** story steps 0–3b, 5, 6c and 6d are done (engine moved, split and generalised; the `tw` pack; the pipeline;
-the affordance fixes; group sync). Step 6, the agent tooling, is in flight, and the landing page (6b) is built but not
-yet deployed. Group sync, on the planner's own Firebase database, and the page's security policy are live on the first
-trip; a day can split for part of the group, and a stop can suggest optional plans. Planners, own-stop edits, Undo and
-blocking a phone are built and tested for group sync; publishing them is the planner's call. Next: i18n (step 4), a
-second destination (7). See [`memory-bank/story-index.md`](memory-bank/story-index.md).
+**Status:** v1.0.0. Story steps 0–3b, 5, 6, 6c and 6d are done (engine moved, split and generalised; the `tw` pack;
+the pipeline; the agent tooling, with skills from a fresh clone to a published page; the affordance fixes; group sync),
+and the landing page (6b) deploys from `site/`. Group sync, on the planner's own Firebase database, and the page's
+security policy are live on the first trip; a day can split for part of the group, a stop can suggest optional plans,
+and the add sheet checks a stop's time against getting there. Every feature is written down for planners in
+[`guides/trip-page.md`](guides/trip-page.md), and a tier-0 test keeps the docs in step with the code. Next: i18n (step
+4), a second destination (7). See [`memory-bank/story-index.md`](memory-bank/story-index.md).
 
 ## Read first
 
@@ -36,7 +37,10 @@ second destination (7). See [`memory-bank/story-index.md`](memory-bank/story-ind
 
 | If your task is…                        | Start here                                                                                                        |
 | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Set up a fresh clone for a planner      | skill `planner-setup`                                                                                             |
 | Plan a new trip                         | skill `trip-intake`, then `data-sync` → `build-page` → `verify-page` → `publish-htmlapp`                          |
+| Change a trip the planner already has   | skill `trip-customize` (travel questions: the `relaxbro` role), then `build-page` → `verify-page`                 |
+| Answer "what can the page do?"          | [`guides/trip-page.md`](guides/trip-page.md): every feature and what turns it on                                  |
 | Refresh a live trip's data              | skill `data-sync`, then `verify-page` and `publish-htmlapp`                                                       |
 | Share the group's changes across phones | skill `sync-setup`, then `build-page` → `verify-page` → `publish-htmlapp`                                         |
 | Change who may edit what in group sync  | [ADR-20261002-sync-planners](memory-bank/standards/decisions/ADR-20261002-sync-planners.md), `patterns/engine.md` |
@@ -57,7 +61,9 @@ the one that fits before you start. Any agent can read the file directly.
 
 | Skill                                                                | For                                                      |
 | -------------------------------------------------------------------- | -------------------------------------------------------- |
+| `planner-setup`                                                      | a fresh clone → tools, install, the demo opened, keys    |
 | `trip-intake`                                                        | requirements → a trip folder that passes the contract    |
+| `trip-customize`                                                     | the planner's changes → the trip's data, and where shown |
 | `data-sync`                                                          | refresh places, hours, weather and links (`pnpm resync`) |
 | `build-page`                                                         | the single-file page                                     |
 | `verify-page`                                                        | tests, a real-browser pass, the group's journeys         |
@@ -72,11 +78,13 @@ them for your agent: [`.agents/README.md`](.agents/README.md).
 
 ## Roles
 
-When a task calls for review, keep the reviewer separate from the author, and keep the reviewer read-only. Claude Code
-has these as agents in `.claude/agents/`; other agents can take the same brief from those files.
+When a task calls for review or expert advice, keep that role separate from the author, and keep it read-only: it
+reports, and the author edits. Claude Code has these as agents in `.claude/agents/`; other agents can take the same
+brief from those files.
 
 | Role                     | Does                                                                                       |
 | ------------------------ | ------------------------------------------------------------------------------------------ |
+| `relaxbro`               | the group's travel agent: itinerary, pace, bookings, rain plans, sourced; never edits      |
 | `destination-researcher` | sourced, dated facts for a new pack; never edits                                           |
 | `data-curator`           | reviews a trip's data against the contract, data hygiene and wording rules; never edits    |
 | `ux-verifier`            | builds, runs the e2e tiers, checks real browsers at 390 px and desktop; never edits source |
@@ -87,9 +95,11 @@ has these as agents in `.claude/agents/`; other agents can take the same brief f
 ```sh
 corepack enable && pnpm install  # once; also wires .husky (pre-commit: trip/key guard, gitleaks, lint-staged, fast tests)
 pnpm test                        # tier 0: hygiene, agent config, memory-bank, trip contract, units (node:test, ~1 s)
+pnpm setup:e2e                   # once: Chromium + WebKit for tier 1 and for proving a publish
 pnpm test:e2e                    # tier 1: Chromium + WebKit × 390 px + desktop, ~2–3 min (3 workers locally)
+pnpm test:e2e:short              # the trip-agnostic e2e on a generated 4-day trip (it moves hotel on night 2)
 pnpm test:all                    # tier 0 + tier 1 + the 4-day short trip: before calling engine or data work done
-pnpm verify                      # lint + format check + tier 0 + pipeline tests (what CI and pre-push run)
+pnpm verify                      # lint + format check + tier 0 + pipeline tests (CI adds gitleaks and e2e; pre-push the history scan and release gate)
 pnpm lint / pnpm format          # ESLint --fix / Prettier --write
 pnpm gen:adr-index               # regenerate memory-bank/standards/decision-index.md after an ADR change
 pnpm build --trip trips/<slug> --keys ~/.config/relaxjer/google.json   # a real trip; omit --keys for the demo
@@ -98,6 +108,7 @@ pnpm test:pipeline               # the pipeline's offline tests (needs uv)
 pnpm test:release                # the push gate: no real trip's details in anything published
 pnpm sync init --trip trips/<slug> --db <url>   # group sync for a trip (rules|init|planner|end|status), see the sync-setup skill
 pnpm test:sync-rules             # the group-sync database rules on Firebase's emulator (local, needs Java)
+pnpm publish:trip trips/<slug>   # republish to the same link and prove it (--dry-run, --check, --audit): the planner approves each run (publish-htmlapp)
 pnpm parity --ref <commit> --trip trips/<slug>      # renders the same as an earlier commit? (--live <repo>: maintainer only)
 pnpm release                     # bump version + CHANGELOG from the commits (commit-and-tag-version)
 TRIP_DIR=<trip folder> pnpm test                                        # contract on a real trip (local only)
