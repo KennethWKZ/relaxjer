@@ -182,6 +182,46 @@ test.describe('group sync', { tag: '@demo' }, () => {
 		await expect(sheet(page).locator('.sync-row', { hasText: 'Ana' }).locator('.sync-badge')).toHaveText('Planner');
 	});
 
+	test('a planner can block a phone: its stops and last changes go, and what it does next reaches nobody', async ({ page }) => {
+		await openSync(b.page, '#checklist');
+		await openSync(page);
+		await setName(page, 'Lee');
+		await claimPlanner(page);
+		await expect(sheet(page).locator('.sync-role')).toContainText('planner');
+		await sheet(page).locator('[data-close]').click();
+		await setName(b.page, 'Ana');
+		await addByLink(b.page, 'Demo Tester Stop');
+		await openSync(b.page, '#checklist');
+		await tick(b.page, 'before-charter');
+		await expect(page.locator('#d3 .stop.mine', { hasText: 'Demo Tester Stop' })).toBeVisible({ timeout: 15_000 });
+		await openSync(page, '#checklist');
+		await expect(box(page, 'before-charter')).toBeChecked({ timeout: 15_000 });
+
+		await openSyncSheet(page);
+		const row = sheet(page).locator('.sync-row', { hasText: 'Ana' });
+		await row.locator('[data-block-set]').click();
+		await expect(page.locator('#toast')).toContainText('Blocked Ana');
+		await expect(sheet(page).locator('.sync-row', { hasText: 'Ana' }).locator('.sync-badge')).toHaveText('Blocked');
+		await sheet(page).locator('[data-close]').click();
+		await expect(box(page, 'before-charter'), 'its last tick goes back').not.toBeChecked();
+		await expect(page.locator('#d3 .stop.mine', { hasText: 'Demo Tester Stop' })).toHaveCount(0);
+
+		await expect(b.page.locator('#syncBar'), 'the blocked phone is told').toContainText('This phone is blocked', { timeout: 15_000 });
+		await expect(b.page.locator('#d3 .stop.mine', { hasText: 'Demo Tester Stop' })).toHaveCount(0);
+		await addByLink(b.page, 'Demo After Block');
+		await page.waitForTimeout(2500);
+		await expect(page.locator('#d3 .stop.mine', { hasText: 'Demo After Block' }), 'nothing it does reaches the group').toHaveCount(0);
+
+		await openSyncSheet(page);
+		await sheet(page).locator('.sync-row', { hasText: 'Ana' }).locator('[data-block-drop]').click();
+		await expect(page.locator('#toast')).toContainText('Unblocked Ana');
+		await sheet(page).locator('[data-close]').click();
+		await b.page.reload();
+		await expect(page.locator('#d3 .stop.mine', { hasText: 'Demo After Block' }), 'unblocked: its waiting change arrives').toBeVisible({
+			timeout: 15_000,
+		});
+	});
+
 	test('a phone can’t take a planner’s name', async ({ page }) => {
 		await openSync(b.page);
 		await openSync(page);

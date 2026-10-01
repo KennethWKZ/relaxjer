@@ -363,6 +363,83 @@ document.addEventListener('click', (e) => {
 		syncSheetRefresh();
 		return;
 	}
+	if (t.matches('[data-block-set], [data-block-drop]')) {
+		if (!syncIsPlanner()) return toast(noEditMsg());
+		const dev = t.dataset.blockSet || t.dataset.blockDrop;
+		const name = (store.get('people', {}) || {})[dev] || Z('这台手机', 'this phone');
+		const on = !!t.dataset.blockSet;
+		if (!on) {
+			if (!confirm(Z(`恢复${name}？之后它的改动会再出现在大家的手机上。`, `Unblock ${name}? Its changes reach everyone again from now on.`))) return;
+			const b = { ...(store.get('blocks', {}) || {}) };
+			delete b[dev];
+			store.set('blocks', b);
+			whenSettled(() => mineRerender(Z(`已恢复${name}`, `Unblocked ${name}`)));
+			syncSheetRefresh();
+			return;
+		}
+		// what goes with the block: its added stops, and the pushed-back times, flight changes and shared ticks it
+		// changed last, back to the original plan. Undo puts all of it back
+		const theirs = mineAll().filter((x) => stopOwner(x) === dev);
+		const last = Object.entries((syncMeta() || {}).known || {})
+			.filter(([, v]) => v && v.d === dev)
+			.map(([rid]) => rid);
+		const shifts = last.filter((r) => r.startsWith('shift:')).map((r) => r.slice(6));
+		const flts = last.filter((r) => r === 'flt:arr' || r === 'flt:dep');
+		const ticks = last.filter((r) => r.startsWith('tick:')).map((r) => r.slice(5));
+		const other = shifts.length + flts.length + ticks.length;
+		const ask = Z(
+			`停用${name}？它加的 ${theirs.length} 个行程${other ? `和最后改的 ${other} 处（推迟时间、航班、勾选）` : ''}会改回原计划，之后它的改动大家都看不到。规划人可以再恢复。`,
+			`Block ${name}? Its ${theirs.length} added stop${theirs.length === 1 ? '' : 's'}${other ? ` and the ${other} change${other === 1 ? '' : 's'} it made last (pushed-back times, flights, ticks)` : ''} go back to the original plan, and from now on its changes are ignored on every phone. A planner can unblock it.`,
+		);
+		if (!confirm(ask)) return;
+		const was = {
+			roles: store.get('roles', {}) || {},
+			shift: store.get('shift', {}) || {},
+			fltArr: store.get('fltArr', ''),
+			fltDep: store.get('fltDep', ''),
+			checks: store.get('checks', {}) || {},
+		};
+		const roles = { ...was.roles };
+		delete roles[dev];
+		store.set('roles', roles);
+		store.set('blocks', { ...(store.get('blocks', {}) || {}), [dev]: true });
+		if (theirs.length) mineSet(mineAll().filter((x) => stopOwner(x) !== dev));
+		if (shifts.length) {
+			const sh = { ...was.shift };
+			for (const d of shifts) delete sh[d];
+			store.set('shift', sh);
+		}
+		for (const f of flts) store.set(f === 'flt:arr' ? 'fltArr' : 'fltDep', '');
+		if (ticks.length) {
+			const ck = { ...was.checks };
+			for (const k of ticks) delete ck[k];
+			store.set('checks', ck);
+			checks = ck;
+		}
+		const undo = {
+			label: Z('撤销', 'Undo'),
+			run: () => {
+				const b = { ...(store.get('blocks', {}) || {}) };
+				delete b[dev];
+				store.set('blocks', b);
+				if (was.roles[dev]) store.set('roles', { ...(store.get('roles', {}) || {}), [dev]: was.roles[dev] });
+				if (shifts.length)
+					store.set('shift', { ...(store.get('shift', {}) || {}), ...Object.fromEntries(shifts.map((d) => [d, was.shift[d]]).filter(([, v]) => v)) });
+				for (const f of flts) store.set(f === 'flt:arr' ? 'fltArr' : 'fltDep', f === 'flt:arr' ? was.fltArr : was.fltDep);
+				if (ticks.length) {
+					const ck = { ...(store.get('checks', {}) || {}) };
+					for (const k of ticks) if (was.checks[k]) ck[k] = true;
+					store.set('checks', ck);
+					checks = ck;
+				}
+				if (theirs.length) putBack(theirs);
+				else whenSettled(() => mineRerender(Z(`已恢复${name}`, `Unblocked ${name}`)));
+			},
+		};
+		whenSettled(() => mineRerender(Z(`已停用${name}`, `Blocked ${name}`), undo));
+		syncSheetRefresh();
+		return;
+	}
 	if (t.matches('[data-toast-act]')) {
 		toastRun();
 		return;

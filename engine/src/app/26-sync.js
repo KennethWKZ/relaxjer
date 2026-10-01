@@ -90,6 +90,7 @@ function groupSync() {
 		checks: store.get('checks', {}) || {},
 		people: store.get('people', {}) || {},
 		roles: store.get('roles', {}) || {},
+		blocks: store.get('blocks', {}) || {},
 	});
 	let prev = Sync.recordsOf(stateNow(), sharedTick);
 	let quiet = false;
@@ -129,6 +130,7 @@ function groupSync() {
 		);
 		const by = theirs.find(([rid, v]) => rid.startsWith('stop:') && v === null);
 		remoteWho = { at: Date.now(), by: by ? by[2].n || '' : '', me: false };
+		const wasBlocked = blockedHere();
 		quiet = true;
 		try {
 			mineSet(next.mine);
@@ -138,6 +140,7 @@ function groupSync() {
 			store.set('checks', next.checks);
 			store.set('people', next.people);
 			store.set('roles', next.roles);
+			store.set('blocks', next.blocks);
 			checks = next.checks;
 		} finally {
 			quiet = false;
@@ -148,13 +151,18 @@ function groupSync() {
 		save();
 		whenSettled(() => mineRerender(note));
 		syncSheetRefresh();
+		if (wasBlocked && !blockedHere())
+			setTimeout(push, 0); // unblocked: what waited here goes now
+		else if (blockedHere()) status('blocked');
 	}
 	async function takeIn(recs) {
-		const remote = {};
+		const all = {};
 		for (const [hid, rec] of Object.entries(recs && typeof recs === 'object' ? recs : {})) {
 			const d = await decode(hid, rec);
-			if (d) remote[d[0]] = d[1];
+			if (d) all[d[0]] = d[1];
 		}
+		// what a blocked phone wrote doesn't count here, whatever it is
+		const { remote } = Sync.dropBlocked(all, store.get('blocks', {}) || {});
 		const { apply, drop } = Sync.merge(meta.known, meta.pending, remote);
 		for (const rid of drop) delete meta.pending[rid];
 		if (apply.length) applyRemote(apply);
@@ -180,9 +188,11 @@ function groupSync() {
 		}
 	}
 	let pushing = false;
+	const blockedHere = () => !!(store.get('blocks', {}) || {})[meta.dev];
 	async function push(retry = true) {
 		const rids = Object.keys(meta.pending);
 		if (pushing || !rids.length || navigator.onLine === false || syncStatus.state === 'ended') return;
+		if (blockedHere()) return status('blocked'); // a planner blocked this phone: its changes stay here
 		pushing = true;
 		let refused = false;
 		try {
@@ -361,7 +371,7 @@ function groupSync() {
 
 	function status(state) {
 		const waiting = Object.keys(meta.pending).length;
-		const s = state === 'ok' && waiting ? 'waiting' : state;
+		const s = blockedHere() && state !== 'ended' ? 'blocked' : state === 'ok' && waiting ? 'waiting' : state;
 		syncStatus = { state: s, at: state === 'ok' ? Date.now() : syncStatus.at, waiting };
 		syncPaint();
 	}
@@ -439,6 +449,7 @@ function syncState() {
 			waiting: n ? Z(`${n} 个改动等网络`, `${n} change${n > 1 ? 's' : ''} waiting for a connection`) : Z('等网络', 'waiting for a connection'),
 			refused: Z('数据库不收这个改动', 'the database refused a change'),
 			ended: Z('已停止（规划人结束了同步）', 'stopped: the planner ended it'),
+			blocked: Z('规划人停用了这台手机：改动只留在这里', 'a planner blocked this phone: its changes stay on it'),
 			unsupported: Z('这个浏览器用不了', 'not available in this browser'),
 		}[s.state] || ''
 	);
@@ -462,6 +473,11 @@ function syncMeta() {
 }
 function syncRoles() {
 	return (SYNC && store.get('roles', {})) || {};
+}
+function syncIsBlocked(dev) {
+	const m = syncMeta();
+	const d = dev || (m && m.dev);
+	return !!d && !!((SYNC && store.get('blocks', {})) || {})[d];
 }
 function syncIsPlanner(dev) {
 	const m = syncMeta();
@@ -494,7 +510,7 @@ function syncSheet() {
 			? `<div class="sync-part"><p class="sub-h">${Z('规划人', 'Planner')}</p><button type="button" class="mlink danger" data-reset-all>${icon('x')}${Z('全组恢复原计划', 'Back to the original plan, for everyone')}</button><p class="xsmall muted">${Z('删掉所有人加的行程、改过的航班和往后推的时间。名字、规划人和清单勾选都会保留，删掉的行程在上面可以放回去。', 'Removes everyone’s added stops, flight changes and pushed-back times. Names, planners and ticks stay; removed stops can be put back above.')}</p></div>`
 			: '';
 	const claimBox =
-		!lead && SYNC.planner
+		!lead && SYNC.planner && !syncIsBlocked()
 			? `<details class="sync-code"><summary>${icon('users')}${Z('我是规划人（有规划人密码）', 'I’m a planner (I have the planner code)')}${icon('chev', 'chev')}</summary><label class="sync-name">${Z('规划人密码', 'Planner code')}<input type="password" data-planner-code autocomplete="current-password" enterkeyhint="go"></label><div class="links-row"><button type="button" class="go-btn" data-planner-ok>${icon('check')}${Z('确认', 'Confirm')}</button></div><p class="xsmall muted">${Z('密码是设置同步的人定的；其他规划人也可以直接把你设为规划人。', 'The person who set up sync chose it; a planner can also make you one from their phone.')}</p></details>`
 			: '';
 	return `<div data-sync-sheet><h3 class="spots-h">${icon('users')}${Z('全组同步', 'Group sync')}</h3>
@@ -511,10 +527,20 @@ function syncSheet() {
 function syncGroupHTML(m, lead) {
 	const people = store.get('people', {}) || {};
 	const roles = syncRoles();
+	const blocks = store.get('blocks', {}) || {};
 	const groups = Sync.byPhone(mineAll(), (id) => stopVer(m, id), m.dev || null, people);
+	// every phone heard from, named or not, so a planner can block one that never gave a name
+	const heard = Object.values(m.known || {}).map((v) => v && v.d);
 	const devs = [
-		...new Set([...(m.dev && people[m.dev] ? [m.dev] : []), ...groups.map((g) => g.dev), ...Object.keys(people), ...Object.keys(roles)]),
-	].filter(Boolean);
+		...new Set([
+			...(m.dev && people[m.dev] ? [m.dev] : []),
+			...groups.map((g) => g.dev),
+			...Object.keys(people),
+			...Object.keys(roles),
+			...Object.keys(blocks),
+			...heard,
+		]),
+	].filter((d) => d && /^[A-Za-z0-9_-]{6,24}$/.test(d));
 	if (!devs.length) return '';
 	const rows = devs.map((dev) => {
 		const g = groups.find((x) => x.dev === dev) || { ids: [], by: '' };
@@ -522,6 +548,7 @@ function syncGroupHTML(m, lead) {
 		const name = people[dev] || g.by;
 		const mine = dev === m.dev;
 		const planner = roles[dev] === 'planner';
+		const blocked = !!blocks[dev];
 		const who = mine ? (name ? Z(`你（${name}）`, `You (${name})`) : Z('你', 'You')) : name || Z('没写名字的人', 'Someone with no name');
 		const acts = [
 			n && mine
@@ -530,12 +557,16 @@ function syncGroupHTML(m, lead) {
 			n && !mine && lead
 				? `<button type="button" class="mlink danger" data-mine-clear-dev="${esc(dev)}">${icon('x')}${Z(`删除这 ${n} 个`, `Remove these ${n}`)}</button>`
 				: '',
-			lead && !planner
+			lead && !planner && !blocked
 				? `<button type="button" class="mlink" data-role-set="${esc(dev)}">${icon('users')}${Z('设为规划人', 'Make planner')}</button>`
 				: '',
 			lead && planner && !mine ? `<button type="button" class="mlink" data-role-drop="${esc(dev)}">${Z('取消规划人', 'Not a planner')}</button>` : '',
+			lead && !mine && !blocked
+				? `<button type="button" class="mlink danger" data-block-set="${esc(dev)}">${icon('x')}${Z('停用这台手机', 'Block this phone')}</button>`
+				: '',
+			lead && blocked ? `<button type="button" class="mlink" data-block-drop="${esc(dev)}">${Z('恢复这台手机', 'Unblock')}</button>` : '',
 		].join('');
-		return `<li class="sync-row"><span><b>${esc(who)}</b>${planner ? `<span class="sync-badge">${Z('规划人', 'Planner')}</span>` : ''}<span class="xsmall muted sync-row-sub">${n ? Z(`加了 ${n} 个行程`, `${n} added stop${n > 1 ? 's' : ''}`) : Z('没有加行程', 'no added stops')}</span></span>${acts ? `<span class="sync-acts">${acts}</span>` : ''}</li>`;
+		return `<li class="sync-row"><span><b>${esc(who)}</b>${planner ? `<span class="sync-badge">${Z('规划人', 'Planner')}</span>` : ''}${blocked ? `<span class="sync-badge is-blocked">${Z('已停用', 'Blocked')}</span>` : ''}<span class="xsmall muted sync-row-sub">${n ? Z(`加了 ${n} 个行程`, `${n} added stop${n > 1 ? 's' : ''}`) : Z('没有加行程', 'no added stops')}</span></span>${acts ? `<span class="sync-acts">${acts}</span>` : ''}</li>`;
 	});
 	return `<div class="sync-part"><p class="sub-h">${Z('全组', 'The group')}</p><ul class="sync-list">${rows.join('')}</ul></div>`;
 }
@@ -571,12 +602,15 @@ function syncBarPaint() {
 	if (!el) return;
 	const m = syncMeta();
 	const later = +store.get('syncBarLater', 0) > Date.now();
-	const on = !!SYNC && !['unsupported', 'ended', 'off'].includes(syncStatus.state) && !(m && m.name) && !later;
+	const blocked = !!SYNC && syncIsBlocked();
+	const on = !!SYNC && !['unsupported', 'ended', 'off'].includes(syncStatus.state) && (blocked || (!(m && m.name) && !later));
 	const was = !el.hidden;
 	el.hidden = !on;
 	el.innerHTML = !on
 		? ''
-		: `${icon('users')}<span><b>${Z('全组同步已开', 'Group sync is on')}</b> · ${Z('写上名字，大家才知道是谁改的', 'add your name so the group sees who changed what')}</span><button type="button" class="text-btn" data-sync-open>${Z('写名字', 'Add name')}</button><button type="button" class="text-btn" data-sync-later>${Z('以后', 'Later')}</button>`;
+		: blocked
+			? `${icon('alert')}<span><b>${Z('这台手机已停用', 'This phone is blocked')}</b> · ${Z('规划人停用了它：你的改动只留在这台手机', 'a planner blocked it: your changes stay on this phone')}</span>`
+			: `${icon('users')}<span><b>${Z('全组同步已开', 'Group sync is on')}</b> · ${Z('写上名字，大家才知道是谁改的', 'add your name so the group sees who changed what')}</span><button type="button" class="text-btn" data-sync-open>${Z('写名字', 'Add name')}</button><button type="button" class="text-btn" data-sync-later>${Z('以后', 'Later')}</button>`;
 	if (was !== on) measureBar();
 }
 function syncPaint() {
@@ -653,6 +687,10 @@ function syncNote(list) {
 	}
 	if (kind === 'flt')
 		return id === 'arr' ? Z(`${who}改了到达时间`, `${who} changed the landing time`) : Z(`${who}改了回程起飞时间`, `${who} changed the flight home`);
+	if (kind === 'block') {
+		const name = (store.get('people', {}) || {})[id] || Z('一台手机', 'a phone');
+		return v ? Z(`${who}停用了${name}`, `${who} blocked ${name}`) : Z(`${who}恢复了${name}`, `${who} unblocked ${name}`);
+	}
 	if (kind === 'role') {
 		const name = (store.get('people', {}) || {})[id] || Z('一台手机', 'a phone');
 		return v

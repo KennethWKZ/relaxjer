@@ -5480,6 +5480,10 @@ h2.landed {
 	font-weight: 750;
 	vertical-align: 1px;
 }
+.sync-badge.is-blocked {
+	background: color-mix(in srgb, var(--bad) 14%, transparent);
+	color: var(--bad);
+}
 .sync-acts {
 	display: flex;
 	flex-wrap: wrap;

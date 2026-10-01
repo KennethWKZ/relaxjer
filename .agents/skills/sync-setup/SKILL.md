@@ -51,6 +51,9 @@ pnpm sync end --trip trips/<slug>                         # after the trip: its 
   file with no code: set it again
   ([ADR-20261002-sync-planners](../../../memory-bank/standards/decisions/ADR-20261002-sync-planners.md)).
 - A phone's first open asks for its name once (Not now leaves a bar under the header); the add-stop sheet asks too.
+- A planner can block a phone (Group sync → The group → Block this phone): its stops and last changes go back to the
+  plan, and what it writes next is ignored. A tester or a stray phone: block it; someone who shouldn't see the trip
+  any more: a new page password too.
 - Each phone changes only the stops it added; planners change any. Pushed-back times, flight changes and shared ticks
   stay open to every phone.
 

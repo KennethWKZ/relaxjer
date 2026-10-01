@@ -199,3 +199,24 @@ test('Sync: the group’s stops by the phone that added them, most first, under 
 		],
 	);
 });
+
+test('Sync: a planner can block a phone; what a blocked phone writes is dropped, its unblocking itself too', () => {
+	assert.equal(Sync.cleanRecord('block:phoneB2', true), true);
+	assert.equal(Sync.cleanRecord('block:phoneB2', 'yes'), undefined);
+	assert.deepEqual(Sync.recordsOf({ blocks: { phoneB2: true } }, shared), { 'block:phoneB2': true });
+	assert.deepEqual(Sync.applyRecords({}, [['block:phoneB2', true]], shared).blocks, { phoneB2: true });
+
+	const remote = {
+		'block:phoneB2': { v: true, u: 5, d: 'phoneA1' },
+		'stop:mine-x': { v: stop('mine-x'), u: 6, d: 'phoneB2' },
+		'tick:before-charter': { v: true, u: 7, d: 'phoneC3' },
+	};
+	const out = Sync.dropBlocked(remote, {});
+	assert.deepEqual(Object.keys(out.remote).sort(), ['block:phoneB2', 'tick:before-charter'], 'the block counts in the same read');
+	assert.deepEqual(out.blocks, { phoneB2: true });
+
+	const self = Sync.dropBlocked({ 'block:phoneB2': { v: null, u: 9, d: 'phoneB2' } }, { phoneB2: true });
+	assert.deepEqual(self.remote, {}, 'a blocked phone can’t unblock itself');
+	assert.deepEqual(self.blocks, { phoneB2: true });
+	assert.deepEqual(Sync.dropBlocked({ 'block:phoneB2': { v: null, u: 9, d: 'phoneA1' } }, { phoneB2: true }).blocks, {}, 'a planner can');
+});

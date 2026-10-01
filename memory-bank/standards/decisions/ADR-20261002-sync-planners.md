@@ -51,6 +51,12 @@ day ship on every page, sync or not.
     ticks.
   - Only stops are guarded (`canEditStop`). Pushed-back times, flight changes and shared ticks stay open to every
     phone, as before: they're one per day or per item, and changing them is the point.
+- **A planner can block a phone.** "Block this phone" on any other phone in "The group" (which lists every phone
+  heard from, named or not) writes `block:<device>`, takes away its planner role, removes its added stops, and puts
+  back to the original plan the pushed-back times, flight changes and shared ticks it changed last. From then on
+  every phone drops what it writes (`Sync.dropBlocked`), a block it writes for itself included. The blocked phone
+  is told in the bar under the header and stops sending; its changes wait on it. Unblock sends them. Undo after a
+  block puts everything back.
 - **Every removal can be undone.** The toast after a removal or reset carries Undo for 8 seconds. Undo puts back
   only what that action took, as a newer version, so stops the group added in between stay. Every stop that leaves
   the plan, here or from another phone, goes on this phone's "Recently removed" list (`syncGone`, never synced: it
@@ -66,19 +72,22 @@ day ship on every page, sync or not.
 
 ## Alternatives
 
-| Option                                                    | Why not                                                                                                              |
-| --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| Named planners with a code each, set from the CLI         | Built first, then dropped: it ties the role to a name, and every new planner needs the CLI and a republish           |
-| The first phone to open the page is the planner, no code  | Whoever opens it first wins (often not the planner), and phones offline at the time can disagree about who was first |
-| Roles enforced by the database rules                      | Records are encrypted, so the rules can't see a role or a stop's owner without the page sending them in the clear    |
-| Signing role records with a planner's key (ECDSA)         | Stops it from being forged, but anyone who can edit the page can remove stops directly anyway: cost with no gain     |
-| A hard cap on added stops                                 | The database can't count encrypted records; a cap in the page would only block honest phones                         |
-| Keep any phone able to remove any stop, and add Undo only | Undo is gone after 8 seconds; the people who most need protecting are the ones who won't open a list to put it back  |
+| Option                                                    | Why not                                                                                                                  |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Named planners with a code each, set from the CLI         | Built first, then dropped: it ties the role to a name, and every new planner needs the CLI and a republish               |
+| The first phone to open the page is the planner, no code  | Whoever opens it first wins (often not the planner), and phones offline at the time can disagree about who was first     |
+| Roles enforced by the database rules                      | Records are encrypted, so the rules can't see a role or a stop's owner without the page sending them in the clear        |
+| Signing role records with a planner's key (ECDSA)         | Stops it from being forged, but anyone who can edit the page can remove stops directly anyway: cost with no gain         |
+| A hard cap on added stops                                 | The database can't count encrypted records; a cap in the page would only block honest phones                             |
+| Remove a phone instead of blocking it                     | Nothing can take a phone off the database: it keeps the keys in its copy of the page. New keys mean everyone starts over |
+| Keep any phone able to remove any stop, and add Undo only | Undo is gone after 8 seconds; the people who most need protecting are the ones who won't open a list to put it back      |
 
 ## Consequences
 
 - **Security:** roles guard against mistakes, not attackers. The page enforces them, not the database: anyone with
-  the page password can edit the page's code and write any record, a `role:` for their own phone included. The
+  the page password can edit the page's code and write any record, a `role:` for their own phone included, and a
+  phone still on an older build doesn't know about blocks. To cut a phone off for real: a new page password, and new
+  sync keys (`pnpm sync init --force`). The
   planner code is never stored or shown, only a salted hash (210,000 PBKDF2 rounds, below OWASP's 600,000 for
   passwords): someone holding the page could guess a short code offline, so use one that isn't a password anywhere
   else. A leaked code: run `pnpm sync planner` again, rebuild and republish (the hash is in the page); phones

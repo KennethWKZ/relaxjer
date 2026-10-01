@@ -7,11 +7,12 @@
 //  - What comes from another phone is checked like a pasted share link: the wrong shape is dropped, long text is cut.
 
 /** the saved-state keys that hold shared records */
-export const KEYS = ['mine', 'shift', 'fltArr', 'fltDep', 'checks', 'people', 'roles'];
+export const KEYS = ['mine', 'shift', 'fltArr', 'fltDep', 'checks', 'people', 'roles', 'blocks'];
 
 /**
  * The records a phone's state shares, by record id. state = { mine, shift, fltArr, fltDep, checks, people, roles } as
- * the page saves them (people = { device id: name }, roles = { device id: 'planner' }); shared(key) says whether a
+ * the page saves them (people = { device id: name }, roles = { device id: 'planner' }, blocks = { device id: true });
+ * shared(key) says whether a
  * checklist key is in a shared group.
  */
 export function recordsOf(state, shared) {
@@ -23,6 +24,7 @@ export function recordsOf(state, shared) {
 	for (const [k, on] of Object.entries(state.checks || {})) if (on && shared(k)) out[`tick:${k}`] = true;
 	for (const [dev, name] of Object.entries(state.people || {})) if (name) out[`who:${dev}`] = name;
 	for (const [dev, role] of Object.entries(state.roles || {})) if (role === 'planner') out[`role:${dev}`] = role;
+	for (const [dev, on] of Object.entries(state.blocks || {})) if (on === true) out[`block:${dev}`] = true;
 	return out;
 }
 
@@ -84,6 +86,7 @@ export function cleanRecord(rid, v) {
 	if (kind === 'tick') return v === true && /^[\w-]{1,80}$/.test(id) ? true : undefined;
 	if (kind === 'who') return DEV.test(id) && typeof v === 'string' && v.trim() ? text(v.trim(), 24) : undefined;
 	if (kind === 'role') return DEV.test(id) && v === 'planner' ? v : undefined;
+	if (kind === 'block') return DEV.test(id) && v === true ? true : undefined;
 	return undefined;
 }
 
@@ -100,6 +103,7 @@ export function applyRecords(state, recs, shared) {
 		checks: { ...(state.checks || {}) },
 		people: { ...(state.people || {}) },
 		roles: { ...(state.roles || {}) },
+		blocks: { ...(state.blocks || {}) },
 	};
 	for (const [rid, v] of recs) {
 		const [kind, ...rest] = String(rid).split(':');
@@ -115,8 +119,8 @@ export function applyRecords(state, recs, shared) {
 		} else if (kind === 'tick' && shared(id)) {
 			if (v) next.checks[id] = true;
 			else delete next.checks[id];
-		} else if (kind === 'who' || kind === 'role') {
-			const box = kind === 'who' ? next.people : next.roles;
+		} else if (kind === 'who' || kind === 'role' || kind === 'block') {
+			const box = kind === 'who' ? next.people : kind === 'role' ? next.roles : next.blocks;
 			if (v) box[id] = v;
 			else delete box[id];
 		}
@@ -194,4 +198,22 @@ export function byPhone(stops, verOf, me, people = {}) {
 	}
 	for (const g of m.values()) if (people[g.dev]) g.by = people[g.dev];
 	return [...m.values()].sort((a, b) => b.ids.length - a.ids.length || (a.by < b.by ? -1 : 1));
+}
+
+/**
+ * What came from the group, without what blocked phones wrote (ADR-20261002-sync-planners): a planner's block (or
+ * unblock) in the same read counts first, and a blocked phone's own records, its blocks included, are dropped.
+ * remote = { record id: { v, u, d, n } }, blocks = { device id: true }. Returns { remote, blocks }, both new.
+ */
+export function dropBlocked(remote, blocks) {
+	const b = { ...(blocks || {}) };
+	for (const [rid, r] of Object.entries(remote || {}))
+		if (rid.startsWith('block:') && r && !b[r.d]) {
+			const id = rid.slice(6);
+			if (r.v === true) b[id] = true;
+			else delete b[id];
+		}
+	const kept = {};
+	for (const [rid, r] of Object.entries(remote || {})) if (r && !b[r.d]) kept[rid] = r;
+	return { remote: kept, blocks: b };
 }
