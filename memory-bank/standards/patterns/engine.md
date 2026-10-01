@@ -53,7 +53,8 @@ pack export instead, document it in `trip-format.md`, and have the contract chec
 
 ## Traps (from the first trip)
 
-- `content-visibility: auto` needs scroll anchoring. Gate it on `CSS.supports('overflow-anchor', 'auto')`. It also
+- `content-visibility: auto` needs scroll anchoring that holds. `CSS.supports('overflow-anchor', 'auto')` isn't enough,
+  because WebKit says yes, so section skipping is for Chromium-family browsers only (`.cv-ok`, `01-storage.js`). It also
   clips children that bleed out with negative margins, and `innerText` of a skipped section is `''`.
 - WebKit reports `overflow-anchor` support but doesn't hold a jump's target while skipped sections draw. Every jump,
   deep links included, re-lands for about 1.2 s (`holdLanding()`), and stops on touch, another jump, or Back.

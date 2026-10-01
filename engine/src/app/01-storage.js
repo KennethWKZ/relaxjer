@@ -19,7 +19,11 @@ const store = {
 };
 
 try {
-	if (CSS.supports('overflow-anchor', 'auto')) document.documentElement.classList.add('cv-ok');
+	// WebKit (every iPhone browser, and Safari) answers yes to overflow-anchor but doesn't hold the scroll position, so
+	// sections drawing late there make the page jump; only Chromium-family browsers get section skipping
+	const ua = navigator.userAgent;
+	const webkit = /iP(hone|ad|od)/.test(ua) || (/AppleWebKit/.test(ua) && !/Chrome|Chromium|Edg\//.test(ua));
+	if (!webkit && CSS.supports('overflow-anchor', 'auto')) document.documentElement.classList.add('cv-ok');
 } catch {
 	/* old browser: no section skipping */
 } // see style.css: content-visibility needs scroll anchoring

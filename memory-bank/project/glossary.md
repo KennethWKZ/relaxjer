@@ -46,7 +46,7 @@ Use these words, as written, in code, tests, docs and commit messages, so names 
 | build            | `pnpm build --trip <dir>` → `<fileName>-standalone.html` (the page to publish), `<fileName>.html` and the My Maps KML                            |
 | build id         | `<meta name="relaxjer-build">`, 12 hex characters. The page compares it with the live copy's to offer an update, and a publish is verified by it |
 | storage key      | `TRIP.storageKey`: the prefix the page saves the reader's state under. A published page keeps its prefix, or readers lose what they saved        |
-| section skipping | `content-visibility: auto` on sections, on only where the browser has scroll anchoring                                                           |
+| section skipping | `content-visibility: auto` on sections, in Chromium-family browsers only (WebKit claims scroll anchoring but doesn't hold it)                    |
 | landing glow     | The one-time ring on a heading or lantern after a jump, so the reader sees where they arrived                                                    |
 | Back pill        | The floating button that returns the reader to where they were before a jump                                                                     |
 

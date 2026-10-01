@@ -4870,14 +4870,18 @@ dialog.toc {
 /* slow phones: sections far off-screen skip layout and paint until scrolled near.
    Containment clips paint at the section edge, so the section takes in the 16px gutter
    that photo strips, tables and the sticky day bar bleed into.
-   Only where the browser has scroll anchoring (.cv-ok, set in app.js): without it (Safari) a section above
-   the screen that renders late grows and the page jumps thousands of px while scrolling up. */
+   Only where scroll anchoring really holds (.cv-ok, set in 01-storage.js: Chromium-family browsers). WebKit, so every
+   iPhone browser, claims it but doesn't hold it: a section above the screen that renders late grows and the page jumps
+   thousands of px while scrolling up, and on a slow machine a scrolled-to target keeps moving. */
+#app > section.day,
+#app > section.sec:not(#top):not(#map) {
+	margin-inline: -16px;
+	padding-inline: 16px;
+}
 .cv-ok #app > section.day,
 .cv-ok #app > section.sec:not(#top):not(#map) {
 	content-visibility: auto;
 	contain-intrinsic-size: auto 1400px;
-	margin-inline: -16px;
-	padding-inline: 16px;
 }
 
 /* offline notice under the tabs */

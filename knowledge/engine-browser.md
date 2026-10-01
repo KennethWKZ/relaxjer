@@ -4,8 +4,12 @@ What the first trip taught about the page in real browsers. Each lesson is backe
 
 ## Scrolling and section skipping
 
-- **`content-visibility: auto` needs scroll anchoring.** Without it (Safari at the time), the page jumped thousands of
-  px while scrolling up. Turn section skipping on only when `CSS.supports('overflow-anchor', 'auto')`.
+- **`content-visibility: auto` needs scroll anchoring that holds,** and `CSS.supports('overflow-anchor', 'auto')`
+  can't tell: WebKit answers yes (macOS, Linux and iOS alike) but doesn't hold the position. Without it, the page jumps
+  thousands of px while scrolling up. On CI's slower Linux WebKit, a scrolled-to target kept moving, so clicks timed
+  out ("element is not stable", "outside of the viewport") and the e2e job ran 40+ minutes (2026-10-01). Section
+  skipping is for Chromium-family browsers only (`01-storage.js`), and the sections' 16 px gutter bleed stays in every
+  browser, since it's layout, not skipping.
 - **Its paint containment clips children** that bleed out with negative margins.
 - **`innerText` of a skipped section is `''`.** Search and copy must read the data, not the DOM.
 - **WebKit reports `overflow-anchor` support but doesn't hold a jump's target** while skipped sections draw. Tab and
