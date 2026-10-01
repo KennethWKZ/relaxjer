@@ -25,7 +25,8 @@ test('every local asset the page links resolves, relative to the page', () => {
 
 test('the page loads no third-party script, style or font', () => {
 	assert.doesNotMatch(html, /<script[^>]+src="https?:/);
-	assert.doesNotMatch(html, /<link[^>]+href="https?:/);
+	// a canonical link names the page's own address; it loads nothing
+	assert.doesNotMatch(html, /<link(?![^>]*rel="canonical")[^>]+href="https?:/);
 	assert.doesNotMatch(fs.readFileSync(path.join(SITE, 'assets', 'site.css'), 'utf8'), /@import|url\(['"]?https?:/);
 });
 
@@ -40,13 +41,46 @@ test('every image has alt text, and every screenshot is the synthetic demo with 
 	}
 });
 
-test('site/ holds only web assets, and the brush font ships with its licence', () => {
-	const allowed = /\.(html|css|js|svg|webp|png|woff2|json|txt)$/;
+test('site/ holds only web assets, and each self-hosted font ships with its licence', () => {
+	const allowed = /\.(html|css|js|svg|webp|png|woff2|json|txt|xml)$/;
 	assert.deepEqual(
 		files.filter((f) => !allowed.test(f)),
 		[],
 	);
-	assert.ok(files.includes(path.join('assets', 'fonts', 'OFL.txt')), 'the SIL OFL goes with the font subset');
+	assert.ok(files.includes(path.join('assets', 'fonts', 'OFL.txt')), 'the SIL OFL goes with the brush subset');
+	assert.ok(files.includes(path.join('assets', 'fonts', 'OFL-gabarito.txt')), 'the SIL OFL goes with the headline face');
+});
+
+test('search engines and link previews get a title, a description, cards and structured data', () => {
+	const meta = (attr, key) => html.match(new RegExp(`<meta\\s+${attr}="${key}"\\s+content="([^"]*)"`))?.[1];
+	const canonical = html.match(/<link rel="canonical" href="([^"]+)"/)?.[1];
+	assert.equal(canonical, 'https://kennethwkz.github.io/relaxjer/');
+	const title = html.match(/<title>([^<]+)<\/title>/)?.[1] || '';
+	assert.ok(title.length >= 20 && title.length <= 70, `title is ${title.length} characters`);
+	const desc = meta('name', 'description') || '';
+	assert.ok(desc.length >= 70 && desc.length <= 170, `description is ${desc.length} characters`);
+	for (const k of ['og:title', 'og:description', 'og:url', 'og:image', 'og:image:alt']) assert.ok(meta('property', k), `missing ${k}`);
+	for (const k of ['twitter:card', 'twitter:title', 'twitter:image']) assert.ok(meta('name', k), `missing ${k}`);
+	// the card image is a file on the site, under the canonical address
+	const img = meta('property', 'og:image');
+	assert.ok(img.startsWith(canonical), 'og:image lives under the canonical address');
+	assert.ok(fs.existsSync(path.join(SITE, img.slice(canonical.length))), `no file for ${img}`);
+	const ld = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)?.[1];
+	assert.ok(ld, 'no JSON-LD');
+	const graph = JSON.parse(ld)['@graph'];
+	assert.ok(graph.some((n) => n['@type'] === 'SoftwareApplication' && n.isAccessibleForFree === true));
+	const sitemap = fs.readFileSync(path.join(SITE, 'sitemap.xml'), 'utf8');
+	assert.match(sitemap, new RegExp(`<loc>${canonical}</loc>`));
+});
+
+test('every animated demo can be paused, and says in words what it shows', () => {
+	const demos = html.split(/(?=<[^>]+\bdata-demo\b)/).slice(1);
+	assert.ok(demos.length >= 8, `only ${demos.length} demos`);
+	for (const d of demos) {
+		const chunk = d.slice(0, d.indexOf('class="pause"') + 400);
+		assert.match(chunk, /class="pause"/, 'a demo without a Pause button (WCAG 2.2.2)');
+		assert.match(chunk, /role="img"\s+aria-label="Animated: [^"]{40,}"/, 'a demo without a description');
+	}
 });
 
 test('the Pages workflow publishes site/ only, with actions pinned to commit SHAs', () => {

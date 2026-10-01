@@ -71,16 +71,23 @@ Run the checks before you call it done. The `verify-page` skill runs all of them
 
 ## The landing page (`site/`)
 
-GitHub Pages serves `site/` as it is (`.github/workflows/pages.yml`), under the `/relaxjer/` sub-path. It follows
-`DESIGN.md` like the trip page does: the four steps hang as lanterns on a string. Its surface brief and direction
+GitHub Pages serves `site/` as it is (`.github/workflows/pages.yml`), under the `/relaxjer/` sub-path. It is a set of
+airmail postcards from the demo trip, one per feature, each with a drawn demo that loops
+([ADR-20261002-landing-postcards](../decisions/ADR-20261002-landing-postcards.md)). Its surface brief and direction
 contract are in `.impeccable/surfaces/site-index-html.md`.
 
-- **Static and self-contained.** Plain HTML, `site/assets/site.css` and one small script. Only relative paths, and no
-  third-party script, style or font: the brush face is a self-hosted subset, `site/assets/fonts/`, with its SIL OFL.
-  A new brush glyph means fetching a new subset that includes it.
+- **Static and self-contained.** Plain HTML, `site/assets/site.css` and one small script, under the page's own policy
+  (`<meta>`; no inline script, no connections). Only relative paths, and no third-party script, style or font: the
+  brush face and Gabarito are self-hosted subsets in `site/assets/fonts/`, each with its SIL OFL. A new brush glyph
+  means fetching a new subset that includes it.
+- **A demo is a drawing of the real page.** Each loop is a mini trip page (`.m`) in CSS keyframes, after a capture of
+  the demo build (the synced one for sync features): same strings, same flow. It runs only in view, has a Pause button
+  and an `aria-label="Animated: …"`, and holds its `--still` frame under reduced motion. A UI change on the trip page
+  that a card shows means redrawing that card; no test catches the drift.
 - **Only the demo, ever.** The screenshots come from `node scripts/docs-update/site-screens.mjs`, which builds the
   synthetic demo without a key and writes each image with its provenance sidecar. The flow diagram comes from
   `node scripts/docs-update/flow-diagram.mjs`.
 - **Checked like the trip page.** `tests/repo/site.test.mjs` covers links, third-party requests, alt text,
-  provenance, the file types and the SHA-pinned deploy. The eye check is 390 px and desktop, light and dark, in
-  Chromium and WebKit.
+  provenance, the file types, the search and preview metadata, a Pause button and a description on every demo, and
+  the SHA-pinned deploy. The eye check is 390 px and desktop, light and dark, in Chromium and WebKit, with reduced
+  motion (the still frames) and without (the loops).
