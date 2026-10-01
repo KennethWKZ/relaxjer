@@ -41,7 +41,8 @@ jobs:
   # one job per Playwright project, side by side: on one runner the four ran almost one at a time (40+ min)
   e2e:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # installing WebKit's system packages alone has taken 14 minutes on a slow day
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
