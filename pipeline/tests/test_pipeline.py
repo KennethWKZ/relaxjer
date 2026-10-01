@@ -104,6 +104,19 @@ class Google(unittest.TestCase):
         self.assertEqual(n, 5)
         self.assertAlmostEqual(usd, (0 + 35 + 32 + 25 + 5) / 1000)
 
+    def test_a_place_with_no_google_id_is_searched_by_its_maps_name(self):
+        import contextlib, io, runpy, sys
+        asked = []
+        def text(q, bias=None, **kw): asked.append(q); return {'places': [{'id': 'ChIJ' + q, 'primaryType': 'tourist_attraction'}]}
+        def details(pid, lang=None): return {'id': pid, 'location': {'latitude': 25.0, 'longitude': 121.5}, 'displayName': {'text': pid}}
+        out = io.StringIO()
+        with mock.patch.object(google, 'text', text), mock.patch.object(google, 'details', details), \
+                mock.patch.object(sys, 'argv', ['pins.py']), contextlib.redirect_stdout(out):
+            runpy.run_path(os.path.join(trip.REPO, 'pipeline', 'steps', 'pins.py'), run_name='__main__')
+        self.assertIn(trip.PLACES['t101']['maps'], asked)  # the demo pins nothing by hand: every place is searched once
+        self.assertEqual(len(asked), len(set(asked)))
+        self.assertIn('t101: place id None', out.getvalue())
+
 class Resync(unittest.TestCase):
     def run_resync(self, *flags, cache=None):
         import subprocess, sys, tempfile
