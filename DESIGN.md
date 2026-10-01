@@ -456,6 +456,19 @@ Every control is a plain, heavy-lettered rectangle with a 44 px floor (48–52 p
 - **Sections button:** a floating 52 px ink button, bottom right, that opens the sections sheet.
 - **Sections sheet:** on a trip day it opens with Now and Next rows that lead with the day's knots, as on its string: a filled knot with a 5 px halo for Now, a 12 px ring for Next (and for Today before the first stop). The knot is the day colour mixed 55 % with ink, like the landing ring, so every lantern reaches 3:1 on the Fog Grey row.
 - **Back pill:** a floating 52 px paper button, bottom left, with a hairline border and the float shadow. After a jump it returns the reader to where they were, then slides away (fades and drops 14 px).
+- **Sections sheet foot:** after the sections come Theme, Group sync (a row, on a page built with sync only) and, if the phone has something to clear, "Remove the N stops I added". Without sync that last row reads "Back to the original plan".
+
+### Toast with Undo
+
+A removal or reset shows the toast with an Undo chip for 8 seconds, on every page. The chip is 44 px tall with a 9 px radius, a paper tint at 18 % on the ink toast, and a paper focus ring. The toast lifts above the Sections button while the chip is there, and keeps its width to its content.
+
+### Group sync (pages built with sync)
+
+- **Welcome sheet:** a phone's first open with sync on and no name gets the shared bottom sheet once, 1.2 s after the page shows or at the first scroll, and never over another open sheet. It holds a `users` heading, one line on what syncs, the name field (`.sync-name`), Save (`.go-btn`) and Not now (`.mlink`). It asks; it never gates the page.
+- **No-name bar:** a phone with no name gets the update bar's treatment (`.upd`: link-tinted fill, hairline top rule, small text) under the header, with "Add name" and "Later". Later hides it for a day.
+- **Group sync sheet:** a fold-out "I'm a planner" (`.sync-code`, a 44 px summary with a chevron) holds the code field. Below it, "The group" and "Recently removed" are parts (`.sync-part`) of rows (`.sync-row`) with their one action on the right, and the action wraps under the name below 420 px. Recently removed shows the newest 10.
+- **Planner badge and line:** a planner shows a `good` tint badge (`.sync-badge`, 6 px radius) beside its name, and a planner's own sheet opens with a `good` line saying so (`.sync-role`).
+- **Crowd caution:** the add sheet's "already 4 added stops" note (`.crowd-note`) uses the `warn` icon and ink text, never an error colour: it is advice, not a block. It shows on every page.
 
 ### Signature: the Lantern and its string
 

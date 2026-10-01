@@ -23,7 +23,9 @@ You need these before writing data. Ask for any that are missing, all in one mes
 - the hotel for each night;
 - everything booked or at a fixed time (shows, tours, charters, restaurants);
 - the budget the planner has, the home currency, and the two UI languages;
-- must-dos, nice-to-haves, and what the group dislikes.
+- must-dos, nice-to-haves, and what the group dislikes;
+- whether the group should share its changes across phones (group sync, `sync-setup`, which needs the planner's own
+  Firebase), and which checklist groups to mark `shared: true` if so.
 
 Never invent a booking, a price or a budget. An estimate is fine when it's marked as one ("≈").
 

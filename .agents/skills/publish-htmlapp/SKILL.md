@@ -73,7 +73,10 @@ Never read or copy the secrets another way. The script:
 It reads either layout: one value per file (`<slug>.viewer`, `<slug>.site`, and `<slug>.update-key` when the key isn't
 in the Keychain), or the first trip's labelled files (`<slug>.txt` as lavish-axi printed it, `<slug>-viewer.txt`). If
 the key still sits in a file on a Mac, it says so; the planner moves it into the Keychain and deletes the file copy. Keep `TRIP.fileName` and
-`TRIP.storageKey` unchanged from the last publish (`build-page`), or the group loses its saved state.
+`TRIP.storageKey` unchanged from the last publish, and build with the same `--sync` file if the trip has group sync
+(`build-page`), or the group loses its saved state, or starts its shared plan over. For a trip with planners, check the
+build line says `group sync yes (planner code set)` before you publish. Phones still on the old copy don't enforce
+roles until they take the update bar.
 
 Phones that hold the old copy on their home screen show an update bar once they're back online.
 

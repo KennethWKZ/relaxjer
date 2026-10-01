@@ -4,11 +4,12 @@ RelaxJer turns a family's trip requirements into one offline-friendly, installab
 AI agent (Claude Code, Codex, Cursor, Gemini CLI, Copilot…) and every person working in the repo. It maps the context
 in `memory-bank/` and states the rules that bind.
 
-**Status:** story steps 0–3b and 5 are done (engine moved, split and generalised; the `tw` pack; the pipeline). Step 6,
-the agent tooling, is in flight, and the landing page (6b) is built but not yet deployed. Group sync and the page's
-security policy (6d) are live on the first trip; a day can split for part of the group. Next: i18n (step 4), the affordance
-fixes (6c), a second destination (7). See
-[`memory-bank/story-index.md`](memory-bank/story-index.md).
+**Status:** story steps 0–3b, 5, 6c and 6d are done (engine moved, split and generalised; the `tw` pack; the pipeline;
+the affordance fixes; group sync). Step 6, the agent tooling, is in flight, and the landing page (6b) is built but not
+yet deployed. Group sync, on the planner's own Firebase database, and the page's security policy are live on the first
+trip; a day can split for part of the group, and a stop can suggest optional plans. Planners, own-stop edits and Undo
+for group sync are built and tested; publishing them is the planner's call. Next: i18n (step 4), a second destination
+(7). See [`memory-bank/story-index.md`](memory-bank/story-index.md).
 
 ## Read first
 
@@ -33,20 +34,21 @@ fixes (6c), a second destination (7). See
 
 ### Task shortcuts
 
-| If your task is…                        | Start here                                                                                                    |
-| --------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| Plan a new trip                         | skill `trip-intake`, then `data-sync` → `build-page` → `verify-page` → `publish-htmlapp`                      |
-| Refresh a live trip's data              | skill `data-sync`, then `verify-page` and `publish-htmlapp`                                                   |
-| Share the group's changes across phones | skill `sync-setup`, then `build-page` → `verify-page` → `publish-htmlapp`                                     |
-| A new country or city                   | skill `destination-pack`                                                                                      |
-| Change the engine, a section or a pack  | [`memory-bank/standards/patterns/engine.md`](memory-bank/standards/patterns/engine.md)                        |
-| Change the landing page (`site/`)       | [`memory-bank/standards/patterns/frontend.md`](memory-bank/standards/patterns/frontend.md) § The landing page |
-| Change anything the page shows          | [`memory-bank/standards/patterns/frontend.md`](memory-bank/standards/patterns/frontend.md), `DESIGN.md`       |
-| Write or change a test                  | [`memory-bank/standards/patterns/testing.md`](memory-bank/standards/patterns/testing.md)                      |
-| Write trip data                         | [`memory-bank/standards/patterns/trip-data.md`](memory-bank/standards/patterns/trip-data.md)                  |
-| Touch the pipeline                      | [`memory-bank/standards/patterns/pipeline.md`](memory-bank/standards/patterns/pipeline.md)                    |
-| After a trip                            | skill `trip-retro`                                                                                            |
-| A decision worth recording              | an ADR in `memory-bank/standards/decisions/`, then `pnpm gen:adr-index`                                       |
+| If your task is…                        | Start here                                                                                                        |
+| --------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Plan a new trip                         | skill `trip-intake`, then `data-sync` → `build-page` → `verify-page` → `publish-htmlapp`                          |
+| Refresh a live trip's data              | skill `data-sync`, then `verify-page` and `publish-htmlapp`                                                       |
+| Share the group's changes across phones | skill `sync-setup`, then `build-page` → `verify-page` → `publish-htmlapp`                                         |
+| Change who may edit what in group sync  | [ADR-20261002-sync-planners](memory-bank/standards/decisions/ADR-20261002-sync-planners.md), `patterns/engine.md` |
+| A new country or city                   | skill `destination-pack`                                                                                          |
+| Change the engine, a section or a pack  | [`memory-bank/standards/patterns/engine.md`](memory-bank/standards/patterns/engine.md)                            |
+| Change the landing page (`site/`)       | [`memory-bank/standards/patterns/frontend.md`](memory-bank/standards/patterns/frontend.md) § The landing page     |
+| Change anything the page shows          | [`memory-bank/standards/patterns/frontend.md`](memory-bank/standards/patterns/frontend.md), `DESIGN.md`           |
+| Write or change a test                  | [`memory-bank/standards/patterns/testing.md`](memory-bank/standards/patterns/testing.md)                          |
+| Write trip data                         | [`memory-bank/standards/patterns/trip-data.md`](memory-bank/standards/patterns/trip-data.md)                      |
+| Touch the pipeline                      | [`memory-bank/standards/patterns/pipeline.md`](memory-bank/standards/patterns/pipeline.md)                        |
+| After a trip                            | skill `trip-retro`                                                                                                |
+| A decision worth recording              | an ADR in `memory-bank/standards/decisions/`, then `pnpm gen:adr-index`                                           |
 
 ## Skills
 
@@ -94,7 +96,7 @@ pnpm build --trip trips/<slug> --keys ~/.config/relaxjer/google.json   # a real 
 pnpm resync --trip trips/<slug> [--write]   # refresh a trip's data from its cache; paying for more is the planner's call (data-sync)
 pnpm test:pipeline               # the pipeline's offline tests (needs uv)
 pnpm test:release                # the push gate: no real trip's details in anything published
-pnpm sync init --trip trips/<slug> --db <url>   # group sync for a trip (rules|init|end|status), see the sync-setup skill
+pnpm sync init --trip trips/<slug> --db <url>   # group sync for a trip (rules|init|planner|end|status), see the sync-setup skill
 pnpm test:sync-rules             # the group-sync database rules on Firebase's emulator (local, needs Java)
 pnpm parity --ref <commit> --trip trips/<slug>      # renders the same as an earlier commit? (--live <repo>: maintainer only)
 pnpm release                     # bump version + CHANGELOG from the commits (commit-and-tag-version)

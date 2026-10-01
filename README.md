@@ -5,8 +5,9 @@ _Malaysian for "just relax": family trips at a comfortable pace, with the planni
 RelaxJer plans a family trip with an AI agent and builds it into **one self-contained page**. The group opens it on
 their phones, installs it to the home screen, and uses it offline. Each day has a timeline with fixed times that never
 move, and every group cost shows a per-person share in the home currency. You get food, drinks, rest spots and toilets
-near each stop, and a map with an offline transit planner. The page runs in two UI languages plus the destination's
-own.
+near each stop, and a map with an offline transit planner. A day can split for part of the group, and a stop can suggest
+optional plans. The page runs in two UI languages plus the destination's own, and a trip can opt in to sharing the
+group's changes across their phones.
 
 > **Status: pre-alpha.** The engine has moved in from the first trip (Taipei, 2026) and is being generalised; see
 > [`memory-bank/story-index.md`](memory-bank/story-index.md).
@@ -52,10 +53,16 @@ use it, exclude your trips before the first build (`graphmind exclude add trips`
    back to a free map.
 2. **Describe the trip** to your agent: dates, flights, who's coming (seniors?), hotels, what's booked, what you'd
    love. It writes `trips/<slug>/`, which is gitignored and never committed.
-3. **Refresh, build, check:** `pnpm resync --trip trips/<slug> --write` (the first run says what it costs Google
+3. **Share the group's changes (optional):** added stops, pushed-back times, flight changes and shared checklist ticks
+   reach every phone through your own Firebase Realtime Database, which RelaxJer doesn't run. The `sync-setup` skill
+   does it in about 5 minutes, before the build, and a family trip stays within Firebase's free amounts. Each phone
+   changes only the stops it added, and a planner (a phone that gives the code you set with `pnpm sync planner`) can
+   change any. Every removal can be undone. Without sync, each phone keeps its own.
+4. **Refresh, build, check:** `pnpm resync --trip trips/<slug> --write` (the first run says what it costs Google
    and asks you first, [why](guides/google-maps.md#what-it-costs)), then
-   `pnpm build --trip trips/<slug> --keys ~/.config/relaxjer/google.json`, then the tests and a look on your phone.
-4. **Publish behind a password** (ht-ml.app), and share the link in your group chat.
+   `pnpm build --trip trips/<slug> --keys ~/.config/relaxjer/google.json` (add `--sync <the sync file>` if you set up
+   sharing), then the tests and a look on your phone.
+5. **Publish behind a password** (ht-ml.app), and share the link in your group chat.
 
 ### Google Maps or the free map?
 
@@ -98,7 +105,8 @@ The trip page's design system: [`DESIGN.md`](DESIGN.md), and who it's for: [`PRO
 ## Hosting
 
 GitHub Pages hosts only the project's landing page. Pages sites are public, so never put a real trip there. Host your
-trip page behind a password (ht-ml.app, for example), because it carries hotels, flights and names.
+trip page behind a password (ht-ml.app, for example), because it carries hotels, flights and names, and with group sync
+its database keys. The page carries its own Content-Security-Policy, so the host doesn't have to set headers.
 
 ## Licence
 

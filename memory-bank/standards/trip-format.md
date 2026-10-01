@@ -1,6 +1,6 @@
 ---
 created: 2026-09-30
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # Trip format
@@ -27,7 +27,7 @@ every field in use.
 | `searchHint`, `footer`  | `[zh, en]`                                                  | the search box placeholder, the page footer                                                                                                                                                           |
 | `mapViews`              | `[{ id, name: [zh, en], bbox: [w, s, e, n] }]`              | the map's area buttons; the map opens on the first                                                                                                                                                    |
 | `shopDays`              | `[{ ok, zh, en }]`                                          | "which days suit shopping" notes; `{d3}` becomes Day 3's date, `{back}` the time to collect bags on the last day                                                                                      |
-| `addStopNote`           | `[zh, en]`                                                  | the note under "add a stop"                                                                                                                                                                           |
+| `addStopNote`           | `[zh, en]`                                                  | the note under "add a stop" (ignored on a page with group sync, which says the stop goes on everyone's page and who added it)                                                                         |
 | `kml`                   | `{ optional, transport: [place ids] }`                      | Google My Maps export: the optional layer's name, the places on the hotel/transport layer                                                                                                             |
 | `destination`, `region` | `'tw'`, `'taipei'`                                          | the destination pack (`destinations/tw/pack.mjs` + `regions/taipei/pack.mjs`): tax refund, lucky draw, metro name, taxi meter, bike share. Leave out for none                                         |
 | `city`                  | `['台北', 'Taipei']`                                        | "not in Taipei yet"; defaults to the region pack's city                                                                                                                                               |
@@ -57,8 +57,9 @@ trip's own currency symbol and group size; the page adds the per-person share. `
 
 When one or some of the group do something else for part of a day (a ride, a visit), the plan hangs, folded, on the
 day's string where it forks, and the stop where they come back says so
-([ADR-20261001-day-split](decisions/ADR-20261001-day-split.md)). Its times are the plan's own: a push-back doesn't
-move them. Which plan a phone shows is remembered on that phone and isn't synced.
+([ADR-20261001-day-split](decisions/ADR-20261001-day-split.md)). That stop reads `Rejoining here: <who> (<plans>)`, so
+`who` can name one person or several. Its times are the plan's own: a push-back doesn't move them.
+Which plan a phone shows is remembered on that phone and isn't synced.
 
 | Field     | What it is                                                                                |
 | --------- | ----------------------------------------------------------------------------------------- |

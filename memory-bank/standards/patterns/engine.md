@@ -65,5 +65,11 @@ pack export instead, document it in `trip-format.md`, and have the contract chec
 - The first `render()` runs at the end of `25-theme.js`, before later fragments (`26-sync.js`) have run. Anything it
   calls from a later fragment must be a `function` declaration (hoisted), and must not touch that fragment's `const` or
   `let` (still in its temporal dead zone); keep such state in `01-storage.js`.
-- `26-sync.js` wraps `store.set`: a write to a shared key (`Sync.KEYS`) is queued for the group. Write remote changes
-  back with its `quiet` flag, or they echo.
+- `26-sync.js` wraps `store.set`: a write to a shared key (`Sync.KEYS`, which includes `people` and `roles`) is queued
+  for the group, and every stop that leaves `mine`, including one a remote removal took, is logged into `syncGone`
+  (Recently removed). Write remote changes back with its `quiet` flag, or they echo.
+- The role helpers (`syncMeta`, `syncIsPlanner`, `ownsStop`, `canEditStop`) are `function` declarations in `26-sync.js`
+  that sections 07, 22 and 23 call, so the hoisting rule above applies to them.
+- With group sync, every removal goes through `mineSet` and offers Undo (`undoPutBack`), and every entry point that
+  edits or removes a stop checks `canEditStop` first. Only stops are guarded: shifts, flight changes and ticks aren't
+  ([ADR-20261002-sync-planners](../decisions/ADR-20261002-sync-planners.md)).

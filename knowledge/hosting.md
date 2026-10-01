@@ -39,12 +39,16 @@ id> --update-key <key>` with the key read from outside the repo. Without `--pass
   gate page back every time.
 - **There's no delete.** `--unpublish` replaces the page with a locked placeholder; the host still holds what was
   published. A page that was public can't be made private instantly either (the CDN kept serving it for minutes). Get
-  it right before the first publish.
+  it right before the first publish. A page with group sync holds the database's keys too, so a leaked one ends with
+  `pnpm sync end` ([`sync-setup`](../.agents/skills/sync-setup/SKILL.md)).
 
 ## Rebuilds of a published page
 
 - **Keep `TRIP.fileName` and `TRIP.storageKey`** across rebuilds, or the group's saved state (checklist, language, rate,
-  added stops, flight delay) is lost.
+  added stops, pushed-back times, flight delay) is lost. With group sync, keep the same `--sync` file too, or the group
+  starts its shared plan over.
 - **Keep a backup of the last good build** outside the repo, so a bad publish can be rolled back by republishing it.
   `pnpm publish:trip` saves the live copy before it shares. Builds are also reproducible: rebuilding the same commit
   from the same data gives the same build id.
+- **A new planner code needs a rebuild and a republish.** `pnpm sync planner` writes its hash to the sync file, and the
+  build bakes it into the page. Phones already planners stay planners.

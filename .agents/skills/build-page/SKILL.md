@@ -31,10 +31,12 @@ a page meant for anyone outside the group must say no key.
 - **Keys only when asked.** Without `--keys` the page carries no key. Build the demo, and any page shared publicly,
   without one. Never pass a key file inside the repo.
 - **A published page keeps `TRIP.fileName` and `TRIP.storageKey`** across rebuilds. Changing them breaks the link's file
-  name and loses the group's saved state (checklist, language, rate, added stops, flight delay).
+  name and loses the group's saved state (checklist, language, rate, added stops, pushed-back times, flight delay).
 - **A page with group sync keeps the same `--sync` file** across rebuilds. A new one (`pnpm sync init --force`) is a new
   database: every phone starts over. Leaving `--sync` out turns sync off for the next copy. The build prints
-  `group sync yes|no`; check it.
+  `group sync yes (planner code set|not set)` or `group sync no`; check it. A trip that should have planners must say
+  `planner code set`. The planner code's hash lives in the sync file and is baked in at build, so a new code
+  (`pnpm sync planner`) needs a rebuild and a republish.
 - **The page carries its own Content-Security-Policy** ([ADR-20261001-page-csp](../../../memory-bank/standards/decisions/ADR-20261001-page-csp.md)).
   A new outside host in the engine needs a line in `engine/build.mjs`; a pack's hosts come from its code.
 - **Every build gets a new build id** (`<meta name="relaxjer-build">`, 12 hex characters). The page uses it to offer an

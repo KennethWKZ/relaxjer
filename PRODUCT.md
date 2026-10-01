@@ -57,7 +57,8 @@ offline on a tired phone, and doesn't split every cost per person.
   rejoin.
 - State is per phone (`localStorage`) for checklist ticks, added stops and preferences. With group sync on (the
   planner's choice, per trip), added stops, pushed-back times, flight changes and the ticks of shared lists reach
-  everyone's phone; the rest stays on each one.
+  everyone's phone; the rest stays on each one. Each phone changes only the stops it added; a planner phone, one that
+  gave the trip's planner code, can change any. Every removal can be undone, so a slip costs one tap.
 - Two UI languages (today Simplified Chinese and English), with the destination's own names for drivers and signs.
 
 ## Evidence on Hand

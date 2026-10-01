@@ -22,6 +22,9 @@ While the first trip is live, an engine change also runs parity, which should sh
 pnpm parity --live <legacy repo> --trip trips/<slug>
 ```
 
+The sync specs are tagged `@demo`, so `--grep-invert @demo` skips them on a real trip. If the trip has group sync, build
+it with `--sync` and do the two-phone check by hand in step 4 (journeys 9 and 10).
+
 A failure is a finding, not noise. WebKit desktop flakes about once in 140 runs under full load; re-run that one test
 alone once, and if it fails again, it's real.
 
@@ -65,6 +68,11 @@ At 390 px, one-handed, as a senior would (`knowledge/group-ux.md`):
 6. The airport: the options, and the leave-by time.
 7. Follow a link, then come back: the Back pill, the place kept.
 8. Offline: turn the network off and reload from the home-screen copy.
+9. A person removes a stop by mistake: Undo on the toast puts it back. With group sync, find it under "Recently
+   removed" after the toast is gone, and tap Put back.
+10. With group sync, a phone with no name: the welcome sheet asks once on the first open; Not now leaves the bar under
+    the header, and its Add name opens Group sync. Then a second phone sees who added a stop, can't change it, and a
+    planner phone can.
 
 Count taps and long scrolls. A dead end, a back trap, a tiny target or squeezed text is a bug: fix it, or file it in
 the story index's "Known issues".
@@ -72,7 +80,8 @@ the story index's "Known issues".
 ## 5. iPhone
 
 Scroll, jumps, install, location and the update bar get a WebKit pass, and, when the change touches them, a real iPhone
-too. Playwright's WebKit is close to iOS Safari, not identical.
+too. Playwright's WebKit is close to iOS Safari, not identical. The home-screen copy has its own storage, so with group
+sync it is another phone: it needs its own name, and the planner code if it should be a planner.
 
 ## Done when
 

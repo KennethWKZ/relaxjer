@@ -1,6 +1,6 @@
 ---
 created: 2026-10-01
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # Tech Stack
@@ -19,16 +19,16 @@ RelaxJer still runs nothing.
 
 ## Runtime baseline
 
-| Area         | Choice                                                                                                                                                                                                                                                                              |
-| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Page         | Vanilla JS and CSS, no framework and no bundler. `engine/build.mjs` joins the sections into one IIFE, inlines the core modules, the packs, the trip data, photos and icons                                                                                                          |
-| Map          | MapLibre GL 5.24 from cdnjs (jsDelivr as fallback) on OpenFreeMap styles (liberty, dark): free, no key. Google Maps JavaScript + Places when the build gets the user's browser key (`--keys`)                                                                                       |
-| Fonts        | The phone's system sans for everything operated. The brush face comes from Google Fonts at view time, subset to the page's own glyphs (`text=`); offline, the system Kaiti faces take over                                                                                          |
-| Build, tests | Node 24, pnpm 11 (Corepack, `packageManager`), `node:test`, Playwright 1.63 (Chromium + WebKit)                                                                                                                                                                                     |
-| Pipeline     | Python ≥ 3.12 via uv (`pipeline/pyproject.toml`): `opencc` (Traditional → Simplified names), `pillow` (images). Google Places (New) + Routes with the user's server key; Open-Meteo weather; OpenStreetMap Overpass as fallback                                                     |
-| Group sync   | Optional, per trip: the planner's own Firebase Realtime Database (Spark plan, or Blaze when it shares the Maps project), reached with `fetch` and `EventSource`, records AES-GCM encrypted on the phone; `firebase-tools` 15.32.1 through npx for the planner's setup (`pnpm sync`) |
-| Security     | The page's own Content-Security-Policy (inline scripts by hash) and subresource integrity on MapLibre ([ADR-20261001-page-csp](./decisions/ADR-20261001-page-csp.md))                                                                                                               |
-| Hosting      | Real trips: ht-ml.app behind a password (one file, no service worker). The project: a landing page on GitHub Pages (story step 6b), never a trip page                                                                                                                               |
+| Area         | Choice                                                                                                                                                                                                                                                                                                                                                        |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Page         | Vanilla JS and CSS, no framework and no bundler. `engine/build.mjs` joins the sections into one IIFE, inlines the core modules, the packs, the trip data, photos and icons                                                                                                                                                                                    |
+| Map          | MapLibre GL 5.24 from cdnjs (jsDelivr as fallback) on OpenFreeMap styles (liberty, dark): free, no key. Google Maps JavaScript + Places when the build gets the user's browser key (`--keys`)                                                                                                                                                                 |
+| Fonts        | The phone's system sans for everything operated. The brush face comes from Google Fonts at view time, subset to the page's own glyphs (`text=`); offline, the system Kaiti faces take over                                                                                                                                                                    |
+| Build, tests | Node 24, pnpm 11 (Corepack, `packageManager`), `node:test`, Playwright 1.63 (Chromium + WebKit)                                                                                                                                                                                                                                                               |
+| Pipeline     | Python ≥ 3.12 via uv (`pipeline/pyproject.toml`): `opencc` (Traditional → Simplified names), `pillow` (images). Google Places (New) + Routes with the user's server key; Open-Meteo weather; OpenStreetMap Overpass as fallback                                                                                                                               |
+| Group sync   | Optional, per trip: the planner's own Firebase Realtime Database (Spark plan, or Blaze when it shares the Maps project), reached with `fetch` and `EventSource`, records AES-GCM encrypted on the phone, a planner code checked on the phone (PBKDF2-SHA-256, 210,000 rounds); `firebase-tools` 15.32.1 through npx for the planner's setup (`pnpm sync rules | init | planner | end | status`) |
+| Security     | The page's own Content-Security-Policy (inline scripts by hash) and subresource integrity on MapLibre ([ADR-20261001-page-csp](./decisions/ADR-20261001-page-csp.md))                                                                                                                                                                                         |
+| Hosting      | Real trips: ht-ml.app behind a password (one file, no service worker). The project: a landing page on GitHub Pages (story step 6b), never a trip page                                                                                                                                                                                                         |
 
 ## Tooling ([ADR-20261001-project-tooling](./decisions/ADR-20261001-project-tooling.md))
 
@@ -36,8 +36,8 @@ RelaxJer still runs nothing.
   commit-msg runs commitlint. pre-push runs the history scan, gitleaks, `pnpm verify` and `pnpm test:release`.
 - **Format and lint:** Prettier (tabs, width 150, single quotes, `proseWrap: preserve`), ESLint flat config.
 - **Commits and releases:** Conventional Commits (commitlint), `pnpm release` (commit-and-tag-version).
-- **Supply chain:** `minimumReleaseAge: 4320` (3 days), `allowBuilds: {}`, a checksum-verified gitleaks in CI. Pinning
-  CI actions to SHAs is still open (story index).
+- **Supply chain:** `minimumReleaseAge: 4320` (3 days), `allowBuilds: {}`, a checksum-verified gitleaks in CI. `ci.yml`
+  follows each action's latest major tag, and `pages.yml` pins commit SHAs (story index).
 - **Docs:** `pnpm gen:adr-index` writes the decision index from the ADR files.
 
 ## Agent tooling ([ADR-20261001-memory-bank-agent-config](./decisions/ADR-20261001-memory-bank-agent-config.md))
