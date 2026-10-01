@@ -99,6 +99,8 @@ export function checkTrip(trip) {
 	if (DAYS.at(-1)?.date !== TRIP.end) bad(`last day ${DAYS.at(-1)?.date} is not TRIP.end ${TRIP.end}`);
 	DAYS.forEach((d, i) => {
 		if (d.n !== i + 1) bad(`${d.id}: n is ${d.n}, expected ${i + 1}`);
+		// the day's lantern colour: the page has seven (--l1…--l7), and the My Maps export one per colour
+		if (!(Number.isInteger(d.c) && d.c >= 1 && d.c <= 7)) bad(`${d.id}: c (its lantern colour) must be 1–7, got ${JSON.stringify(d.c)}`);
 		if (i && Date.parse(d.date) - Date.parse(DAYS[i - 1].date) !== 864e5) bad(`${d.id}: ${d.date} does not follow ${DAYS[i - 1].date}`);
 		// planned (non-flight-tied) times never run backwards
 		let last = -1;
