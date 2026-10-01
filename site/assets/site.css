@@ -44,6 +44,7 @@
 	--line: #dfe2e8;
 	--seal: #c42a1f;
 	--seal-ink: #ffffff;
+	--good: #1a7443; /* the trip page's good, for its Planner badge */
 	--focus: #1f5fd1;
 	--link: #1d5bc4;
 	--good: #1a7443;
@@ -113,6 +114,7 @@
 		--line: #2a313d;
 		--seal: #ff6a5c;
 		--seal-ink: #1a0503;
+		--good: #5fd49a;
 		--focus: #7fb0ff;
 		--link: #8ab8ff;
 		--good: #5fd49a;
@@ -1816,8 +1818,8 @@ svg.i {
 	margin-left: 8px;
 	padding: 1px 7px;
 	border-radius: 6px;
-	background: var(--ink);
-	color: var(--paper);
+	background: color-mix(in srgb, var(--good) 16%, transparent);
+	color: var(--good);
 	font-size: 12px;
 	font-weight: 750;
 	vertical-align: 2px;
