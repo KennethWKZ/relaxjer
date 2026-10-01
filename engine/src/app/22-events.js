@@ -691,7 +691,7 @@ document.addEventListener('input', (e) => {
 	}
 	if (e.target.id === 'rate') {
 		const v = parseFloat(e.target.value);
-		if (v > 1 && v < 30) {
+		if (v > 0 && v < 1e5) {
 			rate = v;
 			store.set('rate', v);
 			$$('[data-rm]').forEach((el) => {

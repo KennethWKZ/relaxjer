@@ -989,7 +989,7 @@ function secDay(d, today) {
         ${splitBack(d, it)}
         ${it.shops ? shopBoxHTML() : ''}
         ${it._clash ? `<p class="warn">${icon('alert')}${esc(Z(`推迟后会撞到 ${L(it._clash.t)}「${stopName(it._clash)}」：这一项缩短或跳过`, `Now runs into the fixed ${L(it._clash.t)} ${stopName(it._clash)}: shorten or skip this`))}</p>` : ''}
-        ${it.place || it.link ? `<div class="stop-links">${it.place ? placeLinks(it.place, { noDriver: true, noSite: false }) : ''}${it.link ? `<a class="mlink" href="${it.link}">${icon('arrow')}${Z('看详情', 'Details')}</a>` : ''}</div>` : ''}
+        ${it.place || it.link ? `<div class="stop-links">${it.place ? placeLinks(it.place, { noDriver: true, noSite: false }) : ''}${it.link ? `<a class="mlink" href="${SITES[it.link] ? SITES[it.link].url : it.link}">${icon('arrow')}${Z('看详情', 'Details')}</a>` : ''}</div>` : ''}
         ${mealEats(d, it)}
         ${nearOpts(d, it)}
         ${nearWish(d, it)}

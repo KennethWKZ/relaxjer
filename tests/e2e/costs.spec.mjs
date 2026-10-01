@@ -79,3 +79,15 @@ test('home-currency figures follow the rate and the rate is remembered', async (
 	await expect(page.locator('#rate')).toHaveValue('7');
 	for (const n of await expected(7)) await expect(page.locator('#app [data-rm]').first()).toContainText(n);
 });
+
+test('the rate takes a home currency worth far more, or far less, than the destination’s', async ({ page }) => {
+	await openTrip(page);
+	const rm = page.locator('#app [data-rm]').first();
+	await rm.scrollIntoViewIfNeeded();
+	const r = (v) => Math.round(v < 100 ? Math.round(v) : Math.round(v / 10) * 10).toLocaleString('en-US');
+	for (const rate of [32, 0.25]) {
+		await page.locator('#rate').fill(String(rate));
+		const [a, b] = (await rm.getAttribute('data-rm')).split(',').map(Number);
+		for (const n of [r(a / rate), r(b / rate)]) await expect(rm).toContainText(n);
+	}
+});

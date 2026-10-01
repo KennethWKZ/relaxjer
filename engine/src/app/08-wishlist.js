@@ -176,7 +176,7 @@ function secBudget() {
 	return `<section class="sec" id="budget" data-sec="budget">
       <h2 class="sec-title">${icon('money')}${Z(`${GROUP[0]}预算`, `Budget ${GROUP[1]}`)}</h2>
       <p class="sec-lede">${Z('不包括', 'Not included')}: ${B.excludes.map(L).map(esc).join(Z('、', ', '))}</p>
-      <div class="fx"><label for="rate">${Z('汇率', 'Rate')}: 1 ${esc(CUR.home)} =</label><input id="rate" type="number" inputmode="decimal" step="0.01" min="1" max="20" value="${rate}"><span>${esc(CUR.sym)}</span><span class="xsmall">${esc(L(CUR.rateNote))}</span></div>
+      <div class="fx"><label for="rate">${Z('汇率', 'Rate')}: 1 ${esc(CUR.home)} =</label><input id="rate" type="number" inputmode="decimal" step="any" min="0" value="${rate}"><span>${esc(CUR.sym)}</span><span class="xsmall">${esc(L(CUR.rateNote))}</span></div>
       <div style="margin-top:14px">${totalBox(L(B.total).replace(/^约 |^About /, ''), [Z(`主行程 · ${GROUP[0]}`, `main costs · ${GROUP[1]}`), Z(`主行程 · ${GROUP[0]}`, `main costs · ${GROUP[1]}`)], B.totalMin, B.totalMax, eachLine(B.totalMin, B.totalMax))}</div>
       <p class="note">${fmt(B.suggest)}</p>
       <p class="callout">${icon('users')}<span>${fmt(B.split)}</span></p>

@@ -150,3 +150,10 @@ test('on a trip day the Sections sheet leads with Now and Next, marked as on the
 	expect(now.backgroundColor, 'Now is filled with the knot colour').toBe(now.borderTopColor);
 	expect(next.backgroundColor, 'Next is a ring').not.toBe(next.borderTopColor);
 });
+
+test("a stop's link that names a site opens that site's address @demo", async ({ page }) => {
+	await openTrip(page);
+	// the demo's concert stop links the SITES key "concert"; the page must resolve it, not use the key as the address
+	await expect(page.locator('.stop-links a.mlink[href="https://npac-ntch.org/"]')).toHaveCount(1);
+	await expect(page.locator('.stop-links a.mlink[href="concert"]')).toHaveCount(0);
+});
