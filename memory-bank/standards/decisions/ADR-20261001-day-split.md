@@ -35,8 +35,8 @@ the stop where they rejoin. Decided by Kenneth on 2026-10-01, after a design bri
   - A fold-out with the rule, a segmented switch, and each plan's rows.
   - Live bike counts at its docks, fetched only when it opens, through the pack's bike share.
   - A directions link, and "Route on the map", which draws the line dashed in the day's colour on either map engine.
-  - On phones the fold-out uses the full width, like the meal options. The rejoin stop shows "One of us rejoins here
-    (Regular)".
+  - On phones the fold-out uses the full width, like the meal options. The rejoin stop shows "Rejoining here: One of
+    us (Regular)", worded so it reads for one rider or several.
 - **Times are the plan's own**: a push-back doesn't move them.
 - **The switch is per phone** (`store` key `splitPick`). It's a view, not plan data, so it isn't synced.
 - **Route lines come from a free router** (OpenStreetMap bike routing), stored in the trip's data, so the page draws

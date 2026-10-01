@@ -507,7 +507,7 @@ function splitBack(d, it) {
 	const here = d.split.options.filter((o) => tMin(o.join) === s).map((o) => L(o.name));
 	if (s == null || !here.length) return '';
 	const who = L(d.split.who);
-	return `<p class="split-back">${icon(d.split.icon || 'bike')}${esc(Z(`${who}在这里会合（${here.join('、')}）`, `${who} rejoins here (${here.join(', ')})`))}</p>`;
+	return `<p class="split-back">${icon(d.split.icon || 'bike')}${esc(Z(`${who}在这里会合（${here.join('、')}）`, `Rejoining here: ${who} (${here.join(', ')})`))}</p>`;
 }
 // "add to my plan": pick a day and a time
 let addItem = null;

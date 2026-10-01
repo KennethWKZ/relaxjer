@@ -13,8 +13,8 @@ test.describe('a day that splits', { tag: '@demo' }, () => {
 		expect(order.indexOf('d5-split'), 'after the gondola, before the rest at 14:30').toBe(order.indexOf('d5-s2') + 1);
 		await expect(card(page)).not.toHaveAttribute('open', '');
 		await expect(card(page).locator('[data-split-sum]')).toHaveText('Long · ≈16 km · back ≈16:20');
-		await expect(page.locator('#d5-s4 .split-back')).toHaveText('One of us rejoins here (Short)');
-		await expect(page.locator('#d5-s5 .split-back')).toHaveText('One of us rejoins here (Long)');
+		await expect(page.locator('#d5-s4 .split-back')).toHaveText('Rejoining here: One of us (Short)');
+		await expect(page.locator('#d5-s5 .split-back')).toHaveText('Rejoining here: One of us (Long)');
 		await expect(page.locator('#d3 .split-back'), 'only the day that splits').toHaveCount(0);
 	});
 
