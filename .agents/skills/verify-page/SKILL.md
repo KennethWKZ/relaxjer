@@ -72,7 +72,8 @@ At 390 px, one-handed, as a senior would (`knowledge/group-ux.md`):
    removed" after the toast is gone, and tap Put back.
 10. With group sync, a phone with no name: the welcome sheet asks once on the first open; Not now leaves the bar under
     the header, and its Add name opens Group sync. Then a second phone sees who added a stop, can't change it, and a
-    planner phone can.
+    planner phone can. A planner blocks that second phone: its stops go, its bar says it's blocked, Undo brings it all
+    back, and Unblock sends what waited.
 
 Count taps and long scrolls. A dead end, a back trap, a tiny target or squeezed text is a bug: fix it, or file it in
 the story index's "Known issues".

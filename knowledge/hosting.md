@@ -40,7 +40,9 @@ id> --update-key <key>` with the key read from outside the repo. Without `--pass
 - **There's no delete.** `--unpublish` replaces the page with a locked placeholder; the host still holds what was
   published. A page that was public can't be made private instantly either (the CDN kept serving it for minutes). Get
   it right before the first publish. A page with group sync holds the database's keys too, so a leaked one ends with
-  `pnpm sync end` ([`sync-setup`](../.agents/skills/sync-setup/SKILL.md)).
+  `pnpm sync end` ([`sync-setup`](../.agents/skills/sync-setup/SKILL.md)). Blocking a phone in Group sync is not
+  the same: the phone keeps the keys in its copy, so cutting someone off for real takes a new page password and new
+  sync keys.
 
 ## Rebuilds of a published page
 

@@ -61,8 +61,8 @@ requirements.md ──trip-intake──▶ trips/<slug>/            data.js, *.j
   there's a connection; what the group sends is checked and merged, the newest version per record winning. A page built
   without `--sync` behaves as before ([ADR-20261001-group-sync](./decisions/ADR-20261001-group-sync.md)).
 - **Roles are the page's, not the database's.** With group sync, a phone changes only the stops it added and a planner
-  phone (one that gave the planner code, whose hash the build bakes in) changes any. The `who:` and `role:` records
-  say so, but the database sees only ciphertext, so this guards against mistakes, not against someone who has the
+  phone (one that gave the planner code, whose hash the build bakes in) changes any. A planner can also block a phone:
+  every phone then drops what that phone writes (`Sync.dropBlocked`). The `who:`, `role:` and `block:` records say so, but the database sees only ciphertext, so this guards against mistakes, not against someone who has the
   page ([ADR-20261002-sync-planners](./decisions/ADR-20261002-sync-planners.md)).
 - **The page polices itself.** Its inline scripts run by hash and it may reach only the hosts it uses, so the host
   needs to set no headers ([ADR-20261001-page-csp](./decisions/ADR-20261001-page-csp.md)).

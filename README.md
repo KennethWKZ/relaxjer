@@ -57,7 +57,7 @@ use it, exclude your trips before the first build (`graphmind exclude add trips`
    reach every phone through your own Firebase Realtime Database, which RelaxJer doesn't run. The `sync-setup` skill
    does it in about 5 minutes, before the build, and a family trip stays within Firebase's free amounts. Each phone
    changes only the stops it added, and a planner (a phone that gives the code you set with `pnpm sync planner`) can
-   change any. Every removal can be undone. Without sync, each phone keeps its own.
+   change any, or block a stray phone. Every removal can be undone. Without sync, each phone keeps its own.
 4. **Refresh, build, check:** `pnpm resync --trip trips/<slug> --write` (the first run says what it costs Google
    and asks you first, [why](guides/google-maps.md#what-it-costs)), then
    `pnpm build --trip trips/<slug> --keys ~/.config/relaxjer/google.json` (add `--sync <the sync file>` if you set up

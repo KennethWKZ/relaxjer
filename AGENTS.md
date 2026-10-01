@@ -7,8 +7,8 @@ in `memory-bank/` and states the rules that bind.
 **Status:** story steps 0–3b, 5, 6c and 6d are done (engine moved, split and generalised; the `tw` pack; the pipeline;
 the affordance fixes; group sync). Step 6, the agent tooling, is in flight, and the landing page (6b) is built but not
 yet deployed. Group sync, on the planner's own Firebase database, and the page's security policy are live on the first
-trip; a day can split for part of the group, and a stop can suggest optional plans. Planners, own-stop edits and Undo
-for group sync are built and tested; publishing them is the planner's call. Next: i18n (step 4), a second destination
+trip; a day can split for part of the group, and a stop can suggest optional plans. Planners, own-stop edits, Undo and
+blocking a phone are built and tested for group sync; publishing them is the planner's call. Next: i18n (step 4), a second destination
 (7). See [`memory-bank/story-index.md`](memory-bank/story-index.md).
 
 ## Read first

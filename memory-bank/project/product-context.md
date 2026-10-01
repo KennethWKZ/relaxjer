@@ -44,7 +44,10 @@ code that makes the first one.
 6. **Hand the plan to the group** (a trip with group sync, `sync-setup`): the planner sets a planner code
    (`pnpm sync planner`), rebuilds with the sync file and republishes. On their own phone they give the code under
    "I'm a planner" in Group sync, and make another phone a planner from "The group" list when they want a second one.
-   A leaked code means setting a new one and republishing; phones already planners stay planners.
+   A leaked code means setting a new one and republishing; phones already planners stay planners. A tester's or a
+   stray phone gets "Block this phone" in the same list: its added stops and last changes go back to the plan, and
+   what it writes next reaches nobody. Someone who shouldn't see the trip any more needs a new page password and new
+   sync keys too, since a block is only the page's.
 7. **A senior removes a stop by mistake:** Undo on the toast puts it back for 8 seconds. After that, with group sync,
    the phone that added the stop finds it under "Recently removed" and taps Put back; a planner can put back any.
    Every page has the Undo; the list is group sync only.
@@ -62,8 +65,8 @@ What every trip page keeps. It came from the first trip, and the tests character
   - your own added stops: a per-day button, a "+" under each timeline dot, clash and deadline checks, a caution when a
     day already has 4 added stops, and Undo on the toast after a removal (every page). With group sync, a link isn't
     needed: they reach every phone marked with who added them. Each phone changes or removes only the stops it
-    added, and "Remove the N stops I added" clears them; a planner can change any, clear one phone's, and put the
-    whole plan back. A phone's "Recently removed" list (30 kept, the newest 10 shown) offers Put back. Only stops are
+    added, and "Remove the N stops I added" clears them; a planner can change any, clear one phone's, block one, and
+    put the whole plan back. A phone's "Recently removed" list (30 kept, the newest 10 shown) offers Put back. Only stops are
     guarded: pushed-back times, flight changes and ticks stay open to every phone;
   - a day that splits: part of the group takes its own plan for a few hours, forked from the day's string with its
     go / wait / skip rule, and the stop where they come back says so.

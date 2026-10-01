@@ -45,7 +45,7 @@ Tier 0 (`pnpm test`) runs on every commit, so keep it under a few seconds: no ne
   test server's stand-in database (`tests/support/fake-rtdb.mjs`, the same rules as the real one) with keys made fresh
   per run. Each test gets its own space in it (the `rtdb_ns` cookie, `tests/support/sync.mjs`), because tests run in
   parallel and every sync page holds the same trip id. Setup also gives it a planner code (`TEST_PLANNER_CODE`), so
-  the specs can claim planner on a phone; `add-stop.spec.mjs` covers Undo and the 4-stop caution on a page with no
+  the specs can claim planner on a phone and block the other; `add-stop.spec.mjs` covers Undo and the 4-stop caution on a page with no
   sync.
 - **The real database rules run on Firebase's emulator,** not in CI: `pnpm test:sync-rules` (needs Java; firebase-tools
   comes through npx). Run it after any change to `scripts/sync/database.rules.json`, and change the stand-in to match.
