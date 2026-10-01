@@ -210,10 +210,11 @@ function mineSet(list) {
 	MINE = Object.fromEntries(list.map((x) => [x.id, x]));
 }
 MINE = Object.fromEntries(mineAll().map((x) => [x.id, x]));
-/** with group sync, who put a stop in the plan: the name this phone gives in the Group sync sheet, shown on the row */
+/** with group sync, who put a stop in the plan: the name this phone gives in the Group sync sheet (shown on the row),
+    and the phone itself (who may change it, ADR-20261002-sync-planners) */
 function addedBy() {
-	const by = SYNC && syncApi ? syncApi.name() : '';
-	return by ? { by } : {};
+	const m = SYNC ? syncMeta() : null;
+	return m ? { ...(m.name ? { by: m.name } : {}), ...(m.dev ? { dev: m.dev } : {}) } : {};
 }
 const placeTitle = (pk) => (PLACES[pk] ? L(PLACES[pk].name) : MINE[pk] ? MINE[pk].name : pk);
 const gpidOfPk = (pk) => ((GEO.places || {})[pk] || {}).gpid || (MINE[pk] || {}).gpid || null;

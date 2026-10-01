@@ -48,4 +48,32 @@ test.describe('your own stops', { tag: '@demo' }, () => {
 		await page.reload();
 		await expect(page.locator('#d3 .stop.mine'), 'kept on this phone').toContainText('Demo Shared Stop');
 	});
+
+	test('a day with many added stops gets a word before one more', async ({ page }) => {
+		const pack = [1, 2, 3, 4].map((i) => ['d2', `1${i}:00`, `Demo Busy ${i}`, 25.04 + i / 1000, 121.53, '', '']);
+		await openTrip(page, `#add=${Buffer.from(JSON.stringify(pack)).toString('base64url')}`);
+		await page.locator('#placeSheet [data-mine-import]').click();
+		await settle(page);
+		await page.locator('[data-add-gap="d2|4"]').click();
+		const sheet = page.locator('#placeSheet');
+		await sheet.locator('[data-add-res] [data-add]').first().click();
+		await expect(sheet.locator('[data-add-clash] .crowd-note')).toContainText('already has 4 added stops');
+		await sheet.locator('[data-add-day="d3"]').click();
+		await expect(sheet.locator('[data-add-clash] .crowd-note'), 'another day is fine').toHaveCount(0);
+	});
+
+	test('removing an added stop can be undone from the toast', async ({ page }) => {
+		const pack = [['d3', '16:00', 'Demo Undo Stop', 25.1366, 121.5069, '', '']];
+		await openTrip(page, `#add=${Buffer.from(JSON.stringify(pack)).toString('base64url')}`);
+		await page.locator('#placeSheet [data-mine-import]').click();
+		await settle(page);
+		await page.locator('#d3 .stop.mine [data-mine-del]').click();
+		await expect(page.locator('#d3 .stop.mine')).toHaveCount(0);
+		const undo = page.locator('#toast [data-toast-act]');
+		await expect(undo).toHaveText('Undo');
+		await undo.click();
+		await expect(page.locator('#d3 .stop.mine')).toContainText('Demo Undo Stop');
+		await page.reload();
+		await expect(page.locator('#d3 .stop.mine'), 'back for good').toContainText('Demo Undo Stop');
+	});
 });

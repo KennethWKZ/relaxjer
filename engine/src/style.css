@@ -1944,6 +1944,32 @@ footer.foot {
 	transform: translate(-50%, 12px);
 	pointer-events: none;
 }
+/* the toast's one action (Undo): a light chip on the dark toast, full height to tap. It sits above the floating
+   Sections button (52px), so the Undo is never under it */
+.toast:has(.toast-act) {
+	bottom: calc(16px + 52px + 12px + env(safe-area-inset-bottom, 0px));
+	display: flex;
+	gap: 12px;
+	align-items: center;
+	width: max-content;
+	max-width: calc(100% - 32px);
+	padding: 4px 6px 4px 18px;
+}
+.toast-act {
+	flex: none;
+	min-height: 44px;
+	padding: 0 16px;
+	border: 0;
+	border-radius: 9px;
+	background: color-mix(in srgb, var(--paper) 18%, transparent);
+	color: var(--paper);
+	font: inherit;
+	font-weight: 800;
+}
+.toast-act:focus-visible {
+	outline: 3px solid var(--paper);
+	outline-offset: 2px;
+}
 
 /* dialogs */
 dialog.sheet {
@@ -5408,6 +5434,121 @@ h2.landed {
 	font: inherit;
 	font-size: 17px;
 	font-weight: 600;
+}
+/* "I'm a planner": a fold-out under the name, for the phone that has the trip's planner code */
+.sync-code {
+	margin: 0 0 12px;
+	padding: 0 12px;
+	border-radius: var(--r-md);
+	background: color-mix(in srgb, var(--link) 10%, var(--paper));
+}
+.sync-code > summary {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	min-height: 44px;
+	font-size: var(--fs-sm);
+	font-weight: 750;
+	color: var(--link);
+	cursor: pointer;
+	list-style: none;
+}
+.sync-code > summary::-webkit-details-marker {
+	display: none;
+}
+.sync-code > summary .chev {
+	margin-left: auto;
+	transition: transform 200ms var(--ease-out);
+}
+.sync-code[open] > summary .chev {
+	transform: rotate(180deg);
+}
+.sync-code[open] {
+	padding-bottom: 10px;
+}
+.sync-code .sync-name {
+	margin: 4px 0 8px;
+}
+.sync-badge {
+	display: inline-block;
+	margin-left: 6px;
+	padding: 1px 7px;
+	border-radius: 6px;
+	background: color-mix(in srgb, var(--good) 16%, transparent);
+	color: var(--good);
+	font-size: var(--fs-xs);
+	font-weight: 750;
+	vertical-align: 1px;
+}
+.sync-acts {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	justify-content: flex-end;
+}
+.sync-role {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	margin: 0 0 10px;
+	color: var(--good);
+	font-size: var(--fs-sm);
+	font-weight: 750;
+}
+/* the sheet's lists: who added what, and what was removed lately, each row with its one action on the right */
+.sync-part {
+	margin-top: 18px;
+	padding-top: 4px;
+	border-top: 1px solid var(--rule);
+}
+.sync-list {
+	list-style: none;
+	margin: 6px 0 0;
+	padding: 0;
+}
+.sync-row {
+	display: flex;
+	gap: 10px;
+	align-items: center;
+	justify-content: space-between;
+	padding: 6px 0;
+	font-size: var(--fs-sm);
+}
+.sync-row + .sync-row {
+	border-top: 1px solid color-mix(in srgb, var(--rule) 60%, transparent);
+}
+.sync-row > span {
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+.sync-row-sub {
+	display: block;
+}
+.sync-row .mlink {
+	flex: none;
+}
+@media (max-width: 420px) {
+	.sync-row:has(.sync-acts) {
+		flex-wrap: wrap;
+	}
+	.sync-row .sync-acts {
+		width: 100%;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.sync-code > summary .chev {
+		transition: none;
+	}
+}
+/* "already N added stops" under the time in the add sheet: a caution, not an error */
+.crowd-note {
+	display: block;
+	margin-top: 6px;
+	color: var(--ink);
+	font-weight: 650;
+}
+.crowd-note svg.i {
+	color: var(--warn);
 }
 @media (min-width: 600px) {
 	.toc-theme {

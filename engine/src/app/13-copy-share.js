@@ -1,14 +1,29 @@
 /* ───────── copy / share ───────── */
 const toastEl = () => $('#toast');
 let toastT;
-function toast(msg) {
+let toastAct = null;
+/** a short message at the bottom; act = { label, run } adds a button (an Undo) and keeps it up long enough to reach */
+function toast(msg, act) {
 	const t = toastEl();
+	toastAct = act || null;
 	t.textContent = msg;
+	if (act) t.insertAdjacentHTML('beforeend', `<button type="button" class="toast-act" data-toast-act>${esc(act.label)}</button>`);
 	t.dataset.state = 'open';
 	clearTimeout(toastT);
-	toastT = setTimeout(() => {
-		t.dataset.state = 'closed';
-	}, 1800);
+	toastT = setTimeout(
+		() => {
+			t.dataset.state = 'closed';
+			toastAct = null;
+		},
+		act ? 8000 : 1800,
+	);
+}
+function toastRun() {
+	const a = toastAct;
+	toastAct = null;
+	clearTimeout(toastT);
+	toastEl().dataset.state = 'closed';
+	if (a) a.run();
 }
 function copy(text, okMsg) {
 	const fallback = () => {

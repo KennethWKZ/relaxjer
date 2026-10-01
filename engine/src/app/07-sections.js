@@ -278,7 +278,7 @@ function leaveBudgetHTML() {
 							`By the flight: at the airport by ${hm(T.airport)}, leave the hotel by ${hm(T.leave)}; the planned ${hm(T.plan.leave)} leaves ~${T.leave - T.plan.leave} min of buffer (traffic, rain).`,
 						);
 	return `<div class="block leave-budget" id="leave-budget">${blockH('clock', ['今天的时间（从航班回推）', "Today's time, worked back from the flight"])}
-      ${fltEditHTML('dep')}${store.get('fltDep', '') ? resetBtn() : ''}
+      ${fltEditHTML('dep')}${!SYNC && store.get('fltDep', '') ? resetBtn() : ''}
       ${LEAVE_PLAN.route ? `<p class="xsmall muted">${esc(L(LEAVE_PLAN.route))}</p>` : ''}
       <ol class="leave-line">
         ${(LEAVE_PLAN.steps || []).map((x) => leaveStep(T, x)).join('\n        ')}
@@ -435,7 +435,7 @@ function mineStopHTML(d, x, prevLL) {
 					: ''
 			}
       ${prevLL ? `<p class="stop-note">${icon(wk > 20 ? 'car' : 'walk')} ${esc(wk > 20 ? Z(`从上一站 ${distLabel(k)}：计程车约${Math.round(((k * 1.3) / 22) * 60 + 4)}分钟，或搭${METRO[0]}`, `${distLabel(k)} from the stop before: taxi ~${Math.round(((k * 1.3) / 22) * 60 + 4)} min, or the ${METRO[1]}`) : Z(`从上一站 ${distLabel(k)} · 走路约${wk}分钟`, `${distLabel(k)} from the stop before · ~${wk} min walk`))}</p>` : ''}
-      <div class="stop-links">${extI(gmSearch(x.q, x.gpid), Z('地图', 'Map'), 'pin')}${extI(gmDir(x.q, 'transit', undefined, x.gpid), Z('路线', 'Directions'), 'route')}<button type="button" class="mlink" data-mine-edit="${esc(x.id)}">${icon('clock')}<span class="dlbl">${Z('改时间', 'Change')}</span></button><button type="button" class="mlink" data-mine-del="${esc(x.id)}" aria-label="${Z('删除', 'Remove')}">${icon('x')}<span class="dlbl">${Z('删除', 'Remove')}</span></button></div>
+      <div class="stop-links">${extI(gmSearch(x.q, x.gpid), Z('地图', 'Map'), 'pin')}${extI(gmDir(x.q, 'transit', undefined, x.gpid), Z('路线', 'Directions'), 'route')}${canEditStop(x) ? `<button type="button" class="mlink" data-mine-edit="${esc(x.id)}">${icon('clock')}<span class="dlbl">${Z('改时间', 'Change')}</span></button><button type="button" class="mlink" data-mine-del="${esc(x.id)}" aria-label="${Z('删除', 'Remove')}">${icon('x')}<span class="dlbl">${Z('删除', 'Remove')}</span></button>` : ''}</div>
       ${nearDrinks(d, { place: x.id })}
     </div></li>`;
 }
@@ -535,8 +535,15 @@ function addSheet(item) {
 				.join('')}</div>
       <p class="sub-h">${Z('几点', 'What time')}</p><input type="time" data-add-t class="add-t" value="${esc(t)}" step="900">
       <p class="add-clash" data-add-clash></p>
-      <p class="xsmall muted">${esc(L(TRIP.addStopNote || ['只存在这支手机；用「分享」把链接发给大家。', 'Saved on this phone; use Share to send it to the others.']))}</p>
+      ${SYNC ? syncAddNote() : `<p class="xsmall muted">${esc(L(TRIP.addStopNote || ['只存在这支手机；用「分享」把链接发给大家。', 'Saved on this phone; use Share to send it to the others.']))}</p>`}
       <div class="links-row"><button type="button" class="go-btn" data-add-save>${icon('check')}${item.id ? Z('保存', 'Save') : Z('加入', 'Add')}</button>${item.id ? `<button type="button" class="go-btn ghost" data-mine-del="${esc(item.id)}">${icon('x')}${Z('删除', 'Remove')}</button>` : ''}</div>`;
+}
+// with group sync the stop goes on everyone's page, under this phone's name; no name yet: ask for it right here
+function syncAddNote() {
+	const name = (syncMeta() || {}).name || '';
+	return name
+		? `<p class="xsmall muted">${esc(Z(`大家的页面都会看到，标着「${name}加的」。`, `Goes on everyone’s page, marked “Added by ${name}”.`))}</p>`
+		: `<p class="xsmall muted">${Z('大家的页面都会看到。', 'Goes on everyone’s page.')}</p><label class="sync-name">${Z('你的名字（大家会看到是谁加的）', 'Your name (so the group sees who added it)')}<input type="text" data-sync-name maxlength="24" autocomplete="nickname" enterkeyhint="done"></label>`;
 }
 // "+" under a dot: add a stop right after this one
 const gapBtn = (d, key) =>
@@ -690,9 +697,21 @@ async function addFindGoogle(q) {
 		box.innerHTML = `<p class="xsmall muted">${Z('现在连不上 Google（网络？）。可以先到「地图」加载地图再试。', "Can't reach Google right now (network?). Open the Map section once, then try again.")}</p>`;
 	}
 }
+// a day with this many added stops already gets a word before one more goes in (and onto everyone's page)
+const CROWDED = 4;
 function addClashNote() {
 	const el = $('[data-add-clash]');
 	if (!el) return;
+	addClashMain(el);
+	const day = ($('[data-add-day][aria-pressed="true"]') || {}).dataset?.addDay;
+	const n = day ? mineAll().filter((x) => x.day === day && (!addItem || x.id !== addItem.id)).length : 0;
+	if (n >= CROWDED)
+		el.insertAdjacentHTML(
+			'beforeend',
+			`<span class="crowd-note">${icon('alert')} ${esc(Z(`Day ${dayById[day].n} 已经加了 ${n} 个行程：确定还要再加？`, `Day ${dayById[day].n} already has ${n} added stops: sure about one more?`))}</span>`,
+		);
+}
+function addClashMain(el) {
 	const day = ($('[data-add-day][aria-pressed="true"]') || {}).dataset?.addDay;
 	const tv = ($('[data-add-t]') || {}).value;
 	const cl = day && mineClash(day, tv);
@@ -709,7 +728,35 @@ function addClashNote() {
 		? `${icon('alert')} ${esc(Z(`接近固定行程：${L(cl.t)} ${L(cl.what).replace(/\*\*/g, '')}`, `Close to a fixed time: ${L(cl.t)} ${L(cl.what).replace(/\*\*/g, '')}`))}`
 		: '';
 }
+// stops that left the plan by mistake: put back (newer than the removal, so they come back on every phone)
+function putBack(stops, extra) {
+	const ids = new Set(stops.map((x) => x.id));
+	mineSet([...mineAll().filter((y) => !ids.has(y.id)), ...stops]);
+	if (extra) {
+		if (extra.fltArr && !store.get('fltArr', '')) store.set('fltArr', extra.fltArr);
+		if (extra.fltDep && !store.get('fltDep', '')) store.set('fltDep', extra.fltDep);
+		if (extra.shift && Object.keys(extra.shift).length) store.set('shift', { ...extra.shift, ...(store.get('shift', {}) || {}) });
+		if (extra.lateNo != null && store.get('lateNo', null) == null) store.set('lateNo', extra.lateNo);
+	}
+	const n = stops.length;
+	whenSettled(() =>
+		mineRerender(n === 1 ? Z(`已放回「${stops[0].name}」`, `Put back ${stops[0].name}`) : Z(`已放回 ${n} 个行程`, `Put back ${n} stops`)),
+	);
+	if (SYNC) syncSheetRefresh();
+}
+// an "Undo" on the toast after a removal: only what that removal took, so anything the group added since stays
+const undoPutBack = (stops, extra) => ({ label: Z('撤销', 'Undo'), run: () => putBack(stops, extra) });
+function removeStops(list, ask) {
+	if (!list.length || !confirm(ask(list.length))) return;
+	const ids = new Set(list.map((x) => x.id));
+	mineSet(mineAll().filter((x) => !ids.has(x.id)));
+	const n = list.length;
+	whenSettled(() => mineRerender(Z(`已删除 ${n} 个行程`, `Removed ${n} stop${n > 1 ? 's' : ''}`), undoPutBack(list)));
+	if (SYNC) syncSheetRefresh();
+}
+const noEditMsg = () => Z('只有加的人或规划人能改这个行程', 'Only the person who added it, or a planner, can change this stop');
 function resetAll() {
+	if (SYNC && !syncIsPlanner()) return toast(Z('只有规划人能恢复全组的原计划', 'Only a planner can put the whole group’s plan back'));
 	const n = mineAll().length;
 	const f = !!(store.get('fltArr', '') || store.get('fltDep', ''));
 	const sh = Object.keys(store.get('shift', {}) || {}).length;
@@ -718,7 +765,11 @@ function resetAll() {
 		return;
 	}
 	const what = [
-		n ? Z(`删除我加的 ${n} 个行程`, `remove ${n} added stop${n > 1 ? 's' : ''}`) : '',
+		n
+			? SYNC
+				? Z(`删除全组加的 ${n} 个行程`, `remove all ${n} added stop${n > 1 ? 's' : ''}, everyone’s`)
+				: Z(`删除我加的 ${n} 个行程`, `remove ${n} added stop${n > 1 ? 's' : ''}`)
+			: '',
 		f ? Z('航班改回原定时间', 'put the flights back to the booked times') : '',
 		sh ? Z('取消往后推的时间', 'undo the pushed-back times') : '',
 	]
@@ -726,6 +777,14 @@ function resetAll() {
 		.join(Z('、', ', '));
 	const all = SYNC ? Z('全组每个人的页面都会改。', ' This changes everyone’s page.') : '';
 	if (!confirm(Z(`恢复原计划：${what}？（清单打勾会保留）${all}`, `Back to the original plan: ${what}? (Checklist ticks stay.)${all}`))) return;
+	// what it takes, for the Undo; the names people gave in Group sync aren't part of the plan and stay
+	const was = {
+		stops: mineAll(),
+		fltArr: store.get('fltArr', ''),
+		fltDep: store.get('fltDep', ''),
+		shift: store.get('shift', {}) || {},
+		lateNo: store.get('lateNo', null),
+	};
 	mineSet([]);
 	store.set('fltArr', '');
 	store.set('fltDep', '');
@@ -735,17 +794,27 @@ function resetAll() {
 	if (ps && ps.open) closeDialog(ps);
 	const tc = $('#toc');
 	if (tc && tc.open) closeDialog(tc);
-	whenSettled(() => mineRerender(Z('已恢复原计划', 'Back to the original plan')));
+	whenSettled(() => mineRerender(Z('已恢复原计划', 'Back to the original plan'), undoPutBack(was.stops, was)));
+	if (SYNC) syncSheetRefresh();
 }
-const resetBtn = () =>
+// with group sync, the everyday button clears only this phone's own stops; putting everyone's plan back is a
+// planner's, in the Group sync sheet
+const resetBtn = () => (SYNC ? ownClearBtn() : resetAllBtn());
+function ownClearBtn() {
+	const n = mineAll().filter(ownsStop).length;
+	return n
+		? `<button type="button" class="mlink reset-btn" data-mine-clear-own>${icon('x')}${Z(`删除我加的 ${n} 个行程`, `Remove the ${n} stop${n > 1 ? 's' : ''} I added`)}</button>`
+		: '';
+}
+const resetAllBtn = () =>
 	mineAll().length || store.get('fltArr', '') || store.get('fltDep', '') || Object.keys(store.get('shift', {}) || {}).length
 		? `<button type="button" class="mlink reset-btn" data-reset-all>${icon('x')}${Z('恢复原计划（清除我加的和改过的）', 'Back to the original plan (clear what I added or changed)')}</button>`
 		: '';
-function mineRerender(msg) {
+function mineRerender(msg, act) {
 	const sp = spotNow();
 	render();
 	spotRestore(sp);
-	if (msg) toast(msg);
+	if (msg) toast(msg, act);
 }
 // share: my stops in a link (#add=…); opening it offers to add them
 const b64u = (str) =>

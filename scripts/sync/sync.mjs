@@ -3,6 +3,7 @@
 //   pnpm sync init --trip trips/<slug> --db <database url> new keys for the trip, its write token into the database
 //   pnpm sync end --trip trips/<slug>                      after the trip: the token and every record go
 //   pnpm sync status --trip trips/<slug>                   is it set up, and on which database (never a key)
+//   pnpm sync planner --trip trips/<slug>                  the planner code: the first phone to give it is a planner
 // The database url is https://<name>.<region>.firebasedatabase.app (Firebase console → Realtime Database). A trip's
 // keys go to ~/.config/relaxjer/sync/<slug>.json (mode 600, outside the repo), which `pnpm build --sync` reads. They are
 // never printed, and never on a command line: the write token reaches the Firebase CLI on its standard input.
@@ -13,6 +14,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { PLANNER_ROUNDS } from '../../engine/src/core/sync.mjs';
 
 export const FIREBASE_TOOLS = 'firebase-tools@15.32.1';
 export const SYNC_DIR = path.join(os.homedir(), '.config', 'relaxjer', 'sync');
@@ -41,6 +43,51 @@ export function parseDb(url) {
 
 const fileFor = (slug) => path.join(SYNC_DIR, `${slug}.json`);
 
+/**
+ * The trip's planner code as the page checks it (ADR-20261002-sync-planners): a salt and the code's PBKDF2 hash. The
+ * code itself is never kept. Whoever gives it on a phone becomes a planner, and a planner can make others planners.
+ */
+export function plannerCode(code, rand = crypto.randomBytes) {
+	if (String(code ?? '').trim().length < 6) throw new Error('the code needs at least 6 characters');
+	const salt = rand(16);
+	const hash = crypto.pbkdf2Sync(String(code).trim(), salt, PLANNER_ROUNDS, 32, 'sha256').toString('base64url');
+	return { salt: salt.toString('base64url'), hash };
+}
+
+/** asks for a value on the terminal without showing it; piped input (a test) is read as it comes */
+async function askHidden(prompt) {
+	if (!process.stdin.isTTY) {
+		let s = '';
+		for await (const c of process.stdin) s += c;
+		return s.split('\n')[0];
+	}
+	process.stdout.write(prompt);
+	process.stdin.setRawMode(true);
+	process.stdin.resume();
+	process.stdin.setEncoding('utf8');
+	return new Promise((resolve, reject) => {
+		let s = '';
+		const on = (ch) => {
+			for (const c of ch) {
+				if (c === '\r' || c === '\n') {
+					process.stdin.setRawMode(false);
+					process.stdin.pause();
+					process.stdin.off('data', on);
+					process.stdout.write('\n');
+					return resolve(s);
+				}
+				if (c === '\u0003') {
+					process.stdin.setRawMode(false);
+					return reject(new Error('stopped'));
+				}
+				if (c === '\u007f') s = s.slice(0, -1);
+				else s += c;
+			}
+		};
+		process.stdin.on('data', on);
+	});
+}
+
 /** text with every secret value hidden, for anything the script prints */
 export const hide = (text, secrets) => secrets.filter(Boolean).reduce((t, s) => t.split(s).join('<hidden>'), String(text));
 
@@ -61,7 +108,7 @@ function firebase(args, { input, secrets = [] } = {}) {
 	}
 }
 
-function main(argv) {
+async function main(argv) {
 	const [cmd] = argv;
 	const val = (f) => {
 		const i = argv.indexOf(f);
@@ -124,16 +171,24 @@ function main(argv) {
 			const s = JSON.parse(fs.readFileSync(file, 'utf8'));
 			console.log(`sync: ${slug} is on ${parseDb(s.url)?.instance || 'an unreadable url'} (project ${s.project}); build with --sync ${file}`);
 		}
+	} else if (cmd === 'planner') {
+		need(slug, 'usage: pnpm sync planner --trip trips/<slug>');
+		const file = fileFor(slug);
+		need(fs.existsSync(file), `no sync file for ${slug} at ${file}: pnpm sync init first`);
+		const s = JSON.parse(fs.readFileSync(file, 'utf8'));
+		const code = await askHidden('Planner code (6+ characters, not shown; give it on your own phone in Group sync): ');
+		if (process.stdin.isTTY) need((await askHidden('Again: ')) === code, 'the two codes differ');
+		s.planner = plannerCode(code);
+		fs.writeFileSync(file, `${JSON.stringify(s, null, '\t')}\n`, { mode: 0o600 });
+		console.log(`sync: planner code set for ${slug}. Rebuild with --sync ${file} and republish; phones already planners stay planners.`);
 	} else {
-		throw new Error('usage: pnpm sync rules|init|end|status … (see scripts/sync/sync.mjs)');
+		throw new Error('usage: pnpm sync rules|init|end|status|planner … (see scripts/sync/sync.mjs)');
 	}
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-	try {
-		main(process.argv.slice(2));
-	} catch (e) {
+	main(process.argv.slice(2)).catch((e) => {
 		console.error(`sync: ${e.message}`);
 		process.exit(1);
-	}
+	});
 }

@@ -2,7 +2,7 @@
 // made up; real keys live in ~/.config/relaxjer/sync/.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { hide, newSecrets, parseDb } from '../../scripts/sync/sync.mjs';
+import { hide, newSecrets, parseDb, plannerCode } from '../../scripts/sync/sync.mjs';
 import { secretsIn } from '../support/secret-patterns.mjs';
 
 test('sync: a database url names its instance, and its project when it is the default database', () => {
@@ -34,4 +34,16 @@ test('sync: a Firebase CLI failure is printed with every secret hidden', () => {
 	const s = newSecrets();
 	const out = hide(`Error at /keys/${s.trip}: token ${s.writeToken} refused`, [s.trip, s.writeToken, s.syncKey]);
 	assert.equal(out, 'Error at /keys/<hidden>: token <hidden> refused');
+});
+
+test('sync: the planner code is kept only as a salted hash the page can check', async () => {
+	const { pbkdf2Sync } = await import('node:crypto');
+	const { PLANNER_ROUNDS } = await import('../../engine/src/core/sync.mjs');
+	const p = plannerCode('demo-code-1234');
+	assert.match(p.salt, /^[A-Za-z0-9_-]{22}$/);
+	assert.match(p.hash, /^[A-Za-z0-9_-]{43}$/);
+	assert.ok(!JSON.stringify(p).includes('demo-code-1234'));
+	assert.equal(pbkdf2Sync('demo-code-1234', Buffer.from(p.salt, 'base64url'), PLANNER_ROUNDS, 32, 'sha256').toString('base64url'), p.hash);
+	assert.notEqual(plannerCode('demo-code-1234').hash, p.hash, 'a fresh salt each time');
+	assert.throws(() => plannerCode('short'), /6 characters/);
 });

@@ -122,3 +122,80 @@ test('Sync: merging applies what is newer, ignores our own echo, and drops our p
 	assert.deepEqual(drop, ['flt:dep']);
 	assert.deepEqual(Sync.merge(known, {}, { 'flt:arr': { v: '17:40', u: 10, d: 'me' } }).apply, [], 'a version we already have');
 });
+
+// ADR-20261002-sync-planners: who added a stop, the names phones go by, the planners, and the removed-stops list
+test('Sync: a stop keeps the phone that added it; names and planner roles are records too', () => {
+	assert.equal(Sync.cleanRecord('stop:mine-a', stop('mine-a', { dev: 'phoneA1' })).dev, 'phoneA1');
+	assert.equal(Sync.cleanRecord('stop:mine-a', stop('mine-a', { dev: 'bad id!' })).dev, undefined, 'a malformed phone id is dropped');
+	assert.equal(Sync.cleanRecord('who:phoneA1', '  Demo Name  '), 'Demo Name');
+	assert.equal(Sync.cleanRecord('who:phoneA1', 'x'.repeat(40)).length, 24);
+	assert.equal(Sync.cleanRecord('who:phoneA1', ''), undefined);
+	assert.equal(Sync.cleanRecord('role:phoneA1', 'planner'), 'planner');
+	assert.equal(Sync.cleanRecord('role:phoneA1', 'owner'), undefined, 'planner is the only role');
+	assert.equal(Sync.cleanRecord('role:no', 'planner'), undefined);
+	assert.equal(Sync.cleanRecord('role:phoneA1', null), null, 'a role can be taken away');
+
+	const s = { people: { phoneA1: 'Demo Name' }, roles: { phoneA1: 'planner', phoneB2: 'guest' } };
+	assert.deepEqual(Sync.recordsOf(s, shared), { 'who:phoneA1': 'Demo Name', 'role:phoneA1': 'planner' });
+	const next = Sync.applyRecords(
+		s,
+		[
+			['role:phoneB2', 'planner'],
+			['role:phoneA1', null],
+			['who:phoneB2', 'Other'],
+		],
+		shared,
+	);
+	assert.deepEqual(next.roles, { phoneB2: 'planner' });
+	assert.deepEqual(next.people, { phoneA1: 'Demo Name', phoneB2: 'Other' });
+});
+
+test('Sync: a stop belongs to the phone it names, else the one that wrote it last, else this one', () => {
+	assert.equal(Sync.ownerOf({ dev: 'phoneA1' }, { d: 'phoneB2' }, 'me0000'), 'phoneA1');
+	assert.equal(Sync.ownerOf({}, { d: 'phoneB2' }, 'me0000'), 'phoneB2');
+	assert.equal(Sync.ownerOf({}, undefined, 'me0000'), 'me0000');
+	assert.equal(Sync.nameKey('  Demo   NAME '), Sync.nameKey('demo name'));
+});
+
+test('Sync: removed stops go on the list newest first, and leave it when they come back', () => {
+	const a = stop('mine-a');
+	const b = stop('mine-b');
+	const who = { at: 1, by: 'Demo', me: true };
+	let log = Sync.goneLog([], [a, b], [b], who);
+	assert.deepEqual(
+		log.map((e) => e.x.id),
+		['mine-a'],
+	);
+	log = Sync.goneLog(log, [b], [], { ...who, at: 2 });
+	assert.deepEqual(
+		log.map((e) => e.x.id),
+		['mine-b', 'mine-a'],
+	);
+	assert.deepEqual(
+		Sync.goneLog(log, [], [a], who).map((e) => e.x.id),
+		['mine-b'],
+		'put back: off the list',
+	);
+	assert.equal(
+		Sync.goneLog(
+			[],
+			Array.from({ length: 40 }, (_, i) => stop(`mine-${i}`)),
+			[],
+			who,
+		).length,
+		30,
+		'capped',
+	);
+});
+
+test('Sync: the group’s stops by the phone that added them, most first, under the name the phone gives', () => {
+	const stops = [stop('mine-a', { dev: 'phoneA1', by: 'Old' }), stop('mine-b', { dev: 'phoneB2' }), stop('mine-c', { dev: 'phoneA1' })];
+	const g = Sync.byPhone(stops, () => undefined, 'me0000', { phoneA1: 'Demo A' });
+	assert.deepEqual(
+		g.map((x) => [x.dev, x.by, x.ids.length]),
+		[
+			['phoneA1', 'Demo A', 2],
+			['phoneB2', '', 1],
+		],
+	);
+});

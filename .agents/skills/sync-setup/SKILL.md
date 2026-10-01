@@ -1,6 +1,6 @@
 ---
 name: sync-setup
-description: Set up, check or end group sync for a RelaxJer trip, so added stops, pushed-back times, flight changes and shared checklist ticks reach every phone in the group — through the planner's own Firebase Realtime Database. Use when someone wants the group's phones to share changes, asks to "sync" or "share my changes" with the others, or when a trip is over and its sync should end. Covers the one-time Firebase setup, `pnpm sync rules|init|end|status`, the build flag, and what never to do with the keys.
+description: Set up, check or end group sync for a RelaxJer trip, so added stops, pushed-back times, flight changes and shared checklist ticks reach every phone in the group — through the planner's own Firebase Realtime Database. Use when someone wants the group's phones to share changes, asks to "sync" or "share my changes" with the others, or when a trip is over and its sync should end. Covers the one-time Firebase setup, `pnpm sync rules|init|planner|end|status`, planners, the build flag, and what never to do with the keys.
 ---
 
 # Sync setup: `pnpm sync`
@@ -28,6 +28,7 @@ database never sees what's in the plan. RelaxJer runs nothing for it.
 
 ```sh
 pnpm sync init --trip trips/<slug> --db <database url>   # new keys → ~/.config/relaxjer/sync/<slug>.json, token → the database
+pnpm sync planner --trip trips/<slug>                     # the planner code (asked for, hidden): only its hash is kept
 pnpm build --trip trips/<slug> --keys ~/.config/relaxjer/google.json --sync ~/.config/relaxjer/sync/<slug>.json
 pnpm sync status --trip trips/<slug>                      # set up? which database? (never prints a key)
 pnpm sync end --trip trips/<slug>                         # after the trip: its records and token are deleted
@@ -38,7 +39,13 @@ pnpm sync end --trip trips/<slug>                         # after the trip: its 
   packing) unmarked.
 - Then `verify-page`, and `publish-htmlapp`; run `pnpm publish:trip trips/<slug> --audit --candidate <page>` before the
   first publish with sync, which also proves the page may reach the database from the live address.
-- Tell the group each phone can set the name others see on its changes: Sections menu → Group sync.
+- **The planner runs `pnpm sync planner` themselves** (it asks for the code on their terminal; never type it for them
+  or put it in a command line). Then, on their own phone: Group sync → "I'm a planner" → the code. A planner can make
+  any other phone in the group a planner from "The group" list. On an iPhone the home-screen copy is a phone of its
+  own: give the code there too. Running it again sets a new code; phones already planners stay planners
+  ([ADR-20261002-sync-planners](../../../memory-bank/standards/decisions/ADR-20261002-sync-planners.md)).
+- Each phone changes only the stops it added; planners change any. A phone with no name gets a bar under the header
+  asking for one, and the add-stop sheet asks too.
 
 ## Never
 

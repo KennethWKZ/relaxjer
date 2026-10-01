@@ -112,9 +112,12 @@ const sync = (() => {
 		!/^[A-Za-z0-9_-]{22}$/.test(s.trip || '') && 'trip',
 		!/^[A-Za-z0-9_-]{32,}$/.test(s.writeToken || '') && 'writeToken',
 		!/^[A-Za-z0-9_-]{43}$/.test(s.syncKey || '') && 'syncKey',
+		// the planner code (`pnpm sync planner`, ADR-20261002-sync-planners): a salt and the code's hash, never the code
+		!(s.planner == null || (/^[A-Za-z0-9_-]{22}$/.test(s.planner.salt || '') && /^[A-Za-z0-9_-]{43}$/.test(s.planner.hash || ''))) && 'planner',
 	].filter(Boolean);
 	if (bad.length) throw new Error(`--sync ${syncFile}: bad ${bad.join(', ')}`);
-	return { url: u.href.replace(/\/$/, ''), trip: s.trip, token: s.writeToken, key: s.syncKey };
+	const planner = s.planner ? { salt: s.planner.salt, hash: s.planner.hash } : null;
+	return { url: u.href.replace(/\/$/, ''), trip: s.trip, token: s.writeToken, key: s.syncKey, planner };
 })();
 
 // credits: keep only photos whose files exist
@@ -284,7 +287,7 @@ ${scripts(imgMap, kmlB64)}
 };
 const { artifact, standalone, kb } = writePages('');
 console.log(
-	`google key ${gmaps ? 'yes' : 'no'} · group sync ${sync ? 'yes' : 'no'} · artifact ${kb(artifact)} · standalone ${kb(standalone)} · photos ${credits.length} · geo ${geo ? 'yes' : 'no'} · food ${extra.food?.length || 0} · tickets ${extra.tickets?.length || 0} · wish ${wish.length} · brush glyphs ${brush.size}`,
+	`google key ${gmaps ? 'yes' : 'no'} · group sync ${sync ? `yes (planner code ${sync.planner ? 'set' : 'not set'})` : 'no'} · artifact ${kb(artifact)} · standalone ${kb(standalone)} · photos ${credits.length} · geo ${geo ? 'yes' : 'no'} · food ${extra.food?.length || 0} · tickets ${extra.tickets?.length || 0} · wish ${wish.length} · brush glyphs ${brush.size}`,
 );
 
 // 3) Google My Maps export (KML): one combined file + one file per layer

@@ -273,6 +273,7 @@ document.addEventListener('click', (e) => {
 		}
 		const list = mineAll();
 		const x = addItem.id ? list.find((y) => y.id === addItem.id) : null;
+		if (x && !canEditStop(x)) return toast(noEditMsg());
 		if (x) {
 			x.day = day;
 			x.t = tm;
@@ -298,6 +299,7 @@ document.addEventListener('click', (e) => {
 	}
 	if (t.matches('[data-mine-edit]')) {
 		const x = MINE[t.dataset.mineEdit];
+		if (x && !canEditStop(x)) return toast(noEditMsg());
 		if (x) {
 			sheetShow(addSheet({ id: x.id, n: x.name, lat: x.lat, lng: x.lng, gpid: x.gpid, q: x.q, addr: x.addr, day: x.day, t: x.t }));
 			setTimeout(addClashNote, 0);
@@ -307,11 +309,67 @@ document.addEventListener('click', (e) => {
 	if (t.matches('[data-mine-del]')) {
 		const x = MINE[t.dataset.mineDel];
 		const everyone = SYNC ? Z('所有人的页面都会删掉它。', ' It goes from everyone’s page.') : '';
+		if (x && !canEditStop(x)) return toast(noEditMsg());
 		if (!x || !confirm(Z(`从行程删除「${x.name}」？${everyone}`, `Remove "${x.name}" from the plan?${everyone}`))) return;
 		mineSet(mineAll().filter((y) => y.id !== x.id));
 		const sh = $('#placeSheet');
-		if (sh && sh.open) closeDialog(sh);
-		whenSettled(() => mineRerender(Z('已删除', 'Removed')));
+		if (sh && sh.open && !sh.querySelector('[data-sync-sheet]')) closeDialog(sh);
+		whenSettled(() => mineRerender(Z(`已删除「${x.name}」`, `Removed ${x.name}`), undoPutBack([x])));
+		return;
+	}
+	if (t.matches('[data-mine-clear-own]')) {
+		removeStops(mineAll().filter(ownsStop), (n) =>
+			Z(`删除你加的 ${n} 个行程？所有人的页面都会删掉。`, `Remove the ${n} stop${n > 1 ? 's' : ''} you added? They go from everyone’s page.`),
+		);
+		return;
+	}
+	if (t.matches('[data-mine-clear-dev]')) {
+		if (!syncIsPlanner()) return toast(noEditMsg());
+		const dev = t.dataset.mineClearDev;
+		const list = mineAll().filter((x) => (stopOwner(x) || '') === dev);
+		const by = (list.find((x) => x.by) || {}).by || Z('这个人', 'this person');
+		removeStops(list, (n) =>
+			Z(`删除${by}加的 ${n} 个行程？所有人的页面都会删掉。`, `Remove the ${n} stop${n > 1 ? 's' : ''} ${by} added? They go from everyone’s page.`),
+		);
+		return;
+	}
+	if (t.matches('[data-gone-back]')) {
+		const e = (store.get('syncGone', []) || []).find((y) => y && y.x && y.x.id === t.dataset.goneBack);
+		if (!e || MINE[e.x.id]) return;
+		if (!canEditStop(e.x)) return toast(noEditMsg());
+		putBack([e.x]);
+		return;
+	}
+	if (t.matches('[data-role-set], [data-role-drop]')) {
+		if (!syncIsPlanner()) return toast(noEditMsg());
+		const dev = t.dataset.roleSet || t.dataset.roleDrop;
+		const name = (store.get('people', {}) || {})[dev] || Z('这台手机', 'this phone');
+		const on = !!t.dataset.roleSet;
+		if (
+			!confirm(
+				on
+					? Z(`把${name}设为规划人？规划人可以改、删任何人加的行程。`, `Make ${name} a planner? Planners can change or remove anyone’s stops.`)
+					: Z(`取消${name}的规划人？`, `${name} is no longer a planner?`),
+			)
+		)
+			return;
+		const roles = { ...(store.get('roles', {}) || {}) };
+		if (on) roles[dev] = 'planner';
+		else delete roles[dev];
+		store.set('roles', roles);
+		whenSettled(() =>
+			mineRerender(on ? Z(`${name}现在是规划人`, `${name} is a planner now`) : Z(`${name}不再是规划人`, `${name} is no longer a planner`)),
+		);
+		syncSheetRefresh();
+		return;
+	}
+	if (t.matches('[data-toast-act]')) {
+		toastRun();
+		return;
+	}
+	if (t.matches('[data-sync-later]')) {
+		store.set('syncBarLater', Date.now() + 24 * 3600000);
+		syncBarPaint();
 		return;
 	}
 	if (t.matches('[data-mine-share]')) {

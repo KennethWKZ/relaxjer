@@ -15,7 +15,10 @@ the ticks of checklist groups marked `shared`. Every phone sees each change with
 before. It's optional, per trip: the planner sets up their own Firebase Realtime Database once (`pnpm sync`), and the
 build puts it in (`--sync`). The page talks to it with `fetch` and `EventSource`, no library; every record is
 encrypted on the phone, so the database holds only ciphertext under names it can't read. Decided by Kenneth on
-2026-10-01. This reverses the project brief's "no shared state" non-goal, for trips that opt in.
+2026-10-01. This reverses the project brief's "no shared state" non-goal, for trips that opt in. Amended on 2026-10-02
+by [ADR-20261002-sync-planners](ADR-20261002-sync-planners.md): each phone changes only the stops it added, planners
+(by the trip's planner code) change any, every removal has an Undo, and the names phones go by and their roles sync
+as records too.
 
 ## Context
 
