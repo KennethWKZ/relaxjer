@@ -1,0 +1,102 @@
+# Changelog
+
+All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
+
+## 1.0.0 (2026-10-01)
+
+### ✨ Features
+
+* **agents:** a memory-bank, skills, agents and rules for any AI agent ([d8279a5](https://github.com/KennethWKZ/relaxjer/commit/d8279a5608ee95a00240c2f4be1f81dd4bc55a1d))
+* **agents:** skills to set up and customize a trip, and relaxbro, a travel agent ([bb9d317](https://github.com/KennethWKZ/relaxjer/commit/bb9d3177e359d092080da3bb682ede4825cc3a64))
+* **engine:** a day can split for part of the group, and sync shows who added a stop ([e0d22ee](https://github.com/KennethWKZ/relaxjer/commit/e0d22eeb9509c8899ffe66358b1f0389df3e2432))
+* **engine:** a phone's first open with sync on asks for its name once ([50d29c5](https://github.com/KennethWKZ/relaxjer/commit/50d29c568a2efb8b0aceaf3048a47c6f9a0b5498))
+* **engine:** a planner can block a phone in group sync ([4e44d14](https://github.com/KennethWKZ/relaxjer/commit/4e44d14c5f6e74b51e4f1a8f484c93ad6616d2b5))
+* **engine:** a stop can suggest optional plans, which open over the day ([f056d22](https://github.com/KennethWKZ/relaxjer/commit/f056d226baa3d217e516b3a5e7f672157a40fc43))
+* **engine:** any number of themed shop lists ([beef27e](https://github.com/KennethWKZ/relaxjer/commit/beef27ecec9a938a67553caa312737dec46bb799))
+* **engine:** ask for location from a card, install button in the header ([dba00a8](https://github.com/KennethWKZ/relaxjer/commit/dba00a8ebe95e27769640aa850883673c76a2089))
+* **engine:** every control shows what it does (story step 6c) ([5eabf1d](https://github.com/KennethWKZ/relaxjer/commit/5eabf1d1aa05a0d2b458bdf336ce198ee8127c81))
+* **engine:** file names, storage prefix, brush font and shop list per trip ([72734d6](https://github.com/KennethWKZ/relaxjer/commit/72734d69676a483db1fb788c2e20aaea9982a60c))
+* **engine:** group sync across the group's phones, and a page security policy ([21b3211](https://github.com/KennethWKZ/relaxjer/commit/21b32111493f78c1ecea841a8d8b692a2b21afb8))
+* **engine:** group sync gets planners, own-stop edits, Undo and a recently removed list ([5320b2e](https://github.com/KennethWKZ/relaxjer/commit/5320b2ee98ff22444bf930d3d7213f88917d5564))
+* **engine:** no fixed place or site ids; the airport section reads the trip ([64011ff](https://github.com/KennethWKZ/relaxjer/commit/64011ffc0587f2f7cd8bb1ff49bebe16beccfb92))
+* **engine:** offer an update when a newer copy is live ([1bfaa6f](https://github.com/KennethWKZ/relaxjer/commit/1bfaa6fcb38edb9cc2e1046cad3494594484d373))
+* **engine:** one hotel for the trip, or one per night ([7903155](https://github.com/KennethWKZ/relaxjer/commit/790315537400d8cee89751badbf9f0e5ec612dfc))
+* **engine:** one language button that names the other language ([4c86085](https://github.com/KennethWKZ/relaxjer/commit/4c86085bff4770ce5840f944febb369bbf1b3bc3))
+* **engine:** read day roles from the trip, any number of days ([a308be7](https://github.com/KennethWKZ/relaxjer/commit/a308be74e22206566d63c85f196918328db27058))
+* **engine:** the add sheet checks a stop's time against getting there and getting on ([09016fc](https://github.com/KennethWKZ/relaxjer/commit/09016fc8d79d9529393befce963fb84b454079f9))
+* **engine:** the audit's "Strengthen" rows: landing ring, instant press, high contrast, labels ([5e819ea](https://github.com/KennethWKZ/relaxjer/commit/5e819ea12594ddd0653c8c8f7abb786f39d31232))
+* **engine:** the location card says why a phone asks again, and flags approximate location ([ebcd893](https://github.com/KennethWKZ/relaxjer/commit/ebcd8937c1b69a8fed23f158e059c9c99487739e))
+* **engine:** the Sections sheet marks Now and Next with the day's knots ([c71b841](https://github.com/KennethWKZ/relaxjer/commit/c71b84125d09a02c8a4b90e8c74ce5e302a31529))
+* **pipeline:** a refresh pays Google only with the planner's yes ([6186cab](https://github.com/KennethWKZ/relaxjer/commit/6186cab692c828b5d8fd6ccd09b951b20d19ad4f))
+* **pipeline:** the data refresh moves in from the first trip's repo ([df2c6d5](https://github.com/KennethWKZ/relaxjer/commit/df2c6d5e8a6f8d0bb7e98f0f13c746fc6058ee96))
+* **publish:** one door to publishing, and the key behind a macOS prompt ([2da2b53](https://github.com/KennethWKZ/relaxjer/commit/2da2b531e7e753e3311538be3dc4811018706b31))
+* **publish:** pnpm publish:trip reads the secrets itself, and the planner approves each run ([59b8ec0](https://github.com/KennethWKZ/relaxjer/commit/59b8ec07f9ecaef52515bc036d333b1aa37baf0a))
+* RelaxJer: layout, tests, and an engine that reads each trip's own settings ([c1b879e](https://github.com/KennethWKZ/relaxjer/commit/c1b879e35b6371b508c40492e1fe2078e96bee6f))
+* **site:** the landing page becomes postcards from the demo trip, each with a looping demo ([16a4101](https://github.com/KennethWKZ/relaxjer/commit/16a41012534f4ab4f8a3848fdd0d9579eb76efb8))
+* **site:** the landing page for GitHub Pages ([bf7ef25](https://github.com/KennethWKZ/relaxjer/commit/bf7ef25c2b0e0244bbd12ae1fcb26c158c59e2b1))
+* **site:** the packing list covers every part of the page, and step 1 names the planner's skills ([85aa37e](https://github.com/KennethWKZ/relaxjer/commit/85aa37ee48adeab812e340059ef25a867b1776ac))
+* **tw:** destination pack for Taiwan and Taipei ([12088a1](https://github.com/KennethWKZ/relaxjer/commit/12088a11198ff994d1975aa3e33c3ba3dd4c02d3))
+* **tw:** the last Taiwan strings move into the pack ([d82fa3b](https://github.com/KennethWKZ/relaxjer/commit/d82fa3b615f4764306e472f75ac61255dfb259b2))
+
+### 🐛 Bug Fixes
+
+* **engine:** a stop's link to a site opens it, and the rate takes any currency ([ce9c673](https://github.com/KennethWKZ/relaxjer/commit/ce9c6730be0aab0f854bba9074fd0219b78261da))
+* **engine:** allowing location from near me clears the location card at once ([6898ada](https://github.com/KennethWKZ/relaxjer/commit/6898ada19666f4a7300b81e2444cf7766ac49b86))
+* **engine:** an added stop lands where its time says, and every "+" lands right after its stop ([b6963d7](https://github.com/KennethWKZ/relaxjer/commit/b6963d7a2bce2ef3414f1eb683d3946902f0128a))
+* **engine:** don't repeat a share the text already states ([54ae63c](https://github.com/KennethWKZ/relaxjer/commit/54ae63c052ec1e6da2ee3d3f20f9995be3c849c3))
+* **engine:** land links that open at a section on WebKit too ([b8a7820](https://github.com/KennethWKZ/relaxjer/commit/b8a7820b63c723227e27f26c136195f50a4bfb19)), references [#entry](https://github.com/KennethWKZ/relaxjer/issues/entry) [#budget](https://github.com/KennethWKZ/relaxjer/issues/budget)
+* **engine:** no section skipping in WebKit, where scroll anchoring doesn't hold ([5c683d9](https://github.com/KennethWKZ/relaxjer/commit/5c683d9adf7494501eb02ab9e0649b7c51e57de7))
+* **engine:** opening hours for the trip's own days ([cdc59b6](https://github.com/KennethWKZ/relaxjer/commit/cdc59b68fb0ded032e0842831a7219f6d2834f40))
+* **engine:** the rejoin line reads for one rider or several ([cfb0d07](https://github.com/KennethWKZ/relaxjer/commit/cfb0d07962e26caa43b2a76c51cece15ce093858))
+* **engine:** the shared cash share and the drinks list's date read the trip ([5b7ec30](https://github.com/KennethWKZ/relaxjer/commit/5b7ec308419f36dbcf11659232a290881ed3bcbd))
+* **pipeline:** a place just added is pinned on Google before the other steps search around it ([bb7abdf](https://github.com/KennethWKZ/relaxjer/commit/bb7abdff1c7ca42a193b2934364b2bc996429798))
+* **pipeline:** a refresh's rebuild keeps the trip's group sync ([75911d8](https://github.com/KennethWKZ/relaxjer/commit/75911d88930e81f2eacadac017c5072d072e5fa7))
+* **publish:** the publishing guard sees Monitor, value flags and substitutions ([d56b344](https://github.com/KennethWKZ/relaxjer/commit/d56b344522e9c970be085414c68f3c9215d0f992))
+* **site:** the hero's phones never overlap the text, and the setup links land on Setup ([ce37475](https://github.com/KennethWKZ/relaxjer/commit/ce374754c7bc9dae60a0c0342f1bfb6296a19a53))
+* **site:** the Undo card names blocking a phone, and its Planner badge takes the trip page's green ([91c5f0b](https://github.com/KennethWKZ/relaxjer/commit/91c5f0b7e1152ce9c3615ea60481e48a650c7948))
+* **sync:** pnpm sync planner explains a missing terminal, and can read the code from a file ([cab80e8](https://github.com/KennethWKZ/relaxjer/commit/cab80e8a4072397d55d166c63123229d3afb3542))
+* the publish audit works without a candidate page ([d0e03fa](https://github.com/KennethWKZ/relaxjer/commit/d0e03fa2aa96fa6bfabd29f2883669abac8fc9c6))
+
+### 📝 Documentation
+
+* a Google Maps setup guide, and the README shows how a trip flows ([d2211c5](https://github.com/KennethWKZ/relaxjer/commit/d2211c5090a3ea8bc96c0bbd1bb816ea4c36fa41))
+* blocking a phone in group sync, across the memory bank and skills ([13524f3](https://github.com/KennethWKZ/relaxjer/commit/13524f306b69a33dad41f73567bd41dd41c0e762))
+* **design:** 6c's strengthen rows are done, and the sidecar matches ([bad0f97](https://github.com/KennethWKZ/relaxjer/commit/bad0f975ed6b2c6178fbd3533bda412c688db37b))
+* **design:** affordance rules for every control, from current research ([f38f3cc](https://github.com/KennethWKZ/relaxjer/commit/f38f3cc831adbb92dbfedf040ed0911d23d0e760))
+* **design:** the design system records the landing page, sidecar current ([5baf03a](https://github.com/KennethWKZ/relaxjer/commit/5baf03a1e39de110b42ec25afddced803e796917))
+* **design:** the sidecar follows the one-button language switch ([cbbad79](https://github.com/KennethWKZ/relaxjer/commit/cbbad79a1bd14a761ae27c71e0ddf5825e1f3c6a))
+* every feature written down for planners, and a test that keeps it so ([91458f1](https://github.com/KennethWKZ/relaxjer/commit/91458f1fcebdf17eaf4463c44c23108160a129a3))
+* **guides:** the Google guide says the caching flow isn't legally reviewed ([83d0c8e](https://github.com/KennethWKZ/relaxjer/commit/83d0c8ee9a9f5e85dc9b11e7143139b68ef23b46))
+* **knowledge:** propose lessons for a plan the whole group can change ([cb580ec](https://github.com/KennethWKZ/relaxjer/commit/cb580ecb94311684913fad98f31f66e6900a6901))
+* rewrap the blocking lines to the docs' 120-column width ([5aa7c57](https://github.com/KennethWKZ/relaxjer/commit/5aa7c571ddad381ee4d6f4e646e5f060fa183363))
+* **site:** screenshots show the current page ([0c2d5df](https://github.com/KennethWKZ/relaxjer/commit/0c2d5dfa9a248328cfa13c8ed6317f5b9e5863dc))
+* story step 6c is done, the affordance fixes are marked ([ffe106f](https://github.com/KennethWKZ/relaxjer/commit/ffe106fe49d399c7504dc4293a36a6d0b39c7f05))
+* **sync:** planner ADR states its scope and limits; group-sync ADR marked amended ([b9a1873](https://github.com/KennethWKZ/relaxjer/commit/b9a1873a399fde04dc5a2570d19b97bf37ffe796))
+* the live Taipei page now runs on RelaxJer ([9ec0f29](https://github.com/KennethWKZ/relaxjer/commit/9ec0f29caf91256784a79158ea7afde3e942748d))
+* the memory bank and skills cover group sync, its safety features and the newer page features ([851580a](https://github.com/KennethWKZ/relaxjer/commit/851580ab6cfbc45839f552aa2519c92a81b7b60b))
+
+### ✅ Testing
+
+* **e2e:** the 390 px Chromium project is an Android phone ([bbc3e4b](https://github.com/KennethWKZ/relaxjer/commit/bbc3e4bc4eccd0bf5b6f61fd9bb464fcdde2fe46))
+* **e2e:** three browsers at a time locally, so a run stays cool ([bd46203](https://github.com/KennethWKZ/relaxjer/commit/bd46203ec608bcf1e67bddde18b429d2fe40d62e))
+* **engine:** location card tests set their clock from the trip's own dates ([f94b612](https://github.com/KennethWKZ/relaxjer/commit/f94b612a7de18d33bf26c22916cf5e013c8814c2))
+* **tests:** the trip contract checks each day's lantern colour is 1–7 ([6b11c54](https://github.com/KennethWKZ/relaxjer/commit/6b11c54e427714422867f80a2c6f5145b6bee435))
+
+### 🔨 Builds
+
+* a fresh clone has what it needs, and says what it doesn't ([4aba9e7](https://github.com/KennethWKZ/relaxjer/commit/4aba9e73e0237665fe4b5fa3495f667a563049ba))
+* **hooks:** graphmind rebuild and impact, only where graphmind is installed ([056989e](https://github.com/KennethWKZ/relaxjer/commit/056989e953a8c57149ac5ec2fb73ee015b627abf))
+* move to pnpm, husky, Prettier, ESLint and commitlint ([f1a3a3d](https://github.com/KennethWKZ/relaxjer/commit/f1a3a3dc1d3a6e03bddcd409421b0435fae2026c))
+
+### 🧑‍💻 Continuous Integrations
+
+* **e2e:** one parallel job per Playwright project, 20 min cap ([39c3924](https://github.com/KennethWKZ/relaxjer/commit/39c3924b4694263ce44887e72d3fd981d27d42d0))
+* each action on its latest version instead of a pinned commit ([7ca2c0a](https://github.com/KennethWKZ/relaxjer/commit/7ca2c0a3039546473e443603f36ffe7bfbb264e7))
+* pin every GitHub Action in ci.yml to a commit SHA ([9631d0b](https://github.com/KennethWKZ/relaxjer/commit/9631d0b32918a144a4c048926665fa05605baf9f))
+
+### 🚚 Chores
+
+* **agents:** writing into the user's config folder is no longer denied ([0bb1c98](https://github.com/KennethWKZ/relaxjer/commit/0bb1c9895d0781ecc4b1b29d640f0ef8db581db7))
+* **design:** record two deliberate exceptions for the design detector ([43e1ae3](https://github.com/KennethWKZ/relaxjer/commit/43e1ae3a555f5e25ac27acd89549188dccff5c1f))
+* **design:** the design check accepts Roboto, which the Google Maps attribution needs ([7dc9e28](https://github.com/KennethWKZ/relaxjer/commit/7dc9e28cc693b28ceeceff022c634f460f45ac19))
+* **tests:** parity tool takes the reference commit explicitly ([0cfc200](https://github.com/KennethWKZ/relaxjer/commit/0cfc2001f269cce42ad007c7c94eb9421caf3945))
