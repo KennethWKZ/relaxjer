@@ -3753,7 +3753,7 @@ html:not(.js) .demo .route * {
 }
 @media (min-width: 900px) {
 	.duo {
-		grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+		grid-template-columns: minmax(0, 1fr) minmax(0, 22rem);
 		gap: 48px;
 	}
 }
@@ -3801,6 +3801,30 @@ html:not(.js) .demo .route * {
 }
 .packing li span {
 	padding-top: 2px;
+}
+/* the list in groups, two columns where they fit; each heading takes one ruled line */
+.pack-groups {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	column-gap: 36px;
+	margin-top: 18px;
+}
+@media (min-width: 700px) {
+	.pack-groups {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+.pack-group h4 {
+	margin: 0;
+	padding-top: 10px;
+	font-family: var(--font-head);
+	font-size: 1.0625rem;
+	font-weight: 800;
+	line-height: 34px;
+	color: var(--blue);
+}
+.pack-group ul {
+	margin: 0 0 8px;
 }
 .tag {
 	position: relative;
@@ -4142,6 +4166,10 @@ thead th.rec {
 	.js .settle.in {
 		opacity: 1;
 		transform: rotate(var(--tilt, 0deg));
+	}
+	/* the packing list is tall: an extra tilt would swing its corners past a phone's edge, so it only rises */
+	.js .packing.settle:not(.in) {
+		transform: translateY(26px) rotate(var(--tilt, 0deg));
 	}
 	.js .settle .postmark {
 		opacity: 0;
