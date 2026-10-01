@@ -39,8 +39,10 @@ pnpm sync end --trip trips/<slug>                         # after the trip: its 
   packing) unmarked.
 - Then `verify-page`, and `publish-htmlapp`; run `pnpm publish:trip trips/<slug> --audit --candidate <page>` before the
   first publish with sync, which also proves the page may reach the database from the live address.
-- **The planner runs `pnpm sync planner` themselves** (it asks for the code on their terminal; never type it for them
-  or put it in a command line). Then, on their own phone: Group sync → "I'm a planner" → the code. A planner can make
+- **The planner runs `pnpm sync planner` themselves** in their own terminal (it asks for the code twice, hidden; never
+  type it for them or put it in a command line). An agent's shell, or a `!` command in Claude Code, has no terminal to
+  ask on: there the planner writes the code alone in `~/.config/relaxjer/sync/<slug>.planner-code` (mode 600) from
+  their own terminal, and the command reads it and deletes it. Then, on their own phone: Group sync → "I'm a planner" → the code. A planner can make
   any other phone in the group a planner from "The group" list. On an iPhone the home-screen copy is a phone of its
   own: give the code there too. Running it again sets a new code; phones already planners stay planners
   ([ADR-20261002-sync-planners](../../../memory-bank/standards/decisions/ADR-20261002-sync-planners.md)).

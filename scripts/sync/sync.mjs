@@ -176,10 +176,23 @@ async function main(argv) {
 		const file = fileFor(slug);
 		need(fs.existsSync(file), `no sync file for ${slug} at ${file}: pnpm sync init first`);
 		const s = JSON.parse(fs.readFileSync(file, 'utf8'));
-		const code = await askHidden('Planner code (6+ characters, not shown; give it on your own phone in Group sync): ');
-		if (process.stdin.isTTY) need((await askHidden('Again: ')) === code, 'the two codes differ');
+		// the code comes from the planner's own terminal (asked twice, hidden), or, where there's no terminal to ask on
+		// (a `!` command in Claude Code has none), from a file the planner wrote themselves, deleted once read
+		const codeFile = path.join(SYNC_DIR, `${slug}.planner-code`);
+		const fromFile = fs.existsSync(codeFile);
+		let code;
+		if (fromFile) code = fs.readFileSync(codeFile, 'utf8').split('\n')[0];
+		else if (process.stdin.isTTY) {
+			code = await askHidden('Planner code (6+ characters, not shown; give it on your own phone in Group sync): ');
+			need((await askHidden('Again: ')) === code, 'the two codes differ');
+		} else code = await askHidden('');
+		need(
+			fromFile || process.stdin.isTTY || code,
+			`no terminal to ask for the code on. Run \`pnpm sync planner --trip ${tripDir}\` in your own terminal, or write the code alone in ${codeFile} (chmod 600) and run it again: the file is deleted once read`,
+		);
 		s.planner = plannerCode(code);
 		fs.writeFileSync(file, `${JSON.stringify(s, null, '\t')}\n`, { mode: 0o600 });
+		if (fromFile) fs.rmSync(codeFile);
 		console.log(`sync: planner code set for ${slug}. Rebuild with --sync ${file} and republish; phones already planners stay planners.`);
 	} else {
 		throw new Error('usage: pnpm sync rules|init|end|status|planner … (see scripts/sync/sync.mjs)');
