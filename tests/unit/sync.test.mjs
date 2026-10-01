@@ -111,11 +111,11 @@ test('Sync: merging applies what is newer, ignores our own echo, and drops our p
 	const known = { 'tick:before-charter': { u: 10, d: 'me' }, 'flt:arr': { u: 10, d: 'me' } };
 	const pending = { 'stop:mine-a': { v: stop('mine-a'), u: 50, d: 'me' }, 'flt:dep': { v: '01:10', u: 20, d: 'me' } };
 	const remote = {
-		'tick:before-charter': { v: null, u: 30, d: 'ken', n: 'Ken' }, // newer than what we know: apply
-		'flt:arr': { v: '18:00', u: 5, d: 'ken', n: 'Ken' }, // older: ignore
+		'tick:before-charter': { v: null, u: 30, d: 'lee', n: 'Lee' }, // newer than what we know: apply
+		'flt:arr': { v: '18:00', u: 5, d: 'lee', n: 'Lee' }, // older: ignore
 		'stop:mine-a': { v: stop('mine-a'), u: 50, d: 'me', n: '' }, // our own pending change coming back: ignore
-		'flt:dep': { v: '02:00', u: 40, d: 'ken', n: 'Ken' }, // beats our pending one: apply, drop ours
-		'shift:2027-03-15': { v: [{ from: 600, min: 30 }], u: 1, d: 'ken', n: 'Ken' }, // new to us: apply
+		'flt:dep': { v: '02:00', u: 40, d: 'lee', n: 'Lee' }, // beats our pending one: apply, drop ours
+		'shift:2027-03-15': { v: [{ from: 600, min: 30 }], u: 1, d: 'lee', n: 'Lee' }, // new to us: apply
 	};
 	const { apply, drop } = Sync.merge(known, pending, remote);
 	assert.deepEqual(apply.map(([rid]) => rid).sort(), ['flt:dep', 'shift:2027-03-15', 'tick:before-charter']);

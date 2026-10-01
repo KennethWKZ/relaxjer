@@ -42,12 +42,17 @@ pnpm sync end --trip trips/<slug>                         # after the trip: its 
 - **The planner runs `pnpm sync planner` themselves** in their own terminal (it asks for the code twice, hidden; never
   type it for them or put it in a command line). An agent's shell, or a `!` command in Claude Code, has no terminal to
   ask on: there the planner writes the code alone in `~/.config/relaxjer/sync/<slug>.planner-code` (mode 600) from
-  their own terminal, and the command reads it and deletes it. Then, on their own phone: Group sync → "I'm a planner" → the code. A planner can make
-  any other phone in the group a planner from "The group" list. On an iPhone the home-screen copy is a phone of its
-  own: give the code there too. Running it again sets a new code; phones already planners stay planners
+  their own terminal, and the command reads it and deletes it.
+- **Then rebuild and republish**: the code's hash is in the page. On their own phone the planner opens Group sync → "I'm
+  a planner" → the code. Ask everyone to set a name first: a planner can make another phone a planner only once it's
+  listed in "The group". A phone is its storage, so the iPhone home-screen copy, cleared site data or a reinstall is
+  a new phone: give the code there again, or have a planner promote it. Running `pnpm sync planner` again sets a new
+  code (rebuild and republish again); phones already planners stay planners. `pnpm sync init --force` makes a sync
+  file with no code: set it again
   ([ADR-20261002-sync-planners](../../../memory-bank/standards/decisions/ADR-20261002-sync-planners.md)).
-- Each phone changes only the stops it added; planners change any. A phone with no name gets a bar under the header
-  asking for one, and the add-stop sheet asks too.
+- A phone's first open asks for its name once (Not now leaves a bar under the header); the add-stop sheet asks too.
+- Each phone changes only the stops it added; planners change any. Pushed-back times, flight changes and shared ticks
+  stay open to every phone.
 
 ## Never
 
@@ -66,6 +71,8 @@ pnpm sync end --trip trips/<slug>                         # after the trip: its 
 | Page: "Group sync: stopped"               | The trip's token is gone (`sync end` ran, or `init` again): rebuild with the current sync file      |
 | Page: "the database refused a change"     | The rules weren't deployed (`pnpm sync rules`), or a phone's clock is more than a day ahead         |
 | Page: changes "waiting for a connection"  | Offline, or the page can't reach the database: run `--audit` for what the policy or network refused |
+| Page: no "I'm a planner" box              | No planner code in the page: the build says `planner code not set`; `pnpm sync planner`, rebuild    |
+| Page: "That isn't the planner code"       | A typo, or the code changed and the page wasn't rebuilt and republished since                       |
 
 ## Next
 

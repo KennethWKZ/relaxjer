@@ -31,6 +31,9 @@ sync isn't hidden in the Sections menu. Decided by the maintainer on 2026-10-02.
 
 ## Decision
 
+Scope: everything here but two items is for pages with group sync on. Undo on the toast and the caution for a busy
+day ship on every page, sync or not.
+
 - **A role belongs to a phone, not a name.** Records gain two kinds: `who:<device>` (the name a phone goes by) and
   `role:<device>` (`'planner'`, or gone). A stop records the phone that added it (`dev`). Stops from before the
   field belong to the phone that wrote their newest version (`Sync.ownerOf`).
@@ -38,22 +41,26 @@ sync isn't hidden in the Sections menu. Decided by the maintainer on 2026-10-02.
   a code (hidden, 6+ characters) and keeps only a salt and its PBKDF2-SHA-256 hash (210,000 rounds) in the trip's
   sync file. The build puts that hash in the page. A phone that gives the code under "I'm a planner" in Group sync
   writes `role:<itself>`. Planners make any phone in the group a planner, or not, from "The group" list. All
-  planners are equal. A phone can't take a name a planner's phone goes by.
+  planners are equal. A planner can promote only phones listed in "The group" (each person sets a name first) and
+  can't step down from its own row; another planner can. A phone can't take a name a planner's phone goes by.
 - **Who may do what:**
   - Everyone can change or remove the stops their own phone added, and clear them all: "Remove the N stops I added",
     which replaces "Back to the original plan" on the everyday controls.
   - A planner can also change or remove any stop, clear one phone's stops, and use "Back to the original plan, for
     everyone" in the Group sync sheet. That clears stops, flight changes and pushed-back times, never names, roles or
     ticks.
+  - Only stops are guarded (`canEditStop`). Pushed-back times, flight changes and shared ticks stay open to every
+    phone, as before: they're one per day or per item, and changing them is the point.
 - **Every removal can be undone.** The toast after a removal or reset carries Undo for 8 seconds. Undo puts back
   only what that action took, as a newer version, so stops the group added in between stay. Every stop that leaves
-  the plan, here or from another phone, goes on this phone's "Recently removed" list (`syncGone`, 30 entries, never
-  synced). Put back is offered to the phone that added the stop, and to planners.
+  the plan, here or from another phone, goes on this phone's "Recently removed" list (`syncGone`, never synced: it
+  keeps 30, the sheet shows the newest 10). Put back is offered to the phone that added the stop, and to planners.
 - **Sync is visible.** On a phone's first open with sync on, a welcome sheet asks for its name once, after the page
   has shown (a second, or the first scroll) and never over another sheet: Save, or Not now. Until it has a name, a
   bar under the header asks too (Add name / Later; Later hides it for a day). It's a sheet over the page, not a gate:
-  the group opens the link to see the plan, and everyone can type a name. The add-stop sheet says the stop goes on everyone's page and asks for a name right there. The Group sync
-  sheet lists the group: each phone's name, its added stops and whether it's a planner.
+  the group opens the link to see the plan, and everyone can type a name. The add-stop sheet says the stop goes on
+  everyone's page and asks for a name right there. The Group sync sheet lists the group: each phone's name, its
+  added stops and whether it's a planner.
 - **A soft limit, not a hard one.** Adding a stop to a day that already has 4 added stops shows a caution in the add
   sheet. The database can't count stops, because it only sees ciphertext.
 
@@ -70,15 +77,19 @@ sync isn't hidden in the Sections menu. Decided by the maintainer on 2026-10-02.
 
 ## Consequences
 
-- **Security:** roles are enforced by the page, not the database. They stop a family member making a mistake, but
-  not someone who edits the page's code: anyone with the page password could already write any record. The planner
-  code is never stored or shown, only a salted hash. A short code can be guessed offline by someone holding the
-  page, hence 6+ characters and many rounds. A leaked code: run `pnpm sync planner` again and republish; phones
+- **Security:** roles guard against mistakes, not attackers. The page enforces them, not the database: anyone with
+  the page password can edit the page's code and write any record, a `role:` for their own phone included. The
+  planner code is never stored or shown, only a salted hash (210,000 PBKDF2 rounds, below OWASP's 600,000 for
+  passwords): someone holding the page could guess a short code offline, so use one that isn't a password anywhere
+  else. A leaked code: run `pnpm sync planner` again, rebuild and republish (the hash is in the page); phones
   already planners stay planners.
-- **Operational:** the planner runs `pnpm sync planner` once per trip and gives the code on their own phone. On an
-  iPhone the home-screen copy has its own storage, so it counts as another phone: give the code there too, or make
-  it a planner. A live trip needs no migration: the new record kinds sit beside the old ones, and stops already
-  there keep the phone that last wrote them as their owner.
+- **Operational:** the planner runs `pnpm sync planner` once per trip, in their own terminal, then rebuilds and
+  gives the code on their own phone. `pnpm sync init --force` writes a sync file with no planner code: set it again.
+  A phone is its storage: the iPhone home-screen copy, a browser whose site data was cleared, or a reinstall is a new
+  phone, which can't change its old stops and isn't a planner until it gives the code again (or a planner makes it
+  one). A live trip needs no migration: the new record kinds sit beside the old ones, and stops already there keep
+  the phone that last wrote them as their owner. Phones still on the old build ignore `who:` and `role:` records
+  and stay unrestricted until they take the update bar.
 - **Cost:** none. A name and a role are a few small records per phone, within the free amounts.
 
 ## Read when

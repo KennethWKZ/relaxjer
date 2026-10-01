@@ -119,21 +119,21 @@ test.describe('group sync', { tag: '@demo' }, () => {
 		await syncRow(page);
 		await page.locator('#toc [data-sync-open]').click();
 		const name = page.locator('#placeSheet [data-sync-name]');
-		await name.fill('Ken');
+		await name.fill('Lee');
 		await name.dispatchEvent('change');
 		await page.locator('#placeSheet [data-close]').click();
 		await openSync(page, '#checklist');
 		await tick(page, 'before-arrival');
-		await expect(b.page.locator('#toast')).toContainText('Ken ticked', { timeout: 15_000 });
+		await expect(b.page.locator('#toast')).toContainText('Lee ticked', { timeout: 15_000 });
 	});
 
 	test('an added stop says who put it in the plan; only that phone can remove it, and it goes for everyone', async ({ page }) => {
 		await openSync(b.page);
 		await openSync(page);
-		await setName(page, 'Ken');
+		await setName(page, 'Lee');
 		await addByLink(page, 'Demo Named Stop');
 		const row = b.page.locator('#d3 .stop.mine', { hasText: 'Demo Named Stop' });
-		await expect(row.locator('.mine-tag'), 'the other phone sees who added it').toHaveText('Added by Ken', { timeout: 15_000 });
+		await expect(row.locator('.mine-tag'), 'the other phone sees who added it').toHaveText('Added by Lee', { timeout: 15_000 });
 		await expect(page.locator('#d3 [data-mine-share]'), 'everyone has the stops already: no share link').toHaveCount(0);
 		await expect(row.locator('[data-mine-del]'), 'not the other phone’s to remove').toHaveCount(0);
 		await expect(row.locator('[data-mine-edit]')).toHaveCount(0);
@@ -148,10 +148,10 @@ test.describe('group sync', { tag: '@demo' }, () => {
 	test('the planner code makes a phone a planner, who can change anyone’s stops and make others planners', async ({ page }) => {
 		await openSync(b.page);
 		await openSync(page);
-		await setName(page, 'Ken');
+		await setName(page, 'Lee');
 		await setName(b.page, 'Ana');
-		await addByLink(page, 'Demo Ken Stop');
-		const there = b.page.locator('#d3 .stop.mine', { hasText: 'Demo Ken Stop' });
+		await addByLink(page, 'Demo Lee Stop');
+		const there = b.page.locator('#d3 .stop.mine', { hasText: 'Demo Lee Stop' });
 		await expect(there).toBeVisible({ timeout: 15_000 });
 		await expect(there.locator('[data-mine-del]')).toHaveCount(0);
 
@@ -161,20 +161,20 @@ test.describe('group sync', { tag: '@demo' }, () => {
 		await sheet(b.page).locator('[data-planner-code]').fill(TEST_PLANNER_CODE);
 		await sheet(b.page).locator('[data-planner-ok]').click();
 		await expect(sheet(b.page).locator('.sync-role')).toContainText('planner');
-		const kenRow = sheet(b.page).locator('.sync-row', { hasText: 'Ken' });
+		const kenRow = sheet(b.page).locator('.sync-row', { hasText: 'Lee' });
 		await expect(kenRow).toContainText('1 added stop');
 		await sheet(b.page).locator('[data-close]').click();
 		await there.locator('[data-mine-del]').click();
-		await expect(page.locator('#d3 .stop.mine', { hasText: 'Demo Ken Stop' }), 'the planner removed it for everyone').toHaveCount(0, {
+		await expect(page.locator('#d3 .stop.mine', { hasText: 'Demo Lee Stop' }), 'the planner removed it for everyone').toHaveCount(0, {
 			timeout: 15_000,
 		});
 
-		// the planner makes Ken a planner too; then Ken's phone can change Ana's stop
+		// the planner makes Lee a planner too; then Lee's phone can change Ana's stop
 		await addByLink(b.page, 'Demo Ana Stop', 'd3', '18:00');
 		await openSyncSheet(b.page);
-		await sheet(b.page).locator('.sync-row', { hasText: 'Ken' }).locator('[data-role-set]').click();
-		await expect(b.page.locator('#toast')).toContainText('Ken is a planner now');
-		await expect(page.locator('#toast'), 'Ken hears it').toContainText('made Ken a planner', { timeout: 15_000 });
+		await sheet(b.page).locator('.sync-row', { hasText: 'Lee' }).locator('[data-role-set]').click();
+		await expect(b.page.locator('#toast')).toContainText('Lee is a planner now');
+		await expect(page.locator('#toast'), 'Lee hears it').toContainText('made Lee a planner', { timeout: 15_000 });
 		await expect(page.locator('#d3 .stop.mine', { hasText: 'Demo Ana Stop' }).locator('[data-mine-del]')).toHaveCount(1);
 
 		// a planner's name isn't for another phone to take
@@ -200,7 +200,7 @@ test.describe('group sync', { tag: '@demo' }, () => {
 	test('a removal can be undone from the toast, and put back later from Recently removed', async ({ page }) => {
 		await openSync(b.page);
 		await openSync(page);
-		await setName(page, 'Ken');
+		await setName(page, 'Lee');
 		await addByLink(page, 'Demo Oops Stop');
 		const there = b.page.locator('#d3 .stop.mine', { hasText: 'Demo Oops Stop' });
 		await expect(there).toBeVisible({ timeout: 15_000 });
@@ -215,7 +215,7 @@ test.describe('group sync', { tag: '@demo' }, () => {
 		await expect(there).toHaveCount(0, { timeout: 15_000 });
 		await openSyncSheet(b.page);
 		const gone = sheet(b.page).locator('.sync-row', { hasText: 'Demo Oops Stop' });
-		await expect(gone, 'the other phone lists it, and who removed it').toContainText('removed by Ken');
+		await expect(gone, 'the other phone lists it, and who removed it').toContainText('removed by Lee');
 		await expect(gone.locator('[data-gone-back]'), 'not its stop to put back').toHaveCount(0);
 		await sheet(b.page).locator('[data-close]').click();
 
@@ -227,16 +227,16 @@ test.describe('group sync', { tag: '@demo' }, () => {
 	test('“Remove the stops I added” takes only this phone’s; who added what is in the sheet', async ({ page }) => {
 		await openSync(b.page);
 		await openSync(page);
-		await setName(page, 'Ken');
+		await setName(page, 'Lee');
 		await setName(b.page, 'Ana');
 		await addByLink(b.page, 'Demo Ana Stop', 'd3', '18:00');
-		await addByLink(page, 'Demo Ken One', 'd3', '16:00');
-		await addByLink(page, 'Demo Ken Two', 'd3', '17:00');
+		await addByLink(page, 'Demo Lee One', 'd3', '16:00');
+		await addByLink(page, 'Demo Lee Two', 'd3', '17:00');
 		await expect(b.page.locator('#d3 .stop.mine')).toHaveCount(3, { timeout: 15_000 });
 		await expect(page.locator('#d3 .stop.mine')).toHaveCount(3, { timeout: 15_000 });
 
 		await openSyncSheet(page);
-		await expect(sheet(page).locator('.sync-row', { hasText: 'You (Ken)' })).toContainText('2 added stops');
+		await expect(sheet(page).locator('.sync-row', { hasText: 'You (Lee)' })).toContainText('2 added stops');
 		await expect(sheet(page).locator('.sync-row', { hasText: 'Ana' })).toContainText('1 added stop');
 		await expect(sheet(page).locator('[data-mine-clear-dev]'), 'clearing someone else’s is a planner’s').toHaveCount(0);
 		await expect(sheet(page).locator('[data-reset-all]'), 'so is resetting everyone’s plan').toHaveCount(0);
@@ -248,7 +248,7 @@ test.describe('group sync', { tag: '@demo' }, () => {
 	test('a planner can put everyone’s plan back; names stay, and Undo restores it', async ({ page }) => {
 		await openSync(b.page);
 		await openSync(page);
-		await setName(page, 'Ken');
+		await setName(page, 'Lee');
 		await addByLink(page, 'Demo Reset One', 'd3', '16:00');
 		await setName(b.page, 'Ana');
 		await claimPlanner(b.page);
@@ -265,7 +265,7 @@ test.describe('group sync', { tag: '@demo' }, () => {
 		await expect(page.locator('#d3 .stop.mine'), 'Undo puts both back').toHaveCount(2, { timeout: 15_000 });
 
 		await openSyncSheet(page);
-		await expect(sheet(page).locator('[data-sync-name]'), 'the reset leaves names alone').toHaveValue('Ken');
+		await expect(sheet(page).locator('[data-sync-name]'), 'the reset leaves names alone').toHaveValue('Lee');
 		await sheet(page).locator('[data-close]').click();
 		await openSyncSheet(b.page);
 		await expect(sheet(b.page).locator('[data-sync-name]')).toHaveValue('Ana');
@@ -331,10 +331,10 @@ test.describe('group sync', { tag: '@demo' }, () => {
 		await syncRow(page);
 		await page.locator('#toc [data-sync-open]').click();
 		const name = page.locator('#placeSheet [data-sync-name]');
-		await name.fill('Ken');
+		await name.fill('Lee');
 		await name.dispatchEvent('change');
 		await expect(page.locator('#toast')).toContainText('put on the 1 stop you added');
-		await expect(there.locator('.mine-tag'), 'the other phone gets the name').toHaveText('Added by Ken', { timeout: 15_000 });
+		await expect(there.locator('.mine-tag'), 'the other phone gets the name').toHaveText('Added by Lee', { timeout: 15_000 });
 	});
 
 	test('Sync now says it is working, then that it is done, and a second press meanwhile does nothing', async ({ page }) => {

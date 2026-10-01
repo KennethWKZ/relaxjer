@@ -3,7 +3,7 @@ id: ADR-20261001-group-sync
 date: 2026-10-01
 title: "Group Sync Through the Planner's Own Firebase Realtime Database, Over Its Plain HTTPS API"
 domain: data
-status: accepted
+status: amended
 ---
 
 # Group Sync Through the Planner's Own Firebase Realtime Database, Over Its Plain HTTPS API
@@ -42,10 +42,13 @@ the phone being online at the same moment as the others.
   which is the part the SDK can't do in a web page, and the SDK would add 287 KB of outside code that could read the
   keys.
 - **Who added a stop travels with it** (`by`, the name the phone gives in the Group sync sheet). A name given later
-  is put on the stops that phone added, so every phone sees it.
+  is put on the stops that phone added, so every phone sees it. Since
+  [ADR-20261002-sync-planners](ADR-20261002-sync-planners.md) a stop also carries the phone that added it (`dev`).
 - **What syncs is a set of records** (`engine/src/core/sync.mjs`): `stop:<id>`, `shift:<date>`, `flt:arr|dep`,
   `tick:<group>-<item>` for groups with `shared: true`. Everything else (language, theme, rate, personal ticks) stays
-  on the phone. Each record's newest version wins: the later edit, a tie to the larger device id.
+  on the phone. Each record's newest version wins: the later edit, a tie to the larger device id. Two more kinds since
+  [ADR-20261002-sync-planners](ADR-20261002-sync-planners.md): `who:<device>` (a phone's name) and `role:<device>`
+  (a planner).
 - **The phone's saved state is the source of truth.** A change is saved first, queued, and sent when there's a
   connection; what comes from the group is checked like a pasted share link, merged, saved, and the page redraws once
   it has settled. A phone's state from before sync goes in as the oldest version, so anything synced wins.
@@ -88,8 +91,10 @@ the phone being online at the same moment as the others.
   110 MB a month of the 10 GB, with at most six of the 100 allowed connections. On Spark (a project with no billing
   account) it can't charge at all; in the project that holds the Maps keys it's Blaze, billed only beyond those amounts,
   under that billing account's budget alert. The first trip shares one project for Maps and sync.
-- **Open:** a real-database check from a live page; whether checklist sharing should be per item rather than per group
-  (a group like "Before the trip" mixes a booking with each person's passport).
+- **Checked:** on 2026-10-02 the first trip's live database held records from three phones (counted without reading
+  them).
+- **Open:** whether checklist sharing should be per item rather than per group (a group like "Before the trip" mixes a
+  booking with each person's passport).
 
 ## Read when
 
