@@ -1,6 +1,8 @@
 // Getting around: instant tab jumps with a landing ring, the Back pill, the Sections menu, site search, offline notice.
 import { test, expect, openTrip } from '../support/fixtures.mjs';
-import { settle } from '../support/page.mjs';
+import { settle, setStored } from '../support/page.mjs';
+
+/* global DAYS -- the trip data, read inside the page */
 
 const top = (page, sel) => page.locator(sel).evaluate((e) => e.getBoundingClientRect().top);
 // a landed section sits just under the sticky bar; the legacy suites allowed a few px of sub-pixel overshoot
@@ -119,3 +121,32 @@ for (const id of ['entry', 'budget', 'checklist']) {
 		expect(t, `#${id} top after load`).toBeLessThanOrEqual(LANDED.max);
 	});
 }
+
+// any trip: on a trip day the sheet opens with Now and Next, each marked with the day's knot: filled, then a ring
+test('on a trip day the Sections sheet leads with Now and Next, marked as on the day', async ({ page }) => {
+	await openTrip(page);
+	const at = await page.evaluate(() => {
+		const d = DAYS.find((x) => x.schedule.filter((it) => /^~?\d{1,2}:\d\d/.test(String(it.t || ''))).length >= 2);
+		const m = /(\d{1,2}):(\d\d)/.exec(d.schedule.find((it) => /^~?\d{1,2}:\d\d/.test(String(it.t || ''))).t);
+		return `${d.date} ${m[1].padStart(2, '0')}:${m[2]}`; // the day's first timed stop, as it starts
+	});
+	await setStored(page, { now: at });
+	await page.evaluate(() => window.scrollBy(0, 1200));
+	await settle(page);
+	await page.locator('#tocBtn').click();
+	const rows = page.locator('#toc .toc-now');
+	await expect(rows.first()).toHaveClass(/\bis-now\b/);
+	await expect(rows.nth(1)).toHaveClass(/\bis-next\b/);
+	const knot = (i) =>
+		rows
+			.nth(i)
+			.locator('.toc-k')
+			.evaluate((e) => {
+				const k = getComputedStyle(e, '::before'); // WebKit hands back no plain copy of a style object
+				return { content: k.content, backgroundColor: k.backgroundColor, borderTopColor: k.borderTopColor };
+			});
+	const [now, next] = [await knot(0), await knot(1)];
+	expect(now.content, 'the knot shows').not.toBe('none');
+	expect(now.backgroundColor, 'Now is filled with the knot colour').toBe(now.borderTopColor);
+	expect(next.backgroundColor, 'Next is a ring').not.toBe(next.borderTopColor);
+});

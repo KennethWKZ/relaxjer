@@ -20,13 +20,14 @@ function renderToc() {
 	let lead;
 	if (today) {
 		const nn = nowNext(today, now.mins);
-		const row = (k, x) =>
+		// Now and Next lead with the day's knots, as on its string: filled for the current stop, a ring for the next
+		const row = (k, x, kind) =>
 			x
-				? `<a class="toc-now" href="#${today.id}-s${x.i}" style="${colorVars(today.c)}"><span class="toc-k">${k}</span><span>${esc(L(x.it.t || ''))} · ${esc(L(x.it.what).replace(/\*\*/g, ''))}</span></a>`
+				? `<a class="toc-now ${kind}" href="#${today.id}-s${x.i}" style="${colorVars(today.c)}"><span class="toc-k">${k}</span><span>${esc(L(x.it.t || ''))} · ${esc(L(x.it.what).replace(/\*\*/g, ''))}</span></a>`
 				: '';
 		lead =
-			row(Z('现在', 'Now'), nn.cur) + row(Z('下一站', 'Next'), nn.next) ||
-			`<a class="toc-now" href="#${today.id}" style="${colorVars(today.c)}"><span class="toc-k">${Z('今天', 'Today')}</span><span>Day ${today.n} · ${esc(L(today.title))}</span></a>`;
+			row(Z('现在', 'Now'), nn.cur, 'is-now') + row(Z('下一站', 'Next'), nn.next, 'is-next') ||
+			`<a class="toc-now is-today" href="#${today.id}" style="${colorVars(today.c)}"><span class="toc-k">${Z('今天', 'Today')}</span><span>Day ${today.n} · ${esc(L(today.title))}</span></a>`;
 	} else {
 		const left = dnum(TRIP.start) - dnum(now.date);
 		lead = `<a class="toc-now" href="#top"><span class="toc-k">${left > 0 ? Z(`${left} 天`, `${left} d`) : Z('结束', 'Done')}</span><span>${left > 0 ? Z('还没出发 · 看总览和出发前要做的事', 'Before the trip · overview and to-dos') : Z('旅程已结束 · 回到总览', 'Trip over · back to overview')}</span></a>`;

@@ -454,6 +454,7 @@ Every control is a plain, heavy-lettered rectangle with a 44 px floor (48–52 p
 - **Day tabs:** 44 px tall, at least 48 px wide, 10 px radius, Fog Grey. Each shows the date number (1rem at 750) and weekday (0.6875rem) under a short 3 px bar in the day colour. The current tab fills (a day with its lantern pair, a section with ink) and adds a second cue: 800 weight and a 3 px bar in its own ink along the bottom, so it never differs by hue alone. Tabs sit 8 px apart. The strip scrolls sideways with no visible scrollbar, so each edge with more tabs behind it fades out over 32 px.
 - **Now stripe:** a 3 px stripe under the sticky header takes the colour of the day in view (`--now`), fading over 240 ms, and falls back to `rule` between days.
 - **Sections button:** a floating 52 px ink button, bottom right, that opens the sections sheet.
+- **Sections sheet:** on a trip day it opens with Now and Next rows that lead with the day's knots, as on its string: a filled knot with a 5 px halo for Now, a 12 px ring for Next (and for Today before the first stop). The knot is the day colour mixed 55 % with ink, like the landing ring, so every lantern reaches 3:1 on the Fog Grey row.
 - **Back pill:** a floating 52 px paper button, bottom left, with a hairline border and the float shadow. After a jump it returns the reader to where they were, then slides away (fades and drops 14 px).
 
 ### Signature: the Lantern and its string
