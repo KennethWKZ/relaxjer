@@ -375,7 +375,52 @@ function groupSync() {
 		save();
 	}
 	catchUp();
+	syncWelcomeSoon();
 }
+
+/* a phone's first open with sync on and no name: a welcome sheet asks for it once, after the page has shown (a second,
+   or the first scroll), never over another sheet. "Not now" leaves the bar under the header as the reminder */
+function syncWelcomeSoon() {
+	const m = syncMeta();
+	if (!m || m.name || store.get('syncWelcomed', false)) return;
+	let done = false;
+	const show = () => {
+		if (done) return;
+		done = true;
+		window.removeEventListener('scroll', show);
+		const n = syncMeta();
+		if (!n || n.name || $('dialog[open]')) return; // named meanwhile, or busy with another sheet: next time
+		store.set('syncWelcomed', true);
+		openSheet(syncWelcomeHTML());
+	};
+	setTimeout(show, 1200);
+	window.addEventListener('scroll', show, { passive: true, once: true });
+}
+function syncWelcomeHTML() {
+	return `<div data-sync-welcome><h3 class="spots-h">${icon('users')}${Z('欢迎！大家怎么称呼你？', 'Welcome! What should the group call you?')}</h3>
+      <p class="small">${Z('全组同步已开：你加的行程、改的时间会出现在大家的手机上。写上名字，大家就知道是谁改的。', 'Group sync is on: stops you add and times you change show on everyone’s phone. Your name tells them who changed what.')}</p>
+      <label class="sync-name">${Z('你的名字', 'Your name')}<input type="text" data-sync-name data-welcome-name maxlength="24" autocomplete="nickname" enterkeyhint="done"></label>
+      <div class="links-row"><button type="button" class="go-btn" data-welcome-save>${icon('check')}${Z('保存', 'Save')}</button><button type="button" class="mlink" data-close>${Z('先不用', 'Not now')}</button></div>
+      <p class="xsmall muted">${Z('以后可以在「目录 → 全组同步」改。', 'You can change it later: Sections → Group sync.')}</p></div>`;
+}
+// Save (or Enter): the field's own change does the saving; the sheet closes once the name took
+function syncWelcomeSave() {
+	const inp = $('#placeSheet [data-welcome-name]');
+	if (!inp) return;
+	if (!inp.value.trim()) {
+		inp.focus();
+		return toast(Z('先写上名字', 'Type a name first'));
+	}
+	inp.dispatchEvent(new Event('change', { bubbles: true }));
+	const m = syncMeta();
+	if (m && m.name === inp.value.trim().slice(0, 24)) closeDialog($('#placeSheet'));
+}
+document.addEventListener('keydown', (e) => {
+	if (e.key === 'Enter' && e.target.closest('[data-welcome-name]')) {
+		e.preventDefault();
+		syncWelcomeSave();
+	}
+});
 
 /* what the page says about it: a row in the sections menu, and a sheet with the details and the name others see. These
    are function declarations: the menu's first draw runs before this file does */

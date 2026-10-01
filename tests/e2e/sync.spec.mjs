@@ -4,7 +4,7 @@
 // the page says so and keeps working on its own copy.
 import { test, expect } from '../support/fixtures.mjs';
 import { TEST_PLANNER_CODE } from '../support/global-setup.mjs';
-import { endSync, freshDatabase, hasSyncPage, joinSpace, openSync, secondPhone, stored } from '../support/sync.mjs';
+import { endSync, freshDatabase, hasSyncPage, joinSpace, openSync, secondPhone, skipWelcome, stored } from '../support/sync.mjs';
 
 const stopLink = (name) => {
 	const pack = [['d3', '16:00', name, 25.1366, 121.5069, '', 'Beitou (demo)']];
@@ -57,6 +57,7 @@ test.describe('group sync', { tag: '@demo' }, () => {
 	test.beforeEach(async ({ browser, request, tripNow, tripLang, page, context }, testInfo) => {
 		await freshDatabase(request, testInfo);
 		await joinSpace(context, testInfo);
+		await skipWelcome(context);
 		page.on('dialog', (d) => d.accept());
 		b = await secondPhone(browser, testInfo, { now: tripNow, lang: tripLang });
 		b.page.on('dialog', (d) => d.accept());
@@ -269,6 +270,38 @@ test.describe('group sync', { tag: '@demo' }, () => {
 		await openSyncSheet(b.page);
 		await expect(sheet(b.page).locator('[data-sync-name]')).toHaveValue('Ana');
 		await expect(sheet(b.page).locator('.sync-role'), 'and planners').toContainText('planner');
+	});
+
+	test('a phone’s first open asks for its name once, after the page shows; Not now leaves the bar', async ({
+		browser,
+		tripNow,
+		tripLang,
+	}, testInfo) => {
+		const c = await secondPhone(browser, testInfo, { now: tripNow, lang: tripLang, welcome: true });
+		await openSync(c.page);
+		const welcome = c.page.locator('#placeSheet [data-sync-welcome]');
+		await expect(welcome, 'after the page has drawn').toBeVisible({ timeout: 5_000 });
+		await welcome.locator('[data-welcome-name]').fill('Mei');
+		await welcome.locator('[data-welcome-save]').click();
+		await expect(c.page.locator('#placeSheet')).not.toHaveAttribute('open', '');
+		await expect(c.page.locator('#toast')).toContainText('Name saved');
+		await expect(c.page.locator('#syncBar')).toBeHidden();
+		await c.page.reload();
+		await c.page.waitForTimeout(1800);
+		await expect(c.page.locator('#placeSheet [data-sync-welcome]'), 'once only').toHaveCount(0);
+		expect(c.errors).toEqual([]);
+		await c.context.close();
+
+		const d = await secondPhone(browser, testInfo, { now: tripNow, lang: tripLang, welcome: true });
+		await openSync(d.page);
+		await expect(d.page.locator('#placeSheet [data-sync-welcome]')).toBeVisible({ timeout: 5_000 });
+		await d.page.locator('#placeSheet [data-sync-welcome] [data-close]').click();
+		await expect(d.page.locator('#syncBar'), 'Not now: the bar stays as the reminder').toContainText('Group sync is on');
+		await d.page.reload();
+		await d.page.waitForTimeout(1800);
+		await expect(d.page.locator('#placeSheet [data-sync-welcome]'), 'asked once, not every open').toHaveCount(0);
+		expect(d.errors).toEqual([]);
+		await d.context.close();
 	});
 
 	test('a phone with no name gets a bar that asks for one, and “Later” puts it away', async ({ page }) => {

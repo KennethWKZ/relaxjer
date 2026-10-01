@@ -27,6 +27,16 @@ export const endSync = async (request, testInfo) => request.delete(`/__rtdb-admi
 /** the records the database holds, as stored */
 export const stored = async (request, testInfo) => (await request.get(`/__rtdb-admin/dump?${admin(testInfo)}`)).json();
 
+/** a phone past its first-open welcome sheet (the sync tests that aren't about it) */
+export const skipWelcome = (context) =>
+	context.addInitScript((key) => {
+		try {
+			localStorage.setItem(`${key}syncWelcomed`, 'true');
+		} catch {
+			/* storage blocked */
+		}
+	}, STORE_KEY);
+
 /** Opens the sync page and waits for the first render. */
 export async function openSync(page, hash = '') {
 	await page.goto(`${SYNC_PAGE}${hash}`);
@@ -36,9 +46,10 @@ export async function openSync(page, hash = '') {
 const CONTEXT_OPTIONS = ['viewport', 'userAgent', 'deviceScaleFactor', 'isMobile', 'hasTouch', 'baseURL', 'timezoneId', 'locale'];
 /**
  * Another phone in the group: its own browser context (its own storage), no outside network, the trip clock and
- * language pinned like the fixtures do, and its page errors collected for the test to check.
+ * language pinned like the fixtures do, past the welcome sheet unless `welcome`, and its page errors collected for the
+ * test to check.
  */
-export async function secondPhone(browser, testInfo, { now, lang }) {
+export async function secondPhone(browser, testInfo, { now, lang, welcome = false }) {
 	const use = testInfo.project.use;
 	const context = await browser.newContext(Object.fromEntries(CONTEXT_OPTIONS.filter((k) => use[k] !== undefined).map((k) => [k, use[k]])));
 	await context.route('**/*', (route) => {
@@ -59,6 +70,7 @@ export async function secondPhone(browser, testInfo, { now, lang }) {
 		{ now, lang, key: STORE_KEY },
 	);
 	await joinSpace(context, testInfo);
+	if (!welcome) await skipWelcome(context);
 	const page = await context.newPage();
 	const errors = [];
 	page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));

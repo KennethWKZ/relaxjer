@@ -49,8 +49,10 @@ sync isn't hidden in the Sections menu. Decided by the maintainer on 2026-10-02.
   only what that action took, as a newer version, so stops the group added in between stay. Every stop that leaves
   the plan, here or from another phone, goes on this phone's "Recently removed" list (`syncGone`, 30 entries, never
   synced). Put back is offered to the phone that added the stop, and to planners.
-- **Sync is visible.** A bar under the header asks a phone with no name for one (Add name / Later; Later hides it for
-  a day). The add-stop sheet says the stop goes on everyone's page and asks for a name right there. The Group sync
+- **Sync is visible.** On a phone's first open with sync on, a welcome sheet asks for its name once, after the page
+  has shown (a second, or the first scroll) and never over another sheet: Save, or Not now. Until it has a name, a
+  bar under the header asks too (Add name / Later; Later hides it for a day). It's a sheet over the page, not a gate:
+  the group opens the link to see the plan, and everyone can type a name. The add-stop sheet says the stop goes on everyone's page and asks for a name right there. The Group sync
   sheet lists the group: each phone's name, its added stops and whether it's a planner.
 - **A soft limit, not a hard one.** Adding a stop to a day that already has 4 added stops shows a caution in the add
   sheet. The database can't count stops, because it only sees ciphertext.

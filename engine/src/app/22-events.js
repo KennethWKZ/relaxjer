@@ -367,6 +367,10 @@ document.addEventListener('click', (e) => {
 		toastRun();
 		return;
 	}
+	if (t.matches('[data-welcome-save]')) {
+		syncWelcomeSave();
+		return;
+	}
 	if (t.matches('[data-sync-later]')) {
 		store.set('syncBarLater', Date.now() + 24 * 3600000);
 		syncBarPaint();
