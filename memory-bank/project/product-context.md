@@ -64,9 +64,9 @@ What every trip page keeps. It came from the first trip, and the tests character
     anchoring the day;
   - your own added stops: a per-day button, a "+" under each timeline dot, clash and deadline checks, a caution when a
     day already has 4 added stops, and Undo on the toast after a removal (every page). With group sync, a link isn't
-    needed: they reach every phone marked with who added them. Each phone changes or removes only the stops it
-    added, and "Remove the N stops I added" clears them; a planner can change any, clear one phone's, block one, and
-    put the whole plan back. A phone's "Recently removed" list (30 kept, the newest 10 shown) offers Put back. Only stops are
+    needed: they reach every phone marked with who added them. Each phone changes or removes only the stops it added,
+    and "Remove the N stops I added" clears them; a planner can change any, clear one phone's, block one, and put the
+    whole plan back. A phone's "Recently removed" list (30 kept, the newest 10 shown) offers Put back. Only stops are
     guarded: pushed-back times, flight changes and ticks stay open to every phone;
   - a day that splits: part of the group takes its own plan for a few hours, forked from the day's string with its
     go / wait / skip rule, and the stop where they come back says so.
