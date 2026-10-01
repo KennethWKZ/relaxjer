@@ -62,6 +62,10 @@ the hotel's old-name note assumes `PLACES.hotel`.
   with the plan's `join`).
 - Walking minutes count ×1.4 only in the add sheet's getting-there check; cards, the transit planner and the nearby
   lists show the base pace.
+- CI's WebKit jobs install WebKit's system packages from Ubuntu's mirror on every run. On 2026-10-01 the mirror served
+  them at about 100 kB/s, so the install took 20 minutes and the job 27 of its 30. Running the e2e jobs in Playwright's
+  own container image (packages preinstalled) would remove the step. The two-phone sync journeys also need
+  `test.slow()` there: they take about 13 s on a laptop and three times that on the runner.
 - MapLibre GL JS 6 (July 2026) is ESM-only; the page pins 5.24 from cdnjs. Moving to 6 is an engine change, not a
   version bump.
 - The engine's lantern look came from the first destination. Whether a destination pack may re-theme it is open
