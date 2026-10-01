@@ -354,16 +354,25 @@ async function smoke(url, viewer) {
 	return problems;
 }
 
-async function main(argv) {
-	const dry = argv.includes('--dry-run');
-	const checkOnly = argv.includes('--check');
-	const auditOnly = argv.includes('--audit');
-	const newPassword = argv.includes('--new-password');
+/** the trip folder and the flags; the word after `--candidate` is its page, never the trip */
+export function parseArgs(argv) {
 	const ci = argv.indexOf('--candidate');
-	const candidateArg = ci >= 0 ? argv[ci + 1] : null;
-	const tripArg = argv.find((a, i) => !a.startsWith('--') && i !== ci + 1);
+	const candidateArg = ci >= 0 && argv[ci + 1] && !argv[ci + 1].startsWith('--') ? argv[ci + 1] : null;
+	const tripArg = argv.find((a, i) => !a.startsWith('--') && (ci < 0 || i !== ci + 1));
 	if (!tripArg || (ci >= 0 && !candidateArg))
 		throw new Error('usage: pnpm publish:trip trips/<slug> [--new-password] [--dry-run | --check | --audit [--candidate <page>]]');
+	return {
+		tripArg,
+		candidateArg,
+		dry: argv.includes('--dry-run'),
+		checkOnly: argv.includes('--check'),
+		auditOnly: argv.includes('--audit'),
+		newPassword: argv.includes('--new-password'),
+	};
+}
+
+async function main(argv) {
+	const { tripArg, candidateArg, dry, checkOnly, auditOnly, newPassword } = parseArgs(argv);
 	const tripDir = path.resolve(tripArg);
 	const slug = path.basename(tripDir);
 	const dist = path.join(tripDir, 'dist');

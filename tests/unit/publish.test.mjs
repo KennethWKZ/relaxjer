@@ -14,6 +14,7 @@ import {
 	inlineScripts,
 	keychainKey,
 	loudHeaders,
+	parseArgs,
 	policyOf,
 	readNextViewer,
 	readSecrets,
@@ -113,6 +114,22 @@ test('publish audit: header report drops transport noise and never shows a cooki
 		'content-security-policy': "frame-ancestors 'none'",
 	});
 	assert.deepEqual(loudHeaders(h), { 'content-security-policy': "frame-ancestors 'none'", 'content-type': 'text/html', 'set-cookie': '<present>' });
+});
+
+test('publish: the trip folder is found with or without a candidate page, and a bare --candidate is refused', () => {
+	assert.equal(parseArgs(['trips/demo', '--audit']).tripArg, 'trips/demo', 'the trip comes first, with no --candidate');
+	assert.equal(parseArgs(['trips/demo', '--audit']).candidateArg, null);
+	assert.deepEqual(
+		(({ tripArg, candidateArg, auditOnly }) => ({ tripArg, candidateArg, auditOnly }))(
+			parseArgs(['--audit', '--candidate', '.cache/audit/x.html', 'trips/demo']),
+		),
+		{ tripArg: 'trips/demo', candidateArg: '.cache/audit/x.html', auditOnly: true },
+	);
+	assert.equal(parseArgs(['trips/demo', '--audit', '--candidate', 'x.html']).tripArg, 'trips/demo');
+	assert.equal(parseArgs(['trips/demo', '--dry-run', '--new-password']).newPassword, true);
+	assert.throws(() => parseArgs(['trips/demo', '--audit', '--candidate']), /usage/);
+	assert.throws(() => parseArgs(['trips/demo', '--candidate', '--audit']), /usage/);
+	assert.throws(() => parseArgs(['--audit']), /usage/);
 });
 
 test('publish audit: inline scripts are found as the policy hashes them, and a difference is located without the key', () => {
