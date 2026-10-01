@@ -312,7 +312,7 @@ function spotsSheet(pk, rest, date) {
 	const sub = rest
 		? Z('茶馆、甜品、咖啡馆：有位子坐，吹冷气歇一下。按距离排。', 'Teahouses, desserts, cafés: seats and AC. Nearest first.')
 		: Z('手摇饮和台湾经典饮料，边走边喝。按距离排。', 'Tea stands and Taiwan classics to sip on the go. Nearest first.');
-	return `<h3 class="spots-h">${icon(rest ? 'coffee' : 'boba')}${esc(h)}</h3><p class="xsmall muted">${sub}${date ? Z(`只列${+date.slice(5, 7)}月${+date.slice(8)}日有开的。`, ` Open on ${+date.slice(8)} Oct only.`) : ''}</p><ul class="spots">${rows.map(row).join('')}</ul>${rest ? '' : drinkHowTo()}`;
+	return `<h3 class="spots-h">${icon(rest ? 'coffee' : 'boba')}${esc(h)}</h3><p class="xsmall muted">${sub}${date ? Z(`只列${+date.slice(5, 7)}月${+date.slice(8)}日有开的。`, ` Open on ${Time.shortDate(date, 'en')} only.`) : ''}</p><ul class="spots">${rows.map(row).join('')}</ul>${rest ? '' : drinkHowTo()}`;
 }
 function mealEats(d, it) {
 	const hit = (MEAL_AT[d.id] || []).find(([re]) => re.test(Array.isArray(it.what) ? it.what[0] : String(it.what || '')));
