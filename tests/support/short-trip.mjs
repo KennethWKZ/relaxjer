@@ -37,6 +37,7 @@ const RESHAPE = `
 	for (const x of [...shops, ...(WEATHER.outfits || [])]) if (x.day) x.day = rename[x.day];
 	for (const x of shops) if (!x.day) delete x.day;
 	WEATHER.outfits = (WEATHER.outfits || []).filter((x) => x.day);
+	for (const o of OPTIONAL) if (o.near) o.near = o.near.filter((n) => rename[n.day]).map((n) => ({ ...n, day: rename[n.day] }));
 }
 `;
 

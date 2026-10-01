@@ -878,6 +878,8 @@ const OPTIONAL = [
 		photo: '',
 		ticket: 't101',
 		name: ['台北101观景台', 'Taipei 101 Observatory'],
+		short: ['101观景台', '101 Observatory'],
+		near: [{ day: 'd6', place: 'songshan' }], // a chip under that day's stop; tapping it opens this card
 		meta: ['不排进行程', 'Not scheduled'],
 		when: ['天气好的傍晚', 'A clear evening'],
 		list: [

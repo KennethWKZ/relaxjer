@@ -78,3 +78,29 @@ test('shop lists: any number, each with a unique id and known places', () => {
 	const problems = checkTrip(trip).join('\n');
 	for (const want of ['id used twice', 'unknown place "nowhere"']) assert.match(problems, new RegExp(want));
 });
+
+test('an optional plan is suggested only at a stop its day has, and the short trip follows the renumbered day', () => {
+	const trip = loadTrip(DEMO_TRIP);
+	const o = trip.OPTIONAL[0];
+	assert.ok(o.near?.length, 'the demo suggests an optional plan at a stop');
+	assert.equal(loadTrip(makeShortTrip()).OPTIONAL[0].near[0].day, 'd3', 'demo day 6 is the short trip’s day 3');
+	trip.OPTIONAL.push({
+		...o,
+		near: [
+			{ day: 'd9', place: o.near[0].place },
+			{ day: 'd1', place: 'hotel-nowhere' },
+		],
+		short: 'Tower',
+	});
+	trip.OPTIONAL.push({ ...o, id: 'opt two', place: 'atlantis' });
+	const problems = checkTrip(trip).join('\n');
+	for (const want of [
+		`OPTIONAL ${o.id}: needs a unique id`,
+		'near: no day "d9"',
+		'near: d1 has no stop at "hotel-nowhere"',
+		'short must be [zh, en]',
+		'OPTIONAL opt two: needs a unique id',
+		'unknown place "atlantis"',
+	])
+		assert.match(problems, new RegExp(want.replace(/[()[\]]/g, '.')), want);
+});

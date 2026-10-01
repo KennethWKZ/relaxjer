@@ -1,5 +1,5 @@
 ---
-total_decisions: 11
+total_decisions: 12
 last_updated: 2026-10-01
 ---
 
@@ -24,6 +24,7 @@ merged id never changes; a new ADR that collides takes a fresh slug.
 | [ADR-20261001-group-sync](decisions/ADR-20261001-group-sync.md)                             | 2026-10-01 | Group Sync Through the Planner's Own Firebase Realtime Database, Over Its Plain HTTPS API            | data     | accepted |
 | [ADR-20261001-live-page-on-relaxjer](decisions/ADR-20261001-live-page-on-relaxjer.md)       | 2026-10-01 | The First Trip's Live Page Is Built by RelaxJer                                                      | hosting  | accepted |
 | [ADR-20261001-memory-bank-agent-config](decisions/ADR-20261001-memory-bank-agent-config.md) | 2026-10-01 | Project Context Lives in memory-bank/; Agent Tooling Works for Any Agent, With Claude Code Extras    | agents   | accepted |
+| [ADR-20261001-option-chips](decisions/ADR-20261001-option-chips.md)                         | 2026-10-01 | An Optional Plan Can Be Suggested at a Stop, and Opens Over the Day                                  | data     | accepted |
 | [ADR-20261001-page-csp](decisions/ADR-20261001-page-csp.md)                                 | 2026-10-01 | The Trip Page Carries Its Own Content-Security-Policy, and MapLibre Loads With Subresource Integrity | security | accepted |
 | [ADR-20261001-project-tooling](decisions/ADR-20261001-project-tooling.md)                   | 2026-10-01 | Project Tooling Follows the Maintainer's Standard Setup                                              | tooling  | accepted |
 | [ADR-20261001-resync-cost-guard](decisions/ADR-20261001-resync-cost-guard.md)               | 2026-10-01 | The Data Refresh Answers From Its Cache, and Paying Google for More Is the Planner’s Call            | data     | accepted |

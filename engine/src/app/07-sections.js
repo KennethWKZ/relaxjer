@@ -818,6 +818,7 @@ function secDay(d, today) {
         ${it._clash ? `<p class="warn">${icon('alert')}${esc(Z(`推迟后会撞到 ${L(it._clash.t)}「${stopName(it._clash)}」：这一项缩短或跳过`, `Now runs into the fixed ${L(it._clash.t)} ${stopName(it._clash)}: shorten or skip this`))}</p>` : ''}
         ${it.place || it.link ? `<div class="stop-links">${it.place ? placeLinks(it.place, { noDriver: true, noSite: false }) : ''}${it.link ? `<a class="mlink" href="${it.link}">${icon('arrow')}${Z('看详情', 'Details')}</a>` : ''}</div>` : ''}
         ${mealEats(d, it)}
+        ${nearOpts(d, it)}
         ${nearWish(d, it)}
         ${nearDrinks(d, it)}
         ${it.photo ? thumb(it.photo) : ''}</div></li>`;
@@ -1030,6 +1031,18 @@ function calcLucky() {
 			: `<dl class="kv"><div><dt>${Z(`${LK.repeat[0]}（各${Pack.sym}${num(Pack.luckyDraw.repeat)}）`, `${LK.repeat[1]} (${Pack.sym}${num(Pack.luckyDraw.repeat)} each)`)}</dt><dd>${r}</dd></div><div><dt>${Z(`${LK.companion[0]}（各${Pack.sym}${num(Pack.luckyDraw.companion)}）`, `${LK.companion[1]} (${Pack.sym}${num(Pack.luckyDraw.companion)} each)`)}</dt><dd>${comp}</dd></div>${left ? `<div><dt>${Z('不能参加', "Can't join")}</dt><dd>${left}</dd></div>` : ''}<div class="sum"><dt>${esc(L(LK.all))}</dt><dd>${Pack.sym}${num(total)}</dd></div></dl><p class="note"><span data-rm="${total},${total}">${rmText(total, total)}</span> · ${Z('要中奖才有，不保证。', 'Only if drawn; not guaranteed.')}</p>`;
 }
 
+// one optional plan's card: in the Optional section, and in a sheet over the day from a stop's "Nearby options"
+function optCard(o) {
+	const a = addrFor(o.place);
+	const g = (GEO && GEO.places && GEO.places[o.place]) || {};
+	const hours = lang === 'en' ? g.hours_en : g.hours_zh;
+	return `<article class="hang" id="${o.id}"><div class="hang-h">${credit[o.photo] ? `<img src="${imgSrc(o.photo, true)}" data-img="${imgKey(o.photo, true)}" alt="" width="64" height="64" loading="lazy">` : ''}<div><p class="hang-name"${alt(other(o.name))}>${esc(L(o.name))}</p><p class="hang-meta">${esc(L(o.meta))}</p></div></div>
+        <p class="note"><strong>${esc(L(o.when))}:</strong></p>${list(o.list)}
+        <div class="total" style="margin-top:10px"><span>${fmt(o.cost)}</span></div><p class="note">${fmt(o.note)}</p>
+        ${a.zh ? `<p class="addr">${icon('pin')}<span>${esc(a.zh)}${lang === 'en' && a.en ? `<br><span class="xsmall">${esc(a.en)}</span>` : ''}</span></p>` : ''}${hours ? `<p class="xsmall">${icon('clock')} ${esc(hours)}</p>` : ''}${mrtLine(g.mrt)}
+        <div class="links-row">${placeLinks(o.place)}</div>${o.ticket ? ticketBlock(o.ticket) : ''}</article>`;
+}
+
 function secOptional() {
 	const shop = (s) => {
 		const p = PLACES[s.place];
@@ -1040,18 +1053,10 @@ function secOptional() {
         ${p.mrt ? `<p class="xsmall">${icon('train')} ${fmt(p.mrt)}</p>` : ''}${p.hours ? `<p class="xsmall">${icon('clock')} ${fmt(p.hours)}${p.tel ? ` · ${Z('电话', 'Tel')} <span class="sel">${esc(p.tel)}</span>` : ''}</p>` : ''}
         <div class="links-row">${placeLinks(s.place, { noDriver: true })}${dayById[s.day] ? `<a class="mlink" href="#${s.day}">${icon('calendar')}Day ${dayById[s.day].n}</a>` : ''}</div></article>`;
 	};
-	const opt = (o) => {
-		const a = addrFor(o.place);
-		return `<article class="hang" id="${o.id}"><div class="hang-h">${credit[o.photo] ? `<img src="${imgSrc(o.photo, true)}" data-img="${imgKey(o.photo, true)}" alt="" width="64" height="64" loading="lazy">` : ''}<div><p class="hang-name"${alt(other(o.name))}>${esc(L(o.name))}</p><p class="hang-meta">${esc(L(o.meta))}</p></div></div>
-        <p class="note"><strong>${esc(L(o.when))}:</strong></p>${list(o.list)}
-        <div class="total" style="margin-top:10px"><span>${fmt(o.cost)}</span></div><p class="note">${fmt(o.note)}</p>
-        ${a.zh ? `<p class="addr">${icon('pin')}<span>${esc(a.zh)}${lang === 'en' && a.en ? `<br><span class="xsmall">${esc(a.en)}</span>` : ''}</span></p>` : ''}
-        <div class="links-row">${placeLinks(o.place)}</div>${o.ticket ? ticketBlock(o.ticket) : ''}</article>`;
-	};
 	return `<section class="sec" id="optional" data-sec="optional">
       <h2 class="sec-title">${icon('list')}${Z('备选：看当天情况', 'Optional: decide on the day')}</h2>
       <p class="sec-lede">${Z('都不锁日期，挂在主行程下，体力、天气、心情合适才加。', 'No dates. Add below main plan only if energy, weather, mood allow.')}</p>
-      <div class="hung">${OPTIONAL.map(opt).join('')}</div>
+      <div class="hung">${OPTIONAL.map(optCard).join('')}</div>
       ${OPTIONAL.filter((o) => o.food)
 				.map((o) => foodBlock(o.food.slots, o.food.h))
 				.join('')}

@@ -200,6 +200,21 @@ export function checkTrip(trip) {
 		for (const f of ['h', 'kind']) if (l[f] != null && !isLabel(l[f])) bad(`shop list ${l.id}: ${f} must be [zh, en]`);
 		for (const [j, x] of (l.shops || []).entries()) if (!PLACES[x.place]) bad(`shop list ${l.id} shop ${j}: unknown place "${x.place}"`);
 	}
+	// optional plans: each card's anchor and place, and the stops it's suggested at (OPTIONAL[].near, trip-format.md)
+	const optIds = new Set();
+	for (const [k, o] of (Array.isArray(trip.OPTIONAL) ? trip.OPTIONAL : []).entries()) {
+		const w = `OPTIONAL ${o.id || k}`;
+		if (!/^[\w-]{1,40}$/.test(o.id || '') || optIds.has(o.id)) bad(`${w}: needs a unique id (its anchor), letters, digits and dashes`);
+		optIds.add(o.id);
+		if (o.place && !PLACES[o.place]) bad(`${w}: unknown place "${o.place}"`);
+		if (o.short != null && !isLabel(o.short)) bad(`${w}: short must be [zh, en]`);
+		if (o.near != null && !Array.isArray(o.near)) bad(`${w}: near must be a list of { day, place }`);
+		for (const n of Array.isArray(o.near) ? o.near : []) {
+			const d = DAYS.find((x) => x.id === n?.day);
+			if (!d) bad(`${w} near: no day "${n?.day}" in this trip`);
+			else if (!d.schedule.some((it) => it.place && it.place === n.place)) bad(`${w} near: ${d.id} has no stop at "${n.place}"`);
+		}
+	}
 	// checklist groups: `shared: true` sends a group's ticks to everyone's phone when the page has group sync. A tick's key
 	// is `<group id>-<item id>`, so one group's id followed by a dash must not start another's
 	const groups = Array.isArray(trip.CHECKLIST) ? trip.CHECKLIST : [];

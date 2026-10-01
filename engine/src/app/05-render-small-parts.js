@@ -170,6 +170,19 @@ function nearWish(d, it) {
 		? `<div class="stop-near"><span class="sn-h">${icon('star')}${Z('附近想去', 'Nearby')}</span>${rows.map((x) => `<a class="eat-chip is-wish${x.w.must ? ' must' : ''}" href="#wish-${esc(x.w.id)}">${mustB(x.w)}${esc(wName(x.w))} <span class="eat-r">${distLabel(x.k)}</span></a>`).join('')}</div>`
 		: '';
 }
+// optional plans the trip suggests at this stop (OPTIONAL[].near): a tap opens the card over the day
+function nearOpts(d, it) {
+	if (!it.place) return '';
+	const at = placeLL(it.place);
+	const shut = (pid) => (((GEO && GEO.places && GEO.places[pid]) || {}).closed_dates || []).includes(d.date);
+	const rows = OPTIONAL.filter((o) => (o.near || []).some((n) => n.day === d.id && n.place === it.place) && !shut(o.place)).map((o) => {
+		const to = placeLL(o.place);
+		return { o, k: at && to ? km(at, to) : null };
+	});
+	return rows.length
+		? `<div class="stop-near stop-opts"><span class="sn-h">${icon('list')}${Z('顺路可选', 'Nearby options')}</span>${rows.map((x) => `<a class="eat-chip is-opt" href="#${esc(x.o.id)}">${esc(L(x.o.short || x.o.name))}${x.k != null ? ` <span class="eat-r">${distLabel(x.k)}</span>` : ''}</a>`).join('')}</div>`
+		: '';
+}
 function nearDrinks(d, it) {
 	// a drink within a few minutes' walk: best rated first
 	if (!it.place || !DRINKS.length) return '';
@@ -381,7 +394,7 @@ function foodRow(f) {
 	const tag = f.paused ? Z('暂停营业', 'paused') : shut.length ? `${shut.map(md).join(' ')} ${Z('休', 'closed')}` : '';
 	return `<li><a class="food-row" href="#${esc(foodId(f))}"><span class="fr-main"><span class="fr-name">${esc(name)}</span>${dish ? `<span class="fr-dish">${esc(dish)}</span>` : ''}</span>${tag ? `<span class="fr-x">${esc(tag)}</span>` : ''}${f.rating ? `<span class="fr-r">★${esc(f.rating)}</span>` : ''}${icon('chev', 'fr-chev')}</a></li>`;
 }
-// the card for a food or wishlist id, built from the data (the page shows compact rows, not every card)
+// the card for a drink, food, wishlist or optional id, built from the data (the page shows compact rows, not every card)
 const drinkName = (x) => (lang === 'en' ? x.name_en || x.name_zh : x.name_zh);
 function drinkCard(x) {
 	const q = `${x.name_trad} ${x.address_trad || ''}`;
@@ -407,7 +420,8 @@ function placeCardHTML(id) {
 		const w = WISH.find((x) => `wish-${x.id}` === id);
 		return w ? wishCard(w) : '';
 	}
-	return '';
+	const o = OPTIONAL.find((x) => x.id === id);
+	return o ? optCard(o) : '';
 }
 function foodBlock(slots, h) {
 	const items = (EXTRA.food || []).filter((f) => slots.includes(f.slot));

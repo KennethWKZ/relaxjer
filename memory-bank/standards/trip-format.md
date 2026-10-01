@@ -107,6 +107,20 @@ other place or site is named by the data that uses it, and the contract checks t
 | `WEATHER.sites`, `ENTRY.sites`, `ENTRY.lucky.sites`           | `['cwa', 'cwaEn']`                                   | site links under the forecast, the entry rules and the lucky draw                                                                                                          |
 | `ENTRY.sources`                                               | `[zh, en]`                                           | "Sources: …" under the entry rules                                                                                                                                         |
 
+## Optional plans (`OPTIONAL`)
+
+Sights and ideas that are never scheduled: the Optional section's cards, decided on the day.
+
+| Field                          | What it drives                                                                                                                                                                                        |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                           | the card's anchor (`#opt-101`); unique, letters, digits and dashes                                                                                                                                    |
+| `place`, `photo`               | its place (address, hours, nearest station and map links from `geo.json`) and photo                                                                                                                   |
+| `name`, `meta`, `when`, `list` | its name, the line under it, and the "go when" rules                                                                                                                                                  |
+| `cost`, `note`                 | the cost line and a note                                                                                                                                                                              |
+| `near`                         | `[{ day, place }]`: the stops it suits. Each gets a "Nearby options" chip with the distance, and a tap opens the card in a sheet over the day. Left out on a day its place is closed (`closed_dates`) |
+| `short`                        | `[zh, en]`: a shorter name for that chip (default `name`)                                                                                                                                             |
+| `ticket`, `food`               | an `extra.json` ticket card on it; `{ slots, h }`: a food block after the cards                                                                                                                       |
+
 ## Shop lists (`SHOPLISTS`)
 
 Themed shop lists for the Optional section, as many as the trip wants (snowboard gear, tea, anime, pharmacies…):
@@ -145,8 +159,7 @@ The leave day's timeline, worked back from take-off (and recomputed when someone
 
 The take-off line and its date ("Take-off (19th)") are added by the engine.
 
-Also read: `OPTIONAL[i].ticket` and `OPTIONAL[i].food: { slots, h }`, `BUDGET.airportNote` and `BUDGET.chartNote`,
-and `AIRPORT.mrtFare`.
+Also read: `BUDGET.airportNote` and `BUDGET.chartNote`, and `AIRPORT.mrtFare`.
 
 ## Still fixed in the engine
 

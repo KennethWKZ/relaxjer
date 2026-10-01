@@ -2883,7 +2883,8 @@ details.wgroup > summary .chev {
 	transform: scale(0.97);
 	background: var(--paper-3);
 }
-.eat-chip.is-wish {
+.eat-chip.is-wish,
+.eat-chip.is-opt {
 	border-style: dashed;
 }
 .eat-r {
