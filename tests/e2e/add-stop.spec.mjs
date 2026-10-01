@@ -15,7 +15,9 @@ test.describe('your own stops', { tag: '@demo' }, () => {
 		await expect(pick).toBeVisible();
 		await pick.click();
 		await expect(sheet.locator('[data-add-day][aria-pressed="true"]')).toHaveAttribute('data-add-day', 'd2');
-		await expect(sheet.locator('[data-add-t]')).toHaveValue('16:30');
+		// Huashan ends 16:30; the suggestion is when the group can get to the pick from there
+		await expect(sheet.locator('[data-add-t]')).toHaveValue(/^16:(3|4|5)\d$/);
+		await expect(sheet.locator('[data-add-leg] .ok-note')).toContainText('Works');
 		await sheet.locator('[data-add-save]').click();
 		const mine = page.locator('#d2 .stop.mine');
 		await expect(mine).toHaveCount(1);
@@ -47,6 +49,24 @@ test.describe('your own stops', { tag: '@demo' }, () => {
 		await expect(page.locator('#d3 .stop.mine')).toContainText('Demo Shared Stop');
 		await page.reload();
 		await expect(page.locator('#d3 .stop.mine'), 'kept on this phone').toContainText('Demo Shared Stop');
+	});
+
+	test('the add sheet checks the time against getting there, and offers the soonest that works', async ({ page }) => {
+		await openTrip(page);
+		await page.locator('[data-add-gap="d2|4"]').click(); // after Huashan, 14:00–16:30
+		const sheet = page.locator('#placeSheet');
+		await sheet.locator('[data-add-res] [data-add]').last().click(); // the farthest of the nearby picks
+		const leg = sheet.locator('[data-add-leg]');
+		await expect(leg.locator('.leg-line').first(), 'from the stop before').toContainText('From');
+		await expect(leg.locator('.ok-note'), 'the suggested time works').toContainText('Works');
+		await sheet.locator('[data-add-t]').fill('16:30'); // the moment Huashan ends: no time to get there
+		await sheet.locator('[data-add-t]').dispatchEvent('input');
+		await expect(leg.locator('.warn', { hasText: 'Too early' })).toBeVisible();
+		const use = leg.locator('[data-add-use-time]');
+		const soonest = await use.getAttribute('data-add-use-time');
+		await use.click();
+		await expect(sheet.locator('[data-add-t]')).toHaveValue(soonest);
+		await expect(leg.locator('.ok-note')).toContainText('Works');
 	});
 
 	test('a day with many added stops gets a word before one more', async ({ page }) => {

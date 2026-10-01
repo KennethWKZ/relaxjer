@@ -236,4 +236,5 @@ test('Plan: an added stop’s time is checked against getting there and getting 
 	const show = Plan.legCheck({ at: 1185, from: null, go: null, next: 1200, onward: { walk: 50, taxi: 30 } });
 	assert.deepEqual([show.leaveBy, show.tight, show.onBest.mode], [1170, true, 'taxi']);
 	assert.equal(Plan.legCheck({ at: 600, from: null, go: null, next: null }).best, null, 'nothing to check against');
+	assert.equal(Plan.legCheck({ at: 1170, from: { start: 960, end: 1170 }, go: { walk: 4 } }).short, 0, 'a few minutes short: no word');
 });

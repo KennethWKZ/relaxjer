@@ -4745,6 +4745,39 @@ dialog.toc {
 	font-size: var(--fs-sm);
 	font-weight: 700;
 }
+/* the add sheet's "Getting there": from the stop before, by foot / taxi / metro, and whether the time works */
+.add-leg {
+	display: grid;
+	gap: 6px;
+	margin: 8px 0 4px;
+	font-size: var(--fs-sm);
+}
+.add-leg:empty {
+	display: none;
+}
+.add-leg p {
+	margin: 0;
+}
+.add-leg .leg-line {
+	display: flex;
+	gap: 8px;
+	align-items: flex-start;
+	color: var(--ink-2);
+}
+.add-leg .warn {
+	flex-wrap: wrap;
+	align-items: center;
+	margin-top: 0;
+}
+.add-leg .warn > span {
+	flex: 1 1 12rem;
+}
+.add-leg svg.i {
+	flex: none;
+	width: 16px;
+	height: 16px;
+	margin-top: 2px;
+}
 .add-clash svg.i {
 	width: 14px;
 	height: 14px;

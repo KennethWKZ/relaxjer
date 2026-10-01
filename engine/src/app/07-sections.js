@@ -7,7 +7,7 @@ function secOverview() {
       <h2 class="sub">${icon('calendar')}${Z('这一周', 'The week')}</h2>
       <ol class="week">${DAYS.map((d) => `<li><a class="wk" href="#${d.id}" style="${colorVars(d.c)}">${lanternMark(d.c)}<span class="wk-date">${+d.date.slice(8)}<small>${esc(Z('周' + d.dow[0], d.dow[1]))}</small></span><span class="wk-title">${esc(L(d.title))}<span class="wk-focus">${esc(L(d.focus))}</span></span>${icon('arrow', 'wk-arrow')}</a></li>`).join('')}</ol>
       <h2 class="sub">${icon('info')}${Z('旅行资料', 'Trip facts')}</h2>
-      <dl class="facts">${FACTS.map((f) => `<div class="fact"><dt>${esc(L(f.k))}</dt><dd>${fmt(f.v)}${f.place ? `<p class="addr">${icon('pin')}<span>${esc(hotelAddr.zh)}${hotelAddr.en ? `<br><span class="xsmall">${esc(hotelAddr.en)}</span>` : ''}</span></p><p class="xsmall">${fmt(PLACES.hotel.note)} · ${Z('电话', 'Tel')} <span class="sel">${esc(PLACES.hotel.tel)}</span></p>${PLACES.hotel.gname ? `<p class="xsmall">${icon('info')} ${Z(`Google 地图仍用旧名「${esc(PLACES.hotel.gname)}」（同地址、电话）。搜「那那私旅」会出现别家酒店，请用这里的按钮或地址。`, `Google Maps still lists old name 「${esc(PLACES.hotel.gname)}」 (same address/phone). New-name search finds other hotels; use buttons/address here.`)}</p>` : ''}<div class="links-row">${placeLinks(f.place)}</div>` : ''}</dd></div>`).join('')}</dl>
+      <dl class="facts">${FACTS.map((f) => `<div class="fact"><dt>${esc(L(f.k))}</dt><dd>${fmt(f.v)}${f.place ? `<p class="addr">${icon('pin')}<span>${esc(hotelAddr.zh)}${hotelAddr.en ? `<br><span class="xsmall">${esc(hotelAddr.en)}</span>` : ''}</span></p><p class="xsmall">${fmt(PLACES.hotel.note)} · ${Z('电话', 'Tel')} <span class="sel">${esc(PLACES.hotel.tel)}</span></p>${PLACES.hotel.gname ? `<p class="xsmall">${icon('info')} ${Z(`Google 地图仍用旧名「${esc(PLACES.hotel.gname)}」（同地址、电话）。搜新名字会出现别家酒店，请用这里的按钮或地址。`, `Google Maps still lists old name 「${esc(PLACES.hotel.gname)}」 (same address/phone). New-name search finds other hotels; use buttons/address here.`)}</p>` : ''}<div class="links-row">${placeLinks(f.place)}</div>` : ''}</dd></div>`).join('')}</dl>
       <h2 class="sub">${icon('list')}${Z('机动备选', 'Backups if we have time')}</h2>
       <div class="pills">${BACKUPS.map((b) => `<span class="tag">${fmt(b)}</span>`).join('')}</div>
       <div class="links-row"><a class="mlink" href="#optional">${icon('arrow')}${Z('看备选详情', 'See the optional list')}</a></div>
@@ -515,8 +515,11 @@ const addBtn = (n, lat, lng, gpid, q, addr) =>
 	lat == null
 		? ''
 		: `<button type="button" class="mlink add-btn" data-add="${esc(JSON.stringify({ n, lat: +lat, lng: +lng, gpid: gpid || null, q: q || n, addr: addr || '' }))}">${icon('plus')}${Z('加入行程', 'Add to plan')}</button>`;
+// the suggested time in a new stop's sheet may still move to when the group can get there; one typed in may not
+let addAutoT = false;
 function addSheet(item) {
 	addItem = item;
+	addAutoT = !item.id;
 	const td = DAYS.find((d) => d.date === tpNow().date && d.id !== ROLE.flight);
 	const day = item.day || (td ? td.id : ROLE.free);
 	const t =
@@ -535,6 +538,7 @@ function addSheet(item) {
 				.join('')}</div>
       <p class="sub-h">${Z('几点', 'What time')}</p><input type="time" data-add-t class="add-t" value="${esc(t)}" step="900">
       <p class="add-clash" data-add-clash></p>
+      <div class="add-leg" data-add-leg aria-live="polite"></div>
       ${SYNC ? syncAddNote() : `<p class="xsmall muted">${esc(L(TRIP.addStopNote || ['只存在这支手机；用「分享」把链接发给大家。', 'Saved on this phone; use Share to send it to the others.']))}</p>`}
       <div class="links-row"><button type="button" class="go-btn" data-add-save>${icon('check')}${item.id ? Z('保存', 'Save') : Z('加入', 'Add')}</button>${item.id ? `<button type="button" class="go-btn ghost" data-mine-del="${esc(item.id)}">${icon('x')}${Z('删除', 'Remove')}</button>` : ''}</div>`;
 }
@@ -716,6 +720,96 @@ function addClashNote() {
 			'beforeend',
 			`<span class="crowd-note">${icon('alert')} ${esc(Z(`Day ${dayById[day].n} 已经加了 ${n} 个行程：确定还要再加？`, `Day ${dayById[day].n} already has ${n} added stops: sure about one more?`))}</span>`,
 		);
+	addLegNote();
+}
+// walking counts at the group's pace: two seniors, ×1.4 (AGENTS.md)
+const GROUP_WALK = 1.4;
+const legModes = (a, b) => {
+	const k = km(a, b);
+	const walk = walkMin(a, b) * GROUP_WALK;
+	const pl = walk > 12 ? mrtPlan(a, b) : { none: true };
+	return { walk, taxi: k > 0.4 ? ((k * 1.3) / 22) * 60 + 10 : null, mrt: pl.none ? null : pl.total };
+};
+const modeName = (m) => ({ walk: Z('走路', 'walking'), taxi: Z('计程车', 'by taxi'), mrt: Z(`搭${METRO[0]}`, `by ${METRO[1]}`) })[m] || m;
+const legLine = (modes) =>
+	Object.entries(modes)
+		.filter(([, v]) => v != null)
+		.map(([m, v]) => `${modeName(m)} ~${Math.max(1, Math.round(v))} ${Z('分', 'min')}`)
+		.join(' · ');
+/* the add sheet's "Getting there": from the stop before (or from where the phone is, for the next few hours today) to
+   this one, walking at the group's pace, by taxi or the metro; whether the time set leaves enough of it, with the
+   earliest time that does; and the time to leave for the next timed stop (Plan.legCheck). Estimates, no traffic */
+function addLegNote() {
+	const el = $('[data-add-leg]');
+	if (!el) return;
+	const day = ($('[data-add-day][aria-pressed="true"]') || {}).dataset?.addDay;
+	const m0 = tMin(($('[data-add-t]') || {}).value);
+	const d = day && dayById[day];
+	if (!d || m0 == null || !addItem || addItem.lat == null) {
+		el.innerHTML = '';
+		return;
+	}
+	const raw = d.schedule.map((it) => parseT(it.t || ''));
+	let rows = d.schedule.map((it, i) => ({ ...raw[i], ll: llOfStop(it), name: stopName(it) }));
+	mineAll()
+		.filter((x) => x.day === day && x.id !== addItem.id)
+		.sort((a, b) => Plan.minuteOn(raw, tMin(a.t)) - Plan.minuteOn(raw, tMin(b.t)))
+		.forEach((x) => rows.splice(Plan.slotFor(rows, tMin(x.t)), 0, { s: tMin(x.t), e: null, ll: x, name: x.name }));
+	const at = Plan.slotFor(rows, m0);
+	rows = Plan.onOneClock(rows);
+	const m = Plan.minuteOn(raw, m0);
+	const here = { lat: addItem.lat, lng: addItem.lng };
+	const now = tpNow();
+	let prev = rows
+		.slice(0, at)
+		.reverse()
+		.find((r) => r.ll && r.s != null);
+	let fromName = prev ? prev.name : '';
+	if (d.date === now.date && meLL && !farAway() && m >= now.mins && m <= now.mins + 180 && (!prev || prev.s <= now.mins)) {
+		prev = { s: now.mins, e: null, ll: meLL };
+		fromName = Z('你现在的位置', 'where you are now');
+	}
+	const next = rows.slice(at).find((r) => r.ll && r.s != null && r.s > m);
+	const go = prev ? legModes(prev.ll, here) : null;
+	const on = next ? legModes(here, next.ll) : null;
+	const c = Plan.legCheck({ at: m, from: prev ? { start: prev.s, end: prev.e } : null, go, next: next ? next.s : null, onward: on });
+	// a suggested time ("+" under a stop) that leaves no time to get here moves to when the group can, on a 5-minute
+	// mark, while that's still before the next timed stop
+	if (addAutoT && c.short) {
+		const soon = Math.ceil(c.earliest / 5) * 5;
+		addAutoT = false;
+		if (!next || soon < next.s) {
+			$('[data-add-t]').value = hm(soon);
+			return addClashNote();
+		}
+	}
+	addAutoT = false;
+	const out = [];
+	if (prev && c.best) {
+		out.push(
+			`<p class="leg-line">${icon('route')}<span><b>${esc(Z(`从${fromName}`, `From ${fromName}`))}</b> · ${esc(distLabel(km(prev.ll, here)))} · ${esc(legLine(go))}</span></p>`,
+		);
+		out.push(
+			c.short
+				? `<p class="warn">${icon('alert')}<span>${esc(Z(`时间太早：最快约 ${hm(c.earliest)} 到（${modeName(c.best.mode)}）`, `Too early: the soonest is about ${hm(c.earliest)} (${modeName(c.best.mode)})`))}</span><button type="button" class="mlink" data-add-use-time="${hm(Math.ceil(c.earliest / 5) * 5)}">${esc(Z(`改成 ${hm(Math.ceil(c.earliest / 5) * 5)}`, `Use ${hm(Math.ceil(c.earliest / 5) * 5)}`))}</button></p>`
+				: `<p class="ok-note">${icon('check')} ${esc(Z(`来得及：${modeName(c.best.mode)}约 ${c.best.min} 分`, `Works: about ${c.best.min} min ${modeName(c.best.mode)}`))}</p>`,
+		);
+	}
+	if (next && c.onBest)
+		out.push(
+			`<p class="${c.tight ? 'warn' : 'leg-line'}">${icon(c.tight ? 'alert' : 'clock')}<span>${esc(
+				c.tight
+					? Z(
+							`赶不上 ${hm(next.s)}「${next.name}」：从这里过去${modeName(c.onBest.mode)}约 ${c.onBest.min} 分`,
+							`Too late for ${next.name} at ${hm(next.s)}: it's ~${c.onBest.min} min ${modeName(c.onBest.mode)} from here`,
+						)
+					: Z(
+							`接着 ${hm(next.s)}「${next.name}」：最晚 ${hm(c.leaveBy)} 离开这里（${modeName(c.onBest.mode)}约 ${c.onBest.min} 分）`,
+							`Then ${next.name} at ${hm(next.s)}: leave here by ${hm(c.leaveBy)} (~${c.onBest.min} min ${modeName(c.onBest.mode)})`,
+						),
+			)}</span></p>`,
+		);
+	el.innerHTML = out.length ? `${out.join('')}<p class="xsmall muted">${Z('估算，不含塞车。', 'Estimates, without traffic.')}</p>` : '';
 }
 function addClashMain(el) {
 	const day = ($('[data-add-day][aria-pressed="true"]') || {}).dataset?.addDay;

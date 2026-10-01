@@ -444,6 +444,12 @@ document.addEventListener('click', (e) => {
 		toastRun();
 		return;
 	}
+	if (t.matches('[data-add-use-time]')) {
+		const inp = $('[data-add-t]');
+		if (inp) inp.value = t.dataset.addUseTime;
+		addClashNote();
+		return;
+	}
 	if (t.matches('[data-welcome-save]')) {
 		syncWelcomeSave();
 		return;
@@ -665,6 +671,7 @@ document.addEventListener(
 );
 document.addEventListener('input', (e) => {
 	if (e.target.matches && e.target.matches('[data-add-t]')) {
+		addAutoT = false; // a time typed in is the person's: warn, don't move it
 		addClashNote();
 		return;
 	}

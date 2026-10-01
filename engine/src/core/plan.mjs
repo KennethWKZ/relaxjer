@@ -150,7 +150,7 @@ export function hotelsByDay(days, tripHotel) {
  * onward: { walk, taxi, mrt } minutes there and to the next timed row (a mode is null when it doesn't apply); next:
  * that row's start, null for none. A stop set during the row before (a shop in the middle of an afternoon there) is
  * reached from that row's start; one after it, from its end. Times in minutes. Returns { best: { mode, min },
- * earliest, short (minutes too few to get there), onBest, leaveBy (to make the next row), tight (true when the next
+ * earliest, short (minutes too few to get there, over 5), onBest, leaveBy (to make the next row), tight (true when the next
  * row can't be made even leaving at once) }.
  */
 export function legCheck({ at, from, go, next, onward }) {
@@ -164,7 +164,7 @@ export function legCheck({ at, from, go, next, onward }) {
 	const best = fastest(go);
 	const depart = from ? (from.end != null && at >= from.start && at < from.end ? from.start : (from.end ?? from.start)) : null;
 	const earliest = best && depart != null ? depart + best.min : null;
-	const short = earliest != null && at < earliest ? earliest - at : 0;
+	const short = earliest != null && at < earliest - 5 ? earliest - at : 0; // a few minutes either way isn't worth a word
 	const onBest = fastest(onward);
 	const leaveBy = onBest && next != null ? next - onBest.min : null;
 	return { best, earliest, short, onBest, leaveBy, tight: leaveBy != null && leaveBy < Math.max(at, earliest ?? at) };
