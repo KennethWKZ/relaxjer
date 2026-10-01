@@ -202,19 +202,19 @@ function shiftAdd(dayId, from, min) {
 }
 function mineMerge(d, planned) {
 	const segs = shiftsOf(d.date);
+	const rawDay = d.schedule.map((it) => parseT(it.t || ''));
 	const mine = mineAll()
 		.filter((x) => x.day === d.id)
 		.map((x) => {
 			const m = shiftAt(d, tMin(x.t), segs);
 			return m ? { ...x, t: hm(tMin(x.t) + m) } : x;
 		})
-		.sort((a, b) => tMin(a.t) - tMin(b.t));
+		.sort((a, b) => Plan.minuteOn(rawDay, tMin(a.t)) - Plan.minuteOn(rawDay, tMin(b.t)));
 	if (!mine.length) return planned.join('');
-	const rows = d.schedule.map((it, i) => ({ s: parseT(it.t || '').s, html: planned[i], ll: llOfStop(it) }));
+	const rows = d.schedule.map((it, i) => ({ ...parseT(it.t || ''), html: planned[i], ll: llOfStop(it) }));
 	mine.forEach((x) => {
 		const m = tMin(x.t);
-		let at = rows.findIndex((r) => r.s != null && r.s > m);
-		if (at < 0) at = rows.length;
+		const at = Plan.slotFor(rows, m); // an untimed "Evening: back to the hotel" stays after it
 		const prev = rows
 			.slice(0, at)
 			.reverse()
@@ -551,26 +551,32 @@ const gapBtn = (d, key) =>
 		? ''
 		: `<button type="button" class="knot-add" data-add-gap="${d.id}|${esc(key)}" aria-label="${Z('在这之后加一站', 'Add a stop after this')}">${icon('plus')}</button>`;
 function gapContext(dayId, key) {
-	// suggested time + the stop before, for the add sheet
+	// suggested time + the stop before, for the add sheet: a time that lands the new stop right after this knot
 	const d = dayById[dayId];
-	const r15 = (m) => Math.ceil(m / 15) * 15;
+	const raw = d.schedule.map((it) => parseT(it.t || ''));
+	const rows = Plan.effectiveRows(raw);
+	const on = (m) => Plan.minuteOn(raw, m); // the last day runs past midnight
+	const later = (m) =>
+		[
+			...rows.filter((r) => r.s != null && !r.closes).map((r) => r.s),
+			...mineAll()
+				.filter((y) => y.day === d.id)
+				.map((y) => on(tMin(y.t))),
+		]
+			.filter((s) => s > m)
+			.sort((a, b) => a - b)[0] ?? null;
 	if (MINE[key]) {
 		const x = MINE[key];
-		return { t: hm(Math.min(r15(tMin(x.t) + 60), 22 * 60)), prev: x.name, ll: { lat: x.lat, lng: x.lng } };
+		const s = on(tMin(x.t));
+		const t = Plan.gapTime(s, null, later(s));
+		return { t: t != null ? hm(t) : null, prev: x.name, ll: { lat: x.lat, lng: x.lng } };
 	}
 	const i = +key;
 	const it = d.schedule[i];
 	if (!it) return {};
-	const pt = parseT(it.t || '');
-	const nx = d.schedule
-		.slice(i + 1)
-		.map((y) => parseT(y.t || '').s)
-		.find((v) => v != null);
-	let t = pt.e != null ? pt.e : pt.s != null ? pt.s + 60 : null;
-	if (t != null) {
-		t = r15(t);
-		if (nx != null && t >= nx) t = Math.max((pt.s || 0) + 30, nx - 30);
-	}
+	const r = rows[i];
+	const nx = rows.slice(i + 1).find((y) => y.s != null && !y.closes && y.s >= (r.s ?? -1));
+	const t = Plan.gapTime(r.s, r.e, nx ? nx.s : null);
 	const ll = llOfStop(it) || d.schedule.slice(0, i).reverse().map(llOfStop).find(Boolean) || placeLL(hotelOf(d.id));
 	return { t: t != null ? hm(t) : null, prev: L(it.what).replace(/\*\*/g, ''), ll };
 }
@@ -875,11 +881,15 @@ function secDay(d, today) {
 		.join('');
 	const photos = d.photos.filter((p) => credit[p]);
 	const stopsTitle = d.stepsTitle ? L(d.stepsTitle) : Z('行程', 'Schedule');
+	// no "+" where nothing can come right after: the row that closes the day (back to the hotel), a moment the next row
+	// starts at too (Plan.roomAfter), and the flight home
+	const room = Plan.roomAfter(d.schedule.map((it) => parseT(it.t || '')));
+	const closes = room.map((ok, i) => !ok || !!(d.schedule[i].rel && Array.isArray(d.schedule[i].rel.dep) && d.schedule[i].rel.dep[0] === 0));
 	const planned = d.schedule.map((it, i) => {
 		const t = it.step ? String(it.step) : L(it.t || '');
 		const pt = parseT(it.t || '');
 		const cls = ['stop', it.fixed && 'fixed', it.key && 'key'].filter(Boolean).join(' ');
-		return `<li class="${cls}${it._sh ? ' shifted' : ''}" id="${d.id}-s${i}" ${pt.s != null ? `data-s="${pt.s}"` : ''}><div class="stop-t">${esc(t)}${it._sh ? `<span class="t-was">${esc(Z(`原 ${L(it._base)}`, `was ${L(it._base)}`))}</span>` : ''}</div><div class="stop-knot">${gapBtn(d, `${i}`)}</div><div class="stop-b">
+		return `<li class="${cls}${it._sh ? ' shifted' : ''}" id="${d.id}-s${i}" ${pt.s != null ? `data-s="${pt.s}"` : ''}><div class="stop-t">${esc(t)}${it._sh ? `<span class="t-was">${esc(Z(`原 ${L(it._base)}`, `was ${L(it._base)}`))}</span>` : ''}</div><div class="stop-knot">${closes[i] ? '' : gapBtn(d, `${i}`)}</div><div class="stop-b">
         <p class="stop-name"${alt(other(it.what))}>${fmt(it.what)}${it.fixed ? seal() : ''}<span class="flag-slot"></span></p>
         ${it.note ? `<p class="stop-note">${fmt(it.note)}</p>` : ''}
         ${splitBack(d, it)}

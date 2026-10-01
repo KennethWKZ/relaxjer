@@ -129,6 +129,81 @@ test('Plan: an added stop near a fixed time', () => {
 	assert.equal(Plan.nearFixed(900, fixed), null);
 });
 
+test('Plan: an added stop slots in by time; an untimed last row (back to the hotel) stays last', () => {
+	const day = [
+		{ s: 600, e: 690 }, // 10:00–11:30
+		{ s: 960, e: 1170 }, // 16:00–19:30
+		{ s: null, e: null }, // Evening: back to the hotel
+	];
+	assert.equal(Plan.slotFor(day, 1020), 2, '17:00: inside the 16:00–19:30 block, before going back');
+	assert.equal(Plan.slotFor(day, 1230), 2, '20:30: still before the untimed last row');
+	assert.equal(Plan.slotFor(day, 480), 0, '08:00: first');
+	assert.equal(Plan.slotFor(day, 960), 2, 'a tie goes after the row that starts then');
+	const middle = [
+		{ s: 600, e: 720 },
+		{ s: null, e: null },
+		{ s: 900, e: null },
+	]; // 10:00–12:00, Lunch, 15:00
+	assert.equal(Plan.slotFor(middle, 690), 1, 'an untimed row in the middle starts when the row before ends');
+	assert.equal(Plan.slotFor(middle, 750), 2);
+	assert.equal(Plan.slotFor([{ s: 600, e: null }], 700), 1, 'after the last timed row: at the end');
+});
+
+test('Plan: "+" under a stop suggests a time that lands right after it', () => {
+	assert.equal(Plan.gapTime(960, 1170, null), 1170, 'the end of 16:00–19:30');
+	assert.equal(Plan.gapTime(600, 690, 690), 675, 'ends when the next starts: just before it');
+	assert.equal(Plan.gapTime(600, null, 615), 607, 'very close: between the two');
+	assert.equal(Plan.gapTime(null, null, 600), 570, 'no time of its own: before the next');
+	assert.equal(Plan.gapTime(null, null, null), null);
+	assert.equal(Plan.gapTime(1410, null, null), 1425, 'never past 23:45');
+	const rows = Plan.effectiveRows([
+		{ s: 960, e: 1170 },
+		{ s: null, e: null },
+	]);
+	assert.deepEqual(rows[1], { s: 1170, e: null, closes: true }, 'an untimed last row starts when the one before ends, and closes the day');
+	assert.equal(Plan.effectiveRows([{ s: null, e: null }])[0].closes, false, 'a day with no times at all has no closing row');
+	assert.equal(
+		Plan.slotFor(
+			[
+				{ s: null, e: null },
+				{ s: null, e: null },
+			],
+			600,
+		),
+		2,
+		'and its added stops go at the end',
+	);
+});
+
+test('Plan: the last day runs past midnight, and stops after the late check-in still slot before the flight', () => {
+	const last = [
+		{ s: 660, e: null },
+		{ s: 1255, e: 1285 },
+		{ s: 45, e: null },
+	]; // 11:00, 20:55–21:25, 00:45
+	assert.deepEqual(
+		Plan.onOneClock(last).map((r) => r.s),
+		[660, 1255, 1485],
+	);
+	assert.equal(Plan.slotFor(last, 1290), 2, '21:30: after the check-in, before the 00:45 flight');
+	assert.equal(Plan.slotFor(last, 15), 2, '00:15: after midnight, still before the flight');
+	assert.equal(Plan.minuteOn(last, 420), 420, '07:00 stays morning');
+	assert.equal(Plan.minuteOn(last, 60), 1500);
+	assert.equal(Plan.onOneClock([{ s: 1380, e: 60 }])[0].e, 1500, 'an end before its start is the next morning');
+});
+
+test('Plan: a "+" only where a stop can go right after: not before a row that starts at the same minute', () => {
+	assert.deepEqual(
+		Plan.roomAfter([
+			{ s: 630, e: null }, // 10:30 Arrive in Tamsui
+			{ s: 630, e: 735 }, // 10:30–12:15 Old Street
+			{ s: 735, e: 810 }, // 12:15–13:30 Lunch
+			{ s: null, e: null }, // Evening: back to the hotel
+		]),
+		[false, true, true, false],
+	);
+});
+
 test('Plan: day roles come from the trip, any length', () => {
 	const days = (n) => Array.from({ length: n }, (_, i) => ({ id: `d${i + 1}`, date: `2027-03-${String(13 + i).padStart(2, '0')}` }));
 	// an after-midnight take-off: the group leaves on the evening before; the last day holds only the flight
@@ -148,4 +223,17 @@ test('Plan: one hotel for the trip, or one per night', () => {
 	// moving on night 3: the new hotel from then on, the leave day keeps where the bags are
 	days[2].hotel = 'onsen';
 	assert.deepEqual(Plan.hotelsByDay(days, 'inn'), { d1: 'inn', d2: 'inn', d3: 'onsen', d4: 'onsen' });
+});
+
+test('Plan: an added stop’s time is checked against getting there and getting on', () => {
+	// a shop in Ximending at 17:00, during 16:00–19:30 there: reached from 16:00, a 6-min walk: fine
+	const shop = Plan.legCheck({ at: 1020, from: { start: 960, end: 1170 }, go: { walk: 6, taxi: 12 }, next: null });
+	assert.deepEqual([shop.best.mode, shop.short, shop.tight], ['walk', 0, false]);
+	// 19:35 at a place 40 min away by MRT, 25 by taxi, after 16:00–19:30: earliest 19:55, 20 min short
+	const far = Plan.legCheck({ at: 1175, from: { start: 960, end: 1170 }, go: { walk: 90, taxi: 25, mrt: 40 }, next: null });
+	assert.deepEqual([far.best.mode, far.earliest, far.short], ['taxi', 1195, 20]);
+	// the 20:00 show is 30 min on from there: leave by 19:30, so a 19:45 stop can't make it
+	const show = Plan.legCheck({ at: 1185, from: null, go: null, next: 1200, onward: { walk: 50, taxi: 30 } });
+	assert.deepEqual([show.leaveBy, show.tight, show.onBest.mode], [1170, true, 'taxi']);
+	assert.equal(Plan.legCheck({ at: 600, from: null, go: null, next: null }).best, null, 'nothing to check against');
 });
