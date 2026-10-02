@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.0.2](https://github.com/KennethWKZ/relaxjer/compare/v1.0.1...v1.0.2) (2026-10-02)
+
+
+### 🐛 Bug Fixes
+
+* **engine:** group sync no longer jams on a send it never heard back from, or waits 30 s mid-send ([0b65747](https://github.com/KennethWKZ/relaxjer/commit/0b6574721df3639ba4b4378f95bf25caaabccf83))
+
+
+### ✅ Testing
+
+* **tests:** the Back pill journey scrolls instantly, so a late smooth scroll can't move the page ([d8de325](https://github.com/KennethWKZ/relaxjer/commit/d8de325285fe2968f4f07c5d46341248bfdc717c))
+
 ## [1.0.1](https://github.com/KennethWKZ/relaxjer/compare/v1.0.0...v1.0.1) (2026-10-02)
 
 
