@@ -1,8 +1,8 @@
 # Releases (ADR-20261002-ci-image-and-releases). On every push to main, release-please keeps one "chore(release): vX.Y.Z"
 # pull request open with the version bump and the CHANGELOG.md lines built from the Conventional Commits since the last
 # release (release-please-config.json). Merging it tags the commit and makes the release as a draft; the second job
-# publishes the draft once ci is green on that commit and the release gate passes. A pull request opened with this
-# workflow's token runs no ci of its own, so the merge's ci run is the one that counts.
+# publishes the draft once ci is green on that commit and the release gate passes. Its pull request gets ci like any
+# other, and main's ruleset holds the merge until ci-ok is green (ADR-20261002-required-ci).
 # It can write to the repo, so its actions are pinned to commit SHAs, like pages.yml; the comment names the release.
 # Needs once: Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests", and
 # Settings → General → "Automatically delete head branches", so a merged release branch doesn't linger (release-please
