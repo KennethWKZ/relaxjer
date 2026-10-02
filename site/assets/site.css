@@ -1,5 +1,5 @@
 /* RelaxJer's landing page: postcards from the trip (DESIGN.md, "Surface: the landing page").
-   Airmail-blue table by day, the trip page's night sky by night. Each feature is a postcard: its picture side replays
+   They lie under one trip day's sky, from a morning sun to lantern night; the night theme is the same page under stars. Each feature is a postcard: its picture side replays
    the synthetic demo trip on a small phone (the .m screens copy the trip page's own layout and tokens), its back is
    written plainly. Everything operated is system sans; headlines are Gabarito; the brand and the brushed lines are
    Ma Shan Zheng. Both faces are self-hosted subsets (fonts/, with their SIL OFL licences). */
@@ -31,6 +31,10 @@
 	--sun: #ffd79c;
 	--sun-low: #ffa977; /* the sun as it sets, low and warm */
 	--sun-travel: 1; /* how far down the screen it sinks by the foot of the page */
+	--pic-dusk: 0%; /* how far a postcard's colour sinks toward the night sky: by day, not at all */
+	--pic-lift: #ffffff; /* the light at the top of a postcard's picture */
+	--vault: #15161a; /* the privacy card's picture: a dark room, in both themes */
+	--vault-ink: #ffffff;
 	--moon-o: 1; /* the moon over the footer: by day only, since the night sky already has one */
 	--cloud-o: 1;
 	--birds-o: 0.5;
@@ -117,6 +121,10 @@
 		--sun: #e9e4ff; /* the moon */
 		--sun-low: #e9e4ff; /* the moon keeps its colour */
 		--sun-travel: 0.35; /* and only drifts a little */
+		--pic-dusk: 40%; /* by night each colour glows like a lantern, not a lamp */
+		--pic-lift: #3b4668;
+		--vault: #343c52;
+		--vault-ink: #eef0f4;
 		--moon-o: 0;
 		--cloud-o: 0.07;
 		--birds-o: 0;
@@ -130,7 +138,7 @@
 		--rule-card: #2a313d;
 		--red: #e8564b;
 		--blue: #5b8fe6;
-		--postmark: rgba(201, 211, 230, 0.5);
+		--postmark: rgba(201, 211, 230, 0.82);
 		--card-shadow: 0 0 0 1px rgba(238, 240, 244, 0.06), 0 18px 40px -22px rgba(0, 0, 0, 0.9);
 		--lift-shadow: 0 0 0 1px rgba(238, 240, 244, 0.08), 0 28px 56px -24px rgba(0, 0, 0, 0.95);
 		--device: #000000;
@@ -299,6 +307,10 @@ main {
 	opacity: var(--by-night);
 }
 @media (max-width: 599px) {
+	/* a phone has no side lanes: a lantern in the 16 px gutter reads as a speck, so they keep to the footer's night */
+	.scene .lit {
+		display: none;
+	}
 	.cloud {
 		width: calc(var(--w) * 0.62);
 	}
@@ -954,22 +966,23 @@ svg.i {
 	--tilt: -1.4deg;
 }
 
-/* the picture side: one spot colour at full strength, printed with a faint halftone */
+/* the picture side: one spot colour at full strength, printed with a faint halftone; by night it sinks toward the sky */
 .pic {
+	--pic: color-mix(in srgb, var(--spot), var(--sky-3) var(--pic-dusk));
 	position: relative;
 	display: grid;
 	place-items: center;
 	padding: 28px 18px 64px;
-	background-color: var(--spot);
+	background-color: var(--pic);
 	background-image:
 		radial-gradient(color-mix(in srgb, var(--spot-ink) 12%, transparent) 0.9px, transparent 1.3px),
 		radial-gradient(
 			circle at 84% 13%,
-			color-mix(in srgb, #fff 58%, var(--spot)) 0 30px,
+			color-mix(in srgb, #fff 58%, var(--pic)) 0 30px,
 			color-mix(in srgb, #fff 22%, transparent) 31px,
 			transparent 130px
 		),
-		linear-gradient(to bottom, color-mix(in srgb, #fff 24%, var(--spot)), var(--spot) 62%);
+		linear-gradient(to bottom, color-mix(in srgb, var(--pic-lift) 24%, var(--pic)), var(--pic) 62%);
 	background-size:
 		7px 7px,
 		100% 100%,
@@ -985,7 +998,7 @@ svg.i {
 	inset: auto 0 0;
 	z-index: -1;
 	height: 26%;
-	background: color-mix(in srgb, var(--spot) 74%, #000);
+	background: color-mix(in srgb, var(--pic) 74%, #000);
 	-webkit-mask: url('hills.svg') bottom / 100% 100% no-repeat;
 	mask: url('hills.svg') bottom / 100% 100% no-repeat;
 	pointer-events: none;
@@ -3947,9 +3960,6 @@ html:not(.js) .demo .route * {
 	background: var(--stock);
 	box-shadow: var(--card-shadow);
 	transform: rotate(-0.6deg);
-	/* ruled like a notebook page, in the table's blue */
-	background-image: repeating-linear-gradient(to bottom, transparent 0 43px, color-mix(in srgb, var(--blue) 16%, transparent) 43px 44px);
-	background-position: 0 70px;
 }
 .packing h3,
 .tag h3 {
@@ -3970,6 +3980,8 @@ html:not(.js) .demo .route * {
 	gap: 12px;
 	align-items: start;
 	padding: 10px 0;
+	/* ruled like a notebook page, in the table's blue: a line under each item, so none runs through a wrapped one */
+	border-bottom: 1px solid color-mix(in srgb, var(--blue) 16%, transparent);
 	font-weight: 600;
 	line-height: 1.4;
 }
@@ -4351,6 +4363,7 @@ thead th.rec {
 }
 .foot .brush-sm {
 	color: #ffffff;
+	line-height: 0; /* the larger brush word mustn't push its line down */
 }
 .foot-in {
 	max-width: var(--wide);
@@ -4366,7 +4379,8 @@ thead th.rec {
 		padding-inline: 24px;
 	}
 }
-.foot a {
+/* the row of links gets 44 px taps; a link inside a sentence stays inline, so its line keeps the paragraph's spacing */
+.foot-links a {
 	display: inline-flex;
 	align-items: center;
 	min-height: 44px;
