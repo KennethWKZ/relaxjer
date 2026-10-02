@@ -1,6 +1,6 @@
 ---
 created: 2026-10-01
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # Frontend: Design and UX Rules
@@ -86,6 +86,13 @@ contract are in `.impeccable/surfaces/site-index-html.md`.
   (`<meta>`; no inline script, no connections). Only relative paths, and no third-party script, style or font: the
   brush face and Gabarito are self-hosted subsets in `site/assets/fonts/`, each with its SIL OFL. A new brush glyph
   means fetching a new subset that includes it.
+- **The ground is one trip day, and it stays decoration.** The page's sky runs from a morning sun at the top through
+  an afternoon gold to lantern night in the footer; the night theme puts the same page under stars. Everything in it
+  (`.scene`, the footer's `.night`) is `aria-hidden` art that moves only with the scroll (`animation-timeline`), so it
+  holds still under reduced motion and where a browser lacks scroll timelines. Lanterns keep to the side lanes outside
+  the text column (`--lane`), shrinking to fit the 16 px gutter on a phone, so none sits behind a word; clouds may pass
+  behind text because they only lighten the ground. `main` clips sideways (`overflow-x: clip`): a settling postcard
+  or the hero phone can reach past the edge, and the body's clip alone still lets a phone pan into it.
 - **A demo is a drawing of the real page.** Each loop is a mini trip page (`.m`) in CSS keyframes, after a capture of
   the demo build (the synced one for sync features): same strings, same flow. It runs only in view, has a Pause button
   and an `aria-label="Animated: …"`, and holds its `--still` frame under reduced motion. The Pause button is a round,
@@ -97,5 +104,7 @@ contract are in `.impeccable/surfaces/site-index-html.md`.
   `node scripts/docs-update/flow-diagram.mjs`.
 - **Checked like the trip page.** `tests/repo/site.test.mjs` covers links, third-party requests, alt text,
   provenance, the file types, the search and preview metadata, a Pause button and a description on every demo, and
-  the SHA-pinned deploy. The eye check is 390 px and desktop, light and dark, in Chromium and WebKit, with reduced
+  the SHA-pinned deploy. `tests/e2e/site.spec.mjs` runs the page with motion on in the four e2e projects and both
+  themes: never wider than the screen, no lantern behind a word, and every Pause a 44 px disc off its screen that
+  pauses and plays. The eye check is 390 px and desktop, light and dark, in Chromium and WebKit, with reduced
   motion (the still frames) and without (the loops).

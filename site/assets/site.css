@@ -19,7 +19,22 @@
 
 :root {
 	/* the landing world */
-	--table: #dfe9f6; /* airmail onionskin: the page ground */
+	--table: #c9e0f7; /* the day sky at its plainest: what the ground falls back to */
+	/* one slow day, top to bottom: morning, a long clear afternoon, golden hour, the rose before dusk */
+	--sky-1: #d3e6f9;
+	--sky-2: #c9e0f7;
+	--sky-3: #bfd9f4;
+	--sky-35: #e6dcf2; /* the turn of the afternoon: blue to gold through lilac, never grey */
+	--sky-4: #f7dfc4;
+	--sky-5: #f7d9d0;
+	--sky-6: #e9dcf1;
+	--sun: #ffd79c;
+	--sun-low: #ffa977; /* late afternoon, low and warm */
+	--sun-low-o: 1;
+	--cloud-o: 1;
+	--birds-o: 0.5;
+	--stars-o: 0;
+	--by-night: 0;
 	--table-2: #d2dff0;
 	--stock: #ffffff; /* postcard stock */
 	--stock-2: #f3f5f9;
@@ -51,7 +66,7 @@
 	--warn: #9a5700;
 	--bad: #b3261e;
 	--hl: #ffe45c;
-	--glass: rgba(223, 233, 246, 0.84);
+	--glass: rgba(255, 255, 255, 0.6);
 	--glass-edge: rgba(24, 44, 84, 0.1);
 	--scrim: rgba(12, 14, 20, 0.5);
 	--code: #f3f5f9;
@@ -90,7 +105,20 @@
 
 @media (prefers-color-scheme: dark) {
 	:root {
-		--table: #0c1017;
+		--table: #0d1426;
+		--sky-1: #0c1424;
+		--sky-2: #0e172c;
+		--sky-3: #121a36;
+		--sky-35: #151839;
+		--sky-4: #18173a;
+		--sky-5: #1d1736;
+		--sky-6: #151127;
+		--sun: #e9e4ff; /* the moon */
+		--sun-low-o: 0;
+		--cloud-o: 0.07;
+		--birds-o: 0;
+		--stars-o: 0.85;
+		--by-night: 1;
 		--table-2: #111722;
 		--stock: #161b25;
 		--stock-2: #1e2430;
@@ -120,7 +148,7 @@
 		--good: #5fd49a;
 		--warn: #f3b35a;
 		--bad: #ff8a80;
-		--glass: rgba(12, 16, 23, 0.82);
+		--glass: rgba(12, 18, 36, 0.72);
 		--glass-edge: rgba(238, 240, 244, 0.08);
 		--scrim: rgba(0, 0, 0, 0.62);
 		--code: #1e2430;
@@ -146,8 +174,18 @@ html {
 	}
 }
 body {
+	position: relative;
 	margin: 0;
-	background: var(--table);
+	background: linear-gradient(
+		to bottom,
+		var(--sky-1) 0,
+		var(--sky-2) 8%,
+		var(--sky-3) 52%,
+		var(--sky-35) 62%,
+		var(--sky-4) 72%,
+		var(--sky-5) 86%,
+		var(--sky-6) 100%
+	);
 	color: var(--ink);
 	font-family: var(--font-ui);
 	font-size: 1.0625rem;
@@ -157,6 +195,98 @@ body {
 }
 ::selection {
 	background: color-mix(in srgb, var(--blue) 26%, transparent);
+}
+
+/* ───────── the sky behind everything: a sun over the morning, clouds through the day, stars by night ───────── */
+.scene {
+	--lane: max(16px, (100% - var(--wide)) / 2 + 16px);
+	position: absolute;
+	inset: 0;
+	z-index: 0;
+	overflow: hidden;
+	pointer-events: none;
+}
+.scene::before {
+	/* stars: night only (the tokens give them no opacity by day) */
+	content: '';
+	position: absolute;
+	inset: 0;
+	opacity: var(--stars-o);
+	background: url('stars.svg') 0 0 / 480px 480px;
+}
+main {
+	position: relative;
+	z-index: 1;
+	/* a tilted postcard or the hero phone can reach past the edge as it settles; the body's clip only hides that
+	   (the viewport still pans into it on a phone), clipping here removes it */
+	overflow-x: clip;
+}
+.sun {
+	position: absolute;
+	top: clamp(-220px, -14vw, -90px);
+	right: clamp(-200px, -10vw, -70px);
+	width: clamp(380px, 50vw, 720px);
+	aspect-ratio: 1;
+	border-radius: 50%;
+	background: radial-gradient(
+		circle,
+		color-mix(in srgb, var(--sun) 80%, #fff) 0 13%,
+		color-mix(in srgb, var(--sun) 72%, transparent) 14%,
+		color-mix(in srgb, var(--sun) 30%, transparent) 36%,
+		transparent 68%
+	);
+}
+.sun-low {
+	top: 79%;
+	right: clamp(-320px, -20vw, -140px);
+	width: clamp(460px, 60vw, 900px);
+	opacity: var(--sun-low-o);
+	--sun: var(--sun-low);
+}
+.cloud {
+	position: absolute;
+	top: var(--y);
+	left: var(--x);
+	width: var(--w);
+	aspect-ratio: 320 / 120;
+	opacity: calc(var(--o) * var(--cloud-o));
+	background: url('cloud.svg') center / contain no-repeat;
+	filter: drop-shadow(0 18px 24px rgba(36, 70, 120, 0.12));
+}
+.birds {
+	position: absolute;
+	top: var(--y);
+	left: var(--x);
+	width: var(--w);
+	aspect-ratio: 120 / 50;
+	opacity: var(--birds-o);
+	background: url('birds.svg') center / contain no-repeat;
+}
+/* the lanterns keep to the side lanes (--lane), the margin outside the text column, so none ever sits behind a word;
+   on a phone the lane is the 16 px gutter and they shrink to fit it */
+.scene .lit {
+	--s: clamp(10px, var(--lane) - 6px, var(--w));
+	position: absolute;
+	top: var(--y);
+	left: calc((var(--lane) - var(--s)) * var(--j));
+	width: var(--s);
+	height: var(--s);
+	filter: drop-shadow(0 0 8px rgba(255, 178, 84, 0.9)) drop-shadow(0 0 22px rgba(255, 140, 60, 0.4));
+}
+.scene .lit.r {
+	left: auto;
+	right: calc((var(--lane) - var(--s)) * var(--j));
+}
+.scene .by-night {
+	opacity: var(--by-night);
+}
+@media (max-width: 599px) {
+	.cloud {
+		width: calc(var(--w) * 0.62);
+	}
+	.birds {
+		width: calc(var(--w) * 0.75);
+	}
 }
 a {
 	color: var(--link);
@@ -813,11 +943,34 @@ svg.i {
 	place-items: center;
 	padding: 28px 18px 64px;
 	background-color: var(--spot);
-	background-image: radial-gradient(color-mix(in srgb, var(--spot-ink) 14%, transparent) 0.9px, transparent 1.3px);
-	background-size: 7px 7px;
+	background-image:
+		radial-gradient(color-mix(in srgb, var(--spot-ink) 12%, transparent) 0.9px, transparent 1.3px),
+		radial-gradient(
+			circle at 84% 13%,
+			color-mix(in srgb, #fff 58%, var(--spot)) 0 30px,
+			color-mix(in srgb, #fff 22%, transparent) 31px,
+			transparent 130px
+		),
+		linear-gradient(to bottom, color-mix(in srgb, #fff 24%, var(--spot)), var(--spot) 62%);
+	background-size:
+		7px 7px,
+		100% 100%,
+		100% 100%;
 	color: var(--spot-ink);
 	min-height: 100%;
 	isolation: isolate;
+}
+.pic::after {
+	/* the hills, in a deeper shade of the card's colour */
+	content: '';
+	position: absolute;
+	inset: auto 0 0;
+	z-index: -1;
+	height: 26%;
+	background: color-mix(in srgb, var(--spot) 74%, #000);
+	-webkit-mask: url('hills.svg') bottom / 100% 100% no-repeat;
+	mask: url('hills.svg') bottom / 100% 100% no-repeat;
+	pointer-events: none;
 }
 .pic-cap {
 	position: absolute;
@@ -826,6 +979,14 @@ svg.i {
 	font-family: var(--font-brush);
 	font-size: 1.375rem;
 	line-height: 1;
+	opacity: 0.9;
+}
+.back::before {
+	content: '';
+	position: absolute;
+	inset: 0 0 auto;
+	height: 6px;
+	background: repeating-linear-gradient(-45deg, var(--red) 0 13px, transparent 13px 19px, var(--blue) 19px 32px, transparent 32px 38px);
 	opacity: 0.9;
 }
 .back {
@@ -4125,19 +4286,45 @@ thead th.rec {
 	}
 }
 
-/* ───────── footer: the envelope's edge ───────── */
+/* ───────── footer: lantern night, the end of the day ───────── */
 .foot {
-	margin-top: clamp(80px, 10vw, 128px);
+	--ink: #eef0f4;
+	--ink-2: #c9cfe0;
+	--link: #a9c8ff;
+	--focus: #a9c8ff;
+	margin-top: clamp(64px, 8vw, 104px);
 	position: relative;
-	background: var(--stock);
+	z-index: 1;
+	color: var(--ink-2);
+	background: linear-gradient(to bottom, transparent 0, #3a2d5c 22%, #1d1840 46%, #120f26 70%);
 }
-.foot .airmail {
-	height: 10px;
+.night {
+	position: relative;
+	height: clamp(220px, 26vw, 320px);
+	overflow: hidden;
+	background: url('stars.svg') 0 0 / 480px 480px;
+	-webkit-mask: linear-gradient(to bottom, transparent, #000 34%);
+	mask: linear-gradient(to bottom, transparent, #000 34%);
+}
+.night .ridge {
+	position: absolute;
+	inset: auto 0 0;
+	width: 100%;
+	height: 46%;
+}
+.night .lit {
+	position: absolute;
+	left: var(--x);
+	top: var(--y);
+	filter: drop-shadow(0 0 8px rgba(255, 178, 84, 0.9)) drop-shadow(0 0 22px rgba(255, 140, 60, 0.45));
+}
+.foot .brush-sm {
+	color: #ffffff;
 }
 .foot-in {
 	max-width: var(--wide);
 	margin: 0 auto;
-	padding: 28px 16px 48px;
+	padding: 4px 16px 48px;
 	display: grid;
 	gap: 12px;
 	color: var(--ink-2);
@@ -4220,5 +4407,52 @@ thead th.rec {
 	.table-wrap,
 	.pause {
 		box-shadow: 0 0 0 1px var(--ink);
+	}
+}
+
+/* scrolling is the day passing: clouds drift with the page, and the footer's lanterns rise as it comes into view.
+   Tied to the scroll, so nothing in the background moves by itself (WCAG 2.2.2); where the browser can't, they hold */
+@supports (animation-timeline: scroll()) {
+	@media (prefers-reduced-motion: no-preference) {
+		.cloud,
+		.birds {
+			animation: drift linear both;
+			animation-timeline: scroll(root);
+		}
+		.scene .lit {
+			animation: float-up linear both;
+			animation-timeline: scroll(root);
+		}
+		.night .lit {
+			animation: lift linear both;
+			animation-timeline: view();
+			animation-range: entry 0% cover 70%;
+		}
+	}
+}
+@keyframes drift {
+	from {
+		translate: calc(var(--drift) * -1) 0;
+	}
+	to {
+		translate: var(--drift) 0;
+	}
+}
+@keyframes float-up {
+	from {
+		translate: 0 140px;
+	}
+	to {
+		translate: 0 -140px;
+	}
+}
+@keyframes lift {
+	from {
+		translate: 0 calc(60px + var(--d) * 50px);
+		scale: 0.8;
+	}
+	to {
+		translate: 0 0;
+		scale: 1;
 	}
 }

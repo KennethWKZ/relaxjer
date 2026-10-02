@@ -127,3 +127,11 @@ export async function setStored(page, entries) {
 	await page.reload();
 	await expect(page.locator('#app [data-sec]').first()).toBeAttached();
 }
+
+/** The landing page's (site/) parts the e2e checks: a looping demo, its Pause, the screen it plays on, the sky's art. */
+export const SITE = {
+	demo: '[data-demo]',
+	pause: '.pause',
+	screen: '.screen',
+	sky: '.scene .lit, .scene .birds',
+};

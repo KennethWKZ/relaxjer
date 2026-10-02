@@ -12,8 +12,8 @@ status: accepted
 
 The landing page (`site/`) is redesigned as airmail postcards from the demo trip: one card per feature, a picture side
 in one lantern colour with a looping demo of that feature, and a back with a brushed Chinese line and the copy. The
-demos are drawn in HTML and CSS, after captures of the real demo build, not recorded. The page now self-hosts a second
-font, carries a Content-Security-Policy in a `<meta>` tag, and has search and link-preview metadata. Asked for by the
+demos are drawn in HTML and CSS, after captures of the real demo build, not recorded. The cards lie under one trip
+day's sky, from a morning sun to lantern night in the footer. The page now self-hosts a second font, carries a Content-Security-Policy in a `<meta>` tag, and has search and link-preview metadata. Asked for by the
 maintainer on 2026-10-01; the direction contract is `.impeccable/surfaces/site-index-html.md`.
 
 ## Context
@@ -32,6 +32,11 @@ is served from GitHub Pages, which sets no security headers.
   synced build the e2e tests use. A loop runs only while its card is in view (`site.js`), has a Pause button (WCAG
   2.2.2), describes itself in words (`role="img"`, `aria-label="Animated: …"`), and under reduced motion holds its
   `--still` frame. Where a finger taps, its target is a custom property measured off the drawn screen.
+- **One trip day's sky behind it all** (asked for on 2026-10-02: the plain ground didn't feel like a relaxed trip).
+  The ground is a gradient from a morning sky through an afternoon gold to a lantern night in the footer, with a sun,
+  clouds and birds by day and stars by night (`.scene`, `aria-hidden`, a few small SVGs in `site/assets/`). It moves
+  only with the scroll (`animation-timeline: scroll()`), so nothing in the background moves by itself (WCAG 2.2.2) and
+  reduced motion holds it still. Lanterns keep to the side lanes outside the text column, so none sits behind a word.
 - **Two self-hosted fonts.** Gabarito (latin subset, SIL OFL) for headlines joins the brush subset; both ship with
   their licence. Still no third-party request.
 - **A page policy in `<meta>`:**
@@ -42,7 +47,8 @@ is served from GitHub Pages, which sets no security headers.
   rendered from the page's own hero with a provenance sidecar, JSON-LD (`WebSite`, `SoftwareApplication`,
   `SoftwareSourceCode`) and `sitemap.xml`. No `robots.txt`: a project site at `/relaxjer/` can't serve the domain's.
 - **Tests:** `tests/repo/site.test.mjs` also checks the metadata, the sitemap, and that every demo has a Pause button
-  and a description.
+  and a description. `tests/e2e/site.spec.mjs` checks the page with motion on, in Chromium and WebKit at 390 px and
+  desktop: no sideways overflow, no lantern behind text, and a Pause that works and stays off the screen.
 
 ## Alternatives
 
@@ -50,6 +56,8 @@ is served from GitHub Pages, which sets no security headers.
 | --------------------------------------- | ---------------------------------------------------------------------------------------------- |
 | Recorded loops (video or animated webp) | Megabytes per feature, one recording per theme, re-recorded on every UI change, no still frame |
 | Still screenshots only                  | They show a state, not the tap that leads to it                                                |
+| A sky that drifts on its own            | Motion nobody started, on every screen of the page; tied to the scroll it follows the reader   |
+| Lanterns scattered over the whole page  | Placed by page height, they land on different words at every width; the side lanes never do    |
 | Google Fonts                            | A third-party request on every visit, against the page's rule                                  |
 | No policy                               | Cheap to add, and it stops injected markup from running script or calling out                  |
 
@@ -59,7 +67,7 @@ is served from GitHub Pages, which sets no security headers.
   holds no secrets.
 - **Operational:** a demo is a drawing. When the trip page's UI changes, the card that shows it has to be redrawn by
   hand; no test fails when they drift, so the eye check in `verify-page` covers it.
-- **Cost:** none. The page is about 80 KB of HTML, 70 KB of CSS and 60 KB of fonts.
+- **Cost:** none. The page is about 80 KB of HTML, 75 KB of CSS, 60 KB of fonts and 4 KB of sky art.
 
 ## Read when
 

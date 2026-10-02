@@ -11,8 +11,8 @@
 			name="description"
 			content="Plan a group trip with your AI agent: one page every phone opens, even offline. What's next, fixed times, costs per person, food and toilets nearby, group sync. Free." />
 		<link rel="canonical" href="https://kennethwkz.github.io/relaxjer/" />
-		<meta name="theme-color" content="#dfe9f6" media="(prefers-color-scheme: light)" />
-		<meta name="theme-color" content="#0c1017" media="(prefers-color-scheme: dark)" />
+		<meta name="theme-color" content="#d3e6f9" media="(prefers-color-scheme: light)" />
+		<meta name="theme-color" content="#0c1424" media="(prefers-color-scheme: dark)" />
 		<meta property="og:type" content="website" />
 		<meta property="og:site_name" content="RelaxJer" />
 		<meta property="og:locale" content="en" />
@@ -87,6 +87,41 @@
 	</head>
 	<body>
 		<a class="skip" href="#main">Skip to the content</a>
+		<!-- the page's sky: one slow trip day, morning at the top to lantern night at the foot (decoration only) -->
+		<div class="scene" aria-hidden="true">
+			<span class="sun"></span>
+			<span class="sun sun-low"></span>
+			<span class="cloud" style="--y: 4.5%; --x: -6%; --w: 340px; --o: 0.95; --drift: 50px"></span>
+			<span class="cloud" style="--y: 7.5%; --x: 52%; --w: 520px; --o: 0.92; --drift: -70px"></span>
+			<span class="cloud" style="--y: 12%; --x: 18%; --w: 240px; --o: 0.8; --drift: 40px"></span>
+			<span class="cloud" style="--y: 15%; --x: 76%; --w: 300px; --o: 0.85; --drift: -50px"></span>
+			<span class="cloud" style="--y: 20%; --x: -8%; --w: 480px; --o: 0.9; --drift: 80px"></span>
+			<span class="cloud" style="--y: 24%; --x: 60%; --w: 260px; --o: 0.75; --drift: -40px"></span>
+			<span class="cloud" style="--y: 29%; --x: 30%; --w: 380px; --o: 0.88; --drift: 60px"></span>
+			<span class="cloud" style="--y: 34%; --x: 80%; --w: 440px; --o: 0.9; --drift: -70px"></span>
+			<span class="cloud" style="--y: 39%; --x: -4%; --w: 300px; --o: 0.8; --drift: 50px"></span>
+			<span class="cloud" style="--y: 44%; --x: 46%; --w: 520px; --o: 0.85; --drift: -60px"></span>
+			<span class="cloud" style="--y: 50%; --x: 74%; --w: 280px; --o: 0.8; --drift: 40px"></span>
+			<span class="cloud" style="--y: 55%; --x: 6%; --w: 420px; --o: 0.7; --drift: -50px"></span>
+			<span class="cloud" style="--y: 60%; --x: 58%; --w: 340px; --o: 0.55; --drift: 60px"></span>
+			<span class="cloud" style="--y: 66%; --x: 22%; --w: 260px; --o: 0.35; --drift: -40px"></span>
+			<span class="birds" style="--y: 10.5%; --x: 34%; --w: 90px; --drift: 30px"></span>
+			<span class="birds" style="--y: 26%; --x: 70%; --w: 70px; --drift: -24px"></span>
+			<span class="birds" style="--y: 46%; --x: 20%; --w: 80px; --drift: 26px"></span>
+			<img class="lit" src="assets/lantern.svg" alt="" width="30" height="30" style="--y: 78%; --j: 0.24; --w: 30px" />
+			<img class="lit r" src="assets/lantern.svg" alt="" width="24" height="24" style="--y: 81%; --j: 0.32; --w: 24px" />
+			<img class="lit" src="assets/lantern.svg" alt="" width="20" height="20" style="--y: 85%; --j: 0.6; --w: 20px" />
+			<img class="lit r" src="assets/lantern.svg" alt="" width="34" height="34" style="--y: 88%; --j: 0.68; --w: 34px" />
+			<img class="lit" src="assets/lantern.svg" alt="" width="22" height="22" style="--y: 91%; --j: 0.92; --w: 22px" />
+			<img class="lit r" src="assets/lantern.svg" alt="" width="28" height="28" style="--y: 94%; --j: 0.2; --w: 28px" />
+			<img class="lit" src="assets/lantern.svg" alt="" width="22" height="22" style="--y: 96%; --j: 0.16; --w: 22px" />
+			<img class="lit r by-night" src="assets/lantern.svg" alt="" width="22" height="22" style="--y: 14%; --j: 0.24; --w: 22px" />
+			<img class="lit by-night" src="assets/lantern.svg" alt="" width="18" height="18" style="--y: 22%; --j: 0.12; --w: 18px" />
+			<img class="lit r by-night" src="assets/lantern.svg" alt="" width="20" height="20" style="--y: 33%; --j: 0.96; --w: 20px" />
+			<img class="lit r by-night" src="assets/lantern.svg" alt="" width="24" height="24" style="--y: 48%; --j: 0.2; --w: 24px" />
+			<img class="lit by-night" src="assets/lantern.svg" alt="" width="18" height="18" style="--y: 57%; --j: 0.36; --w: 18px" />
+			<img class="lit r by-night" src="assets/lantern.svg" alt="" width="22" height="22" style="--y: 68%; --j: 0.52; --w: 22px" />
+		</div>
 		<header class="bar">
 			<div class="bar-row">
 				<a class="brand" href="#top" aria-label="RelaxJer, back to the top">RelaxJer</a>
@@ -1715,7 +1750,20 @@ pnpm build --trip trips/<wbr />&lt;your-trip&gt; --keys ~/<wbr />.config/<wbr />
 		</main>
 
 		<footer class="foot">
-			<div class="airmail" aria-hidden="true"></div>
+			<!-- lantern night: the day ends where the group lets its wishes go -->
+			<div class="night" aria-hidden="true">
+				<img class="lit" src="assets/lantern.svg" alt="" width="30" height="30" style="--x: 9%; --y: 58%; --d: 0.4" />
+				<img class="lit" src="assets/lantern.svg" alt="" width="22" height="22" style="--x: 22%; --y: 26%; --d: 0.8" />
+				<img class="lit" src="assets/lantern.svg" alt="" width="36" height="36" style="--x: 36%; --y: 64%; --d: 0.1" />
+				<img class="lit" src="assets/lantern.svg" alt="" width="26" height="26" style="--x: 52%; --y: 34%; --d: 0.6" />
+				<img class="lit" src="assets/lantern.svg" alt="" width="32" height="32" style="--x: 66%; --y: 70%; --d: 0.3" />
+				<img class="lit" src="assets/lantern.svg" alt="" width="24" height="24" style="--x: 80%; --y: 40%; --d: 0.9" />
+				<img class="lit" src="assets/lantern.svg" alt="" width="28" height="28" style="--x: 92%; --y: 62%; --d: 0.5" />
+				<svg class="ridge" viewBox="0 0 1200 140" preserveAspectRatio="none">
+					<path d="M0 78 C120 40 220 60 330 70 C450 82 540 26 680 34 C800 42 900 74 1010 64 C1090 56 1150 50 1200 56 V140 H0Z" fill="#251c46" />
+					<path d="M0 108 C150 86 280 98 420 102 C560 106 690 78 840 86 C960 92 1080 100 1200 96 V140 H0Z" fill="#120f26" />
+				</svg>
+			</div>
 			<div class="foot-in">
 				<p>
 					<span class="brush brush-sm">RelaxJer</span> is free and open source under the

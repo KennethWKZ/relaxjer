@@ -22,6 +22,9 @@ export default async function globalSetup() {
 	fs.copyFileSync(built, path.join(PAGES_DIR, 'trip.html'));
 	const kb = Math.round(fs.statSync(built).size / 1024);
 	console.log(`[relaxjer] ${engine.kind === 'legacy' ? 'legacy' : 'in-repo'} engine · trip ${trip.demo ? 'demo' : trip.dir} · page ${kb} KB`);
+	// the landing page, as GitHub Pages serves it, for tests/e2e/site.spec.mjs
+	fs.rmSync(path.join(PAGES_DIR, 'site'), { recursive: true, force: true });
+	fs.cpSync(path.join(ROOT, 'site'), path.join(PAGES_DIR, 'site'), { recursive: true });
 
 	fs.rmSync(path.join(PAGES_DIR, 'trip-sync.html'), { force: true });
 	if (engine.kind !== 'engine') return; // the legacy engine has no group sync
