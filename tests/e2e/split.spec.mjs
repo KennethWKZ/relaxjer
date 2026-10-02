@@ -2,8 +2,21 @@
 // forks, with its go / wait / skip rule, a switch between its plans (remembered on the phone), each plan's docks,
 // directions and route, and a note on the stop where they come back.
 import { test, expect, openTrip } from '../support/fixtures.mjs';
+import { settle } from '../support/page.mjs';
 
 const card = (page) => page.locator('#d5-split details.split-card');
+// opens the day at #d5 and waits for its smooth scroll to stop: a tap while it's still moving can miss on a slow phone
+const openDay = async (page) => {
+	await openTrip(page, '#d5');
+	await settle(page);
+};
+// unfolds the split card, and makes sure it took
+const unfold = async (page) => {
+	await expect(async () => {
+		if (!(await card(page).evaluate((d) => d.open))) await card(page).locator('summary').click();
+		await expect(card(page)).toHaveAttribute('open', '', { timeout: 1_000 });
+	}).toPass({ timeout: 10_000 });
+};
 
 // tagged @demo: the demo's Day 5 split, its times and its plans
 test.describe('a day that splits', { tag: '@demo' }, () => {
@@ -19,9 +32,9 @@ test.describe('a day that splits', { tag: '@demo' }, () => {
 	});
 
 	test('open, it shows the rule and the default plan; the switch shows another, and the phone remembers it', async ({ page }) => {
-		await openTrip(page, '#d5');
+		await openDay(page);
 		const c = card(page);
-		await c.locator('summary').click();
+		await unfold(page);
 		await expect(c.locator('.decide .opt')).toHaveCount(3);
 		const long = c.locator('[data-split-opt="long"]');
 		await expect(long).toBeVisible();
@@ -45,8 +58,8 @@ test.describe('a day that splits', { tag: '@demo' }, () => {
 	});
 
 	test('a plan with a route opens the map full screen', async ({ page }) => {
-		await openTrip(page, '#d5');
-		await card(page).locator('summary').click();
+		await openDay(page);
+		await unfold(page);
 		await card(page).locator('[data-split-opt="long"] [data-split-map]').click();
 		await expect(page.locator('html')).toHaveClass(/map-full-on/);
 	});
