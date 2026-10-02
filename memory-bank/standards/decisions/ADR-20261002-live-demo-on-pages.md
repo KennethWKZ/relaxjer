@@ -38,6 +38,11 @@ the reason for it.
   `examples/demo-trip`, so a real trip's page always keeps the real time. The engine's test override (`<storageKey>now`)
   still wins, so the e2e suite is unchanged. `tests/e2e/demo.spec.mjs` opens the page built with the workflow's own
   clock (read from `pages.yml`).
+- **A demo says it's a demo.** A page built with the demo clock opens in English when the visitor hasn't picked a
+  language (they come from an English landing page; 中 is one tap away), shows a strip under the bar with the clock's
+  start and a link back to the landing page, and never asks for location: the visitor isn't on the trip, so where
+  they are can't say whether the group is late. Every other page still opens in Chinese, and `demo.spec.mjs` checks
+  both.
 - **No Google search without a key.** The add sheet offered "Search Google for …" on every page; without a key it could
   only fail ("Can't reach Google"). It now appears only on a page built with `--keys`, which is what
   `guides/trip-page.md` already said.

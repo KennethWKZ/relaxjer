@@ -156,7 +156,7 @@ function lateHTML() {
 		? `<p class="shift-on">${icon('clock')}<span>${esc(Z(`今天后面已顺延 +${tot} 分`, `Today's rest pushed back +${tot} min`))}</span><button type="button" class="mlink" data-shift-edit="${d.id}">${Z('调整', 'Adjust')}</button><button type="button" class="mlink" data-shift-clear="${d.date}">${Z('恢复原时间', 'Undo')}</button></p>`
 		: '';
 	const ask = !box
-		? `<div class="late-ask">${!segs.length ? `<button type="button" class="mlink" data-shift-edit="${d.id}">${icon('clock')}${Z('跑慢了？把后面往后推', 'Running late? Push the rest back')}</button>` : ''}${!meLL && navigator.geolocation && !geoAsk() ? `<button type="button" class="mlink" data-late-loc>${icon('pin')}${Z('用我的位置检查进度', 'Check progress from my location')}</button>` : ''}</div>`
+		? `<div class="late-ask">${!segs.length ? `<button type="button" class="mlink" data-shift-edit="${d.id}">${icon('clock')}${Z('跑慢了？把后面往后推', 'Running late? Push the rest back')}</button>` : ''}${!meLL && navigator.geolocation && !window.DEMO_CLOCK && !geoAsk() ? `<button type="button" class="mlink" data-late-loc>${icon('pin')}${Z('用我的位置检查进度', 'Check progress from my location')}</button>` : ''}</div>`
 		: '';
 	return box + on + ask;
 }

@@ -14,6 +14,31 @@ test.describe('the live demo', { tag: '@demo' }, () => {
 		await expect(page.locator('.now-day')).toHaveText('Day 3');
 		await expect(page.locator('.now-num'), 'no "days to go" countdown on a day under way').toHaveCount(0);
 	});
+
+	test.describe('on a first visit', () => {
+		test.use({ tripLang: null }); // nothing stored: the page picks its own language
+
+		test('greets the visitor in English, says it is a demo, and never asks where they are', async ({ page }) => {
+			await page.goto('/trip-demo.html');
+			await expect(page.locator('#app [data-sec]').first()).toBeAttached();
+			await expect(page.locator('html'), 'a visitor from the English landing page reads English').toHaveAttribute('lang', 'en');
+			await expect(page.locator('#demoStrip')).toContainText('Demo trip');
+			await expect(page.locator('#demoStrip').getByRole('link', { name: 'Back to RelaxJer' })).toHaveAttribute('href', '../');
+			// the visitor isn't on the trip: where they are can't tell the group's progress
+			await expect(page.locator('#now .geo-ask')).toHaveCount(0);
+			await expect(page.locator('[data-late-loc]')).toHaveCount(0);
+		});
+	});
+});
+
+test.describe('a trip page that is not the live demo', () => {
+	test.use({ tripLang: null });
+
+	test('opens in Chinese, with no demo strip', async ({ page }) => {
+		await openTrip(page);
+		await expect(page.locator('html')).toHaveAttribute('lang', 'zh-Hans');
+		await expect(page.locator('#demoStrip')).toHaveCount(0);
+	});
 });
 
 test('a page without a Google key offers no Google search when adding a stop', async ({ page }) => {

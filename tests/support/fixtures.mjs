@@ -2,7 +2,8 @@
 // - no outside network: anything not on the local test server is aborted and recorded (the page must work offline);
 // - a pinned trip clock through the engine's own override (localStorage <prefix>now = "YYYY-MM-DD HH:MM", in the
 //   trip's time zone; the prefix is the trip's, tests/support/store-key.mjs);
-// - a pinned UI language (<prefix>lang), seeded once per tab so reloads keep what the page stored;
+// - a pinned UI language (<prefix>lang), seeded once per tab so reloads keep what the page stored (either option set
+//   to null seeds nothing, so the page starts on its own default);
 // - a failure if the page throws or logs an error, or its Content-Security-Policy refuses anything.
 import { test as base, expect } from '@playwright/test';
 import { STORE_KEY } from './store-key.mjs';
@@ -53,8 +54,8 @@ export const test = base.extend({
 				({ now, lang, key }) => {
 					try {
 						if (sessionStorage.getItem('__relaxjer_seeded')) return;
-						localStorage.setItem(`${key}now`, JSON.stringify(now));
-						localStorage.setItem(`${key}lang`, JSON.stringify(lang));
+						if (now != null) localStorage.setItem(`${key}now`, JSON.stringify(now));
+						if (lang != null) localStorage.setItem(`${key}lang`, JSON.stringify(lang));
 						sessionStorage.setItem('__relaxjer_seeded', '1');
 					} catch {
 						/* storage blocked: the page runs on its defaults */

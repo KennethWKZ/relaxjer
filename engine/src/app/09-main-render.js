@@ -46,6 +46,20 @@ function fltEditHTML(kind) {
       <details class="flt-d"><summary>${icon('clock')}${Z('航班延误？改时间', 'Flight delayed? Change the time')}${icon('chev', 'chev')}</summary><div class="flt-f"><input type="time" data-flt="${kind}" value="${esc(cur)}" aria-label="${Z('新时间', 'New time')}"><button type="button" class="go-btn" data-flt-save="${kind}">${icon('check')}${Z('保存并重算', 'Save & recalculate')}</button>${moved ? `<button type="button" class="go-btn ghost" data-flt-reset="${kind}">${Z(`改回 ${booked}`, `Back to ${booked}`)}</button>` : ''}</div><p class="xsmall muted">${SYNC ? Z('全组的页面都会跟着改。', 'Everyone’s page changes with it.') : Z('存在这支手机；其他人要在自己手机改。', 'Saved on this phone; others change theirs.')}</p></details></div>`;
 }
 
+// the live demo (build --demo-clock): a strip that says what this page is, and the way back to the landing page
+function demoStrip() {
+	if (!window.DEMO_CLOCK) return;
+	let el = $('#demoStrip');
+	if (!el) {
+		$('#app').insertAdjacentHTML('beforebegin', '<p class="demo-strip" id="demoStrip"></p>');
+		el = $('#demoStrip');
+	}
+	const clock = window.DEMO_CLOCK;
+	const day = DAYS.find((d) => d.date === clock.slice(0, 10));
+	const when = `${dateLabel(clock.slice(0, 10), day && day.dow)} ${clock.slice(11)}`;
+	el.innerHTML = `<span>${esc(Z(`示范行程：时钟从 ${when}（当地时间）开始走。`, `Demo trip: its clock starts at ${when}, local time, and runs on.`))}</span><a href="../">${Z('回到 RelaxJer', 'Back to RelaxJer')}</a>`;
+}
+
 function render() {
 	applyFlights();
 	applyShifts();
@@ -72,6 +86,7 @@ function render() {
 	applyTheme();
 	$('#searchClose').textContent = Z('完成', 'Done');
 	$('#foot').innerHTML = esc(L(TRIP.footer));
+	demoStrip();
 	renderTabs(now.date);
 	if (mapFullOn) {
 		mapFullOn = false;
