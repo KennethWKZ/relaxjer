@@ -41,6 +41,13 @@ no ci).
 - **ci runs once per pull request**: `push` runs it only on `main` (merges, the maintainer's pushes, and the release
   commit the release job waits for), so a pull request's branch doesn't run it a second time. `tests/repo/ci.test.mjs`
   holds the triggers.
+- **Docs and release bookkeeping skip the browser tests** (`scripts/ci/needs-e2e.mjs`, the `changes` job). `e2e` runs
+  unless every changed file is on a list of what may skip it: top-level `*.md` (`CHANGELOG.md` included),
+  `memory-bank/`, `knowledge/`, `guides/`, `.release-please-manifest.json`, and `package.json` when only its
+  `"version"` changed. A path nobody listed runs everything, and so does a base it can't compare with. `secrets` and
+  `test` always run (any file can leak a key; tier 0 checks the docs). The workflow itself always runs, with no path
+  filter on its triggers, so `ci-ok` always reports; it accepts `e2e` as skipped only when `changes` said so.
+  `tests/unit/needs-e2e.test.mjs` and `tests/repo/ci.test.mjs` hold the list and the wiring.
 - **The release job starts ci on the release pull request** (`release.yml`, `gh workflow run ci.yml --ref <its
 branch>`, `actions: write`) whenever release-please opens or updates it. A run the workflow's token starts with
   `workflow_dispatch` isn't held, and its `ci-ok` lands on the pull request's commit. The held `pull_request` run
@@ -50,13 +57,14 @@ branch>`, `actions: write`) whenever release-please opens or updates it. A run t
 
 ## Alternatives
 
-| Option                                     | Why not                                                                                                                           |
-| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
-| Require the ten job names                  | Breaks every pull request the day the e2e matrix changes                                                                          |
-| No bypass                                  | Every change, the maintainer's too, goes through a branch and a green ci first: safer, ~10 minutes slower a change                |
-| Also require a pull request for `main`     | Same cost as no bypass, and a one-person repo has nobody else to review                                                           |
-| A personal access token for release-please | release-please's own fix: its pull requests then get ordinary ci, but a long-lived token that can push sits in the repo's secrets |
-| Approve each release pull request's run    | One more click a release, and a forgotten one leaves the release unmergeable                                                      |
+| Option                                          | Why not                                                                                                                           |
+| ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Require the ten job names                       | Breaks every pull request the day the e2e matrix changes                                                                          |
+| No bypass                                       | Every change, the maintainer's too, goes through a branch and a green ci first: safer, ~10 minutes slower a change                |
+| Also require a pull request for `main`          | Same cost as no bypass, and a one-person repo has nobody else to review                                                           |
+| A personal access token for release-please      | release-please's own fix: its pull requests then get ordinary ci, but a long-lived token that can push sits in the repo's secrets |
+| A path filter on ci's triggers (`paths-ignore`) | ci wouldn't run at all on a docs pull request, so the required `ci-ok` would never report and the pull request could never merge  |
+| Approve each release pull request's run         | One more click a release, and a forgotten one leaves the release unmergeable                                                      |
 
 ## Consequences
 
