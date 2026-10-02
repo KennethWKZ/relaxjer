@@ -4,13 +4,22 @@
 // the page says so and keeps working on its own copy.
 import { test, expect } from '../support/fixtures.mjs';
 import { TEST_PLANNER_CODE } from '../support/global-setup.mjs';
+import { STORE_KEY } from '../support/store-key.mjs';
 import { endSync, freshDatabase, hasSyncPage, joinSpace, openSync, secondPhone, skipWelcome, stored } from '../support/sync.mjs';
 
 const stopLink = (name) => {
 	const pack = [['d3', '16:00', name, 25.1366, 121.5069, '', 'Beitou (demo)']];
 	return `#add=${Buffer.from(JSON.stringify(pack)).toString('base64url')}`;
 };
-const tick = (page, key) => page.locator(`label[for="ck-${key}"]`).click();
+// ticks (or unticks) a checklist item and makes sure it took: right after a jump to the checklist the page may still be
+// scrolling on a phone, and a tap then can miss
+const tick = async (page, key) => {
+	const was = await page.locator(`[data-check="${key}"]`).isChecked();
+	await expect(async () => {
+		if ((await page.locator(`[data-check="${key}"]`).isChecked()) === was) await page.locator(`label[for="ck-${key}"]`).click();
+		await expect(page.locator(`[data-check="${key}"]`)).toBeChecked({ checked: !was, timeout: 1_000 });
+	}).toPass({ timeout: 10_000 });
+};
 // the sections menu draws when it opens: open it, then read its group-sync row (the menu button floats in only after a
 // scroll, so it's clicked directly)
 const syncRow = async (page) => {
@@ -19,6 +28,8 @@ const syncRow = async (page) => {
 };
 const box = (page, key) => page.locator(`[data-check="${key}"]`);
 const sheet = (page) => page.locator('#placeSheet');
+// the record ids a phone hasn't sent yet (its outbox)
+const pendingOf = (page) => page.evaluate((k) => Object.keys(JSON.parse(localStorage.getItem(`${k}sync`) || '{}').pending || {}), STORE_KEY);
 // the Group sync sheet, from the sections menu
 const openSyncSheet = async (page) => {
 	await syncRow(page);
@@ -185,7 +196,7 @@ test.describe('group sync', { tag: '@demo' }, () => {
 		await expect(sheet(page).locator('.sync-row', { hasText: 'Ana' }).locator('.sync-badge')).toHaveText('Planner');
 	});
 
-	test('a planner can block a phone: its stops and last changes go, and what it does next reaches nobody', async ({ page }) => {
+	test('a planner can block a phone: its stops and last changes go, and what it does next reaches nobody', async ({ page, request }, testInfo) => {
 		await openSync(b.page, '#checklist');
 		await openSync(page);
 		await setName(page, 'Lee');
@@ -197,7 +208,10 @@ test.describe('group sync', { tag: '@demo' }, () => {
 		await openSync(b.page, '#checklist');
 		await tick(b.page, 'before-charter');
 		await expect(page.locator('#d3 .stop.mine', { hasText: 'Demo Tester Stop' })).toBeVisible({ timeout: 15_000 });
+		// the tick has left the other phone; this one reads it on load rather than waiting on the live stream
+		await expect.poll(() => pendingOf(b.page), { timeout: 15_000 }).not.toContain('tick:before-charter');
 		await openSync(page, '#checklist');
+		await page.reload();
 		await expect(box(page, 'before-charter')).toBeChecked({ timeout: 15_000 });
 
 		await openSyncSheet(page);
@@ -211,18 +225,19 @@ test.describe('group sync', { tag: '@demo' }, () => {
 
 		await expect(b.page.locator('#syncBar'), 'the blocked phone is told').toContainText('This phone is blocked', { timeout: 15_000 });
 		await expect(b.page.locator('#d3 .stop.mine', { hasText: 'Demo Tester Stop' })).toHaveCount(0);
-		await addByLink(b.page, 'Demo After Block');
-		await page.waitForTimeout(2500);
-		await expect(page.locator('#d3 .stop.mine', { hasText: 'Demo After Block' }), 'nothing it does reaches the group').toHaveCount(0);
+		// what the blocked phone does next waits on it: its outbox holds it, and the database gets nothing new
+		const before = Object.keys((await stored(request, testInfo)) || {}).length;
+		await tick(b.page, 'before-passport');
+		await expect.poll(() => pendingOf(b.page)).toContain('tick:before-passport');
+		await b.page.evaluate(() => new Promise((r) => setTimeout(r, 600))); // past the outbox's own 400 ms push delay
+		expect(Object.keys((await stored(request, testInfo)) || {}).length, 'nothing it does reaches the group').toBe(before);
+		await expect(box(page, 'before-passport')).not.toBeChecked();
 
 		await openSyncSheet(page);
 		await sheet(page).locator('.sync-row', { hasText: 'Ana' }).locator('[data-block-drop]').click();
 		await expect(page.locator('#toast')).toContainText('Unblocked Ana');
 		await sheet(page).locator('[data-close]').click();
-		await b.page.reload();
-		await expect(page.locator('#d3 .stop.mine', { hasText: 'Demo After Block' }), 'unblocked: its waiting change arrives').toBeVisible({
-			timeout: 15_000,
-		});
+		await expect(box(page, 'before-passport'), 'unblocked: what waited arrives').toBeChecked({ timeout: 15_000 });
 	});
 
 	test('a phone can’t take a planner’s name', async ({ page }) => {
