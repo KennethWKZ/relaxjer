@@ -51,7 +51,9 @@ test('a tab jump is instant and lands with a ring that holds, then goes', async 
 
 test('the Back pill returns to where the reader was before a jump', async ({ page }) => {
 	await openTrip(page);
-	await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight * 0.3));
+	// instant: the page's CSS makes a plain scrollTo smooth, and CI's Linux WebKit started that scroll so late that settle()
+	// had already read the page as still, so `before` was taken at the top and the page moved on under the test
+	await page.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight * 0.3, behavior: 'instant' }));
 	await settle(page);
 	const before = await page.evaluate(() => scrollY);
 	await page.locator('.tab[href="#rules"]').first().click();
