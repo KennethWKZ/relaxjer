@@ -38,3 +38,11 @@ test('the ci-ok gate waits on every other ci job and runs even when one fails', 
 	assert.deepEqual(needs.sort(), jobs.filter((j) => j !== 'ci-ok').sort(), 'ci-ok needs every other job');
 	assert.match(gate, /if:\s*always\(\)/, 'it runs (and fails) when a job it needs failed');
 });
+
+test('ci runs once per pull request, and on every push to main', () => {
+	const on = read('.github/workflows/ci.yml')
+		.split(/^on:\s*$/m)[1]
+		.split(/^\S/m)[0];
+	assert.match(on, /^ {2}pull_request:/m, 'every pull request runs ci');
+	assert.match(on, /^ {2}push:\s*\n {4}branches: \[main\]/m, 'a push runs ci only on main (the release job waits for that run)');
+});

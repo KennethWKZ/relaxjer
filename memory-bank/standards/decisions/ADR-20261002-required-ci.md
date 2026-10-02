@@ -36,6 +36,9 @@ which said the release pull request gets no ci: it does).
   short-lived branches would rebase for nothing).
 - **The admin role bypasses it** ("always"): the maintainer can push to `main`, and can merge a red pull request only by
   ticking GitHub's bypass box on purpose. Contributors and the release pull request can't.
+- **ci runs once per pull request**: `push` runs it only on `main` (merges, the maintainer's pushes, and the release
+  commit the release job waits for), so a pull request's branch doesn't run it a second time. `tests/repo/ci.test.mjs`
+  holds the triggers.
 - **Fork pull requests run ci without approval** unless the account is new to GitHub
   (`first_time_contributors_new_to_github`, the least strict setting GitHub has).
 

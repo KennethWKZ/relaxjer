@@ -1,7 +1,10 @@
 # Actions use their latest major version tag, so fixes arrive on their own (Kenneth's call, 2026-10-01).
 name: ci
+# a pull request runs ci once, as the pull request; a push runs it only on main (merges and the maintainer's own pushes,
+# whose ci run the release job waits for), not again for the branch behind a pull request
 on:
   push:
+    branches: [main]
   pull_request:
 
 permissions:
