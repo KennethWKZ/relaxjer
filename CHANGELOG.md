@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.2.1](https://github.com/KennethWKZ/relaxjer/compare/v1.2.0...v1.2.1) (2026-10-02)
+
+
+### ⚡️ Performance Improvements
+
+* **engine:** the page draws at once on a weak signal, and holds still as it opens ([0a5bdfe](https://github.com/KennethWKZ/relaxjer/commit/0a5bdfe1281693b5bd42cb2314f19fec7d5848a8))
+
 ## [1.2.0](https://github.com/KennethWKZ/relaxjer/compare/v1.1.1...v1.2.0) (2026-10-02)
 
 
