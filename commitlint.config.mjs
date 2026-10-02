@@ -1,5 +1,5 @@
-// Conventional Commits (https://www.conventionalcommits.org): `feat(engine): …`, `fix(tw): …`. commit-and-tag-version
-// reads the same types to write CHANGELOG.md (.versionrc), so a wrong type means a missing changelog line.
+// Conventional Commits (https://www.conventionalcommits.org): `feat(engine): …`, `fix(tw): …`. release-please reads the
+// same types to write CHANGELOG.md (release-please-config.json), so a wrong type means a missing changelog line.
 export default {
 	extends: ['@commitlint/config-conventional'],
 	rules: {

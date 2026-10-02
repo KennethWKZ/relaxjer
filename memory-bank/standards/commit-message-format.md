@@ -5,7 +5,7 @@ updated: 2026-10-01
 
 # Commit Message Format
 
-Conventional Commits, because `CHANGELOG.md` is built from them (`pnpm release`, `.versionrc`). commitlint checks them
+Conventional Commits, because `CHANGELOG.md` is built from them (release-please, `release-please-config.json`). commitlint checks them
 on every commit (`.husky/commit-msg`, `commitlint.config.mjs`).
 
 ## Shape

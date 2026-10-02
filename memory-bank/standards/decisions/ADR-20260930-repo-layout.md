@@ -50,7 +50,7 @@ relaxjer/
   AGENTS.md, CLAUDE.md    how an agent works here
   PRODUCT.md, DESIGN.md   the trip page's product context and design system (read by design tools)
   .cbmignore, .gitignore, .gitleaks.toml, .husky/, .github/workflows/
-  .editorconfig, .prettierrc.yaml, eslint.config.mjs, commitlint.config.mjs, lint-staged.config.mjs, .versionrc
+  .editorconfig, .prettierrc.yaml, eslint.config.mjs, commitlint.config.mjs, lint-staged.config.mjs, release-please-config.json
 ```
 
 ### Where this departs from the brief's proposed shape

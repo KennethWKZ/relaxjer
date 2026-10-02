@@ -16,9 +16,13 @@ test('the e2e jobs run in the Playwright image of the version package.json pins'
 	for (const v of images) assert.equal(v, pinned, `ci.yml's Playwright image v${v} is not @playwright/test ${pinned}`);
 });
 
-test('the release workflow can write, so its actions are pinned to commit SHAs', () => {
+test('the release workflow can write, so its actions are pinned to commit SHAs, and it publishes only past the gate', () => {
 	const wf = read('.github/workflows/release.yml');
 	for (const [, ref] of wf.matchAll(/uses:\s*[\w./-]+@(\S+)/g)) assert.match(ref, /^[0-9a-f]{40}$/, `unpinned action ref: ${ref}`);
-	assert.match(wf, /tags:\s*\['v\*\.\*\.\*'\]/, 'it runs on version tags');
-	assert.match(wf, /pnpm test:release/, 'it runs the release gate');
+	assert.match(wf, /pnpm test:release/, 'it runs the release gate before publishing');
+	const cfg = JSON.parse(read('release-please-config.json'));
+	assert.equal(cfg.draft, true, 'releases start as drafts, published once ci is green');
+	assert.equal(cfg['force-tag-creation'], true, 'a draft still gets its tag');
+	const manifest = JSON.parse(read('.release-please-manifest.json'));
+	assert.equal(manifest['.'], JSON.parse(read('package.json')).version, 'the manifest and package.json name the same version');
 });

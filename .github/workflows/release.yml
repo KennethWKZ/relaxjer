@@ -1,71 +1,75 @@
-# A pushed version tag (`pnpm release`, then `git push --follow-tags origin main`) becomes a GitHub release with its
-# CHANGELOG section as the notes, once the tag passes its own checks and the commit's ci run is green
-# (ADR-20261002-ci-image-and-releases). Run it by hand for a tag that has no release yet (workflow_dispatch).
+# Releases (ADR-20261002-ci-image-and-releases). On every push to main, release-please keeps one "chore(release): vX.Y.Z"
+# pull request open with the version bump and the CHANGELOG.md lines built from the Conventional Commits since the last
+# release (release-please-config.json). Merging it tags the commit and makes the release as a draft; the second job
+# publishes the draft once ci is green on that commit and the release gate passes. A pull request opened with this
+# workflow's token runs no ci of its own, so the merge's ci run is the one that counts.
 # It can write to the repo, so its actions are pinned to commit SHAs, like pages.yml; the comment names the release.
+# Needs once: Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests".
 name: release
 on:
   push:
-    tags: ['v*.*.*']
+    branches: [main]
   workflow_dispatch:
-    inputs:
-      tag:
-        description: 'An existing tag, for example v1.0.0'
-        required: true
 
 permissions:
   contents: read
 
 concurrency:
-  group: release-${{ github.event.inputs.tag || github.ref_name }}
+  group: release
   cancel-in-progress: false
 
 jobs:
-  release:
+  release-please:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # the release commit's tag and the draft release
+      pull-requests: write # the release pull request
+    outputs:
+      created: ${{ steps.rp.outputs.release_created }}
+      tag: ${{ steps.rp.outputs.tag_name }}
+      sha: ${{ steps.rp.outputs.sha }}
+    steps:
+      - id: rp
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  publish:
+    needs: release-please
+    if: ${{ needs.release-please.outputs.created == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 50
     permissions:
-      contents: write # the release
+      contents: write # publish the draft
       actions: read # the commit's ci run
     env:
-      TAG: ${{ github.event.inputs.tag || github.ref_name }}
+      TAG: ${{ needs.release-please.outputs.tag }}
+      SHA: ${{ needs.release-please.outputs.sha }}
       GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ env.TAG }}
-          fetch-depth: 0
+          ref: ${{ needs.release-please.outputs.sha }}
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .node-version
           cache: pnpm
       - run: pnpm install --frozen-lockfile --ignore-scripts
-      - name: the tag is a release of main, and names package.json's version
-        run: |
-          case "$TAG" in v[0-9]*.[0-9]*.[0-9]*) ;; *) echo "::error::$TAG is not a version tag"; exit 1 ;; esac
-          git merge-base --is-ancestor "$TAG" origin/main || { echo "::error::$TAG is not on main"; exit 1; }
-          v=$(node -p "require('./package.json').version")
-          [ "v$v" = "$TAG" ] || { echo "::error::package.json says $v, the tag says $TAG"; exit 1; }
       - name: the release gate (no real trip's details in anything published)
         run: pnpm test:release
-      - name: the commit's ci run is green
+      - name: ci is green on the release commit
         run: |
-          sha=$(git rev-list -n 1 "$TAG")
           for i in $(seq 1 90); do
-            runs=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$sha&per_page=20" \
+            runs=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$SHA&per_page=20" \
               --jq '[.workflow_runs[] | {s: .status, c: .conclusion}]')
-            if echo "$runs" | jq -e 'any(.[]; .s == "completed" and .c == "success")' >/dev/null; then echo "ci is green on $sha"; exit 0; fi
+            if echo "$runs" | jq -e 'any(.[]; .s == "completed" and .c == "success")' >/dev/null; then echo "ci is green on $SHA"; exit 0; fi
             if echo "$runs" | jq -e 'length > 0 and all(.[]; .s == "completed")' >/dev/null; then
-              echo "::error::ci did not pass on $sha"; exit 1
+              echo "::error::ci did not pass on $SHA: $TAG stays a draft"; exit 1
             fi
             sleep 30
           done
-          echo "::error::ci on $sha did not finish in 45 minutes"; exit 1
-      - name: the GitHub release, with its CHANGELOG section as the notes
-        run: |
-          node scripts/release-notes.mjs "$TAG" > "$RUNNER_TEMP/notes.md"
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release edit "$TAG" --title "$TAG" --notes-file "$RUNNER_TEMP/notes.md"
-          else
-            gh release create "$TAG" --verify-tag --title "$TAG" --notes-file "$RUNNER_TEMP/notes.md"
-          fi
+          echo "::error::ci on $SHA did not finish in 45 minutes: $TAG stays a draft"; exit 1
+      - name: publish the release
+        run: gh release edit "$TAG" --draft=false --latest

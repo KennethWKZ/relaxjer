@@ -1,0 +1,28 @@
+{
+	"$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+	"bootstrap-sha": "144492199b44894c097e53d955a720f1b8f9b30c",
+	"draft": true,
+	"force-tag-creation": true,
+	"include-component-in-tag": false,
+	"pull-request-title-pattern": "chore(release): v${version}",
+	"pull-request-header": "A merge releases this: the release starts as a draft, and goes public once ci is green on the merge (release.yml).",
+	"packages": {
+		".": {
+			"release-type": "node",
+			"changelog-sections": [
+				{ "type": "feat", "section": "✨ Features" },
+				{ "type": "fix", "section": "🐛 Bug Fixes" },
+				{ "type": "perf", "section": "⚡️ Performance Improvements" },
+				{ "type": "refactor", "section": "♻️ Code Refactoring" },
+				{ "type": "docs", "section": "📝 Documentation" },
+				{ "type": "test", "section": "✅ Testing" },
+				{ "type": "build", "section": "🔨 Builds" },
+				{ "type": "ci", "section": "🧑‍💻 Continuous Integrations" },
+				{ "type": "style", "section": "💄 Styling" },
+				{ "type": "chore", "section": "🚚 Chores" },
+				{ "type": "revert", "section": "⏪️ Revert" },
+				{ "type": "wip", "section": "🚧 Work In Progress", "hidden": true }
+			]
+		}
+	}
+}

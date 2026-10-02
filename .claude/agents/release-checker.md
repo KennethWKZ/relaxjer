@@ -1,6 +1,6 @@
 ---
 name: release-checker
-description: Read-only release gate for RelaxJer. Use before a push, a pull request, a release (pnpm release) or a trip publish. It runs verify, the release gate and the history scan, checks the commits for real-trip details, keys, trip files and commit format, and flags agent rules that changed without review. Returns go / no-go with reasons; it never pushes, commits or rewrites history.
+description: Read-only release gate for RelaxJer. Use before a push, a pull request, a release (merging the release pull request) or a trip publish. It runs verify, the release gate and the history scan, checks the commits for real-trip details, keys, trip files and commit format, and flags agent rules that changed without review. Returns go / no-go with reasons; it never pushes, commits or rewrites history.
 tools: Read, Grep, Glob, Bash
 ---
 
@@ -25,8 +25,9 @@ rebase, push, tag or publish. Run only checks.
 8. A changed ADR: `pnpm gen:adr-index --check` passes. The tier-0 test covers it too.
 9. For a trip publish: `verify-page` ran on this build, the build says no key unless one was meant, and `fileName` and
    `storageKey` are unchanged.
-10. For a release (`pnpm release`): `pnpm test:all` passed on the commit being tagged, the version in `package.json`
-    matches the tag, `CHANGELOG.md` was generated from the commits and carries no real trip's details, and the docs
+10. For a release (merging release-please's `chore(release): vX.Y.Z` pull request): `pnpm test:all` passed on `main`,
+    the pull request bumps `package.json` and `.release-please-manifest.json` to the same version, `CHANGELOG.md` was
+    generated from the commits and carries no real trip's details, and the docs
     describe what ships (`tests/repo/docs-coverage.test.mjs` is green, `AGENTS.md`'s status line is current).
 
 ## Return

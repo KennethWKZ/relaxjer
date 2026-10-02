@@ -1,2 +1,2 @@
-# Conventional Commits, so the changelog can be generated (commitlint.config.mjs, .versionrc)
+# Conventional Commits, so the changelog can be generated (commitlint.config.mjs, release-please-config.json)
 pnpm exec commitlint --edit "$1"

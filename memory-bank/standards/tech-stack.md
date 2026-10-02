@@ -35,8 +35,8 @@ RelaxJer still runs nothing.
 - **Hooks:** husky. pre-commit runs the path guard, gitleaks on the staged diff, lint-staged and `pnpm test`.
   commit-msg runs commitlint. pre-push runs the history scan, gitleaks, `pnpm verify` and `pnpm test:release`.
 - **Format and lint:** Prettier (tabs, width 150, single quotes, `proseWrap: preserve`), ESLint flat config.
-- **Commits and releases:** Conventional Commits (commitlint), `pnpm release` (commit-and-tag-version). A pushed tag
-  becomes a GitHub release once its ci run is green (`release.yml`,
+- **Commits and releases:** Conventional Commits (commitlint). release-please keeps a release pull request open;
+  merging it tags the release, which goes public once ci is green (`release.yml`,
   [ADR-20261002-ci-image-and-releases](./decisions/ADR-20261002-ci-image-and-releases.md)).
 - **CI:** the e2e jobs run in Playwright's image, its version equal to `@playwright/test`, each project in two halves.
 - **Supply chain:** `minimumReleaseAge: 4320` (3 days), `allowBuilds: {}`, a checksum-verified gitleaks in CI. `ci.yml`
