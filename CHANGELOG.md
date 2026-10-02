@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.3.0](https://github.com/KennethWKZ/relaxjer/compare/v1.2.5...v1.3.0) (2026-10-02)
+
+
+### ✨ Features
+
+* **site:** found by "trip planner", with a home-screen icon ([525e000](https://github.com/KennethWKZ/relaxjer/commit/525e0005a705771386ed5a6ea936da38bf58926c))
+* **site:** found by "trip planner", with a home-screen icon ([8291525](https://github.com/KennethWKZ/relaxjer/commit/8291525f21855d04ddf9dcbb42578fe630865a80))
+* **site:** the verification tag for the maintainer's search console property ([f40e458](https://github.com/KennethWKZ/relaxjer/commit/f40e45805917e067b391a2ffc65b89510700cafc))
+
+
+### 🚚 Chores
+
+* **site:** a second search console owner's verification tag ([ab0df11](https://github.com/KennethWKZ/relaxjer/commit/ab0df11c534e97cbdd75060471567aab9b9206d5))
+* **site:** a second search console owner's verification tag ([6f55d43](https://github.com/KennethWKZ/relaxjer/commit/6f55d4322336d07d1f2c2aada9a0d5b132640965))
+* **site:** drop the former search console owner's verification tag ([d68d46d](https://github.com/KennethWKZ/relaxjer/commit/d68d46dfdfc37b3c42cd6aa64c4d731b53c6fcd9))
+* **site:** drop the former search console owner's verification tag ([7143528](https://github.com/KennethWKZ/relaxjer/commit/7143528533704739b57b79e1ff96404d39a9d1dd))
+
 ## [1.2.5](https://github.com/KennethWKZ/relaxjer/compare/v1.2.4...v1.2.5) (2026-10-02)
 
 
