@@ -13,15 +13,17 @@ status: accepted
 `main`'s ruleset ("Protect Main Branch") blocked only deletion and force-pushes, so a pull request could merge with ci
 red or still running. It now requires one status check, `ci-ok`, a job at the end of `ci.yml` that passes only when every
 other ci job passed. The repository admin role may bypass it, so the maintainer's own pushes to `main` keep working.
-Fork pull requests still wait for an approval before their ci runs: loosening that held the release pull requests too.
-Decided by Kenneth on 2026-10-02 (amends [ADR-20261002-ci-image-and-releases](ADR-20261002-ci-image-and-releases.md),
-which said the release pull request gets no ci: it does).
+A fork's pull request runs ci without an approval unless its account is new to GitHub. GitHub holds the release pull
+request's own ci for an approval, so the release job starts ci on it. Decided by Kenneth on 2026-10-02 (amends
+[ADR-20261002-ci-image-and-releases](ADR-20261002-ci-image-and-releases.md), which said the release pull request gets
+no ci).
 
 ## Context
 
-- The release pull requests showed ci running on them (`pull_request` events). The first one waited for an
-  "Approve and run"; later ones ran on their own. A fork's pull request waited for approval under the policy
-  "all outside collaborators".
+- A pull request that release-please opens or updates with the workflow's token gets a `pull_request` ci run, but
+  GitHub holds it as "action_required" until someone clicks "Approve and run", whatever the fork policy says (seen on
+  v1.2.0 to v1.2.3 under both policies). With `ci-ok` required, the release couldn't merge until then.
+- A fork's pull request waited for approval under the policy "all outside collaborators".
 - A required check by job name would list ten names (`secrets`, `test`, eight `e2e (project, shard)`), and the day the
   matrix changed, every pull request would wait for a check that no longer exists.
 - A required check also applies to pushes: a commit pushed straight to `main` must have passed it elsewhere first. The
@@ -39,24 +41,29 @@ which said the release pull request gets no ci: it does).
 - **ci runs once per pull request**: `push` runs it only on `main` (merges, the maintainer's pushes, and the release
   commit the release job waits for), so a pull request's branch doesn't run it a second time. `tests/repo/ci.test.mjs`
   holds the triggers.
-- **Fork pull requests keep the approval** ("all outside collaborators"). Tried for a day: the least strict setting,
-  `first_time_contributors_new_to_github`, held every release pull request's ci for an approval (GitHub counts the
-  `github-actions` bot as new), so `ci-ok` never came and the release couldn't merge. Under "all outside collaborators"
-  the release pull requests run on their own.
+- **The release job starts ci on the release pull request** (`release.yml`, `gh workflow run ci.yml --ref <its
+branch>`, `actions: write`) whenever release-please opens or updates it. A run the workflow's token starts with
+  `workflow_dispatch` isn't held, and its `ci-ok` lands on the pull request's commit. The held `pull_request` run
+  stays held and doesn't matter. No personal access token is stored.
+- **Fork pull requests run ci without approval** unless the account is new to GitHub
+  (`first_time_contributors_new_to_github`, the least strict setting GitHub has).
 
 ## Alternatives
 
-| Option                                 | Why not                                                                                                            |
-| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Require the ten job names              | Breaks every pull request the day the e2e matrix changes                                                           |
-| No bypass                              | Every change, the maintainer's too, goes through a branch and a green ci first: safer, ~10 minutes slower a change |
-| Also require a pull request for `main` | Same cost as no bypass, and a one-person repo has nobody else to review                                            |
+| Option                                     | Why not                                                                                                                           |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
+| Require the ten job names                  | Breaks every pull request the day the e2e matrix changes                                                                          |
+| No bypass                                  | Every change, the maintainer's too, goes through a branch and a green ci first: safer, ~10 minutes slower a change                |
+| Also require a pull request for `main`     | Same cost as no bypass, and a one-person repo has nobody else to review                                                           |
+| A personal access token for release-please | release-please's own fix: its pull requests then get ordinary ci, but a long-lived token that can push sits in the repo's secrets |
+| Approve each release pull request's run    | One more click a release, and a forgotten one leaves the release unmergeable                                                      |
 
 ## Consequences
 
-- **Security:** a merge can't land red without a deliberate bypass. A fork's ci waits for the maintainer's approval; `ci.yml`
-  uses `pull_request` (not `pull_request_target`), a read-only token and no secrets, so once approved a stranger's code
-  runs sandboxed. The maintainer's direct pushes still skip ci until after
+- **Security:** a merge can't land red without a deliberate bypass. Fork pull requests run ci without approval; `ci.yml`
+  uses `pull_request` (not `pull_request_target`), a read-only token and no secrets, so a stranger's code runs sandboxed,
+  and the new-account check stops most throwaway-account abuse. The release job may now start workflows (`actions:
+write`), only `ci.yml`, on the release branch. The maintainer's direct pushes still skip ci until after
   they land, so the pre-push hook remains the gate for those.
 - **Operational:** a pull request merges about 10 minutes after its last push (the e2e jobs). If ci never runs on a
   pull request (Actions down, or an approval pending), it can't merge until it does, or the maintainer bypasses.
