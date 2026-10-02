@@ -52,6 +52,12 @@ states and its feedback, as 25 testable rules with sources.
   drawn as a dashed 22 % tint, no colour-only meaning, and readable at 390 px.
 - **No layout shift, no overflow.** Nothing may run wider than 390 px in either language (the first trip had two such
   bugs). Long words wrap with balanced lines (`text-wrap: balance`), not `nowrap`.
+- **A control never covers what it controls.** A play or pause control, a close button or a floating action sits
+  beside or below the content it acts on, never over it. Where its glyph says enough (pause, play, close), it's an
+  icon-only 44 px button whose words are for screen readers only.
+- **The phone keyboard never hides the field being typed in.** A bottom sheet with a text field moves up to sit on the
+  keyboard while it's open, and the focused field scrolls into view (`.kb-up` in `19-back-button.js`;
+  `knowledge/engine-browser.md`). A new sheet with a field gets the same check in WebKit at 390 px.
 - **Never describe people by family relationship** in any copy.
 - **Avoid the travel-app defaults:** stock hero photos, a teal accent, grids of identical icon cards.
 
@@ -82,7 +88,9 @@ contract are in `.impeccable/surfaces/site-index-html.md`.
   means fetching a new subset that includes it.
 - **A demo is a drawing of the real page.** Each loop is a mini trip page (`.m`) in CSS keyframes, after a capture of
   the demo build (the synced one for sync features): same strings, same flow. It runs only in view, has a Pause button
-  and an `aria-label="Animated: …"`, and holds its `--still` frame under reduced motion. A UI change on the trip page
+  and an `aria-label="Animated: …"`, and holds its `--still` frame under reduced motion. The Pause button is a round,
+  icon-only 44 px disc under the phone's right edge, in the card's bottom margin, never on the screen it controls; its
+  name ("Pause the … demo", then "Play …") is screen-reader text. A UI change on the trip page
   that a card shows means redrawing that card; no test catches the drift.
 - **Only the demo, ever.** The screenshots come from `node scripts/docs-update/site-screens.mjs`, which builds the
   synthetic demo without a key and writes each image with its provenance sidecar. The flow diagram comes from

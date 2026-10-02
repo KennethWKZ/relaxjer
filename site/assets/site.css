@@ -887,35 +887,39 @@ svg.i {
 	color: var(--ink-2);
 }
 
-/* the pause button on every demo (WCAG 2.2.2): a filled paper chip, label and icon */
+/* the pause button on every demo (WCAG 2.2.2): a round paper disc with the glyph alone, under the phone's right edge
+   in the card's bottom margin, so it never covers the screen it controls. Its words are for screen readers */
 .pause {
 	position: absolute;
-	left: 12px;
-	bottom: 12px;
+	top: 100%;
+	right: 0;
 	z-index: 5;
-	display: inline-flex;
-	align-items: center;
-	gap: 8px;
-	min-height: 44px;
-	padding: 0 14px 0 12px;
+	margin-top: 10px;
+	display: grid;
+	place-items: center;
+	width: 44px;
+	height: 44px;
+	padding: 0;
 	border: 0;
-	border-radius: 10px;
+	border-radius: 50%;
 	background: var(--stock);
 	color: var(--ink);
 	box-shadow:
 		0 0 0 1px var(--stock-edge),
 		0 6px 14px -8px rgba(12, 18, 34, 0.5);
-	font: 700 0.9375rem/1 var(--font-ui);
 	cursor: pointer;
 	transition: transform 160ms var(--ease-out);
+}
+.pause:focus-visible {
+	border-radius: 50%;
 }
 .pause:active {
 	transform: scale(0.96);
 	transition-duration: 0ms;
 }
 .pause svg {
-	width: 16px;
-	height: 16px;
+	width: 18px;
+	height: 18px;
 	fill: currentColor;
 	stroke: none;
 }
