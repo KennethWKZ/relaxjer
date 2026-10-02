@@ -2,6 +2,43 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.1.0](https://github.com/KennethWKZ/relaxjer/compare/v1.0.2...v1.1.0) (2026-10-02)
+
+
+### ✨ Features
+
+* **engine:** the live demo is in each visitor's own year, every weekday where it was ([ed476d8](https://github.com/KennethWKZ/relaxjer/commit/ed476d8fa30c34ef1e3c4a7e13715d18cff7e2ae))
+* **engine:** the live demo opens in English, says it's a demo, and never asks where the visitor is ([a59ff4c](https://github.com/KennethWKZ/relaxjer/commit/a59ff4c5e32c4919c08604715473b71a0be41534))
+* **engine:** the tab's title follows the language, and the brush mark is named in it ([5e125f7](https://github.com/KennethWKZ/relaxjer/commit/5e125f7de368d7ba89303aa278870a396f1aee09))
+* **site:** calmer, shorter copy, a day/night button, and a hero whose buttons and postmark line up ([ef6b421](https://github.com/KennethWKZ/relaxjer/commit/ef6b4218f9db78450d82c970ae5602f1b9da7bfe))
+* **site:** the demo trip goes live on Pages, built by CI with no key and its clock on Day 3 ([0da9eb5](https://github.com/KennethWKZ/relaxjer/commit/0da9eb52f64ea35058f6e954db4813fa3050d86c))
+* **site:** the landing page lies under one trip day's sky, from a morning sun to lantern night ([95a3ac9](https://github.com/KennethWKZ/relaxjer/commit/95a3ac9769d93db61cdf508cf879ba7ee2c28f99))
+* **site:** the packing list reads as a sheet the planner wrote on, ticked in ballpoint ([d97efae](https://github.com/KennethWKZ/relaxjer/commit/d97efae4f227e797f4ed53496c3184441989c66e))
+* **site:** the sun keeps to the screen and sets as the page scrolls toward night ([68ac020](https://github.com/KennethWKZ/relaxjer/commit/68ac020f19a7344e4dce24b476ab9caf17d179e9))
+
+
+### 🐛 Bug Fixes
+
+* **site:** a demo's Pause is a round icon under the phone, not a label over its screen ([012304d](https://github.com/KennethWKZ/relaxjer/commit/012304db0d0b514f300277b7b2d454a8346d3bcf))
+* **site:** dark postcards sink toward the night, and no stray marks on a phone or in the footer ([c2fc9b0](https://github.com/KennethWKZ/relaxjer/commit/c2fc9b07a1d1ccf195de57fbe657664591979f24))
+
+
+### 📝 Documentation
+
+* the landing ADR, patterns/frontend.md and patterns/testing.md, and the surface brief. ([95a3ac9](https://github.com/KennethWKZ/relaxjer/commit/95a3ac9769d93db61cdf508cf879ba7ee2c28f99))
+
+
+### ✅ Testing
+
+* **tests:** the landing page checks fit CI's WebKit, which paints the sky in software ([980d225](https://github.com/KennethWKZ/relaxjer/commit/980d2250eb435459784bedf5b4d6974b9ded09ea))
+* **tests:** the landing page checks really get 120 s in WebKit ([5e4b2b0](https://github.com/KennethWKZ/relaxjer/commit/5e4b2b08c7ba65dfdbd1312543cc4cbb55efae60))
+* **tests:** the local server serves a folder's index.html, as GitHub Pages does ([e87a5c4](https://github.com/KennethWKZ/relaxjer/commit/e87a5c4a9f3e212bdd97fbf3332018cea0ae35ee))
+
+
+### 🧑‍💻 Continuous Integrations
+
+* a merged release branch is deleted with its pull request instead of lingering on origin ([1c049cb](https://github.com/KennethWKZ/relaxjer/commit/1c049cbd2e8091c9d038a3682fd71824fbdf51d3))
+
 ## [1.0.2](https://github.com/KennethWKZ/relaxjer/compare/v1.0.1...v1.0.2) (2026-10-02)
 
 
