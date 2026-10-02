@@ -545,10 +545,13 @@ contract is `.impeccable/surfaces/site-index-html.md`). It copies the trip page'
   bottom margin, never over the screen it controls. It shows only its glyph, has an accessible name, and turns into a
   Play disc while paused.
 - **Postmarks.** They're ink at 0.62 by day and a light ink at 0.82 at night, so they read on dark stock.
-- **The packing list and the luggage tag.** The "also packed in every page" list sits on postcard stock, in groups
-  with airmail-blue headings (two columns where they fit). Each item has a hairline in airmail blue at 16 % under it,
-  never through a wrapped line. The seniors facts hang beside it on a luggage tag in lantern 7 (gold), with a punched
-  eyelet and a string, using the trip page's key/value rows.
+- **The packing list and the luggage tag.** The "also packed in every page" list is a sheet the planner wrote on:
+  postcard stock under the postcards' airmail edge, with a brushed line (也都在这页, "all on this page too", answering
+  the hero's) in ballpoint, airmail blue mixed with ink. Each item is ticked in ballpoint, a hand-drawn airmail-blue
+  stroke that turns a little from item to item, never a filled checkbox, and has a hairline in airmail blue at 16 %
+  under it, never through a wrapped line. The groups, with airmail-blue headings, flow down two columns where they fit,
+  so a short group leaves no hole beside a long one. The seniors facts hang beside it on a luggage tag in lantern 7
+  (gold), with a punched eyelet and a string, using the trip page's key/value rows.
 - **Four stamps on a route.** The how-to's four steps are stamps in lantern colours 1–4, tilted a little each way,
   with each step's brush wish set vertically, on a dashed airmail route. Each step's card is stock.
 - **Rate card.** Google against the free map is a table on stock: hairline rows, a 2 px ink rule under the head and

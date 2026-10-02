@@ -1012,7 +1012,8 @@ svg.i {
 	line-height: 1;
 	opacity: 0.9;
 }
-.back::before {
+.back::before,
+.packing::before {
 	content: '';
 	position: absolute;
 	inset: 0 0 auto;
@@ -3953,13 +3954,21 @@ html:not(.js) .demo .route * {
 		gap: 48px;
 	}
 }
+/* the packing list: a sheet the planner wrote on, under the same airmail edge as the postcards, ticked in ballpoint */
 .packing {
+	--hand: color-mix(in srgb, var(--blue) 72%, var(--ink));
 	position: relative;
-	padding: 28px 26px 26px;
+	padding: 30px 26px 26px;
 	border-radius: var(--r-card);
 	background: var(--stock);
 	box-shadow: var(--card-shadow);
 	transform: rotate(-0.6deg);
+}
+.packing::before {
+	border-radius: var(--r-card) var(--r-card) 0 0;
+}
+.packing .note-brush {
+	margin-bottom: 6px;
 }
 .packing h3,
 .tag h3 {
@@ -3988,26 +3997,33 @@ html:not(.js) .demo .route * {
 .packing li svg {
 	width: 26px;
 	height: 26px;
-	padding: 3px;
-	border-radius: 7px;
-	background: var(--good);
-	color: var(--paper);
-	stroke-width: 3;
+	color: var(--blue);
+	stroke-width: 2.6;
+}
+/* a hand never ticks the same way twice */
+.packing li:nth-child(3n + 2) svg {
+	rotate: -7deg;
+}
+.packing li:nth-child(3n) svg {
+	rotate: 5deg;
+	scale: 0.94;
 }
 .packing li span {
 	padding-top: 2px;
 }
-/* the list in groups, two columns where they fit; each heading takes one ruled line */
+/* the list in groups, flowing down two columns where they fit (so a short group leaves no hole beside a long one);
+   each heading takes one ruled line */
 .pack-groups {
-	display: grid;
-	grid-template-columns: minmax(0, 1fr);
 	column-gap: 36px;
 	margin-top: 18px;
 }
 @media (min-width: 700px) {
 	.pack-groups {
-		grid-template-columns: repeat(2, minmax(0, 1fr));
+		columns: 2;
 	}
+}
+.pack-group {
+	break-inside: avoid;
 }
 .pack-group h4 {
 	margin: 0;
