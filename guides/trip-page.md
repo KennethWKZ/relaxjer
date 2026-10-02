@@ -26,7 +26,8 @@ two of them seniors.
 
 - **The header** stays on screen: the trip's name (in brush lettering) and dates, Search, the theme button (light,
   dark, or follow the phone, with a toast saying which), the language button (it names the other language, and keeps
-  your place), and Install.
+  your place; the browser tab's title switches with it, and in English the brush name is read out and shown on
+  hover by the trip's English name), and Install.
 - **The day strip** under it: Overview, one tab per day (date, weekday, a dot on today, in the day's lantern colour),
   then Map, Airport, Entry, Optional, Wishlist, Food, Budget, Weather, Checklist and Priorities. The lit tab follows
   your scroll, and the edges fade

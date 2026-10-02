@@ -74,6 +74,14 @@ function render() {
 	lb.setAttribute('aria-label', other === 'en' ? 'English · 改用英文' : '中文 · Switch to Chinese');
 	lb.title = lb.getAttribute('aria-label');
 	$('#brand-dates').textContent = Time.rangeLabel(TRIP.start, TRIP.end, lang);
+	// the tab's title in the reader's language: the brand lettering in Chinese, the trip's English name in English. The
+	// header keeps the brand as the trip's mark (it's the home-screen name too) and names it in the reader's language.
+	const tripName = lang === 'en' && Array.isArray(TRIP.name) && TRIP.name[1] ? TRIP.name[1] : BRAND;
+	document.title = `${tripName} ${TRIP.start.slice(0, 4)}`;
+	const mark = $('a.brand');
+	mark.setAttribute('aria-label', tripName);
+	if (tripName === BRAND) mark.removeAttribute('title');
+	else mark.title = tripName;
 	$('#q').placeholder = L(TRIP.searchHint);
 	$('#searchBtn').setAttribute('aria-label', Z('搜索', 'Search'));
 	homeSync();

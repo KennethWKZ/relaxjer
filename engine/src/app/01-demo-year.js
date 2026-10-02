@@ -2,7 +2,7 @@
 // The live demo (build --demo-clock, the demo trip only) is written for one March. A visitor sees it in their own year
 // instead: before anything reads a date, every date of the trip season moves by whole weeks (Time.demoShift), so each
 // weekday holds and the page still opens mid-morning on Day 3. Only dates in the trip data and its side files move;
-// the storage key stays the one the build wrote. Every other page keeps its dates exactly as written.
+// the storage key stays the one the build wrote, and the tab's title follows on the first render. Every other page keeps its dates exactly as written.
 if (window.DEMO_CLOCK) {
 	const days = Time.demoShift(TRIP.start, Time.nowIn(TRIP.tz || 'UTC').date);
 	if (days) {
@@ -43,6 +43,5 @@ if (window.DEMO_CLOCK) {
 		];
 		for (const o of data) if (o && typeof o === 'object') move(o);
 		window.DEMO_CLOCK = `${Time.addDays(window.DEMO_CLOCK.slice(0, 10), days)}${window.DEMO_CLOCK.slice(10)}`;
-		document.title = `${TRIP.brand} ${TRIP.start.slice(0, 4)}`;
 	}
 }
