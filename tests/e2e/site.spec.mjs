@@ -11,6 +11,9 @@ const frame = (page) => page.evaluate(() => new Promise((r) => requestAnimationF
 // the landing page depends on neither the trip nor the engine, so a run on another trip or the legacy engine would
 // only repeat these
 test.skip(!!(process.env.TRIP_DIR || process.env.LEGACY_ENGINE_DIR), 'the landing page does not depend on the trip or the engine');
+// these walk the whole page with its motion on; on CI WebKit paints the sky's blur and glow in software, several times
+// slower than a phone's GPU, so they get the slow budget there (x3)
+test.slow(({ browserName }) => browserName === 'webkit', 'WebKit paints the sky in software on CI');
 
 for (const colorScheme of ['light', 'dark']) {
 	test.describe(`landing page, ${colorScheme}`, () => {
@@ -60,21 +63,25 @@ for (const colorScheme of ['light', 'dark']) {
 					const m = c.match(/\/\s*([\d.]+)(%?)\s*\)$/) || (c.startsWith('rgba(') && c.match(/,\s*([\d.]+)(%?)\s*\)$/));
 					return m ? parseFloat(m[1]) / (m[2] ? 100 : 1) : 1;
 				};
-				// words on the bare sky; a word on a card, a table or a stamp has its own ground
+				// words on the bare sky; a word on a card, a table or a stamp has its own ground. Which words those are doesn't
+				// change with the scroll, so they're found once; only where they sit is read at each scroll position
+				const bare = [];
+				const walk = document.createTreeWalker(document.querySelector('main'), NodeFilter.SHOW_TEXT);
+				for (let n = walk.nextNode(); n; n = walk.nextNode()) {
+					if (!n.nodeValue.trim() || n.parentElement.closest('[aria-hidden="true"], .sr-only')) continue;
+					let ground = false;
+					for (let a = n.parentElement; a && a.tagName !== 'MAIN'; a = a.parentElement) {
+						const s = getComputedStyle(a);
+						if (s.backgroundImage !== 'none' || alpha(s.backgroundColor) > 0) {
+							ground = true;
+							break;
+						}
+					}
+					if (!ground) bare.push(n);
+				}
 				const bareText = () => {
 					const out = [];
-					const walk = document.createTreeWalker(document.querySelector('main'), NodeFilter.SHOW_TEXT);
-					for (let n = walk.nextNode(); n; n = walk.nextNode()) {
-						if (!n.nodeValue.trim() || n.parentElement.closest('[aria-hidden="true"], .sr-only')) continue;
-						let ground = false;
-						for (let a = n.parentElement; a && a.tagName !== 'MAIN'; a = a.parentElement) {
-							const s = getComputedStyle(a);
-							if (s.backgroundImage !== 'none' || alpha(s.backgroundColor) > 0) {
-								ground = true;
-								break;
-							}
-						}
-						if (ground) continue;
+					for (const n of bare) {
 						const range = document.createRange();
 						range.selectNodeContents(n);
 						for (const q of range.getClientRects()) if (q.width && q.height) out.push({ q, text: n.nodeValue.trim().slice(0, 40) });
@@ -132,10 +139,13 @@ for (const colorScheme of ['light', 'dark']) {
 			const demos = page.locator(SITE.demo);
 			const count = await demos.count();
 			expect(count).toBeGreaterThanOrEqual(8);
+			// a card settles once, on arrival; that isn't what this measures, so they all arrive together, and settle once
+			await page.evaluate(() => document.querySelectorAll('.settle').forEach((c) => c.classList.add('in')));
 			for (let i = 0; i < count; i++) {
 				const demo = demos.nth(i);
 				const pause = demo.locator(SITE.pause);
-				await demo.scrollIntoViewIfNeeded();
+				await demo.evaluate((d) => d.scrollIntoView({ block: 'center', behavior: 'instant' }));
+				await frame(page);
 				await expect(pause).toBeVisible();
 				// measure the card at rest: before it settles (and while it does) it sits tilted and offset
 				await expect
