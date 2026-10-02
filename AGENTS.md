@@ -110,7 +110,7 @@ pnpm sync init --trip trips/<slug> --db <url>   # group sync for a trip (rules|i
 pnpm test:sync-rules             # the group-sync database rules on Firebase's emulator (local, needs Java)
 pnpm publish:trip trips/<slug>   # republish to the same link and prove it (--dry-run, --check, --audit): the planner approves each run (publish-htmlapp)
 pnpm parity --ref <commit> --trip trips/<slug>      # renders the same as an earlier commit? (--live <repo>: maintainer only)
-pnpm release                     # bump version + CHANGELOG from the commits (commit-and-tag-version)
+pnpm release                     # bump version + CHANGELOG from the commits; push with --follow-tags: release.yml makes the release
 TRIP_DIR=<trip folder> pnpm test                                        # contract on a real trip (local only)
 TRIP_DIR=<trip folder> pnpm exec playwright test --grep-invert @demo    # trip-agnostic e2e on it
 LEGACY_ENGINE_DIR=/path/to/legacy-trip-repo pnpm test:e2e              # maintainer only: compare against the first trip's old engine

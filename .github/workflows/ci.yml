@@ -38,17 +38,21 @@ jobs:
       - uses: astral-sh/setup-uv@v10.2.0 # setup-uv has no v10 major tag: its latest release; the data pipeline's offline tests (pipeline/)
       - run: pnpm verify # lint + format check + fast tests + pipeline tests
 
-  # one job per Playwright project, side by side: on one runner the four ran almost one at a time (40+ min)
+  # one job per Playwright project and half of its tests, side by side: on one runner the four ran almost one at a
+  # time (40+ min). Inside Playwright's own image, whose browsers and their system packages are already installed:
+  # installing WebKit's packages on the bare runner took under a minute most days and 20 on a slow one
+  # (ADR-20261002-ci-image-and-releases). The image's version must match @playwright/test (tests/repo/ci.test.mjs).
   e2e:
     runs-on: ubuntu-latest
-    # installing WebKit's system packages alone has taken 14 minutes on a slow day
-    timeout-minutes: 30
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble
+      options: --user 1001 # the runner's own user, so the checkout and caches are writable
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
         project: [android-390, chromium-1280, webkit-390, webkit-1280]
-    env:
-      BROWSER: ${{ startsWith(matrix.project, 'webkit') && 'webkit' || 'chromium' }}
+        shard: [1, 2]
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -56,13 +60,13 @@ jobs:
         with:
           node-version-file: .node-version
           cache: pnpm
-      - run: pnpm install --frozen-lockfile && pnpm exec playwright install --with-deps "$BROWSER"
-      - run: pnpm exec playwright test --project=${{ matrix.project }}
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright test --project=${{ matrix.project }} --shard=${{ matrix.shard }}/2
       # the same trip-agnostic suite on a 4-day trip made from the demo
-      - run: node tests/support/short-trip.mjs && TRIP_DIR=.cache/trips/short-trip pnpm exec playwright test --grep-invert @demo --project=${{ matrix.project }}
+      - run: node tests/support/short-trip.mjs && TRIP_DIR=.cache/trips/short-trip pnpm exec playwright test --grep-invert @demo --project=${{ matrix.project }} --shard=${{ matrix.shard }}/2
       - if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: playwright-report-${{ matrix.project }}
+          name: playwright-report-${{ matrix.project }}-${{ matrix.shard }}
           path: playwright-report/
           retention-days: 7
