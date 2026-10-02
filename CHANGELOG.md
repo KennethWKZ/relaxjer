@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.1.1](https://github.com/KennethWKZ/relaxjer/compare/v1.1.0...v1.1.1) (2026-10-02)
+
+
+### 🐛 Bug Fixes
+
+* **engine:** a reload in the middle of the update check no longer logs a page error in WebKit ([fc84c5f](https://github.com/KennethWKZ/relaxjer/commit/fc84c5fd8d3a23aa4c5a447596c0b62b6a8747c0))
+
+
+### ✅ Testing
+
+* **tests:** a fetch WebKit cancels as it tears a page down is not a page error ([1659bdd](https://github.com/KennethWKZ/relaxjer/commit/1659bdd88905ca5ced11560eb6ba499f2188f7e7))
+* **tests:** a press on a demo's Pause can't start on the disc and end on the card behind it ([0fd340d](https://github.com/KennethWKZ/relaxjer/commit/0fd340d8b469bc34eae487becc052a58b9d5ab74))
+
 ## [1.1.0](https://github.com/KennethWKZ/relaxjer/compare/v1.0.2...v1.1.0) (2026-10-02)
 
 
