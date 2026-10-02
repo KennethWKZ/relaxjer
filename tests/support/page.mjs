@@ -134,4 +134,5 @@ export const SITE = {
 	pause: '.pause',
 	screen: '.screen',
 	sky: '.scene .lit, .scene .birds',
+	sun: '.scene .sun',
 };

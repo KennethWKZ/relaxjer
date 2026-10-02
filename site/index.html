@@ -89,8 +89,8 @@
 		<a class="skip" href="#main">Skip to the content</a>
 		<!-- the page's sky: one slow trip day, morning at the top to lantern night at the foot (decoration only) -->
 		<div class="scene" aria-hidden="true">
-			<span class="sun"></span>
-			<span class="sun sun-low"></span>
+			<!-- the sun keeps to the screen's corner and sets as the page scrolls toward night -->
+			<div class="sunpath"><span class="sun"></span></div>
 			<span class="cloud" style="--y: 4.5%; --x: -6%; --w: 340px; --o: 0.95; --drift: 50px"></span>
 			<span class="cloud" style="--y: 7.5%; --x: 52%; --w: 520px; --o: 0.92; --drift: -70px"></span>
 			<span class="cloud" style="--y: 12%; --x: 18%; --w: 240px; --o: 0.8; --drift: 40px"></span>
@@ -1752,6 +1752,7 @@ pnpm build --trip trips/<wbr />&lt;your-trip&gt; --keys ~/<wbr />.config/<wbr />
 		<footer class="foot">
 			<!-- lantern night: the day ends where the group lets its wishes go -->
 			<div class="night" aria-hidden="true">
+				<span class="moon"></span>
 				<img class="lit" src="assets/lantern.svg" alt="" width="30" height="30" style="--x: 9%; --y: 58%; --d: 0.4" />
 				<img class="lit" src="assets/lantern.svg" alt="" width="22" height="22" style="--x: 22%; --y: 26%; --d: 0.8" />
 				<img class="lit" src="assets/lantern.svg" alt="" width="36" height="36" style="--x: 36%; --y: 64%; --d: 0.1" />

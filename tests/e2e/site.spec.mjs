@@ -5,6 +5,7 @@
 import { test, expect } from '../support/fixtures.mjs';
 import { SITE } from '../support/page.mjs';
 
+// every scroll in this file is instant: the page scrolls smoothly, and a smooth scroll would be measured part-way
 const frame = (page) => page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
 
 // the landing page depends on neither the trip nor the engine, so a run on another trip or the legacy engine would
@@ -23,12 +24,14 @@ for (const colorScheme of ['light', 'dark']) {
 			const height = await page.evaluate(() => document.documentElement.scrollHeight);
 			const wider = [];
 			for (let y = 0; y < height; y += 600) {
-				await page.evaluate((top) => scrollTo(0, top), y);
+				await page.evaluate((top) => scrollTo({ top, behavior: 'instant' }), y);
 				await frame(page);
 				// a postcard is widest part-way through settling, so seek each one-shot animation through its run and
-				// measure at each point, rather than hoping a frame lands there (the looping demos stay inside their screens)
+				// measure at each point, rather than hoping a frame lands there (the looping demos stay inside their screens).
+				// What moves with the scroll (clouds, lanterns, the sun) can't be seeked: the 600 px steps are its coverage.
+				// clientWidth, not innerWidth, so a browser that draws a scrollbar can't hide up to 15 px of overflow
 				const by = await page.evaluate(() => {
-					const over = () => document.documentElement.scrollWidth - innerWidth;
+					const over = () => document.documentElement.scrollWidth - document.documentElement.clientWidth;
 					let worst = over();
 					for (const a of document.getAnimations()) {
 						if (a.timeline !== document.timeline || a.playState !== 'running') continue;
@@ -51,6 +54,12 @@ for (const colorScheme of ['light', 'dark']) {
 		test('no lantern or flock sits behind a word', async ({ page }) => {
 			const behind = await page.evaluate(async (sky) => {
 				const frame = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+				// a colour's alpha, whatever form it computes to: rgba(…, a), color(srgb … / a), oklch(… / a)
+				const alpha = (c) => {
+					if (c === 'transparent') return 0;
+					const m = c.match(/\/\s*([\d.]+)(%?)\s*\)$/) || (c.startsWith('rgba(') && c.match(/,\s*([\d.]+)(%?)\s*\)$/));
+					return m ? parseFloat(m[1]) / (m[2] ? 100 : 1) : 1;
+				};
 				// words on the bare sky; a word on a card, a table or a stamp has its own ground
 				const bareText = () => {
 					const out = [];
@@ -60,7 +69,7 @@ for (const colorScheme of ['light', 'dark']) {
 						let ground = false;
 						for (let a = n.parentElement; a && a.tagName !== 'MAIN'; a = a.parentElement) {
 							const s = getComputedStyle(a);
-							if (s.backgroundImage !== 'none' || !/^(transparent|rgba\(.*,\s*0\))$/.test(s.backgroundColor)) {
+							if (s.backgroundImage !== 'none' || alpha(s.backgroundColor) > 0) {
 								ground = true;
 								break;
 							}
@@ -73,17 +82,50 @@ for (const colorScheme of ['light', 'dark']) {
 					return out;
 				};
 				const found = [];
+				// the art floats with the scroll, so look with it near the top, the middle and the foot of the screen
+				// (only the art's own opacity is read: .scene itself never fades)
 				for (const d of document.querySelectorAll(sky)) {
 					if (+getComputedStyle(d).opacity < 0.05) continue;
-					scrollTo(0, Math.max(0, d.getBoundingClientRect().top + scrollY - innerHeight / 2));
-					await frame();
-					const r = d.getBoundingClientRect();
-					const hit = bareText().find(({ q }) => q.left < r.right - 2 && q.right > r.left + 2 && q.top < r.bottom - 2 && q.bottom > r.top + 2);
-					if (hit) found.push(`${d.className} (${d.getAttribute('style')}) behind "${hit.text}"`);
+					for (const at of [0.15, 0.5, 0.85]) {
+						scrollTo({ top: Math.max(0, d.getBoundingClientRect().top + scrollY - innerHeight * at), behavior: 'instant' });
+						await frame();
+						const r = d.getBoundingClientRect();
+						const hit = bareText().find(({ q }) => q.left < r.right - 2 && q.right > r.left + 2 && q.top < r.bottom - 2 && q.bottom > r.top + 2);
+						if (hit) {
+							found.push(`${d.className} (${d.getAttribute('style')}) behind "${hit.text}"`);
+							break;
+						}
+					}
 				}
 				return found;
 			}, SITE.sky);
 			expect(behind).toEqual([]);
+		});
+
+		test('the sun keeps to the screen and sets as the page scrolls, and holds still without motion', async ({ page }) => {
+			const sunAt = (f) =>
+				page.evaluate(
+					async ({ f, sun }) => {
+						scrollTo({ top: Math.round((document.documentElement.scrollHeight - innerHeight) * f), behavior: 'instant' });
+						await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+						const el = document.querySelector(sun);
+						const r = el.getBoundingClientRect();
+						return { y: r.top + r.height / 2, dusk: +getComputedStyle(el, '::after').opacity };
+					},
+					{ f, sun: SITE.sun },
+				);
+			if (await page.evaluate(() => CSS.supports('animation-timeline: scroll()'))) {
+				const morning = await sunAt(0);
+				const afternoon = await sunAt(0.55);
+				const evening = await sunAt(0.88);
+				expect(afternoon.y, 'the sun sinks down the screen').toBeGreaterThan(morning.y + 50);
+				expect(evening.y).toBeGreaterThan(afternoon.y);
+				expect(morning.dusk, 'no dusk colour in the morning').toBeLessThan(0.05);
+				expect(evening.dusk, 'the dusk colour by evening').toBeGreaterThan(0.9);
+			}
+			// reduced motion: the sun stays at the top of the page and scrolls away with it
+			await page.emulateMedia({ reducedMotion: 'reduce' });
+			expect((await sunAt(0.55)).y).toBeLessThan(0);
 		});
 
 		test('every demo pauses and plays from a 44 px disc off its screen', async ({ page }) => {
@@ -95,6 +137,21 @@ for (const colorScheme of ['light', 'dark']) {
 				const pause = demo.locator(SITE.pause);
 				await demo.scrollIntoViewIfNeeded();
 				await expect(pause).toBeVisible();
+				// measure the card at rest: before it settles (and while it does) it sits tilted and offset
+				await expect
+					.poll(
+						() =>
+							demo.evaluate((d) => {
+								const card = d.closest('.settle');
+								if (!card) return true;
+								const moving = card
+									.getAnimations({ subtree: true })
+									.some((a) => a.playState === 'running' && Number.isFinite(a.effect.getComputedTiming().endTime));
+								return card.classList.contains('in') && !moving;
+							}),
+						{ message: `demo ${i}'s card settles` },
+					)
+					.toBe(true);
 				const where = await demo.evaluate((d, { pause, screen }) => {
 					const q = d.querySelector(pause).getBoundingClientRect();
 					const over = [...d.querySelectorAll(screen)].some((s) => {

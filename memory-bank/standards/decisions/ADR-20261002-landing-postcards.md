@@ -36,7 +36,10 @@ is served from GitHub Pages, which sets no security headers.
   The ground is a gradient from a morning sky through an afternoon gold to a lantern night in the footer, with a sun,
   clouds and birds by day and stars by night (`.scene`, `aria-hidden`, a few small SVGs in `site/assets/`). It moves
   only with the scroll (`animation-timeline: scroll()`), so nothing in the background moves by itself (WCAG 2.2.2) and
-  reduced motion holds it still. Lanterns keep to the side lanes outside the text column, so none sits behind a word.
+  reduced motion holds it still. The sun keeps to the screen's corner and sets as the reader scrolls toward night,
+  warming as it sinks, and a moon rises over the footer. Lanterns keep to the side lanes outside the text column, so
+  none sits behind a word. Text on the bare sky keeps AA contrast where the setting sun passes behind it (5.4:1 for
+  the grey lede on the dusk sun's core).
 - **Two self-hosted fonts.** Gabarito (latin subset, SIL OFL) for headlines joins the brush subset; both ship with
   their licence. Still no third-party request.
 - **A page policy in `<meta>`:**
@@ -48,7 +51,8 @@ is served from GitHub Pages, which sets no security headers.
   `SoftwareSourceCode`) and `sitemap.xml`. No `robots.txt`: a project site at `/relaxjer/` can't serve the domain's.
 - **Tests:** `tests/repo/site.test.mjs` also checks the metadata, the sitemap, and that every demo has a Pause button
   and a description. `tests/e2e/site.spec.mjs` checks the page with motion on, in Chromium and WebKit at 390 px and
-  desktop: no sideways overflow, no lantern behind text, and a Pause that works and stays off the screen.
+  desktop: no sideways overflow, no lantern behind text, the sun setting with the scroll, and a Pause that works and
+  stays off the screen.
 
 ## Alternatives
 

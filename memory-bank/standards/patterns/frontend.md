@@ -89,7 +89,9 @@ contract are in `.impeccable/surfaces/site-index-html.md`.
 - **The ground is one trip day, and it stays decoration.** The page's sky runs from a morning sun at the top through
   an afternoon gold to lantern night in the footer; the night theme puts the same page under stars. Everything in it
   (`.scene`, the footer's `.night`) is `aria-hidden` art that moves only with the scroll (`animation-timeline`), so it
-  holds still under reduced motion and where a browser lacks scroll timelines. Lanterns keep to the side lanes outside
+  holds still under reduced motion and where a browser lacks scroll timelines. The sun keeps to the screen's corner and
+  sets as the page scrolls (`.sunpath`, fixed only where the scroll can carry it), warming to `--sun-low`, and a moon
+  rises over the footer by day; at night the moon only drifts (`--sun-travel`). Lanterns keep to the side lanes outside
   the text column (`--lane`), shrinking to fit the 16 px gutter on a phone, so none sits behind a word; clouds may pass
   behind text because they only lighten the ground. `main` clips sideways (`overflow-x: clip`): a settling postcard
   or the hero phone can reach past the edge, and the body's clip alone still lets a phone pan into it.
@@ -105,6 +107,6 @@ contract are in `.impeccable/surfaces/site-index-html.md`.
 - **Checked like the trip page.** `tests/repo/site.test.mjs` covers links, third-party requests, alt text,
   provenance, the file types, the search and preview metadata, a Pause button and a description on every demo, and
   the SHA-pinned deploy. `tests/e2e/site.spec.mjs` runs the page with motion on in the four e2e projects and both
-  themes: never wider than the screen, no lantern behind a word, and every Pause a 44 px disc off its screen that
-  pauses and plays. The eye check is 390 px and desktop, light and dark, in Chromium and WebKit, with reduced
+  themes: never wider than the screen, no lantern behind a word, the sun setting with the scroll (and still without
+  motion), and every Pause a 44 px disc off its screen that pauses and plays. The eye check is 390 px and desktop, light and dark, in Chromium and WebKit, with reduced
   motion (the still frames) and without (the loops).
