@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.2.4](https://github.com/KennethWKZ/relaxjer/compare/v1.2.3...v1.2.4) (2026-10-02)
+
+
+### 🧑‍💻 Continuous Integrations
+
+* docs and release bookkeeping skip the browser tests, and the merge gate still reports ([d7dfb9c](https://github.com/KennethWKZ/relaxjer/commit/d7dfb9cd707083db1e395ebb1fd19cd59815ef83))
+
 ## [1.2.3](https://github.com/KennethWKZ/relaxjer/compare/v1.2.2...v1.2.3) (2026-10-02)
 
 
