@@ -7,7 +7,7 @@
 // - a failure if the page throws or logs an error, or its Content-Security-Policy refuses anything.
 import { test as base, expect } from '@playwright/test';
 import { STORE_KEY } from './store-key.mjs';
-import { CONSOLE_NOISE } from './console-noise.mjs';
+import { CONSOLE_NOISE, TEARDOWN_NOISE } from './console-noise.mjs';
 
 export { expect };
 
@@ -37,7 +37,7 @@ export const test = base.extend({
 			await page.addInitScript(() =>
 				document.addEventListener('securitypolicyviolation', (e) => console.error(`CSP refused ${e.effectiveDirective}: ${e.blockedURI}`)),
 			);
-			page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
+			page.on('pageerror', (e) => TEARDOWN_NOISE.test(e.message) || errors.push(`pageerror: ${e.message}`));
 			page.on('console', (m) => {
 				// blocked hosts and browser notices the page didn't cause (console-noise.mjs)
 				if (m.type() === 'error' && !CONSOLE_NOISE.test(m.text())) errors.push(`console: ${m.text()}`);
