@@ -96,7 +96,7 @@ contract are in `.impeccable/surfaces/site-index-html.md`.
   behind text because they only lighten the ground. `main` clips sideways (`overflow-x: clip`): a settling postcard
   or the hero phone can reach past the edge, and the body's clip alone still lets a phone pan into it.
 - **The live demo sits beside it.** `pages.yml` builds the demo trip with no key and no sync file, its clock set to
-  Day 3 mid-morning (`--demo-clock`), and publishes it at `demo/`
+  Day 3 mid-morning (`--demo-clock`), in each visitor's own year, and publishes it at `demo/`
   ([ADR-20261002-live-demo-on-pages](../decisions/ADR-20261002-live-demo-on-pages.md)). That build opens in English,
   says it's a demo with a link back, and never asks for location. The page links `demo/`
   relatively; the site test knows it's built at deploy time.

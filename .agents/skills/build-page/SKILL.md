@@ -11,7 +11,8 @@ pnpm build --trip trips/<slug>                                          # a real
 pnpm build --trip trips/<slug> --keys ~/.config/relaxjer/google.json   # with the user's own browser key + Map ID
 pnpm build --trip trips/<slug> --keys … --sync ~/.config/relaxjer/sync/<slug>.json   # with group sync (sync-setup skill)
 #   --out <dir>   default <trip>/dist
-#   --demo-clock "2027-03-15 10:05"   the live demo only (pages.yml): opens at that moment of the trip and runs on;
+#   --demo-clock "2027-03-15 10:05"   the live demo only (pages.yml): opens at that moment of the trip and runs on,
+#                                     moved into the visitor's own year;
 #                                     it opens in English, says it's a demo, never asks for location;
 #                                     the build refuses it for any other trip
 ```

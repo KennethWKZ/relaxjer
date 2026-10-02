@@ -38,6 +38,15 @@ the reason for it.
   `examples/demo-trip`, so a real trip's page always keeps the real time. The engine's test override (`<storageKey>now`)
   still wins, so the e2e suite is unchanged. `tests/e2e/demo.spec.mjs` opens the page built with the workflow's own
   clock (read from `pages.yml`).
+- **The demo is in the visitor's own year.** The demo trip's data is one March, 2027. Before anything reads a date,
+  a page built with the demo clock moves every date of the trip season (the data and its side files, 120 days either
+  side) by whole weeks into the visitor's year (`Time.demoShift`, `engine/src/app/01-demo-year.js`), and its clock with
+  it: Sat 13 Mar 2027 becomes Sat 11 Mar 2028, so every weekday holds and the page still opens mid-morning on Day 3.
+  The tab title follows; the storage key stays the build's. The demo data writes dates only in date fields ("the
+  evening of Day 6", not "18 Mar"), and the demo contract test holds it to that and to the shift naming every data
+  global. A visitor with a wrong system clock sees the wrong year, which is harmless for a demo. The landing page's
+  drawings keep the demo's own dates, so in other years a drawn day number can sit a day or two off; its postmark
+  says "Day 3" rather than a date.
 - **A demo says it's a demo.** A page built with the demo clock opens in English when the visitor hasn't picked a
   language (they come from an English landing page; 中 is one tap away), shows a strip under the bar with the clock's
   start and a link back to the landing page, and never asks for location: the visitor isn't on the trip, so where

@@ -4,8 +4,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { DEMO_TRIP } from '../support/stage.mjs';
-import { checkTrip, loadTrip, pointsOutside, readJSON } from '../support/trip-contract.mjs';
+import { DEMO_TRIP, ROOT } from '../support/stage.mjs';
+import { checkTrip, loadTrip, OPTIONAL_GLOBALS, pointsOutside, readJSON, REQUIRED } from '../support/trip-contract.mjs';
 
 const dir = process.env.TRIP_DIR ? path.resolve(process.env.TRIP_DIR) : DEMO_TRIP;
 const isDemo = dir === DEMO_TRIP;
@@ -53,6 +53,40 @@ test('demo data carries nothing copied from Google', { skip: !isDemo && 'real tr
 		const text = fs.readFileSync(path.join(dir, f), 'utf8');
 		assert.doesNotMatch(text, FORBIDDEN, `${f} has Google-derived fields`);
 	}
+});
+
+test("the live demo can move every date into a visitor's own year", { skip: !isDemo && 'only the demo has a live demo' }, () => {
+	// it moves the date fields (engine/src/app/01-demo-year.js), so a date typed into a sentence would stay behind
+	const trip = loadTrip(dir);
+	const side = fs
+		.readdirSync(dir)
+		.filter((f) => f.endsWith('.json'))
+		.map((f) => [f, readJSON(dir, f)]);
+	const written = [];
+	const walk = (v, at) => {
+		if (typeof v === 'string') {
+			const text = v.replace(/\b\d{4}-\d{2}-\d{2}(?: \d{2}:\d{2})?\b/g, ''); // a date field's own value moves
+			for (const re of [
+				/\b20\d\d\b/, // a year
+				/\b\d{1,2}(?:–\d{1,2})? (?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b/, // 13 Mar, 13–19 Mar
+				/\d{1,2}月\d{1,2}日/, // 3月13日
+				/(?:^|[^\d/])\d{1,2}\/\d{1,2}(?![\d/])/, // 3/13
+			]) {
+				const m = text.match(re);
+				if (m) written.push(`${at}: "${m[0]}"`);
+			}
+		} else if (v && typeof v === 'object') for (const k of Object.keys(v)) walk(v[k], `${at}.${k}`);
+	};
+	for (const k of [...REQUIRED, ...OPTIONAL_GLOBALS]) walk(trip[k], k);
+	for (const [f, v] of side) walk(v, f);
+	assert.deepEqual(written, [], 'write the day ("Day 6") or let the page say the date; the live demo can only move date fields');
+	// and the engine walks every top-level data name the contract knows
+	const shift = fs.readFileSync(path.join(ROOT, 'engine', 'src', 'app', '01-demo-year.js'), 'utf8');
+	assert.deepEqual(
+		[...REQUIRED, ...OPTIONAL_GLOBALS].filter((k) => !new RegExp(`\\b${k}\\b`).test(shift)),
+		[],
+		'01-demo-year.js leaves these out',
+	);
 });
 
 test('demo data is visibly synthetic', { skip: !isDemo && 'only the demo is published' }, () => {

@@ -1,4 +1,6 @@
 /* Demo trip: a fictional group of five, one week in Taipei (Sat 13 – Fri 19 Mar 2027).
+   Dates live only in date fields, never in text: the live demo moves them into each visitor's own year
+   (engine/src/app/01-demo-year.js), and a date written into a sentence would stay behind.
    Synthetic and safe to publish. Hotel, flights, shops, food stalls and prices are invented; landmarks are public places.
    Nothing here is copied from Google. Costs for the whole group are written "NT$a–b / 五人" and "NT$a–b for 5"
    (the currency symbol and group size come from TRIP) so the page adds the per-person share. */
@@ -8,7 +10,7 @@ const TRIP = {
 	start: '2027-03-13',
 	end: '2027-03-19',
 	brand: '台北示范行', // brush lettering, page title, home-screen name
-	description: '示范：五人台北一周 3/13–3/19 · Demo: a week in Taipei for 5, 13–19 Mar 2027',
+	description: '示范：五人台北一周 · Demo: a week in Taipei for 5',
 	pax: 5, // group size: every "for 5" figure also shows a share each
 	tz: 'Asia/Taipei', // the destination's clock, whatever the phone says
 	// the destination pack: destinations/tw (tax refund, lucky draw) + regions/taipei (metro, taxi meter, bike share)
@@ -103,7 +105,7 @@ const SITES = {
 };
 
 const FACTS = [
-	{ k: ['日期', 'Dates'], v: ['2027年3月13日–3月19日', '13–19 Mar 2027'] },
+	{ k: ['日期', 'Dates'], v: ['3月，周六到周五，七天', 'A week in March, Saturday to Friday'] },
 	{ k: ['人数', 'Group'], v: ['5人（含2位长辈）', '5 people, 2 of them seniors'] },
 	{ k: ['住宿', 'Stay'], v: ['示范旅店 中山（6晚）', 'Sample Inn Zhongshan (6 nights)'], place: 'hotel' },
 	{ k: ['节奏', 'Pace'], v: ['每天2–3个点，午后休息', '2–3 stops a day, a rest after lunch'] },
@@ -1219,7 +1221,7 @@ const AIRPORT = {
 		{ code: 'A1', name: ['台北车站', 'Taipei Main Station'], line: 'purple', fork: true },
 	],
 	depart: {
-		lede: ['回程：3月18日晚上从酒店出发。', 'Going home: leave the hotel on the evening of 18 Mar.'],
+		lede: ['回程：第六天晚上从酒店出发。', 'Going home: leave the hotel on the evening of Day 6.'],
 		list: [
 			['提前3小时到机场', 'At the airport 3 hours early'],
 			['退税在出境前办', 'Tax refund before security'],
