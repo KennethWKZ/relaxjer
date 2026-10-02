@@ -1,7 +1,10 @@
 /* ───────── time (the destination's clock) ───────── */
+// the live demo's clock (build --demo-clock, the demo trip only): it opens at a set moment of the trip and runs on
+const DEMO_FROM = Date.now();
 function tpNow() {
 	const o = store.get('now', null); // test override "YYYY-MM-DD HH:MM"
 	if (o && /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(o)) return { date: o.slice(0, 10), mins: +o.slice(11, 13) * 60 + +o.slice(14, 16) };
+	if (window.DEMO_CLOCK) return Time.demoNow(window.DEMO_CLOCK, Date.now() - DEMO_FROM);
 	return Time.nowIn(TZ);
 }
 const dnum = Time.dayNumber;

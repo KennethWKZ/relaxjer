@@ -38,6 +38,13 @@ export function nowIn(timeZone, at = new Date()) {
 	return { date: `${p.year}-${p.month}-${p.day}`, mins: (+p.hour % 24) * 60 + +p.minute };
 }
 
+/** the live demo's clock: a set moment of the trip ("YYYY-MM-DD HH:MM", in the trip's time), run on by the time
+ *  since the page opened, so a visitor lands on a day under way and it keeps moving */
+export function demoNow(clock, elapsedMs) {
+	const m = +clock.slice(11, 13) * 60 + +clock.slice(14, 16) + Math.floor(Math.max(0, elapsedMs) / 6e4);
+	return { date: addDays(clock.slice(0, 10), Math.floor(m / 1440)), mins: m % 1440 };
+}
+
 /** a date's weekday, Monday = 0 … Sunday = 6 (the order of Google's opening hours) */
 export const weekdayIndex = (s) => (new Date(dayNumber(s) * 864e5).getUTCDay() + 6) % 7;
 

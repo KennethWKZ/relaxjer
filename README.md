@@ -141,7 +141,8 @@ The trip page's design system: [`DESIGN.md`](DESIGN.md), and who it's for: [`PRO
 
 ## Hosting
 
-GitHub Pages hosts only the project's landing page. Pages sites are public, so never put a real trip there. Host your
+GitHub Pages hosts the project's landing page and a live copy of the synthetic demo trip, which CI builds with no key
+([try it](https://kennethwkz.github.io/relaxjer/demo/)). Pages sites are public, so never put a real trip there. Host your
 trip page behind a password (ht-ml.app, for example), because it carries hotels, flights and names, and with group sync
 its database keys. The page carries its own Content-Security-Policy, so the host doesn't have to set headers.
 

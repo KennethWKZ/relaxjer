@@ -95,6 +95,10 @@ contract are in `.impeccable/surfaces/site-index-html.md`.
   the text column (`--lane`), shrinking to fit the 16 px gutter on a phone, so none sits behind a word; clouds may pass
   behind text because they only lighten the ground. `main` clips sideways (`overflow-x: clip`): a settling postcard
   or the hero phone can reach past the edge, and the body's clip alone still lets a phone pan into it.
+- **The live demo sits beside it.** `pages.yml` builds the demo trip with no key and no sync file, its clock set to
+  Day 3 mid-morning (`--demo-clock`), and publishes it at `demo/`
+  ([ADR-20261002-live-demo-on-pages](../decisions/ADR-20261002-live-demo-on-pages.md)). The page links `demo/`
+  relatively; the site test knows it's built at deploy time.
 - **A demo is a drawing of the real page.** Each loop is a mini trip page (`.m`) in CSS keyframes, after a capture of
   the demo build (the synced one for sync features): same strings, same flow. It runs only in view, has a Pause button
   and an `aria-label="Animated: …"`, and holds its `--still` frame under reduced motion. The Pause button is a round,

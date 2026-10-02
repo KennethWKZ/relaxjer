@@ -6,7 +6,9 @@ What the first trip taught about publishing a trip page. The step-by-step is the
 
 - **A real trip page goes only behind a password.** It carries hotels, flights and names.
 - **Never GitHub Pages for a trip.** Pages sites are public, even from a private repo. Pages hosts the project's
-  landing page only, and not even the demo trip.
+  landing page and the synthetic demo trip, which CI builds with no key
+  ([ADR-20261002-live-demo-on-pages](../memory-bank/standards/decisions/ADR-20261002-live-demo-on-pages.md)), and
+  never a real trip.
 
 ## ht-ml.app
 

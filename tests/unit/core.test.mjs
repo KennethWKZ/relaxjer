@@ -54,6 +54,11 @@ test('Time: ordinals', () => {
 test('Time: now in the destination, not on the phone', () => {
 	const at = new Date('2027-03-13T17:30:00Z'); // 01:30 next day in Taipei
 	assert.deepEqual(Time.nowIn('Asia/Taipei', at), { date: '2027-03-14', mins: 90 });
+	// the live demo's clock opens at its set moment and runs on, across midnight too
+	assert.deepEqual(Time.demoNow('2027-03-15 10:05', 0), { date: '2027-03-15', mins: 605 });
+	assert.deepEqual(Time.demoNow('2027-03-15 10:05', 30 * 6e4 + 59e3), { date: '2027-03-15', mins: 635 });
+	assert.deepEqual(Time.demoNow('2027-03-15 23:50', 20 * 6e4), { date: '2027-03-16', mins: 10 });
+	assert.deepEqual(Time.demoNow('2027-03-15 10:05', -5e3), { date: '2027-03-15', mins: 605 }, 'a clock set back never runs it backwards');
 	assert.deepEqual(Time.nowIn('Asia/Tokyo', at), { date: '2027-03-14', mins: 150 });
 });
 

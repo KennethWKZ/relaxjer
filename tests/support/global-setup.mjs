@@ -9,6 +9,8 @@ import { ROOT, resolveEngine, resolveTrip, stagePage } from './stage.mjs';
 
 export const PAGES_DIR = path.join(ROOT, '.cache', 'pages');
 export const SYNC_TEST_FILE = path.join(ROOT, '.cache', 'sync-test.json');
+/** the live demo's clock, read from the workflow that publishes it, so the tests open the page visitors get */
+export const DEMO_CLOCK = (fs.readFileSync(path.join(ROOT, '.github', 'workflows', 'pages.yml'), 'utf8').match(/--demo-clock "([^"]+)"/) || [])[1];
 /** the sync page's planner code: the phone that gives it becomes a planner */
 export const TEST_PLANNER_CODE = 'demo-planner-2468';
 
@@ -39,4 +41,10 @@ export default async function globalSetup() {
 	fs.writeFileSync(SYNC_TEST_FILE, JSON.stringify(sync), { mode: 0o600 });
 	const page = stagePage({ engine, trip, outDir: path.join(ROOT, '.cache', 'stage-sync'), args: ['--sync', SYNC_TEST_FILE] });
 	fs.copyFileSync(page, path.join(PAGES_DIR, 'trip-sync.html'));
+
+	// the live demo, built as pages.yml builds it, with the workflow's own clock (tests/e2e/demo.spec.mjs)
+	fs.rmSync(path.join(PAGES_DIR, 'trip-demo.html'), { force: true });
+	if (!trip.demo) return;
+	const demo = stagePage({ engine, trip, outDir: path.join(ROOT, '.cache', 'stage-demo'), args: ['--demo-clock', DEMO_CLOCK] });
+	fs.copyFileSync(demo, path.join(PAGES_DIR, 'trip-demo.html'));
 }
