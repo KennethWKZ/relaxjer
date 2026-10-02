@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.2.2](https://github.com/KennethWKZ/relaxjer/compare/v1.2.1...v1.2.2) (2026-10-02)
+
+
+### 🐛 Bug Fixes
+
+* the publish audit finds the map after group sync redraws the page ([2b68fba](https://github.com/KennethWKZ/relaxjer/commit/2b68fbad2a41a1fccb38dcfb6d9833f02482aa3e))
+* the publish audit finds the map after group sync redraws the page ([c945c83](https://github.com/KennethWKZ/relaxjer/commit/c945c832a1320ed38c2317dab474e0c121914249))
+
+
+### 🧑‍💻 Continuous Integrations
+
+* a red ci blocks the merge: main requires one ci-ok check that waits on every job ([f17d32d](https://github.com/KennethWKZ/relaxjer/commit/f17d32d41f724a952173ca6da032bea4a12af2d6))
+* a red ci blocks the merge: main requires one ci-ok check that waits on every job ([b3764f8](https://github.com/KennethWKZ/relaxjer/commit/b3764f8a7670cbf2b56e14d06dda39a7c66ee9a5))
+
 ## [1.2.1](https://github.com/KennethWKZ/relaxjer/compare/v1.2.0...v1.2.1) (2026-10-02)
 
 
