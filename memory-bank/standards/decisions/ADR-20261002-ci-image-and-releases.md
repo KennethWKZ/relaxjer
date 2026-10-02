@@ -3,7 +3,7 @@ id: ADR-20261002-ci-image-and-releases
 date: 2026-10-02
 title: "CI's Browser Jobs Run in Playwright's Image, in Halves, and release-please Makes the Releases"
 domain: tooling
-status: accepted
+status: amended
 ---
 
 # CI's Browser Jobs Run in Playwright's Image, in Halves, and release-please Makes the Releases
@@ -36,8 +36,9 @@ release, which goes public once ci is green on that commit and the release gate 
 - **`release.yml`**, on every push to `main`, runs release-please (`release-please-config.json`,
   `.release-please-manifest.json`): it opens or updates the `chore(release): vX.Y.Z` pull request, with the changelog
   sections `.versionrc` had. Merging it tags the commit (`force-tag-creation`) and makes a **draft** release. A second
-  job runs `pnpm test:release`, waits for the commit's ci run to pass (45 minutes at most), and publishes the draft. A
-  pull request opened with the workflow's token runs no ci, so the merge's ci run is the one that counts. The workflow
+  job runs `pnpm test:release`, waits for the commit's ci run to pass (45 minutes at most), and publishes the draft. The
+  release pull request gets ci like any other (its first run waited for an "Approve and run"), and since
+  [ADR-20261002-required-ci](ADR-20261002-required-ci.md) its merge waits for it. The workflow
   holds a write token, so its actions are pinned to commit SHAs, like `pages.yml`; `ci.yml` keeps following each
   action's major tag. The repo setting "Allow GitHub Actions to create and approve pull requests" is on for it.
 
