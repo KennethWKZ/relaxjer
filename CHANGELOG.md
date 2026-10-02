@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.0.1](https://github.com/KennethWKZ/relaxjer/compare/v1.0.0...v1.0.1) (2026-10-02)
+
+
+### 🐛 Bug Fixes
+
+* **engine:** a sheet moves up above the phone's keyboard, and the field being typed in stays in view ([7ffe06e](https://github.com/KennethWKZ/relaxjer/commit/7ffe06e5cca3cad57f5af8b17bb83051a4715edd))
+* **engine:** the viewport drops interactive-widget; both phones lift a sheet the same way ([e0674b2](https://github.com/KennethWKZ/relaxjer/commit/e0674b2df0c0e026344489734157826b37071554))
+* **tests:** a WebKit notice about the viewport's interactive-widget key isn't a page error ([f25c66b](https://github.com/KennethWKZ/relaxjer/commit/f25c66beb543412cef9db4e0cc22458dfc2c474a))
+
+
+### 📝 Documentation
+
+* the story index notes CI's slow WebKit install and the sync tests' budget ([1e35bab](https://github.com/KennethWKZ/relaxjer/commit/1e35babd33d815ab810507ce936877587e839425))
+
+
+### ✅ Testing
+
+* **tests:** the block-a-phone journey reads the outbox instead of waiting; ticks confirm they took ([de0bb92](https://github.com/KennethWKZ/relaxjer/commit/de0bb9249b0fb3818303a03ff14cf203e521304d))
+* **tests:** the day-split journeys wait for the jump to Day 5 to stop before tapping ([ab566c3](https://github.com/KennethWKZ/relaxjer/commit/ab566c354caf4588f1fefa9dd12e7e54b6a833ae))
+* **tests:** the two-phone sync journeys get three times the time on a slow runner ([3028137](https://github.com/KennethWKZ/relaxjer/commit/302813768c26794d5a89224176223f6163ac94f1))
+
+
+### 🧑‍💻 Continuous Integrations
+
+* e2e runs in Playwright's image in two halves, and a pushed tag becomes a GitHub release ([2f97edf](https://github.com/KennethWKZ/relaxjer/commit/2f97edffbcb4149b5d6b6e0c7af6910d7fb6edd7))
+* release-please makes the releases; a merged release pull request goes public once ci is green ([8017f92](https://github.com/KennethWKZ/relaxjer/commit/8017f92cfb1805acd23a3305e76fc82530dd5f42))
+* the e2e jobs get 30 minutes ([5c10dad](https://github.com/KennethWKZ/relaxjer/commit/5c10dad135995dde09e125554b44bb0b0255c5b5))
+
 ## 1.0.0 (2026-10-01)
 
 ### ✨ Features
