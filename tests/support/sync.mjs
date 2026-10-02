@@ -5,7 +5,7 @@ import path from 'node:path';
 import { expect } from '@playwright/test';
 import { PAGES_DIR, SYNC_TEST_FILE } from './global-setup.mjs';
 import { STORE_KEY } from './store-key.mjs';
-import { CONSOLE_NOISE } from './console-noise.mjs';
+import { CONSOLE_NOISE, TEARDOWN_NOISE } from './console-noise.mjs';
 
 export const SYNC_PAGE = '/trip-sync.html';
 export const hasSyncPage = () => fs.existsSync(path.join(PAGES_DIR, 'trip-sync.html'));
@@ -74,7 +74,7 @@ export async function secondPhone(browser, testInfo, { now, lang, welcome = fals
 	if (!welcome) await skipWelcome(context);
 	const page = await context.newPage();
 	const errors = [];
-	page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
+	page.on('pageerror', (e) => TEARDOWN_NOISE.test(e.message) || errors.push(`pageerror: ${e.message}`));
 	page.on('console', (m) => {
 		// blocked hosts and browser notices the page didn't cause (console-noise.mjs)
 		if (m.type() === 'error' && !CONSOLE_NOISE.test(m.text())) errors.push(`console: ${m.text()}`);
