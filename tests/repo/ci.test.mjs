@@ -45,10 +45,8 @@ test('ci runs once per pull request, and on every push to main', () => {
 		.split(/^\S/m)[0];
 	assert.match(on, /^ {2}pull_request:/m, 'every pull request runs ci');
 	assert.match(on, /^ {2}push:\s*\n {4}branches: \[main\]/m, 'a push runs ci only on main (the release job waits for that run)');
-	assert.match(on, /^ {2}workflow_dispatch:/m, 'the release job can start ci on the release pull request');
-	const rel = read('.github/workflows/release.yml');
-	assert.match(rel, /gh workflow run ci\.yml/, 'the release job starts ci on the release pull request');
-	assert.match(rel, /actions: write/, 'with the permission to start it');
+	// the release job doesn't start workflows: a run it started wouldn't count for the release pull request's gate
+	assert.doesNotMatch(read('.github/workflows/release.yml'), /actions: write/, 'the release job keeps to the permissions it needs');
 });
 
 test('the browser tests skip only when the changes job says so, and the gate knows it', () => {

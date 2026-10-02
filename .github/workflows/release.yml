@@ -2,8 +2,8 @@
 # pull request open with the version bump and the CHANGELOG.md lines built from the Conventional Commits since the last
 # release (release-please-config.json). Merging it tags the commit and makes the release as a draft; the second job
 # publishes the draft once ci is green on that commit and the release gate passes. GitHub holds the release pull
-# request's own ci for an approval, so the first job starts ci on it; main's ruleset holds the merge until ci-ok is green
-# (ADR-20261002-required-ci).
+# request's own ci (opened with this workflow's token) until someone clicks "Approve and run", and main's ruleset holds
+# the merge until that run's ci-ok is green (ADR-20261002-required-ci).
 # It can write to the repo, so its actions are pinned to commit SHAs, like pages.yml; the comment names the release.
 # Needs once: Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests", and
 # Settings → General → "Automatically delete head branches", so a merged release branch doesn't linger (release-please
@@ -27,7 +27,6 @@ jobs:
     permissions:
       contents: write # the release commit's tag and the draft release
       pull-requests: write # the release pull request
-      actions: write # start ci on the release pull request (below)
     outputs:
       created: ${{ steps.rp.outputs.release_created }}
       tag: ${{ steps.rp.outputs.tag_name }}
@@ -38,21 +37,6 @@ jobs:
         with:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
-      # GitHub holds ci on a pull request this workflow's token opened or updated until someone approves it, so the
-      # required ci-ok never comes. A run started with workflow_dispatch isn't held, and its ci-ok lands on the release
-      # pull request's commit (ADR-20261002-required-ci).
-      - name: ci on the release pull request
-        if: ${{ steps.rp.outputs.prs_created == 'true' }}
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PRS: ${{ steps.rp.outputs.prs }}
-        run: |
-          # the pull requests release-please just opened or updated, from its own output: a search right after it
-          # misses a brand-new one (the index lags). Else the open ones on a release-please branch, by the REST API.
-          branches=$(echo "${PRS:-[]}" | jq -r '.[]?.headBranchName // empty')
-          [ -n "$branches" ] || branches=$(gh api "repos/$GITHUB_REPOSITORY/pulls?state=open&per_page=50" --jq '.[] | select(.head.ref | startswith("release-please--")) | .head.ref')
-          if [ -z "$branches" ]; then echo "::warning::release-please changed a pull request, but none was found to start ci on"; exit 0; fi
-          for b in $branches; do gh workflow run ci.yml --repo "$GITHUB_REPOSITORY" --ref "$b" && echo "ci started on $b"; done
 
   publish:
     needs: release-please
