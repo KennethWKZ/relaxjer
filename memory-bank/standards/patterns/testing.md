@@ -52,7 +52,7 @@ Tier 0 (`pnpm test`) runs on every commit, so keep it under a few seconds: no ne
   that only lasts a moment, a postcard part-way through settling, is measured by seeking its animation through its
   run, not by hoping a sampled frame lands on it. It skips under `TRIP_DIR` and `LEGACY_ENGINE_DIR`: the landing page
   depends on neither, so those runs would only repeat it. Its checks walk the whole page, and CI's WebKit paints the sky's blur and
-  glow in software, several times slower than a laptop, so in WebKit they run on `test.slow` (90 s). Keep them cheap
+  glow in software, several times slower than a laptop, so in WebKit they get 120 s (`test.setTimeout` in a `beforeEach`; a file-level `test.slow(callback)` doesn't reach the tests' timeout). Keep them cheap
   anyway: settle what the check doesn't measure up front, scroll instantly, and work out what doesn't change with the
   scroll once.
 - **The real database rules run on Firebase's emulator,** not in CI: `pnpm test:sync-rules` (needs Java; firebase-tools

@@ -11,9 +11,11 @@ const frame = (page) => page.evaluate(() => new Promise((r) => requestAnimationF
 // the landing page depends on neither the trip nor the engine, so a run on another trip or the legacy engine would
 // only repeat these
 test.skip(!!(process.env.TRIP_DIR || process.env.LEGACY_ENGINE_DIR), 'the landing page does not depend on the trip or the engine');
-// these walk the whole page with its motion on; on CI WebKit paints the sky's blur and glow in software, several times
-// slower than a phone's GPU, so they get the slow budget there (x3)
-test.slow(({ browserName }) => browserName === 'webkit', 'WebKit paints the sky in software on CI');
+// these walk the whole page with its motion on; on CI WebKit paints the sky's blur and glow in software, 5 to 15 times
+// slower than a laptop, so there they get 120 s (a file-level test.slow(callback) doesn't reach the tests' timeout)
+test.beforeEach(({ browserName }) => {
+	if (browserName === 'webkit') test.setTimeout(120_000);
+});
 
 for (const colorScheme of ['light', 'dark']) {
 	test.describe(`landing page, ${colorScheme}`, () => {
