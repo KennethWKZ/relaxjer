@@ -137,14 +137,20 @@ export const newer = (a, b) => !b || a.u > b.u || (a.u === b.u && a.d > b.d);
  * What to do with records that came from the group. known = { record id: { u, d } } (versions this phone has),
  * pending = { record id: { v, u, d } } (its own changes not yet sent), remote = { record id: { v, u, d, n } }.
  * Returns { apply: [[record id, value, version]] the newer ones to put into the state, drop: [record id] its own pending
- * changes that lost and won't be sent }.
+ * changes that lost, or that are in the database already, and won't be sent }.
  */
 export function merge(known, pending, remote) {
 	const apply = [];
 	const drop = [];
 	for (const [rid, r] of Object.entries(remote)) {
 		const mine = pending[rid] || known[rid];
-		if (mine && mine.u === r.u && mine.d === r.d) continue; // this very version: ours coming back, or seen already
+		if (mine && mine.u === r.u && mine.d === r.d) {
+			// this very version: seen already, or ours in the database. A send that landed while the phone never heard back
+			// (the page closed, the line dropped) is sent no more: the rules refuse the same version twice, and a send is all
+			// or nothing, so it took every change after it down too
+			if (pending[rid]) drop.push(rid);
+			continue;
+		}
 		if (!newer(r, mine)) continue;
 		apply.push([rid, r.v, { u: r.u, d: r.d, n: r.n }]);
 		if (pending[rid]) drop.push(rid);

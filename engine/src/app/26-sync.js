@@ -164,7 +164,10 @@ function groupSync() {
 		// what a blocked phone wrote doesn't count here, whatever it is
 		const { remote } = Sync.dropBlocked(all, store.get('blocks', {}) || {});
 		const { apply, drop } = Sync.merge(meta.known, meta.pending, remote);
-		for (const rid of drop) delete meta.pending[rid];
+		for (const rid of drop) {
+			delete meta.pending[rid];
+			meta.known[rid] = { u: remote[rid].u, d: remote[rid].d };
+		}
 		if (apply.length) applyRemote(apply);
 		else if (drop.length) save();
 	}
@@ -188,13 +191,21 @@ function groupSync() {
 		}
 	}
 	let pushing = false;
+	let pushAgain = false;
 	const blockedHere = () => !!(store.get('blocks', {}) || {})[meta.dev];
 	async function push(retry = true) {
+		// a change made while a send is on its way goes right after it, not at the next 30 s tick
+		if (pushing) {
+			pushAgain = true;
+			return;
+		}
 		const rids = Object.keys(meta.pending);
-		if (pushing || !rids.length || navigator.onLine === false || syncStatus.state === 'ended') return;
+		if (!rids.length || navigator.onLine === false || syncStatus.state === 'ended') return;
 		if (blockedHere()) return status('blocked'); // a planner blocked this phone: its changes stay here
 		pushing = true;
+		pushAgain = false;
 		let refused = false;
+		let took = false;
 		try {
 			const body = {};
 			const sent = {};
@@ -217,6 +228,7 @@ function groupSync() {
 				}
 				save();
 				status('ok');
+				took = true;
 			}
 		} catch {
 			status('waiting');
@@ -229,7 +241,7 @@ function groupSync() {
 			const read = await pull();
 			if (read && retry) return push(false);
 			if (read) status('refused');
-		}
+		} else if (took && pushAgain) setTimeout(push, 0); // a send that failed waits for 'online' or the next tick, as before
 	}
 
 	let es = null;

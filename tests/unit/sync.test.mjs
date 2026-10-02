@@ -107,19 +107,21 @@ test('Sync: the later edit wins, and a tie goes to the larger device id on every
 	assert.ok(Sync.newer({ u: 1, d: 'a' }, undefined));
 });
 
-test('Sync: merging applies what is newer, ignores our own echo, and drops our pending change when it lost', () => {
+test('Sync: merging applies what is newer, and drops our pending change when it lost or is in the database already', () => {
 	const known = { 'tick:before-charter': { u: 10, d: 'me' }, 'flt:arr': { u: 10, d: 'me' } };
 	const pending = { 'stop:mine-a': { v: stop('mine-a'), u: 50, d: 'me' }, 'flt:dep': { v: '01:10', u: 20, d: 'me' } };
 	const remote = {
 		'tick:before-charter': { v: null, u: 30, d: 'lee', n: 'Lee' }, // newer than what we know: apply
 		'flt:arr': { v: '18:00', u: 5, d: 'lee', n: 'Lee' }, // older: ignore
-		'stop:mine-a': { v: stop('mine-a'), u: 50, d: 'me', n: '' }, // our own pending change coming back: ignore
+		// our own pending change, in the database already (the phone never heard back): nothing to apply, and not sent again,
+		// or the rules refuse the whole send it rides in
+		'stop:mine-a': { v: stop('mine-a'), u: 50, d: 'me', n: '' },
 		'flt:dep': { v: '02:00', u: 40, d: 'lee', n: 'Lee' }, // beats our pending one: apply, drop ours
 		'shift:2027-03-15': { v: [{ from: 600, min: 30 }], u: 1, d: 'lee', n: 'Lee' }, // new to us: apply
 	};
 	const { apply, drop } = Sync.merge(known, pending, remote);
 	assert.deepEqual(apply.map(([rid]) => rid).sort(), ['flt:dep', 'shift:2027-03-15', 'tick:before-charter']);
-	assert.deepEqual(drop, ['flt:dep']);
+	assert.deepEqual(drop.sort(), ['flt:dep', 'stop:mine-a']);
 	assert.deepEqual(Sync.merge(known, {}, { 'flt:arr': { v: '17:40', u: 10, d: 'me' } }).apply, [], 'a version we already have');
 });
 

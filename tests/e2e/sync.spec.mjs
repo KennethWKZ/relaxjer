@@ -127,6 +127,52 @@ test.describe('group sync', { tag: '@demo' }, () => {
 		await expect(box(b.page, 'before-passport'), 'sent once back online').toBeChecked({ timeout: 15_000 });
 	});
 
+	test('a change made while the last one is still on its way follows right behind it', async ({ page }) => {
+		await openSync(page, '#checklist');
+		await openSync(b.page, '#checklist');
+		// hold this phone's first send until it has made a second change
+		let release;
+		const held = new Promise((r) => (release = r));
+		let sending = false;
+		await page.route(
+			(u) => u.pathname.endsWith('/r.json'),
+			async (route) => {
+				if (route.request().method() !== 'PATCH' || sending) return route.fallback();
+				sending = true;
+				await held;
+				await route.fallback();
+			},
+		);
+		await tick(page, 'before-charter');
+		await expect.poll(() => sending, { message: 'the first send is on its way' }).toBe(true);
+		await tick(page, 'before-arrival');
+		await page.waitForTimeout(800); // its send comes and finds the first still going
+		release();
+		await expect(box(b.page, 'before-charter')).toBeChecked({ timeout: 15_000 });
+		// not at the next 30 s tick
+		await expect(box(b.page, 'before-arrival'), 'the second change, right behind the first').toBeChecked({ timeout: 10_000 });
+	});
+
+	test('a send that landed while the phone never heard back doesn’t hold up the next one', async ({ page }) => {
+		await openSync(page, '#checklist');
+		await openSync(b.page, '#checklist');
+		// the first send reaches the database, and the answer never reaches the phone (the page closed, the line dropped)
+		let lost = false;
+		await page.route(
+			(u) => u.pathname.endsWith('/r.json'),
+			async (route) => {
+				if (route.request().method() !== 'PATCH' || lost) return route.fallback();
+				lost = true;
+				await route.fetch();
+				await route.abort('connectionreset');
+			},
+		);
+		await tick(page, 'before-charter');
+		await expect(box(b.page, 'before-charter'), 'it did reach the group').toBeChecked({ timeout: 15_000 });
+		await tick(page, 'before-arrival');
+		await expect(box(b.page, 'before-arrival'), 'the next change still goes').toBeChecked({ timeout: 15_000 });
+	});
+
 	test('the name a person gives travels with their changes', async ({ page }) => {
 		await openSync(page);
 		await openSync(b.page, '#checklist');
