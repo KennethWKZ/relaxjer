@@ -70,3 +70,17 @@ jobs:
           name: playwright-report-${{ matrix.project }}-${{ matrix.shard }}
           path: playwright-report/
           retention-days: 7
+
+  # the one check main's ruleset requires (ADR-20261002-required-ci): it passes only when every job above passed, so a
+  # red ci blocks the merge. A new job joins the gate by being listed in needs (tests/repo/ci.test.mjs checks).
+  ci-ok:
+    if: always()
+    needs: [secrets, test, e2e]
+    runs-on: ubuntu-latest
+    steps:
+      - name: every job passed
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "jobs: $RESULTS"
+          for r in $RESULTS; do [ "$r" = success ] || exit 1; done

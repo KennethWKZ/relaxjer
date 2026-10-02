@@ -26,3 +26,15 @@ test('the release workflow can write, so its actions are pinned to commit SHAs, 
 	const manifest = JSON.parse(read('.release-please-manifest.json'));
 	assert.equal(manifest['.'], JSON.parse(read('package.json')).version, 'the manifest and package.json name the same version');
 });
+
+// main's ruleset requires one check, ci-ok (ADR-20261002-required-ci): it must wait on every other job, or a job added
+// later could fail and still let the merge through
+test('the ci-ok gate waits on every other ci job and runs even when one fails', () => {
+	const wf = read('.github/workflows/ci.yml');
+	const jobs = [...wf.split(/^jobs:\s*$/m)[1].matchAll(/^ {2}([\w-]+):\s*$/gm)].map((m) => m[1]);
+	assert.ok(jobs.includes('ci-ok'), 'ci.yml has the ci-ok job');
+	const gate = wf.slice(wf.indexOf('\n  ci-ok:'));
+	const needs = (/needs:\s*\[([^\]]*)\]/.exec(gate) || [])[1].split(',').map((s) => s.trim());
+	assert.deepEqual(needs.sort(), jobs.filter((j) => j !== 'ci-ok').sort(), 'ci-ok needs every other job');
+	assert.match(gate, /if:\s*always\(\)/, 'it runs (and fails) when a job it needs failed');
+});
