@@ -1,6 +1,6 @@
 {
 	"name": "relaxjer",
-	"version": "1.2.0",
+	"version": "1.2.1",
 	"private": true,
 	"description": "An AI-assisted planner that turns a family's trip requirements into one offline-friendly, installable page.",
 	"license": "MIT",
