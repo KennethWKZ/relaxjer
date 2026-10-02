@@ -536,7 +536,7 @@ the system and the button stays hidden. The items below are the only deviations 
   headline (800, clamp 1.5rem to 1.875rem).
 - **One spot per postcard.** The picture side is one colour at full strength with a faint halftone, a light at its
   top and hills in a deeper shade: a lantern colour (1–7), the seal, airmail blue, the night, or the privacy card's
-  dark room (`--vault`, `#15161a`; night grey `#343c52` in the dark theme, never inverted ink). Text on airmail blue takes `--blue-ink`: white by day, `#0c1017` at night, where white reaches only 3.2:1. In the dark theme each
+  dark room (`--vault`, `#15161a`; night grey `#343c52` in the dark theme, never inverted ink). Text on airmail blue takes `--blue-ink`, white in both themes: 5.5:1 by day, and 6.2:1 at night, where the picture sinks to `#3e60a0`. In the dark theme each
   picture sinks 40 % toward the night sky (`--pic-dusk`) and its top light turns night blue, so the cards glow like
   lanterns instead of daylight panels.
 - **Phones.** An ink device frame (black at night, with a 1 px light edge): 6 px padding, 26 / 20 px radii

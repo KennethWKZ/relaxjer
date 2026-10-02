@@ -1235,7 +1235,7 @@
 						"rule-card": "#2a313d",
 						"red": "#e8564b",
 						"blue": "#5b8fe6",
-						"blue-ink": "#0c1017",
+						"blue-ink": "#ffffff",
 						"postmark": "rgba(201, 211, 230, 0.82)",
 						"vault": "#343c52",
 						"vault-ink": "#eef0f4",
@@ -1244,7 +1244,7 @@
 						"pic-dusk": "40%",
 						"pic-lift": "#3b4668"
 					},
-					"note": "Also the trip page inks, seal, highlighter and lantern colours. --blue-ink exists because white on the night blue is 3.2:1. Dark values apply under prefers-color-scheme and under the day/night button (:root[data-theme=\"dark\"])."
+					"note": "Also the trip page inks, seal, highlighter and lantern colours. --blue-ink is white in both themes: 5.5:1 on the day blue, 6.2:1 at night where the picture sinks 40% toward the night sky (#3e60a0). Dark values apply under prefers-color-scheme and under the day/night button (:root[data-theme=\"dark\"])."
 				},
 				"postcard": {
 					"radius": "6px (--r-card, postcard stock)",

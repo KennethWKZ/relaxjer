@@ -27,11 +27,11 @@
       {
         "rule": "design-system-font",
         "value": "gabarito",
-        "createdAt": "2026-10-02T09:35:36.446Z",
-        "reason": "Gabarito is the landing page's self-hosted headline face (ADR-20261002-landing-postcards; DESIGN.md § Surface: the landing page); the frontmatter is the trip page's",
         "files": [
           "site/**"
-        ]
+        ],
+        "createdAt": "2026-10-02T09:35:36.446Z",
+        "reason": "Gabarito is the landing page's self-hosted headline face (ADR-20261002-landing-postcards; DESIGN.md § Surface: the landing page); the frontmatter is the trip page's"
       },
       {
         "rule": "clipped-overflow-container",
@@ -104,6 +104,15 @@
         ],
         "createdAt": "2026-10-02T10:35:38.016Z",
         "reason": "the airmail chevrons (DESIGN.md § Surface: the landing page) and the packing list's notebook rules; the brief's own world"
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "site/assets/site.css"
+        ],
+        "createdAt": "2026-10-02T10:49:50.114Z",
+        "reason": "the 6px band of airmail chevrons along the top of each card back and the packing sheet (DESIGN.md § Surface: the landing page, Postcards); an envelope edge, not a card accent"
       }
     ]
   }
