@@ -516,7 +516,7 @@ planning a trip: airmail postcards from the demo trip, lying under one trip day'
 contract is `.impeccable/surfaces/site-index-html.md`). It copies the trip page's tokens. It starts from the system theme, and a
 sun/moon button in the bar switches day and night (`theme.js`, in `<head>` so a remembered night paints from the first
 frame); the browser remembers a choice only while it differs from the system's. Without the script the page follows
-the system and the button stays hidden. The items below are the only deviations or extensions. Everything else follows the sections above.
+the system and the button stays hidden. The items below are the only deviations or extensions. Everything else follows the sections above. The design detector checks every page against this file's frontmatter, which is the trip page's, so `.impeccable/config.json` skips its design-system advisories and the airmail stripes for `site/`; the values live here and in `.impeccable/design.json` (`extensions.surfaces.site`).
 
 - **The sky.** The ground is one day, top to bottom: `--sky-1` to `--sky-6`, a morning blue through a lilac turn
   (`--sky-35`, never grey) to an afternoon gold and the rose before dusk. A sun sits in the first screen's top right;
@@ -530,13 +530,13 @@ the system and the button stays hidden. The items below are the only deviations 
   is ever behind a word. Below 600 px there is no lane, so margin lanterns are hidden and only the footer's night has
   them.
 - **Postcards.** Each feature is a card on postcard stock (`--stock`: white, `#161b25` at night) with 6 px corners, the
-  resting `--card-shadow` and a slight tilt (−1.4° to 1.3°). The back carries a 6 px band of red and blue airmail
+  resting `--card-shadow` and a slight tilt (−1.4° to 1.3°; ±0.4° below 700 px, where a stacked card runs about 1000 px tall and a full tilt would swing past the gutter). The back carries a 6 px band of red and blue airmail
   chevrons on its top edge, a perforated stamp (84 × 100 px, holes punched only at the edge), a round postmark at
   −11°, the brushed Chinese line (clamp 1.9rem to 2.5rem, in a deepened shade of the card's colour) and a Gabarito
   headline (800, clamp 1.5rem to 1.875rem).
 - **One spot per postcard.** The picture side is one colour at full strength with a faint halftone, a light at its
   top and hills in a deeper shade: a lantern colour (1–7), the seal, airmail blue, the night, or the privacy card's
-  dark room (`--vault`, `#15161a`; night grey `#343c52` in the dark theme, never inverted ink). In the dark theme each
+  dark room (`--vault`, `#15161a`; night grey `#343c52` in the dark theme, never inverted ink). Text on airmail blue takes `--blue-ink`: white by day, `#0c1017` at night, where white reaches only 3.2:1. In the dark theme each
   picture sinks 40 % toward the night sky (`--pic-dusk`) and its top light turns night blue, so the cards glow like
   lanterns instead of daylight panels.
 - **Phones.** An ink device frame (black at night, with a 1 px light edge): 6 px padding, 26 / 20 px radii
@@ -569,9 +569,9 @@ the system and the button stays hidden. The items below are the only deviations 
   the paragraph's spacing.
 - **Faces.** Both are self-hosted subsets with their licences in `site/assets/fonts/`: Ma Shan Zheng for the brand and
   the brushed lines (only the glyphs the page letters, so a new brushed glyph means re-subsetting), and Gabarito
-  (Latin) for headlines. The brand runs at display scale in the hero. Everything operated stays system sans.
+  (Latin) for headlines. The brand runs at display scale in the hero. The hero lede (Gabarito 700, clamp 1.5rem to 2.125rem) runs three lines, so it keeps line height 1.4. Everything operated stays system sans.
 - **Motion.** The sky moves only with the scroll, never by itself. A postcard settles once, the first time it comes
-  into view: it rises 26 px and turns 2.5° back to its tilt over 900 ms, and its postmark presses 520 ms later. A demo
+  into view: it rises 26 px and turns 2.5° back to its tilt (0.6° on a phone) over 900 ms, and its postmark presses 520 ms later. A demo
   loops only while its card is in view. Under reduced motion every demo holds its still frame and the sky holds still.
   Presses keep the engine's scale to 0.97.
 

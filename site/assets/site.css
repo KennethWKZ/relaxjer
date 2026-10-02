@@ -68,7 +68,6 @@
 	--good: #1a7443; /* the trip page's good, for its Planner badge */
 	--focus: #1f5fd1;
 	--link: #1d5bc4;
-	--good: #1a7443;
 	--warn: #9a5700;
 	--bad: #b3261e;
 	--hl: #ffe45c;
@@ -159,7 +158,6 @@
 		--good: #5fd49a;
 		--focus: #7fb0ff;
 		--link: #8ab8ff;
-		--good: #5fd49a;
 		--warn: #f3b35a;
 		--bad: #ff8a80;
 		--glass: rgba(12, 18, 36, 0.72);
@@ -219,7 +217,6 @@
 	--good: #5fd49a;
 	--focus: #7fb0ff;
 	--link: #8ab8ff;
-	--good: #5fd49a;
 	--warn: #f3b35a;
 	--bad: #ff8a80;
 	--glass: rgba(12, 18, 36, 0.72);
@@ -719,7 +716,7 @@ svg.i {
 	max-width: 22ch;
 	font-family: var(--font-head);
 	font-size: clamp(1.5rem, 2.9vw, 2.125rem);
-	line-height: 1.18;
+	line-height: 1.4;
 	font-weight: 700;
 	letter-spacing: -0.015em;
 }

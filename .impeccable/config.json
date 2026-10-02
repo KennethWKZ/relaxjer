@@ -10,7 +10,7 @@
           "site/index.html"
         ],
         "createdAt": "2026-09-30T22:01:27.027Z",
-        "reason": "build thread decision: DESIGN.md's Glow From Inside Rule and 'Lantern, night' shadow define this lantern glow; engine/src/style.css ships the same; DESIGN.md's landing-page section records it"
+        "reason": "the hero sky's rising lanterns glow at night, as the trip page's lanterns do (DESIGN.md Glow From Inside Rule; engine/src/style.css)"
       },
       {
         "rule": "design-system-font",
@@ -28,7 +28,10 @@
         "rule": "design-system-font",
         "value": "gabarito",
         "createdAt": "2026-10-02T09:35:36.446Z",
-        "reason": "ADR-20261002-landing-postcards: Gabarito is the landing page's self-hosted headline face; DESIGN.md covers the trip page"
+        "reason": "Gabarito is the landing page's self-hosted headline face (ADR-20261002-landing-postcards; DESIGN.md § Surface: the landing page); the frontmatter is the trip page's",
+        "files": [
+          "site/**"
+        ]
       },
       {
         "rule": "clipped-overflow-container",
@@ -65,6 +68,42 @@
         ],
         "createdAt": "2026-10-02T09:43:42.462Z",
         "reason": "the drawn trip page's day tab bar: a 3px underline in the day's colour (engine/src/style.css); the only 3px border-bottom on the page"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "*",
+        "files": [
+          "site/**"
+        ],
+        "createdAt": "2026-10-02T10:35:37.956Z",
+        "reason": "site/ keeps its own tokens (the airmail postcard world), recorded in DESIGN.md § Surface: the landing page and .impeccable/design.json extensions.surfaces.site; the frontmatter the detector reads is the trip page's"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "*",
+        "files": [
+          "site/**"
+        ],
+        "createdAt": "2026-10-02T10:35:37.976Z",
+        "reason": "site/ keeps its own tokens (the airmail postcard world), recorded in DESIGN.md § Surface: the landing page and .impeccable/design.json extensions.surfaces.site; the frontmatter the detector reads is the trip page's"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "*",
+        "files": [
+          "site/**"
+        ],
+        "createdAt": "2026-10-02T10:35:37.996Z",
+        "reason": "site/ keeps its own tokens (the airmail postcard world), recorded in DESIGN.md § Surface: the landing page and .impeccable/design.json extensions.surfaces.site; the frontmatter the detector reads is the trip page's"
+      },
+      {
+        "rule": "repeating-stripes-gradient",
+        "value": "*",
+        "files": [
+          "site/**"
+        ],
+        "createdAt": "2026-10-02T10:35:38.016Z",
+        "reason": "the airmail chevrons (DESIGN.md § Surface: the landing page) and the packing list's notebook rules; the brief's own world"
       }
     ]
   }

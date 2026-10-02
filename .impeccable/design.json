@@ -1,6 +1,6 @@
 {
 	"schemaVersion": 2,
-	"generatedAt": "2026-09-30T22:23:15.000Z",
+	"generatedAt": "2026-10-02T10:43:00.000Z",
 	"title": "Design System: RelaxJer trip page",
 	"extensions": {
 		"colorMeta": {
@@ -1186,73 +1186,128 @@
 				"files": [
 					"site/index.html",
 					"site/assets/site.css",
-					"site/assets/site.js"
+					"site/assets/site.js",
+					"site/assets/theme.js"
 				],
-				"stepColours": {
-					"1": "lantern-1",
-					"2": "lantern-2",
-					"3": "lantern-3",
-					"4": "lantern-4",
-					"unused": [
-						"lantern-5",
-						"lantern-6",
-						"lantern-7"
-					],
-					"vars": "--c / --ci per step (--l1..--l4 / --l1-ink..--l4-ink)"
+				"world": "Airmail postcards from the demo trip lying under one trip day's sky, one card per feature with a drawn demo that loops (ADR-20261002-landing-postcards; brief .impeccable/surfaces/site-index-html.md; DESIGN.md § Surface: the landing page).",
+				"tokens": {
+					"light": {
+						"sky-1": "#d3e6f9",
+						"sky-2": "#c9e0f7",
+						"sky-3": "#bfd9f4",
+						"sky-35": "#e6dcf2",
+						"sky-4": "#f7dfc4",
+						"sky-5": "#f7d9d0",
+						"sky-6": "#e9dcf1",
+						"sun": "#ffd79c",
+						"sun-low": "#ffa977",
+						"stock": "#ffffff",
+						"stock-2": "#f3f5f9",
+						"stock-edge": "rgba(24, 44, 84, 0.1)",
+						"rule": "#c9d6e8",
+						"rule-card": "#dfe2e8",
+						"red": "#d9352b",
+						"blue": "#2466c8",
+						"blue-ink": "#ffffff",
+						"postmark": "rgba(31, 46, 79, 0.62)",
+						"vault": "#15161a",
+						"vault-ink": "#ffffff",
+						"night": "#1d2a44",
+						"night-ink": "#ffffff",
+						"glass": "rgba(255, 255, 255, 0.6)",
+						"pic-dusk": "0%",
+						"pic-lift": "#ffffff"
+					},
+					"dark": {
+						"sky-1": "#0c1424",
+						"sky-2": "#0e172c",
+						"sky-3": "#121a36",
+						"sky-35": "#151839",
+						"sky-4": "#18173a",
+						"sky-5": "#1d1736",
+						"sky-6": "#151127",
+						"sun": "#e9e4ff",
+						"sun-low": "#e9e4ff",
+						"stock": "#161b25",
+						"stock-2": "#1e2430",
+						"stock-edge": "rgba(238, 240, 244, 0.08)",
+						"rule": "#263041",
+						"rule-card": "#2a313d",
+						"red": "#e8564b",
+						"blue": "#5b8fe6",
+						"blue-ink": "#0c1017",
+						"postmark": "rgba(201, 211, 230, 0.82)",
+						"vault": "#343c52",
+						"vault-ink": "#eef0f4",
+						"night": "#26324d",
+						"glass": "rgba(12, 18, 36, 0.72)",
+						"pic-dusk": "40%",
+						"pic-lift": "#3b4668"
+					},
+					"note": "Also the trip page inks, seal, highlighter and lantern colours. --blue-ink exists because white on the night blue is 3.2:1. Dark values apply under prefers-color-scheme and under the day/night button (:root[data-theme=\"dark\"])."
 				},
-				"stepString": {
-					"stretch": "2px, color-mix(in srgb, var(--c) 55%, transparent), per step",
-					"knot": "14px paper ring, 2.5px solid var(--c)",
-					"cord": "20px x 2px, --c at 55%, knot to lantern"
+				"postcard": {
+					"radius": "6px (--r-card, postcard stock)",
+					"tilts": "-1.4deg to 1.3deg; +-0.4deg below 700px, where a stacked card runs about 1000px tall",
+					"grid": "12 columns from 900px (w4, w5, w7, w8, w12); .land cards two-up from 700px"
 				},
-				"lantern": "Engine paper fibre (fractalNoise, soft-light, 22%) and bamboo rings (9px inset, 1.5px --ci at 22%) verbatim; engine day/night shadows and night glow; padding 22px 20px 18px.",
-				"hang": "Paper card under each lantern: 1px rule border, no top border, bottom corners 12px, padding 18px 20px 20px, inset 12px each side.",
+				"type": {
+					"head": "Gabarito 800 (self-hosted latin subset, SIL OFL)",
+					"cardHead": "clamp(1.5rem, 2.4vw, 1.875rem) / 1.1",
+					"lede": "clamp(1.5rem, 2.9vw, 2.125rem) 700 / 1.4 (three lines)",
+					"brushLine": "clamp(1.9rem, 3.4vw, 2.5rem) / 1.05",
+					"body": "system sans 1.0625rem / 1.55"
+				},
 				"brushFont": {
 					"file": "site/assets/fonts/ma-shan-zheng-subset.woff2",
 					"licence": "SIL OFL (site/assets/fonts/OFL.txt)",
-					"scope": "only the glyphs the page letters; re-subset for any new brushed glyph",
-					"display": "hero brand clamp(4rem, 13vw, 7.5rem), line-height 0.95"
+					"scope": "only the glyphs the page letters; re-subset for any new brushed glyph"
 				},
-				"deviceRadii": {
-					"hero": "34px frame / 25px screen, padding 10px",
-					"hero-below-520px": "28px / 21px, padding 8px",
-					"shot": "22px / 17px, padding 6px",
-					"note": "Device radii, not the component scale."
-				},
-				"factRows": "dl grid: key minmax(0, 7.5rem) in ink-3 at 750 (0.9375rem), value at 650, 14px rows split by rule; lead number 1.4375rem 800 tabular; stacks below 420px.",
-				"comparisonTable": "Hairline rows, 2px ink rule under the head, label-size subheads in ink-3; recommended column color-mix(in srgb, var(--l2) 7%, transparent) with an --l2 head rule, always beside the word \"recommended\".",
+				"demos": "A mini trip page (.m) at 390 x 760px drawn in px and scaled by --k (0.5 to 0.64): its sizes and radii are the trip page system, not this surface. Every demo has a Pause disc and a --still frame.",
+				"comparisonTable": "Hairline rows, a 2px ink rule under the head; the recommended column --l2 at 8% with an --l2 head rule, always beside the word \"recommended\".",
 				"flowAccent": {
-					"light": "#c2530f (lantern-3 deepened; 4.6:1 on white, lantern-3 is 3.2:1)",
+					"light": "#c2530f (lantern-3 deepened; 4.6:1 on white)",
 					"dark": "#ec6a1c (lantern-3)",
 					"never": "seal"
 				},
 				"breakpoints": [
 					{
-						"name": "site-wide",
+						"name": "site-spread",
 						"value": "min-width: 900px",
-						"purpose": "Hero two-up; what-you-get three-up."
+						"purpose": "The 12-column postcard spread; larger demo phones."
+					},
+					{
+						"name": "site-land",
+						"value": "min-width: 700px",
+						"purpose": "Landscape postcards two-up; below it, gentler tilts."
+					},
+					{
+						"name": "site-hero",
+						"value": "min-width: 960px",
+						"purpose": "Hero copy and desk side by side."
 					},
 					{
 						"name": "site-flow",
-						"value": "min-width: 960px",
-						"purpose": "Flow diagram shown whole; below it scrolls sideways with a 40px edge fade."
+						"value": "min-width: 980px",
+						"purpose": "Flow diagram shown whole; below it scrolls sideways with an edge fade."
 					},
 					{
-						"name": "site-nav",
-						"value": "max-width: 559px",
-						"purpose": "Secondary nav links hidden."
+						"name": "site-lane",
+						"value": "max-width: 599px",
+						"purpose": "No side lane: margin lanterns hidden; secondary nav links hidden."
 					},
 					{
 						"name": "site-phone",
 						"value": "max-width: 520px",
-						"purpose": "Smaller phone frames; tighter table cells."
+						"purpose": "Tighter table cells."
 					},
 					{
-						"name": "site-facts",
+						"name": "site-small",
 						"value": "max-width: 420px",
-						"purpose": "Fact keys stack above values."
+						"purpose": "Demo phones at 0.5; fact keys stack above values."
 					}
-				]
+				],
+				"detector": "The design detector checks every page against the trip page frontmatter, so .impeccable/config.json skips the design-system advisories and the airmail stripes for site/**; this block and DESIGN.md record the landing values."
 			}
 		}
 	},
