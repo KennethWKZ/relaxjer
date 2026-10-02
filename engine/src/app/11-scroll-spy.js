@@ -90,10 +90,14 @@ async function updCheck() {
 	updAt = Date.now();
 	const ctl = new AbortController();
 	const stop = setTimeout(() => ctl.abort(), 20000);
+	let rd = null;
 	try {
 		const r = await fetch(location.href.split('#')[0], { cache: 'no-store', credentials: 'same-origin', signal: ctl.signal });
 		if (!r.ok || !r.body) return; // the host's password page after 24 h: nothing to compare
-		const rd = r.body.getReader();
+		rd = r.body.getReader();
+		// a reload can cut the download off mid-read; WebKit then rejects the reader's closed promise as well, and
+		// nothing awaits that one
+		rd.closed.catch(() => {});
 		const dec = new TextDecoder();
 		let head = '';
 		let m = null;
@@ -111,6 +115,7 @@ async function updCheck() {
 		/* offline, slow or blocked: try again next time */
 	} finally {
 		clearTimeout(stop);
+		if (rd) rd.cancel().catch(() => {}); // the rest of the download isn't needed
 		ctl.abort();
 	}
 }
