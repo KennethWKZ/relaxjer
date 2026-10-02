@@ -45,10 +45,14 @@ jobs:
         if: ${{ steps.rp.outputs.prs_created == 'true' }}
         env:
           GH_TOKEN: ${{ github.token }}
+          PRS: ${{ steps.rp.outputs.prs }}
         run: |
-          for b in $(gh pr list --repo "$GITHUB_REPOSITORY" --state open --label 'autorelease: pending' --json headRefName --jq '.[].headRefName'); do
-            gh workflow run ci.yml --repo "$GITHUB_REPOSITORY" --ref "$b" && echo "ci started on $b"
-          done
+          # the pull requests release-please just opened or updated, from its own output: a search right after it
+          # misses a brand-new one (the index lags). Else the open ones on a release-please branch, by the REST API.
+          branches=$(echo "${PRS:-[]}" | jq -r '.[]?.headBranchName // empty')
+          [ -n "$branches" ] || branches=$(gh api "repos/$GITHUB_REPOSITORY/pulls?state=open&per_page=50" --jq '.[] | select(.head.ref | startswith("release-please--")) | .head.ref')
+          if [ -z "$branches" ]; then echo "::warning::release-please changed a pull request, but none was found to start ci on"; exit 0; fi
+          for b in $branches; do gh workflow run ci.yml --repo "$GITHUB_REPOSITORY" --ref "$b" && echo "ci started on $b"; done
 
   publish:
     needs: release-please
