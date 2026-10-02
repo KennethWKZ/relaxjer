@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.2.5](https://github.com/KennethWKZ/relaxjer/compare/v1.2.4...v1.2.5) (2026-10-02)
+
+
+### 🐛 Bug Fixes
+
+* **ci:** start ci on a brand-new release pull request too ([2162cb2](https://github.com/KennethWKZ/relaxjer/commit/2162cb29661e691b3c532fe907877ca22d741fa8))
+
+
+### 🧑‍💻 Continuous Integrations
+
+* drop the release job's own ci run, which a pull request's merge gate never counts ([def208c](https://github.com/KennethWKZ/relaxjer/commit/def208cca7ba54980e5545acab61fb4ca8acb5ca))
+* drop the release job's own ci run, which a pull request's merge gate never counts ([fa8abc8](https://github.com/KennethWKZ/relaxjer/commit/fa8abc8c730089c975ebcab933d367e1cd38d77e))
+
 ## [1.2.4](https://github.com/KennethWKZ/relaxjer/compare/v1.2.3...v1.2.4) (2026-10-02)
 
 
