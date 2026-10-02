@@ -173,9 +173,8 @@ function openPinSheet(p) {
 	openSheet(box.innerHTML, p.food ? foodId(p.food) : p.wish ? `wish-${p.wish.id}` : '');
 }
 
-/* the phone keyboard over an open sheet: an iPhone's keyboard covers the page instead of shrinking it (Android's would
-   too, without the viewport's interactive-widget=resizes-content), so a sheet pinned to the bottom sat behind it, with
-   the field being typed in. While it's up, the sheet sits on top of it in what's left, and that field stays in view. */
+/* the phone keyboard over an open sheet: on an iPhone and on Android (Chrome 108 on, by default) the keyboard covers
+   the page instead of shrinking it, so a sheet pinned to the bottom sat behind it, with the field being typed in. While it's up, the sheet sits on top of it in what's left, and that field stays in view. */
 const VV = window.visualViewport;
 function keyboardInset(e) {
 	const root = document.documentElement;
