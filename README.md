@@ -6,8 +6,9 @@ RelaxJer plans a family trip with an AI agent and builds it into **one self-cont
 their phones, installs it to the home screen, and uses it offline.
 
 - **What's next, at a glance:** Now and Next on a trip day, a countdown and the to-dos before it, every day's timeline
-  with fixed times that never move, a push-back for running late that stops at the next fixed time, and days that
-  split for part of the group, with each plan's rule and where they meet again.
+  with fixed times that never move, a push-back for running late that stops at the next fixed time (with location on,
+  the page notices when you fall behind and offers it), and days that split for part of the group, with each plan's
+  rule and where they meet again.
 - **Getting there:** directions per leg, an offline metro planner, taxi fares per car, live bike-share counts, and a
   "show the driver" card with the local name and address.
 - **Near every stop:** food, drinks, rest spots and toilets with hours and the walk, plus the group's wishlist and

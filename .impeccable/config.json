@@ -23,6 +23,21 @@
         "value": "roboto",
         "createdAt": "2026-10-01T13:00:28.804Z",
         "reason": "agent triage: .gattr is the 'Google Maps' text attribution beside Google ratings (05-render-small-parts.js gstars); Google Maps Platform attribution guidelines specify Roboto for it"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "gabarito",
+        "createdAt": "2026-10-02T09:35:36.446Z",
+        "reason": "ADR-20261002-landing-postcards: Gabarito is the landing page's self-hosted headline face; DESIGN.md covers the trip page"
+      },
+      {
+        "rule": "clipped-overflow-container",
+        "value": "*",
+        "files": [
+          "site/index.html"
+        ],
+        "createdAt": "2026-10-02T09:35:36.465Z",
+        "reason": "the demo phones' .screen clips its drawn mini page by design (ADR-20261002-landing-postcards)"
       }
     ]
   }

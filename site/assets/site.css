@@ -1060,6 +1060,17 @@ svg.i {
 .t-l2 {
 	--tilt: -1.4deg;
 }
+/* stacked on a phone a card runs ~1000 px tall, so a full tilt swings its corners past the 16 px gutter */
+@media (max-width: 699px) {
+	.t-l,
+	.t-l2 {
+		--tilt: -0.4deg;
+	}
+	.t-r,
+	.t-r2 {
+		--tilt: 0.4deg;
+	}
+}
 
 /* the picture side: one spot colour at full strength, printed with a faint halftone; by night it sinks toward the sky */
 .pic {
@@ -2353,6 +2364,254 @@ svg.i {
 .m-lock .m-go {
 	width: 100%;
 	justify-content: center;
+}
+
+/* Now and Next as rows that can change (the running-late and home-screen demos) */
+.m-nn {
+	display: grid;
+	grid-template-columns: 86px minmax(0, 1fr);
+	row-gap: 12px;
+	align-content: start;
+}
+.m-nn .k {
+	padding-top: 3px;
+	font-size: 14px;
+	font-weight: 750;
+	letter-spacing: 0.06em;
+	color: var(--ink-3);
+}
+.m-nn .v {
+	font-size: 17px;
+	line-height: 1.35;
+	font-weight: 650;
+	font-variant-numeric: tabular-nums;
+}
+.m-nn .v span {
+	display: block;
+	text-decoration: underline;
+	text-decoration-color: var(--line);
+	text-underline-offset: 4px;
+}
+.m-nn .v b {
+	font-weight: 650;
+}
+.m-shifted {
+	grid-column: 1 / -1;
+	display: grid;
+	gap: 6px;
+	padding-top: 4px;
+	font-size: 15px;
+	font-weight: 650;
+}
+.m-shifted > span {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}
+.m-shifted svg {
+	color: var(--warn);
+}
+.m-shifted .a {
+	gap: 28px;
+	padding-left: 26px;
+	color: var(--link);
+	font-weight: 700;
+}
+.m-shifted u {
+	text-decoration: none;
+}
+/* the running-late box, as the trip page draws it */
+.m-late-wrap {
+	overflow: hidden;
+	max-height: 0;
+}
+.m-late {
+	display: grid;
+	justify-items: start;
+	gap: 8px;
+	margin-top: 14px;
+	padding: 12px 14px 14px;
+	border-radius: 12px;
+	background: var(--paper);
+	border: 1px solid color-mix(in srgb, var(--warn) 45%, var(--line));
+}
+.m-late .h {
+	display: flex;
+	gap: 8px;
+	align-items: flex-start;
+	font-size: 17px;
+	font-weight: 800;
+	line-height: 1.3;
+}
+.m-late .h svg {
+	margin-top: 2px;
+	color: var(--warn);
+}
+.m-late .h b {
+	font-weight: 800;
+}
+.m-late .t {
+	font-size: 15px;
+	line-height: 1.45;
+	color: var(--ink-2);
+}
+.m-ghost {
+	display: inline-flex;
+	align-items: center;
+	height: 48px;
+	padding: 0 18px;
+	border-radius: 12px;
+	box-shadow: inset 0 0 0 1.5px var(--line);
+	font-size: 16px;
+	font-weight: 700;
+}
+.m-now > .m-go {
+	margin-top: 14px;
+}
+/* location in use: the arrow beside the clock, as the phone shows it */
+.m-clk {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+}
+.m-clk .loc svg {
+	width: 13px;
+	height: 13px;
+	fill: currentColor;
+	stroke-width: 1.5;
+}
+
+/* the home-screen demo: the page in the browser, the home screen, then the page full screen */
+.m-pg {
+	position: absolute;
+	inset: 0;
+	background: var(--paper);
+	transform-origin: 58px 98px;
+}
+.m-inst {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	max-width: 120px;
+	height: 44px;
+	padding: 0 12px 0 10px;
+	overflow: hidden;
+	white-space: nowrap;
+	border-radius: 12px;
+	background: color-mix(in srgb, var(--link) 12%, transparent);
+	color: var(--link);
+	font-size: 16px;
+	font-weight: 750;
+}
+.m-inst svg {
+	width: 20px;
+	height: 20px;
+}
+.x-home .m-brand {
+	font-size: 25px;
+}
+.m-tbar {
+	position: relative;
+	z-index: 2;
+	height: 52px;
+	padding: 2px 16px 0;
+	overflow: hidden;
+	background: var(--paper-2);
+	border-bottom: 1px solid var(--line);
+}
+.m-tbar .url {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 6px;
+	height: 40px;
+	border-radius: 10px;
+	background: var(--paper);
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+	color: var(--ink-2);
+	font-size: 15px;
+	font-weight: 600;
+}
+.m-tbar .url svg {
+	width: 14px;
+	height: 14px;
+}
+.m-steps {
+	display: grid;
+	gap: 8px;
+	margin: 12px 0 0;
+	padding-left: 24px;
+	font-size: 17px;
+	font-weight: 650;
+	line-height: 1.38;
+}
+.m-steps b {
+	font-weight: 800;
+}
+.x-home .m-sheet .m-sh-sub {
+	margin-top: 12px;
+	font-size: 16px;
+	color: var(--ink);
+}
+.m-home {
+	position: absolute;
+	inset: 0;
+	z-index: 7;
+	color: #ffffff;
+	background:
+		radial-gradient(120% 70% at 20% 0%, rgba(236, 106, 28, 0.38), transparent 60%),
+		radial-gradient(90% 60% at 100% 100%, rgba(36, 102, 200, 0.45), transparent 65%), linear-gradient(175deg, #2a3560 0%, #1d2a44 50%, #0f1424 100%);
+	opacity: 0;
+}
+.m-home .m-sb {
+	background: none;
+}
+.m-home .app {
+	position: absolute;
+	left: 27px;
+	top: 66px;
+	width: 62px;
+	display: grid;
+	justify-items: center;
+	gap: 6px;
+	font-size: 12px;
+	font-weight: 600;
+	line-height: 1;
+	white-space: nowrap;
+	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+.m-home .tile {
+	width: 62px;
+	height: 62px;
+	display: grid;
+	place-items: center;
+	border-radius: 15px;
+	background: var(--l1);
+	color: #ffffff;
+	box-shadow: 0 6px 16px -8px rgba(0, 0, 0, 0.6);
+}
+.m-home .tile svg {
+	width: 30px;
+	height: 36px;
+}
+.m-home .find {
+	position: absolute;
+	left: 50%;
+	bottom: 34px;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	height: 34px;
+	padding: 0 16px;
+	border-radius: 17px;
+	background: rgba(255, 255, 255, 0.2);
+	font-size: 14px;
+	font-weight: 600;
+	transform: translateX(-50%);
+}
+.m-home .find svg {
+	width: 15px;
+	height: 15px;
 }
 
 /* ───────── the demos' choreography ───────── */
@@ -3752,6 +4011,363 @@ html:not(.js) .demo .route * {
 	}
 }
 
+/* running late: the phone's location comes in, the page offers the push-back, and only a tap makes it */
+.x-late .loc {
+	animation-name: late-loc;
+}
+@keyframes late-loc {
+	0%,
+	5% {
+		opacity: 0;
+	}
+	8%,
+	95% {
+		opacity: 1;
+	}
+	98%,
+	100% {
+		opacity: 0;
+	}
+}
+.x-late .m-late-wrap {
+	animation-name: late-box;
+}
+@keyframes late-box {
+	0%,
+	10% {
+		max-height: 0;
+		opacity: 0;
+	}
+	16%,
+	33% {
+		max-height: 320px;
+		opacity: 1;
+	}
+	35% {
+		opacity: 0;
+	}
+	39%,
+	100% {
+		max-height: 0;
+		opacity: 0;
+	}
+}
+.x-late .m-late .m-hl {
+	animation-name: late-hl;
+}
+@keyframes late-hl {
+	0%,
+	17% {
+		background: transparent;
+	}
+	20%,
+	29% {
+		background: color-mix(in srgb, var(--hl) 75%, transparent);
+	}
+	33%,
+	100% {
+		background: transparent;
+	}
+}
+.x-late .push {
+	animation-name: late-press;
+}
+@keyframes late-press {
+	0%,
+	29% {
+		scale: 1;
+	}
+	30.5% {
+		scale: 0.96;
+	}
+	32%,
+	100% {
+		scale: 1;
+	}
+}
+.x-late .m-finger {
+	left: 0;
+	top: 0;
+	animation-name: late-finger;
+}
+@keyframes late-finger {
+	0%,
+	26% {
+		opacity: 0;
+		transform: translate(182px, 562px) scale(1.3);
+	}
+	28.5% {
+		opacity: 1;
+		transform: translate(182px, 562px) scale(1);
+	}
+	30.5% {
+		opacity: 1;
+		transform: translate(182px, 562px) scale(0.82);
+	}
+	33%,
+	100% {
+		opacity: 0;
+		transform: translate(182px, 562px) scale(1);
+	}
+}
+.x-late .was {
+	animation-name: late-was;
+}
+.x-late .now {
+	animation-name: late-now;
+}
+@keyframes late-was {
+	0%,
+	33% {
+		opacity: 1;
+	}
+	36%,
+	95% {
+		opacity: 0;
+	}
+	99%,
+	100% {
+		opacity: 1;
+	}
+}
+@keyframes late-now {
+	0%,
+	33% {
+		opacity: 0;
+	}
+	36%,
+	95% {
+		opacity: 1;
+	}
+	99%,
+	100% {
+		opacity: 0;
+	}
+}
+.x-late .now .m-hl {
+	animation-name: late-hl-new;
+}
+@keyframes late-hl-new {
+	0%,
+	36% {
+		background: transparent;
+	}
+	40%,
+	62% {
+		background: color-mix(in srgb, var(--hl) 75%, transparent);
+	}
+	76%,
+	100% {
+		background: transparent;
+	}
+}
+.x-late .m-toast {
+	animation-name: toast-36-58;
+}
+@keyframes toast-36-58 {
+	0%,
+	35% {
+		opacity: 0;
+		transform: translate(-50%, 16px);
+	}
+	39%,
+	56% {
+		opacity: 1;
+		transform: translate(-50%, 0);
+	}
+	60%,
+	100% {
+		opacity: 0;
+		transform: translate(-50%, 16px);
+	}
+}
+
+/* the home screen: Install shows the steps, the icon lands on the home screen, and the page opens full screen */
+.x-home .m-finger {
+	left: 0;
+	top: 0;
+	animation-name: home-finger;
+}
+@keyframes home-finger {
+	0%,
+	4% {
+		opacity: 0;
+		transform: translate(228px, 115px) scale(1.3);
+	}
+	6.5% {
+		opacity: 1;
+		transform: translate(228px, 115px) scale(1);
+	}
+	8.5% {
+		opacity: 1;
+		transform: translate(228px, 115px) scale(0.82);
+	}
+	11% {
+		opacity: 0;
+		transform: translate(228px, 115px) scale(1);
+	}
+	47% {
+		opacity: 0;
+		transform: translate(58px, 97px) scale(1.3);
+	}
+	49.5% {
+		opacity: 1;
+		transform: translate(58px, 97px) scale(1);
+	}
+	51.5% {
+		opacity: 1;
+		transform: translate(58px, 97px) scale(0.82);
+	}
+	54%,
+	100% {
+		opacity: 0;
+		transform: translate(58px, 97px) scale(1);
+	}
+}
+.x-home .m-scrim {
+	animation-name: scrim-10-36;
+}
+@keyframes scrim-10-36 {
+	0%,
+	10% {
+		opacity: 0;
+	}
+	14%,
+	33% {
+		opacity: 1;
+	}
+	37%,
+	100% {
+		opacity: 0;
+	}
+}
+.x-home .m-sheet {
+	animation-name: sheet-10-36;
+}
+@keyframes sheet-10-36 {
+	0%,
+	10% {
+		transform: translateY(105%);
+	}
+	16%,
+	32% {
+		transform: translateY(0);
+	}
+	37%,
+	100% {
+		transform: translateY(105%);
+	}
+}
+.x-home .m-home {
+	animation-name: home-screen;
+}
+@keyframes home-screen {
+	0%,
+	35% {
+		opacity: 0;
+		transform: scale(1.06);
+	}
+	40%,
+	54% {
+		opacity: 1;
+		transform: scale(1);
+	}
+	60%,
+	100% {
+		opacity: 0;
+		transform: scale(1.1);
+	}
+}
+.x-home .tile {
+	animation-name: home-tile;
+}
+@keyframes home-tile {
+	0%,
+	39% {
+		opacity: 0;
+		scale: 0.4;
+	}
+	43% {
+		opacity: 1;
+		scale: 1.08;
+	}
+	45%,
+	51% {
+		scale: 1;
+	}
+	52.5% {
+		scale: 0.9;
+	}
+	54%,
+	100% {
+		opacity: 1;
+		scale: 1;
+	}
+}
+/* full screen: it grows out of the icon, without the browser's bar or the Install button */
+.x-home .m-pg {
+	animation-name: home-open;
+}
+@keyframes home-open {
+	0%,
+	53% {
+		transform: scale(1);
+		border-radius: 0;
+	}
+	54% {
+		transform: scale(0.16);
+		border-radius: 90px;
+	}
+	62%,
+	100% {
+		transform: scale(1);
+		border-radius: 0;
+	}
+}
+.x-home .m-tbar {
+	animation-name: home-bar;
+}
+@keyframes home-bar {
+	0%,
+	37% {
+		height: 52px;
+		border-bottom-width: 1px;
+	}
+	38%,
+	95% {
+		height: 0;
+		border-bottom-width: 0;
+	}
+	99%,
+	100% {
+		height: 52px;
+		border-bottom-width: 1px;
+	}
+}
+.x-home .m-inst {
+	animation-name: home-inst;
+}
+@keyframes home-inst {
+	0%,
+	37% {
+		max-width: 120px;
+		padding-inline: 10px 12px;
+		opacity: 1;
+	}
+	38%,
+	95% {
+		max-width: 0;
+		padding-inline: 0;
+		opacity: 0;
+	}
+	99%,
+	100% {
+		max-width: 120px;
+		padding-inline: 10px 12px;
+		opacity: 1;
+	}
+}
+
 /* offline: the signal drops, the page says so, and the checklist still ticks */
 .x-off .on-sig {
 	animation-name: off-sig;
@@ -4517,6 +5133,12 @@ thead th.rec {
 	/* the packing list is tall: an extra tilt would swing its corners past a phone's edge, so it only rises */
 	.js .packing.settle:not(.in) {
 		transform: translateY(26px) rotate(var(--tilt, 0deg));
+	}
+	/* the same on a phone, where every postcard is stacked full width and tall */
+	@media (max-width: 699px) {
+		.js .card.settle:not(.in) {
+			transform: translateY(26px) rotate(calc(var(--tilt, 0deg) - 0.6deg));
+		}
 	}
 	.js .settle .postmark {
 		opacity: 0;
