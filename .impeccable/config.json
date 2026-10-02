@@ -38,6 +38,33 @@
         ],
         "createdAt": "2026-10-02T09:35:36.465Z",
         "reason": "the demo phones' .screen clips its drawn mini page by design (ADR-20261002-landing-postcards)"
+      },
+      {
+        "rule": "nested-cards",
+        "value": "*",
+        "files": [
+          "site/index.html"
+        ],
+        "createdAt": "2026-10-02T09:42:54.508Z",
+        "reason": "ADR-20261002-landing-postcards: each postcard carries a demo phone and its Pause chip; the brief's own form, not a card grid"
+      },
+      {
+        "rule": "buried-raster",
+        "value": "*",
+        "files": [
+          "site/index.html"
+        ],
+        "createdAt": "2026-10-02T09:42:54.547Z",
+        "reason": "the offline demo's checklist ticks start at opacity 0 and tick in on the loop's keyframes"
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "site/index.html"
+        ],
+        "createdAt": "2026-10-02T09:43:42.462Z",
+        "reason": "the drawn trip page's day tab bar: a 3px underline in the day's colour (engine/src/style.css); the only 3px border-bottom on the page"
       }
     ]
   }
