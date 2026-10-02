@@ -90,6 +90,8 @@ test('search engines and link previews get a title, a description, cards and str
 	for (const k of ['og:title', 'og:description', 'og:url', 'og:image', 'og:image:alt']) assert.ok(meta('property', k), `missing ${k}`);
 	// Open Graph wants language_TERRITORY; a bare "en" gets flagged by link debuggers
 	assert.match(meta('property', 'og:locale') || '', /^[a-z]{2}_[A-Z]{2}$/);
+	// Search Console keeps checking this tag: dropping it loses the property (frontend.md § The landing page)
+	assert.ok(meta('name', 'google-site-verification'), 'missing the Search Console verification tag');
 	// iOS ignores an SVG icon: saving or sharing the page needs the PNG
 	assert.match(html, /<link rel="apple-touch-icon" href="assets\/apple-touch-icon\.png" \/>/);
 	for (const k of ['twitter:card', 'twitter:title', 'twitter:image']) assert.ok(meta('name', k), `missing ${k}`);
