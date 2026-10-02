@@ -231,7 +231,8 @@ async function audit(sec, localFile, candidateFile) {
 			page.on('console', (m) => {
 				const t = m.text();
 				if (t.startsWith('__csp ')) seen.csp.push(t.slice(6));
-				else if (m.type() === 'error') seen.errors.push(t.slice(0, 200));
+				// WebKit on Linux notes it ignores the viewport's interactive-widget key: not a page error
+				else if (m.type() === 'error' && !/Viewport argument key "interactive-widget"/.test(t)) seen.errors.push(t.slice(0, 200));
 			});
 			page.on('pageerror', (e) => seen.errors.push(`page error: ${e.message.slice(0, 200)}`));
 			page.on('requestfailed', (q) => seen.failed.push(`${new URL(q.url()).host} ${q.failure()?.errorText || ''}`.trim()));

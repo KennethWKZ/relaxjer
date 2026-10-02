@@ -6,6 +6,7 @@
 // - a failure if the page throws or logs an error, or its Content-Security-Policy refuses anything.
 import { test as base, expect } from '@playwright/test';
 import { STORE_KEY } from './store-key.mjs';
+import { CONSOLE_NOISE } from './console-noise.mjs';
 
 export { expect };
 
@@ -37,8 +38,8 @@ export const test = base.extend({
 			);
 			page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
 			page.on('console', (m) => {
-				// blocked hosts log "Failed to load resource"; that is the network guard working, not a page bug
-				if (m.type() === 'error' && !/Failed to load resource|net::ERR_|blockedbyclient/i.test(m.text())) errors.push(`console: ${m.text()}`);
+				// blocked hosts and browser notices the page didn't cause (console-noise.mjs)
+				if (m.type() === 'error' && !CONSOLE_NOISE.test(m.text())) errors.push(`console: ${m.text()}`);
 			});
 			await use(errors);
 			expect(errors, 'the page threw or logged errors').toEqual([]);
