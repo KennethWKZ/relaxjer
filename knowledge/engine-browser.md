@@ -33,6 +33,11 @@ What the first trip taught about the page in real browsers. Each lesson is backe
 
 - **Google `AdvancedMarker` content must be a `div`**, not a `button`, or clicks recurse.
 - **The place sheet strips ids** from its copy, so use `data-` attributes inside sheets.
+- **A phone keyboard covers a bottom sheet instead of shrinking the page** (2026-10-02: the group couldn't see what
+  they typed). iPhone Safari never resizes the layout for its keyboard. Android Chrome does only when the viewport tag
+  says `interactive-widget=resizes-content`. So the page watches `visualViewport`: while the keyboard is up over an open
+  sheet, it lifts the sheet to sit on the keyboard (`.kb-up`, `--kb`, `--vvh`) and scrolls the focused field into view.
+  A `position: fixed` child of a dialog with a `transform` is placed by the dialog, not the screen.
 
 ## Home-screen apps
 

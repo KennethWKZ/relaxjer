@@ -44,6 +44,8 @@ two of them seniors.
 - **Links:** every section, day and card has its own address (`#d3`, `#airport`, `#opt-101`), so a link in the group
   chat opens right there. A food, drink, wishlist or optional card opens in a sheet over the page, with "Show in the
   list".
+- **Typing in a sheet** (a stop's name or time, your name, the planner code): the sheet moves up to sit on the phone's
+  keyboard, and the field you're typing in stays in view.
 - **Copying** falls back to a "long-press to select all" box where the phone blocks the clipboard.
 
 ## The Overview, and Now and Next

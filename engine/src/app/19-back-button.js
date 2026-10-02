@@ -173,6 +173,31 @@ function openPinSheet(p) {
 	openSheet(box.innerHTML, p.food ? foodId(p.food) : p.wish ? `wish-${p.wish.id}` : '');
 }
 
+/* the phone keyboard over an open sheet: an iPhone's keyboard covers the page instead of shrinking it (Android's would
+   too, without the viewport's interactive-widget=resizes-content), so a sheet pinned to the bottom sat behind it, with
+   the field being typed in. While it's up, the sheet sits on top of it in what's left, and that field stays in view. */
+const VV = window.visualViewport;
+function keyboardInset(e) {
+	const root = document.documentElement;
+	const kb = VV ? Math.max(0, Math.round(root.clientHeight - VV.height - VV.offsetTop)) : 0;
+	// less than this is the browser's own bars sliding, not a keyboard
+	const up = kb > 80 && !!document.querySelector('dialog.sheet[open]');
+	root.classList.toggle('kb-up', up);
+	root.style.setProperty('--kb', `${up ? kb : 0}px`);
+	root.style.setProperty('--vvh', `${Math.round(VV ? VV.height : root.clientHeight)}px`);
+	const f = document.activeElement;
+	if (up && (!e || e.type === 'resize') && f && f.matches('input, textarea, select') && f.closest('dialog[open]'))
+		f.scrollIntoView({ block: 'nearest' });
+}
+if (VV) {
+	VV.addEventListener('resize', keyboardInset);
+	VV.addEventListener('scroll', keyboardInset);
+	// moving to another field while the keyboard stays up: bring that one into view too
+	document.addEventListener('focusin', (e) => {
+		if (document.documentElement.classList.contains('kb-up') && e.target.closest('dialog[open]')) requestAnimationFrame(() => keyboardInset());
+	});
+}
+
 /* full-screen map: a fixed layer, not the Fullscreen API (iPhone Safari has none for page elements) */
 let mapFullOn = false;
 let mapFullFrom = null;

@@ -28,6 +28,37 @@ test.describe('your own stops', { tag: '@demo' }, () => {
 		expect(order.indexOf('mine')).toBe(order.indexOf('d2-s4') + 1);
 	});
 
+	test('with the phone keyboard up, the sheet sits above it and the field being typed in shows', async ({ page }) => {
+		await openTrip(page);
+		await page.locator('[data-add-gap="d2|4"]').click();
+		const sheet = page.locator('#placeSheet');
+		await sheet.locator('[data-add-res] [data-add]').first().click();
+		const field = sheet.locator('[data-add-t]');
+		await field.focus();
+		// an iPhone keyboard: the lower 340 px of what you see, and the page itself doesn't shrink
+		const keyboard = (px) =>
+			page.evaluate((px) => {
+				const vv = window.visualViewport;
+				delete vv.height;
+				if (px) {
+					const h = vv.height - px;
+					Object.defineProperty(vv, 'height', { configurable: true, get: () => h });
+				}
+				vv.dispatchEvent(new Event('resize'));
+				return vv.height;
+			}, px);
+		const visible = await keyboard(340);
+		await expect(page.locator('html')).toHaveClass(/kb-up/);
+		const box = await sheet.boundingBox();
+		expect(box.y, 'the sheet’s top stays on screen').toBeGreaterThanOrEqual(0);
+		expect(box.y + box.height, 'the sheet ends where the keyboard starts').toBeLessThanOrEqual(visible + 1);
+		const f = await field.boundingBox();
+		expect(f.y + f.height, 'the time being typed shows above the keyboard').toBeLessThanOrEqual(visible + 1);
+		expect(f.y).toBeGreaterThanOrEqual(box.y);
+		await keyboard(0);
+		await expect(page.locator('html')).not.toHaveClass(/kb-up/);
+	});
+
 	test('adding a stop close to a fixed time warns before saving', async ({ page }) => {
 		await openTrip(page);
 		await page.locator('[data-add-gap="d5|4"]').click();

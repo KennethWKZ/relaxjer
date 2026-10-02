@@ -259,7 +259,7 @@ const writePages = (kmlB64) => {
 <meta charset="utf-8">
 <meta name="relaxjer-build" content="{{build}}">
 <meta http-equiv="Content-Security-Policy" content="{{csp}}">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="${htmlEsc(brand)}">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">

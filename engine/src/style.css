@@ -1992,6 +1992,11 @@ dialog.sheet {
 dialog.sheet::backdrop {
 	background: var(--scrim);
 }
+/* the phone keyboard is up over an open sheet (19-back-button.js): the sheet sits on top of it, in what's left */
+.kb-up dialog.sheet[open] {
+	margin-bottom: var(--kb);
+	max-height: calc(var(--vvh) - 16px);
+}
 @starting-style {
 	dialog.sheet[open] {
 		opacity: 0;
