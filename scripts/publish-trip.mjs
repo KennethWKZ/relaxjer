@@ -250,16 +250,18 @@ async function audit(sec, localFile, candidateFile) {
 				});
 			await page.goto(sec.url, { waitUntil: 'load', timeout: 90_000 });
 			const sections = await page.locator('#app [data-sec]').count();
-			await page
-				.locator('.map-wrap')
-				.first()
-				.scrollIntoViewIfNeeded()
-				.catch(() => {});
+			// the map starts once it's near the screen. Group sync's first pull redraws the page a moment after it opens
+			// (later on WebKit), which replaces the map and puts the scroll back, so find it and scroll to it on every try
 			const map = await page
 				.waitForFunction(
-					() => (document.querySelector('.gm-style') ? 'google' : document.querySelector('.maplibregl-canvas') ? 'maplibre' : null),
+					() => {
+						if (document.querySelector('.gm-style')) return 'google';
+						if (document.querySelector('.maplibregl-canvas')) return 'maplibre';
+						document.querySelector('.map-wrap')?.scrollIntoView({ block: 'center', behavior: 'instant' });
+						return null;
+					},
 					null,
-					{ timeout: 30_000 },
+					{ timeout: 30_000, polling: 500 },
 				)
 				.then((h) => h.jsonValue())
 				.catch(() => 'none');
