@@ -23,6 +23,10 @@ for (const colorScheme of ['light', 'dark']) {
 
 		test.beforeEach(async ({ page }) => {
 			await page.goto('/site/index.html');
+			// the page scrolls smoothly, which these checks don't measure; and in WebKit Playwright's own scroll-into-view
+			// before a click then glides in over the next frames, so a press could start on a button and end on the card
+			// behind it. Every scroll here is instant, Playwright's too.
+			await page.addStyleTag({ content: 'html { scroll-behavior: auto !important; }' });
 		});
 
 		test('never wider than the screen, top to bottom', async ({ page }) => {
