@@ -54,7 +54,10 @@ test('the night theme reads the same whether the system or the theme button asks
 
 test('every image has alt text, and every screenshot is the synthetic demo with its provenance beside it', () => {
 	for (const [tag] of html.matchAll(/<img\b[^>]*>/g)) assert.match(tag, /\salt="/, `no alt: ${tag.slice(0, 80)}`);
-	const shots = files.filter((f) => /\.(webp|png|jpe?g)$/.test(f));
+	// the home-screen icon is the lantern favicon, drawn (scripts/docs-update/site-icon.mjs), not a screenshot
+	const icon = path.join('assets', 'apple-touch-icon.png');
+	assert.match(fs.readFileSync(path.join(SITE, `${icon}.json`), 'utf8'), /lantern\.svg rendered[^"]*No trip data/);
+	const shots = files.filter((f) => /\.(webp|png|jpe?g)$/.test(f) && f !== icon);
 	assert.ok(shots.length >= 3);
 	for (const f of shots) {
 		const side = path.join(SITE, `${f}.json`);
@@ -77,11 +80,18 @@ test('search engines and link previews get a title, a description, cards and str
 	const meta = (attr, key) => html.match(new RegExp(`<meta\\s+${attr}="${key}"\\s+content="([^"]*)"`))?.[1];
 	const canonical = html.match(/<link rel="canonical" href="([^"]+)"/)?.[1];
 	assert.equal(canonical, 'https://kennethwkz.github.io/relaxjer/');
+	// Google cuts a title past about 60 characters and a description past about 155; the words people search for
+	// ("trip planner") stay in both, or the page ranks only for its own name
 	const title = html.match(/<title>([^<]+)<\/title>/)?.[1] || '';
-	assert.ok(title.length >= 20 && title.length <= 70, `title is ${title.length} characters`);
+	assert.ok(title.length >= 20 && title.length <= 65, `title is ${title.length} characters`);
 	const desc = meta('name', 'description') || '';
-	assert.ok(desc.length >= 70 && desc.length <= 170, `description is ${desc.length} characters`);
+	assert.ok(desc.length >= 70 && desc.length <= 158, `description is ${desc.length} characters`);
+	for (const s of [title, desc]) assert.match(s, /trip planner/i, `no "trip planner" in: ${s}`);
 	for (const k of ['og:title', 'og:description', 'og:url', 'og:image', 'og:image:alt']) assert.ok(meta('property', k), `missing ${k}`);
+	// Open Graph wants language_TERRITORY; a bare "en" gets flagged by link debuggers
+	assert.match(meta('property', 'og:locale') || '', /^[a-z]{2}_[A-Z]{2}$/);
+	// iOS ignores an SVG icon: saving or sharing the page needs the PNG
+	assert.match(html, /<link rel="apple-touch-icon" href="assets\/apple-touch-icon\.png" \/>/);
 	for (const k of ['twitter:card', 'twitter:title', 'twitter:image']) assert.ok(meta('name', k), `missing ${k}`);
 	// the card image is a file on the site, under the canonical address
 	const img = meta('property', 'og:image');
@@ -93,6 +103,8 @@ test('search engines and link previews get a title, a description, cards and str
 	assert.ok(graph.some((n) => n['@type'] === 'SoftwareApplication' && n.isAccessibleForFree === true));
 	const sitemap = fs.readFileSync(path.join(SITE, 'sitemap.xml'), 'utf8');
 	assert.match(sitemap, new RegExp(`<loc>${canonical}</loc>`));
+	// nothing keeps a lastmod current, and a stale one makes search engines distrust the sitemap
+	assert.doesNotMatch(sitemap, /<lastmod>/);
 });
 
 test('every animated demo can be paused, and says in words what it shows', () => {

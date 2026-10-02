@@ -108,7 +108,12 @@ contract are in `.impeccable/surfaces/site-index-html.md`.
   that a card shows means redrawing that card; no test catches the drift.
 - **Only the demo, ever.** The screenshots come from `node scripts/docs-update/site-screens.mjs`, which builds the
   synthetic demo without a key and writes each image with its provenance sidecar. The flow diagram comes from
-  `node scripts/docs-update/flow-diagram.mjs`.
+  `node scripts/docs-update/flow-diagram.mjs`, and the home-screen icon (the lantern favicon as an opaque PNG, since
+  iOS ignores an SVG one) from `node scripts/docs-update/site-icon.mjs`.
+- **Found by its words.** The title and description name what people search for ("group trip planner") within
+  Google's limits (about 60 and 155 characters), not just the brand; the `<h1>` stays the brush name. The sitemap
+  carries no `lastmod`, since nothing would keep it current. Search Console and its verification tag belong to the
+  maintainer's Google account.
 - **Checked like the trip page.** `tests/repo/site.test.mjs` covers links, third-party requests, alt text,
   provenance, the file types, the search and preview metadata, a Pause button and a description on every demo, the
   night theme's two token blocks (system and button) staying identical, and the SHA-pinned deploy. `tests/e2e/site.spec.mjs` runs the page with motion on in the four e2e projects and both

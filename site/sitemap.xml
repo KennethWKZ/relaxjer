@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- no lastmod: nothing keeps it current, and search engines distrust one that goes stale -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 	<url>
 		<loc>https://kennethwkz.github.io/relaxjer/</loc>
-		<lastmod>2026-10-02</lastmod>
 	</url>
 </urlset>
