@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.2.0](https://github.com/KennethWKZ/relaxjer/compare/v1.1.1...v1.2.0) (2026-10-02)
+
+
+### ✨ Features
+
+* **site:** postcards for the running-late check and installing to the home screen ([e485ca6](https://github.com/KennethWKZ/relaxjer/commit/e485ca6edf5a5725e444f17f6e227dd720760350))
+
+
+### 🐛 Bug Fixes
+
+* **site:** readable sync captions in dark mode, and room around the map table ([01e4354](https://github.com/KennethWKZ/relaxjer/commit/01e43545edb16c0613b8035aa6448e281c37196e))
+* **site:** the sync card's captions stay white at night, now the picture sinks toward the sky ([962e92b](https://github.com/KennethWKZ/relaxjer/commit/962e92b5aca866ee41e1bc8b84fdcdf2cc0a7d1c))
+
+
+### 📝 Documentation
+
+* **design:** the landing page section describes the postcards it ships ([d2fea1a](https://github.com/KennethWKZ/relaxjer/commit/d2fea1a94e9c2acb20df33846e46bcc7f2ccd770))
+
 ## [1.1.1](https://github.com/KennethWKZ/relaxjer/compare/v1.1.0...v1.1.1) (2026-10-02)
 
 
