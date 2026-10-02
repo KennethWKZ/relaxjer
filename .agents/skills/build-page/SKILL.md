@@ -63,6 +63,9 @@ a page meant for anyone outside the group must say no key.
 - `usage: … --trip <dir with data.js>`: the folder has no `data.js`.
 - `! <file> is not valid JSON`: a side file is broken; the build falls back to empty data for it. Fix the file.
 - `TRIP.brushFont: a Google Fonts family name`: use a family name like `Ma Shan Zheng`.
+- `! brush font: couldn't fetch …`: the build puts the brush face into the page, and fetches it once from Google Fonts
+  (then keeps it in `.cache/fonts/`). It had no network and no copy kept, so the page letters in the system Kaiti
+  faces. Build again online before you publish.
 - A page error: stage the trip's page by running its e2e tests once, then probe it. The probe loads
   `.cache/pages/trip.html` offline and prints each error with the engine line it came from:
 

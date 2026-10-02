@@ -150,7 +150,7 @@ const transit = readJSON('src/transit.json', { yb: [], bus: [] }); // scripts/mr
 const wish = [...(readJSON('src/wish-a.json', { items: [] }).items || []), ...(readJSON('src/wish-b.json', { items: [] }).items || [])];
 
 // brush glyphs → Google Fonts `text=` subset of the trip's brush face (TRIP.brushFont, default Ma Shan Zheng: a
-// large Chinese face, so only the glyphs the page letters go down)
+// large Chinese face, so only the glyphs the page letters go into the page)
 const ctx = {};
 vm.createContext(ctx);
 vm.runInContext(data + ';this.DAYS=DAYS;this.PRINCIPLE=PRINCIPLE;this.TRIP=TRIP;', ctx);
@@ -201,8 +201,9 @@ function contentSecurityPolicy(html) {
 	const dirs = {
 		'default-src': ["'none'"],
 		'script-src': [...hashes, ...MAP_CDNS, 'blob:', ...(gmaps ? [...GOOGLE, "'unsafe-eval'"] : [])],
-		'style-src': ["'unsafe-inline'", 'https://fonts.googleapis.com', ...MAP_CDNS],
-		'font-src': ['data:', 'https://fonts.gstatic.com'],
+		// the brush face is inline (brushFace); Google's fonts hosts stay only for the Maps JavaScript API's own Roboto
+		'style-src': ["'unsafe-inline'", ...MAP_CDNS, ...(gmaps ? ['https://fonts.googleapis.com'] : [])],
+		'font-src': ['data:', ...(gmaps ? ['https://fonts.gstatic.com'] : [])],
 		'img-src': ["'self'", 'data:', 'blob:', ...MAP_TILES, ...g],
 		'connect-src': ["'self'", ...MAP_TILES, ...packHosts, ...(sync ? [new URL(sync.url).origin] : []), ...g, ...(gmaps ? ['data:', 'blob:'] : [])],
 		'worker-src': ['blob:'],
@@ -229,6 +230,43 @@ const brushFont = ctx.TRIP.brushFont || 'Ma Shan Zheng';
 if (!/^[A-Za-z0-9 ]+$/.test(brushFont)) throw new Error(`TRIP.brushFont: a Google Fonts family name, got ${JSON.stringify(brushFont)}`);
 const fontHref = `https://fonts.googleapis.com/css2?family=${brushFont.replace(/ /g, '+')}&display=swap&text=${encodeURIComponent([...brush].join(''))}`;
 
+// the brush face travels in the page (ADR-20261002-embed-brush-font): a stylesheet from Google Fonts held the first paint
+// until Google answered, so a weak signal meant a blank page for seconds. The build fetches the subset once, keeps it in
+// .cache/fonts/ (so a rebuild works offline), and inlines it as a data: URL. With no network and no cached copy, the
+// page letters in the system Kaiti faces (style.css's fallbacks) and the build says so.
+const FONT_CACHE = path.join(engine, '..', '.cache', 'fonts');
+async function brushFace(href) {
+	const cached = path.join(FONT_CACHE, `${crypto.createHash('sha256').update(href).digest('hex').slice(0, 16)}.css`);
+	if (fs.existsSync(cached)) return fs.readFileSync(cached, 'utf8');
+	const get = async (url, headers) => {
+		const r = await fetch(url, { headers, signal: AbortSignal.timeout(15000) });
+		if (!r.ok) throw new Error(`HTTP ${r.status} from ${new URL(url).host}`);
+		return r;
+	};
+	try {
+		// a current browser's user agent, or Google answers with an older format than woff2
+		const ua = { 'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36' };
+		const sheet = await (await get(href, ua)).text();
+		const faces = [];
+		for (const [, block] of sheet.matchAll(/@font-face\s*\{([^}]*)\}/g)) {
+			const src = /src:\s*url\((https:\/\/fonts\.gstatic\.com\/[^)\s'"]+)\)\s*format\(['"]woff2['"]\);/.exec(block);
+			if (!src) continue;
+			const rest = block.replace(src[0], '').replace(/\s+/g, ' ').trim();
+			if (/[<>\\]/.test(rest)) throw new Error('unexpected characters in the stylesheet'); // it lands inside <style>
+			const font = Buffer.from(await (await get(src[1])).arrayBuffer()).toString('base64');
+			faces.push(`@font-face{${rest}src:url(data:font/woff2;base64,${font}) format('woff2');}`);
+		}
+		if (!faces.length) throw new Error('no woff2 face in the stylesheet');
+		fs.mkdirSync(FONT_CACHE, { recursive: true });
+		fs.writeFileSync(cached, faces.join(''));
+		return faces.join('');
+	} catch (e) {
+		console.warn(`! brush font: couldn't fetch ${brushFont} from Google Fonts (${e.message}); the page letters in the system Kaiti faces`);
+		return '';
+	}
+}
+const fontCSS = await brushFace(fontHref);
+
 // the brush face goes first in the lettering's font stack (style.css keeps system Kaiti faces as the fallback)
 const brushCSS = brushFont === 'Ma Shan Zheng' ? '' : `:root{--font-brush:'${brushFont}','STKaiti','KaiTi','Kaiti SC','BiauKai',serif}`;
 const safe = (o) => JSON.stringify(o).replace(/</g, '\\u003c');
@@ -241,10 +279,7 @@ const APP_ICONS = { 192: iconURL(192), 512: iconURL(512) };
 const head = `<title>${htmlEsc(title)}</title>
 <meta name="description" content="${htmlEsc(description)}">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0c1017" media="(prefers-color-scheme: dark)">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="${fontHref}">`;
+<meta name="theme-color" content="#0c1017" media="(prefers-color-scheme: dark)">`;
 
 const scripts = (
 	imgMap,
@@ -256,7 +291,7 @@ const scripts = (
 // pages are written by writePages(); the final call happens after the KML exists
 const writePages = (kmlB64) => {
 	// 1) artifact body (the host adds doctype/head/body)
-	const artifact = `${head}\n<style>${css}${brushCSS}</style>\n${shell}\n${scripts(null, kmlB64)}\n`;
+	const artifact = `${head}\n<style>${fontCSS}${css}${brushCSS}</style>\n${shell}\n${scripts(null, kmlB64)}\n`;
 	fs.writeFileSync(path.join(out, `${fileBase}.html`), artifact);
 
 	// 2) standalone single file
@@ -280,7 +315,7 @@ const writePages = (kmlB64) => {
 <meta name="mobile-web-app-capable" content="yes">
 ${iconURL(180) ? `<link rel="apple-touch-icon" href="${iconURL(180)}">` : ''}${iconURL(32) ? `\n<link rel="icon" type="image/png" sizes="32x32" href="${iconURL(32)}">` : ''}
 ${head}
-<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}${css}${brushCSS}</style>
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}${fontCSS}${css}${brushCSS}</style>
 </head>
 <body data-img-late="1">
 ${shell}
@@ -301,7 +336,7 @@ ${scripts(imgMap, kmlB64)}
 };
 const { artifact, standalone, kb } = writePages('');
 console.log(
-	`google key ${gmaps ? 'yes' : 'no'} · group sync ${sync ? `yes (planner code ${sync.planner ? 'set' : 'not set'})` : 'no'}${demoClock ? ` · demo clock ${demoClock}` : ''} · artifact ${kb(artifact)} · standalone ${kb(standalone)} · photos ${credits.length} · geo ${geo ? 'yes' : 'no'} · food ${extra.food?.length || 0} · tickets ${extra.tickets?.length || 0} · wish ${wish.length} · brush glyphs ${brush.size}`,
+	`google key ${gmaps ? 'yes' : 'no'} · group sync ${sync ? `yes (planner code ${sync.planner ? 'set' : 'not set'})` : 'no'}${demoClock ? ` · demo clock ${demoClock}` : ''} · artifact ${kb(artifact)} · standalone ${kb(standalone)} · photos ${credits.length} · geo ${geo ? 'yes' : 'no'} · food ${extra.food?.length || 0} · tickets ${extra.tickets?.length || 0} · wish ${wish.length} · brush glyphs ${brush.size} (${fontCSS ? 'font in the page' : 'system Kaiti'})`,
 );
 
 // 3) Google My Maps export (KML): one combined file + one file per layer

@@ -103,6 +103,7 @@ function geoWatch() {
 				const set = () => {
 					const was = geoState;
 					geoState = r.state;
+					if (store.get('geoSeen', null) !== r.state) store.set('geoSeen', r.state);
 					if (r.state === 'granted' && tripDay) locateMe(null, true); // follow the phone; never asks by itself
 					if (geoState !== was) renderNow();
 				};
@@ -157,7 +158,10 @@ function geoAsk() {
 	const help = (kind) =>
 		`<button type="button" class="go-btn" data-geo-help${kind ? `="${kind}"` : ''}>${icon('info')}${Z('怎么打开', 'How to turn it on')}</button>`;
 	const turnOn = `<button type="button" class="go-btn" data-geo-on>${icon('pin')}${Z('打开定位', 'Turn on location')}</button>`;
-	if (geoState === 'granted' && geoCoarse)
+	// until the browser answers, go by this phone's last answer (geoWatch keeps it), so the card is there from the first
+	// paint instead of pushing the page down a moment after it opens
+	const st = geoState === 'pending' ? store.get('geoSeen', 'pending') : geoState;
+	if (st === 'granted' && geoCoarse)
 		return card(
 			Z('位置只有大概', 'Your location is only approximate'),
 			Z(
@@ -166,8 +170,8 @@ function geoAsk() {
 			),
 			help('precise'),
 		);
-	if (['none', 'pending', 'granted'].includes(geoState) || meLL) return '';
-	if (geoState === 'denied')
+	if (['none', 'pending', 'granted'].includes(st) || meLL) return '';
+	if (st === 'denied')
 		return card(
 			Z('这个页面的定位是关着的', 'Location is off for this page'),
 			Z(

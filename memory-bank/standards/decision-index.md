@@ -1,5 +1,5 @@
 ---
-total_decisions: 17
+total_decisions: 18
 last_updated: 2026-10-02
 ---
 
@@ -29,6 +29,7 @@ merged id never changes; a new ADR that collides takes a fresh slug.
 | [ADR-20261001-project-tooling](decisions/ADR-20261001-project-tooling.md)                         | 2026-10-01 | Project Tooling Follows the Maintainer's Standard Setup                                                                          | tooling  | accepted |
 | [ADR-20261001-resync-cost-guard](decisions/ADR-20261001-resync-cost-guard.md)                     | 2026-10-01 | The Data Refresh Answers From Its Cache, and Paying Google for More Is the Planner’s Call                                        | data     | accepted |
 | [ADR-20261002-ci-image-and-releases](decisions/ADR-20261002-ci-image-and-releases.md)             | 2026-10-02 | CI's Browser Jobs Run in Playwright's Image, in Halves, and release-please Makes the Releases                                    | tooling  | accepted |
+| [ADR-20261002-embed-brush-font](decisions/ADR-20261002-embed-brush-font.md)                       | 2026-10-02 | Nothing From the Network Holds the Trip Page's First Paint: the Brush Face Travels in the Page                                   | layout   | accepted |
 | [ADR-20261002-feature-docs-planner-skills](decisions/ADR-20261002-feature-docs-planner-skills.md) | 2026-10-02 | Every Feature Is Written Down Where Planners Look, a Tier-0 Test Keeps It So, and Agents Get Setup, Customize and a Travel Agent | agents   | accepted |
 | [ADR-20261002-landing-postcards](decisions/ADR-20261002-landing-postcards.md)                     | 2026-10-02 | The Landing Page Is a Set of Postcards, Each With a Drawn Demo That Loops, and Carries Its Own Policy                            | layout   | accepted |
 | [ADR-20261002-live-demo-on-pages](decisions/ADR-20261002-live-demo-on-pages.md)                   | 2026-10-02 | The Demo Trip Goes Live on GitHub Pages, Built by CI With No Key and Its Clock Set to a Day Under Way                            | hosting  | accepted |

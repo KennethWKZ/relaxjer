@@ -23,17 +23,23 @@ export const dayNumber = (s) => Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.
 
 export const addDays = (s, n) => new Date((dayNumber(s) + n) * 864e5).toISOString().slice(0, 10);
 
+// one formatter per time zone: building one costs ~10× a call, and a render asks for the time hundreds of times
+const zoneFormats = new Map();
 /** today's date and minutes in a time zone (the destination's, not the phone's) */
 export function nowIn(timeZone, at = new Date()) {
-	const f = new Intl.DateTimeFormat('en-CA', {
-		timeZone,
-		year: 'numeric',
-		month: '2-digit',
-		day: '2-digit',
-		hour: '2-digit',
-		minute: '2-digit',
-		hourCycle: 'h23',
-	});
+	let f = zoneFormats.get(timeZone);
+	if (!f) {
+		f = new Intl.DateTimeFormat('en-CA', {
+			timeZone,
+			year: 'numeric',
+			month: '2-digit',
+			day: '2-digit',
+			hour: '2-digit',
+			minute: '2-digit',
+			hourCycle: 'h23',
+		});
+		zoneFormats.set(timeZone, f);
+	}
 	const p = Object.fromEntries(f.formatToParts(at).map((x) => [x.type, x.value]));
 	return { date: `${p.year}-${p.month}-${p.day}`, mins: (+p.hour % 24) * 60 + +p.minute };
 }

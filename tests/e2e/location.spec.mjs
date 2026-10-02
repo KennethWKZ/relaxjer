@@ -7,12 +7,23 @@ import { setStored } from '../support/page.mjs';
 
 const HERE = { latitude: 25.0339, longitude: 121.5645, accuracy: 20 };
 
-/** Stubs what the browser says about location: its permission state, and a fix once the page asks for one. */
-async function stubGeo(page, state, here = HERE) {
+/** Stubs what the browser says about location: its permission state (after answerAfter ms, when set), and a fix once
+ *  the page asks for one. */
+async function stubGeo(page, state, here = HERE, answerAfter = 0) {
 	await page.addInitScript(
-		({ state, here }) => {
+		({ state, here, answerAfter }) => {
 			const status = { state, onchange: null };
-			navigator.permissions.query = (d) => (d && d.name === 'geolocation' ? Promise.resolve(status) : Promise.reject(new Error('stub')));
+			window.__geoAnswered = false;
+			const answer = () =>
+				answerAfter
+					? new Promise((r) =>
+							setTimeout(() => {
+								window.__geoAnswered = true;
+								r(status);
+							}, answerAfter),
+						)
+					: ((window.__geoAnswered = true), Promise.resolve(status));
+			navigator.permissions.query = (d) => (d && d.name === 'geolocation' ? answer() : Promise.reject(new Error('stub')));
 			const fix = () => ({ coords: { ...here, heading: null, speed: null }, timestamp: Date.now() });
 			window.__geoAsked = 0;
 			navigator.geolocation.watchPosition = (ok) => {
@@ -26,7 +37,7 @@ async function stubGeo(page, state, here = HERE) {
 			};
 			navigator.geolocation.clearWatch = () => {};
 		},
-		{ state, here },
+		{ state, here, answerAfter },
 	);
 }
 
@@ -111,6 +122,25 @@ test('far from the trip, "near me" says it counts from the hotel, and the card s
 	await near.click();
 	await expect(page.locator('#near .near-far')).toContainText('distances start from the hotel');
 	await expect(card(page)).toHaveCount(0);
+});
+
+// the browser answers a moment after the page has drawn: going by the phone's last answer, the card is there from the
+// first paint instead of pushing the page down as it appears
+test('opened again, the card is there before the browser answers', async ({ page }) => {
+	await stubGeo(page, 'prompt', HERE, 3000);
+	await openOn(page, -3);
+	await expect(card(page), 'the first open waits for the browser').toBeVisible({ timeout: 8000 });
+	await page.reload();
+	await expect(card(page)).toBeVisible({ timeout: 1500 });
+	expect(await page.evaluate(() => window.__geoAnswered), 'drawn from the kept answer').toBe(false);
+});
+
+test('a kept answer gives way to what the browser says now', async ({ page }) => {
+	await stubGeo(page, 'granted', HERE, 500);
+	await openOn(page, -3);
+	await setStored(page, { geoSeen: 'prompt' }); // the phone said "ask" last time, and has allowed it since
+	await expect(card(page)).toHaveCount(0);
+	expect(await page.evaluate(() => window.__geoAnswered)).toBe(true);
 });
 
 test('a "no" turns the card into steps to switch it back on', async ({ page }) => {

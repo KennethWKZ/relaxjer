@@ -12,7 +12,7 @@ The tools and the posture. The decisions and their trade-offs live in the ADRs
 
 **Static pages, no backend, nothing always on.** A trip page is one HTML file on a static host, its state stays on
 each phone (`localStorage` under the trip's storage key), and the only network it needs is for extras: map tiles,
-Google, live bike counts, the brush font. Adding a server, accounts or shared state takes a superseding ADR, not an
+Google, live bike counts. Nothing from the network holds its first paint (the brush face is in the page). Adding a server, accounts or shared state takes a superseding ADR, not an
 incremental change. The one such ADR so far: a trip may opt in to group sync through the planner's own Firebase
 database, which the page reaches over plain HTTPS ([ADR-20261001-group-sync](./decisions/ADR-20261001-group-sync.md));
 RelaxJer still runs nothing.

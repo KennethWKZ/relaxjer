@@ -12,3 +12,18 @@ for (const lang of ['en', 'zh']) {
 		expect(await squeezed(page)).toEqual([]);
 	});
 }
+
+// before the script fills the page, the empty page holds a screen's height: the first paint shows the bar, not the
+// footer the trip would push away a moment later
+test('the empty page holds the screen, so the footer never shows before the trip', async ({ page }) => {
+	await openTrip(page);
+	const held = await page.evaluate(() => {
+		const app = document.getElementById('app');
+		const kids = [...app.childNodes];
+		app.replaceChildren();
+		const h = app.getBoundingClientRect().height;
+		app.replaceChildren(...kids);
+		return h >= innerHeight - 1;
+	});
+	expect(held).toBe(true);
+});

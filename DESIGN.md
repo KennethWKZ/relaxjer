@@ -347,7 +347,7 @@ White paper and near-black ink carry the operated layer; seven saturated lantern
 
 ## Typography
 
-**Display Font:** the trip's brush face, `TRIP.brushFont` (default Ma Shan Zheng), with STKaiti / KaiTi / Kaiti SC / BiauKai as fallbacks. The build subsets it through Google Fonts to only the glyphs the page letters: the brand, each day's wish, the principle's wish and the seal glyph.
+**Display Font:** the trip's brush face, `TRIP.brushFont` (default Ma Shan Zheng), with STKaiti / KaiTi / Kaiti SC / BiauKai as fallbacks. The build subsets it through Google Fonts to only the glyphs the page letters (the brand, each day's wish, the principle's wish and the seal glyph) and puts that subset in the page, so the lettering never waits on the network ([ADR-20261002-embed-brush-font](memory-bank/standards/decisions/ADR-20261002-embed-brush-font.md)).
 **Body Font:** the phone's system sans (`-apple-system`, PingFang SC, Noto Sans SC, Segoe UI, Roboto…), with tabular numerals on by default.
 
 **Character:** a hand-inked calligraphic voice for names and wishes, set against a heavy, plain system sans that reads at arm's length in sunlight. Weights sit high (650–800) for anything a person has to act on.

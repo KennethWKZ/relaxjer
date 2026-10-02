@@ -1932,6 +1932,11 @@ details.more > .more-body {
 .credits a {
 	color: var(--ink-2);
 }
+/* before the script fills the page, hold a screen's height for it: the first paint shows the bar on an empty page, not
+   the footer, which the trip would then push away (a jump just as the page appears) */
+main#app:empty {
+	min-height: 100vh;
+}
 footer.foot {
 	max-width: var(--col);
 	margin: 0 auto;

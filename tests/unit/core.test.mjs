@@ -80,6 +80,10 @@ test('Time: now in the destination, not on the phone', () => {
 	);
 	assert.equal(Time.shiftDates('2027-03-10', 0, '2027-01-01', '2027-12-31'), '2027-03-10');
 	assert.deepEqual(Time.nowIn('Asia/Tokyo', at), { date: '2027-03-14', mins: 150 });
+	// each zone keeps its own formatter: asking for one zone never answers in the last one asked
+	assert.deepEqual(Time.nowIn('Asia/Taipei', at), { date: '2027-03-14', mins: 90 });
+	assert.deepEqual(Time.nowIn('UTC', at), { date: '2027-03-13', mins: 1050 });
+	assert.deepEqual(Time.nowIn('Asia/Tokyo', at), { date: '2027-03-14', mins: 150 });
 });
 
 test('Money: shares and group markers', () => {
