@@ -11,8 +11,8 @@
 			name="description"
 			content="Plan a group trip with your AI agent: one page every phone opens, even offline. What's next, fixed times, costs per person, food and toilets nearby, group sync. Free." />
 		<link rel="canonical" href="https://kennethwkz.github.io/relaxjer/" />
-		<meta name="theme-color" content="#d3e6f9" media="(prefers-color-scheme: light)" />
-		<meta name="theme-color" content="#0c1424" media="(prefers-color-scheme: dark)" />
+		<meta name="theme-color" content="#d3e6f9" media="(prefers-color-scheme: light)" data-scheme="light" />
+		<meta name="theme-color" content="#0c1424" media="(prefers-color-scheme: dark)" data-scheme="dark" />
 		<meta property="og:type" content="website" />
 		<meta property="og:site_name" content="RelaxJer" />
 		<meta property="og:locale" content="en" />
@@ -24,19 +24,21 @@
 		<meta property="og:image:height" content="630" />
 		<meta
 			property="og:image:alt"
-			content="RelaxJer in brush lettering beside a postcard and a phone showing the demo trip's Now and Next card, on an airmail-blue table." />
+			content="RelaxJer in brush lettering beside a postcard and a phone showing the demo trip's Now and Next card, under a morning sky." />
 		<meta name="twitter:card" content="summary_large_image" />
 		<meta name="twitter:title" content="RelaxJer: one page for the whole trip" />
 		<meta name="twitter:description" content="Your AI agent plans it. Every phone in the group opens it, even offline. Free and open source." />
 		<meta name="twitter:image" content="https://kennethwkz.github.io/relaxjer/assets/og.png" />
 		<meta
 			name="twitter:image:alt"
-			content="RelaxJer in brush lettering beside a postcard and a phone showing the demo trip's Now and Next card, on an airmail-blue table." />
+			content="RelaxJer in brush lettering beside a postcard and a phone showing the demo trip's Now and Next card, under a morning sky." />
 		<link rel="icon" href="assets/lantern.svg" type="image/svg+xml" />
 		<link rel="sitemap" type="application/xml" href="sitemap.xml" />
 		<link rel="preload" href="assets/fonts/ma-shan-zheng-subset.woff2" as="font" type="font/woff2" crossorigin />
 		<link rel="preload" href="assets/fonts/gabarito-latin.woff2" as="font" type="font/woff2" crossorigin />
 		<link rel="stylesheet" href="assets/site.css" />
+		<!-- the day/night choice, before the body paints (theme.js) -->
+		<script src="assets/theme.js"></script>
 		<script type="application/ld+json">
 			{
 				"@context": "https://schema.org",
@@ -127,7 +129,10 @@
 				<a class="brand" href="#top" aria-label="RelaxJer, back to the top">RelaxJer</a>
 				<nav class="nav" aria-label="On this page">
 					<a class="nav-wide" href="#features">Features</a>
-					<a class="nav-wide" href="#how">How it works</a>
+					<a class="nav-wide" href="#plan">How it works</a>
+					<button class="nav-theme" type="button" aria-label="Switch to night" title="Switch to night" hidden>
+						<svg class="i" aria-hidden="true"><use href="#i-moon" /></svg>
+					</button>
 					<a class="nav-gh" href="https://github.com/KennethWKZ/relaxjer">
 						GitHub
 						<svg class="i" aria-hidden="true"><use href="#i-ext" /></svg>
@@ -148,8 +153,10 @@
 							Plan your trip
 							<svg class="i" aria-hidden="true"><use href="#i-down" /></svg>
 						</a>
-						<a class="text-link" href="demo/">Try the demo trip</a>
-						<a class="text-link" href="https://github.com/KennethWKZ/relaxjer/blob/main/guides/google-maps.md#setup">Set up Google Maps</a>
+						<a class="go go-paper" href="demo/">
+							Try the demo trip
+							<svg class="i" aria-hidden="true"><use href="#i-arrow" /></svg>
+						</a>
 					</div>
 				</div>
 
@@ -187,12 +194,11 @@
 							<svg class="postmark" viewBox="0 0 132 92" aria-hidden="true"><use href="#postmark-art" /></svg>
 							<p>To: everyone in the group chat</p>
 							<p>Taipei demo trip, Day 3</p>
-							<p>5 phones, 1 link</p>
 						</div>
 					</div>
 					<figure class="phone">
 						<picture>
-							<source media="(prefers-color-scheme: dark)" srcset="assets/screens/now-dark.webp" />
+							<source data-dark media="(prefers-color-scheme: dark)" srcset="assets/screens/now-dark.webp" />
 							<img
 								src="assets/screens/now-light.webp"
 								width="390"
@@ -208,9 +214,8 @@
 			<section class="band" id="features" aria-labelledby="features-h">
 				<h2 id="features-h">Postcards from the trip</h2>
 				<p class="section-lede">
-					Each card replays the demo trip: a made-up group of five, one week in Taipei. The screens follow the real page; every name and price on them
-					is invented. Or <a href="demo/">open the demo trip itself</a>: it starts on Day 3, mid-morning, and works like a real trip’s page, with the
-					free map and without group sync.
+					Each card replays the demo trip: a made-up group of five, one week in Taipei. Or <a href="demo/">open the demo trip</a> itself, mid-morning
+					on Day 3.
 				</p>
 
 				<div class="spread">
@@ -304,10 +309,7 @@
 							<svg class="postmark" viewBox="0 0 132 92" aria-hidden="true"><use href="#postmark-art" /></svg>
 							<p class="note-brush" lang="zh-Hans" aria-hidden="true">下一站</p>
 							<h3 id="now-h">What’s next? It’s already on the screen.</h3>
-							<p>
-								Open the link and the page knows the day and the hour at your destination. Now and next sit at the top, and the Sections menu opens on
-								the same two, marked like stops on the day’s string.
-							</p>
+							<p>Open the link and the page already knows the day and the hour at your destination. Now and next sit right at the top.</p>
 						</div>
 					</article>
 
@@ -433,7 +435,7 @@
 							<h3 id="fixed-h">Booked times stay put.</h3>
 							<p>
 								Flights, tickets and tables carry a red seal. Running late? Push the rest of the day back: the flexible stops move, the sealed ones
-								hold, and the push stops at the next fixed time.
+								stay.
 							</p>
 						</div>
 					</article>
@@ -624,12 +626,12 @@
 							<p class="note-brush" lang="zh-Hans" aria-hidden="true">一起改</p>
 							<h3 id="sync-h">Add it on one phone. Every phone has it.</h3>
 							<p>
-								Turn on group sync and added stops, pushed-back times, flight changes and ticks on shared lists reach everyone, with the name of
-								whoever added each stop. A phone asks for that name once, the first time it opens the page. It runs on your own Firebase, and each
-								phone encrypts a change before it leaves.
+								Add a stop, push the day back or tick a shared list, and every phone sees it, with who added what. It runs on your own free Firebase,
+								encrypted on each phone.
 							</p>
 							<p class="small">
-								<b>Off unless the planner turns it on</b> for a trip. Without it, each phone keeps its own changes, and a link shares them.
+								<b>Off unless the planner turns it on.</b>
+								<a href="https://github.com/KennethWKZ/relaxjer/blob/main/guides/trip-page.md#group-sync">How group sync works</a>
 							</p>
 						</div>
 					</article>
@@ -831,14 +833,9 @@
 							<p class="note-brush" lang="zh-Hans" aria-hidden="true">放心</p>
 							<h3 id="undo-h">Tapped Remove by mistake? Put it back.</h3>
 							<p>
-								With group sync on, each phone changes only the stops it added, so one stray tap can’t clear someone else’s plans. Every removal
-								offers Undo for a few seconds, and Group sync keeps a list of what was removed lately, with Put back.
+								Every removal offers Undo. With group sync on, each phone changes only its own stops, a list keeps recent removals to put back, and a
+								planner can take everyone back to the original plan.
 							</p>
-							<p>
-								Planners hold a code you set when you turn sync on. A planner can change anyone’s stops, clear one person’s, put the whole group back
-								on the original plan, or block a stray phone so its changes reach nobody. The sheet shows who added how many.
-							</p>
-							<p class="small"><b>A guard against slips, not a lock.</b> The page’s password is what keeps the plan to your group.</p>
 						</div>
 					</article>
 
@@ -1064,8 +1061,8 @@
 							<p class="note-brush" lang="zh-Hans" aria-hidden="true">分头玩</p>
 							<h3 id="split-h">Split up, meet again.</h3>
 							<p>
-								When part of the group goes its own way for an afternoon, the day forks at a dashed knot with that plan’s rules, and the stop where
-								they rejoin says so.
+								When part of the group goes its own way for an afternoon, the day forks with that plan’s rules, and the stop where they meet again
+								says so.
 							</p>
 						</div>
 					</article>
@@ -1170,8 +1167,8 @@
 							<p class="note-brush" lang="zh-Hans" aria-hidden="true">看心情</p>
 							<h3 id="options-h">Room for a maybe.</h3>
 							<p>
-								Extra sights and shops never go on the schedule. Where one suits a stop, a Nearby options chip there opens its card over the day, so
-								nobody loses their place.
+								Extra sights and shops never crowd the schedule. Where one suits a stop, a Nearby options chip there opens it over the day, so nobody
+								loses their place.
 							</p>
 						</div>
 					</article>
@@ -1360,8 +1357,8 @@
 							<p class="note-brush" lang="zh-Hans" aria-hidden="true">没信号也行</p>
 							<h3 id="offline-h">No signal? It still works.</h3>
 							<p>
-								The plan, the costs and the lists live inside the page, so they keep working in the metro, on a roaming plan that ran out, or on a
-								phone that slept in a bag. The page says when it’s offline, and it installs to the home screen like an app.
+								The plan, the costs and the lists live inside the page, so they work in the metro or on a phone with no data. It installs to the home
+								screen like an app.
 							</p>
 						</div>
 					</article>
@@ -1435,10 +1432,7 @@
 						<div class="back">
 							<p class="note-brush" lang="zh-Hans" aria-hidden="true">自己人</p>
 							<h3 id="private-h">Only for your group.</h3>
-							<p>
-								The page sits behind a password, and each planner brings their own keys. Sync is encrypted on your own database, and a strict security
-								policy lets the page run only its own code.
-							</p>
+							<p>The page sits behind a password, and each planner brings their own keys. Sync is encrypted, on a database that’s yours.</p>
 						</div>
 					</article>
 				</div>
@@ -1593,26 +1587,9 @@
 				</div>
 			</section>
 
-			<!-- ─────────── how it works ─────────── -->
-			<section class="band" id="how" aria-labelledby="how-h">
-				<h2 id="how-h">The route a trip takes</h2>
-				<p class="section-lede">Each step is a skill your AI agent runs from this repo. It asks you before anything is published.</p>
-				<div class="routemap" tabindex="0" role="region" aria-label="The flow diagram, scrolls sideways on small screens">
-					<picture>
-						<source media="(prefers-color-scheme: dark)" srcset="assets/flow-dark.svg" />
-						<img
-							src="assets/flow-light.svg"
-							width="928"
-							height="384"
-							loading="lazy"
-							alt="Your requirements go through the trip-intake, data-sync, build-page, verify-page and publish-htmlapp skills to one password-protected page on the group's phones; a trip retro turns lessons into knowledge for the next trip." />
-					</picture>
-				</div>
-				<p class="flow-hint">The same steps, in words, are below.</p>
-			</section>
-
 			<section class="band" id="plan" aria-labelledby="plan-h">
 				<h2 id="plan-h">Plan a trip in four steps</h2>
+				<p class="section-lede">You talk; your AI agent does the work, and asks you before anything is published.</p>
 				<ol class="steps">
 					<li class="step">
 						<span class="stamp" aria-hidden="true"
@@ -1620,18 +1597,16 @@
 						>
 						<div class="step-card">
 							<h3>Tell your agent about the trip</h3>
+							<p>Copy RelaxJer to your computer, open it in your AI agent, and say “Set up RelaxJer on my computer.”</p>
+							<pre><code>git clone https://<wbr />github.com/<wbr />KennethWKZ/<wbr />relaxjer</code></pre>
 							<p>
-								Clone the repo, open it in your AI agent (Claude Code, Codex, Cursor or Gemini CLI), and describe the trip in your own words: dates,
-								flights, who’s coming, which of them are seniors, the hotels, what’s booked, what you’d love to do.
+								Then tell it about the trip the way you’d tell a friend: dates, flights, who’s coming and which of them are seniors, what’s booked,
+								what you’d love to do.
 							</p>
-							<pre><code>git clone https://<wbr />github.com/<wbr />KennethWKZ/<wbr />relaxjer
-cd relaxjer &amp;&amp; corepack enable &amp;&amp; pnpm install</code></pre>
-							<p>
-								Start with “Set up RelaxJer on my computer”: the <code>planner-setup</code> skill checks the tools and opens the demo trip. Then shape
-								the plan in plain words (“add a rest after lunch on day 4”, “two of us cycle on day 5”), and ask travel questions any time. In Claude
-								Code, <code>relaxbro</code>, a travel agent, looks into hours, bookings and the pace while your agent works.
+							<p class="note">
+								Your trip stays on your computer.
+								<a href="https://github.com/KennethWKZ/relaxjer/blob/main/guides/getting-started.md">Getting started</a> walks through every step.
 							</p>
-							<p class="note">Your trip stays in <code>trips/</code> on your computer. It’s never committed or uploaded.</p>
 						</div>
 					</li>
 					<li class="step">
@@ -1641,12 +1616,12 @@ cd relaxjer &amp;&amp; corepack enable &amp;&amp; pnpm install</code></pre>
 						<div class="step-card">
 							<h3>Connect Google Maps <span class="rec-tag">Recommended</span></h3>
 							<p>
-								Your own Google keys give the page live opening hours, ratings, photos and Google search, and the refresh fills in walking and transit
-								times. About 20 minutes to set up; a family trip stays within Google’s free monthly allowance.
+								Your own Google keys bring live opening hours, ratings, photos and search, plus real walking and transit times. About 20 minutes to
+								set up, and a family trip stays within Google’s free allowance.
 							</p>
 							<p>
 								<a href="https://github.com/KennethWKZ/relaxjer/blob/main/guides/google-maps.md#setup">Follow the Google Maps guide</a>, or skip it:
-								the page falls back to a free map.
+								the page uses a free map.
 							</p>
 						</div>
 					</li>
@@ -1656,12 +1631,7 @@ cd relaxjer &amp;&amp; corepack enable &amp;&amp; pnpm install</code></pre>
 						>
 						<div class="step-card">
 							<h3>Your agent builds one page</h3>
-							<p>
-								It pulls the places and the weather, builds a single file, then checks it: the tests, and a look at a phone-sized screen in two
-								browsers.
-							</p>
-							<pre><code>pnpm resync --trip trips/<wbr />&lt;your-trip&gt; --write
-pnpm build --trip trips/<wbr />&lt;your-trip&gt; --keys ~/<wbr />.config/<wbr />relaxjer/<wbr />google.json</code></pre>
+							<p>It gathers the places and the weather, builds the page, and checks it on a phone-sized screen.</p>
 						</div>
 					</li>
 					<li class="step">
@@ -1670,15 +1640,13 @@ pnpm build --trip trips/<wbr />&lt;your-trip&gt; --keys ~/<wbr />.config/<wbr />
 						>
 						<div class="step-card">
 							<h3>Share it with the group</h3>
+							<p>Your agent publishes it behind a password, and you send the link to the group chat. Everyone adds it to their home screen.</p>
 							<p>
-								Publish the page behind a password (ht-ml.app, for example) and send the link to your group chat. Everyone installs it to their home
-								screen.
+								<b>Group sync, if you want it:</b> once, you create a free Firebase project with a Realtime Database (about 5 minutes,
+								<a href="https://github.com/KennethWKZ/relaxjer/blob/main/.agents/skills/sync-setup/SKILL.md">the steps</a>), and your agent turns
+								sync on, so a change on one phone reaches every phone.
 							</p>
-							<p>
-								Want the group’s changes on every phone? Your agent sets up group sync first, on your own free Firebase database, with the
-								<code>sync-setup</code> skill.
-							</p>
-							<p class="note">A real trip page carries hotels, flights and names, so it never goes anywhere public, including this site.</p>
+							<p class="note">A real trip page carries hotels, flights and names, so it never goes anywhere public, this site included.</p>
 						</div>
 					</li>
 				</ol>
@@ -1743,6 +1711,19 @@ pnpm build --trip trips/<wbr />&lt;your-trip&gt; --keys ~/<wbr />.config/<wbr />
 					<a href="https://github.com/KennethWKZ/relaxjer/blob/main/memory-bank/standards/decision-index.md">memory bank</a>. Tests define done: repo
 					hygiene in a second, then the page in Chromium and WebKit at phone and desktop sizes.
 				</p>
+				<p>Under the hood, each step is a skill:</p>
+				<div class="routemap" tabindex="0" role="region" aria-label="The flow diagram, scrolls sideways on small screens">
+					<picture>
+						<source data-dark media="(prefers-color-scheme: dark)" srcset="assets/flow-dark.svg" />
+						<img
+							src="assets/flow-light.svg"
+							width="928"
+							height="384"
+							loading="lazy"
+							alt="Your requirements go through the trip-intake, data-sync, build-page, verify-page and publish-htmlapp skills to one password-protected page on the group's phones; a trip retro turns lessons into knowledge for the next trip." />
+					</picture>
+				</div>
+
 				<p>
 					Planning, not coding? <a href="https://github.com/KennethWKZ/relaxjer/blob/main/guides/getting-started.md">Getting started</a> walks through
 					every step and every skill, and
@@ -1775,8 +1756,7 @@ pnpm build --trip trips/<wbr />&lt;your-trip&gt; --keys ~/<wbr />.config/<wbr />
 			<div class="foot-in">
 				<p>
 					<span class="brush brush-sm">RelaxJer</span> is free and open source under the
-					<a href="https://github.com/KennethWKZ/relaxjer/blob/main/LICENSE">MIT licence</a>. The screens and the live demo are the synthetic demo
-					trip; a real trip page is never hosted here.
+					<a href="https://github.com/KennethWKZ/relaxjer/blob/main/LICENSE">MIT licence</a>.
 				</p>
 				<p class="foot-links">
 					<a href="https://github.com/KennethWKZ/relaxjer">GitHub</a>
@@ -1827,6 +1807,12 @@ pnpm build --trip trips/<wbr />&lt;your-trip&gt; --keys ~/<wbr />.config/<wbr />
 				<path d="M7 8v13M4.5 8.5h5v6h-5zM17 8l-3 8h6zM16 16v5M18 16v5M12 3v18" />
 			</symbol>
 			<symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01" /></symbol>
+			<!-- the theme button's sun and moon, drawn as on the trip page -->
+			<symbol id="i-sun" viewBox="0 0 24 24">
+				<circle cx="12" cy="12" r="4" />
+				<path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4" />
+			</symbol>
+			<symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" /></symbol>
 			<symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7" /></symbol>
 			<!-- a ballpoint tick: a short down-stroke, then the long sweep up -->
 			<symbol id="i-tick" viewBox="0 0 24 24"><path d="M3.8 13.4c1.8.8 3.4 2.6 4.7 5.1 2.7-6.2 6.7-10.8 11.9-14.1" /></symbol>

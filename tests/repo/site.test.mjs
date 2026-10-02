@@ -34,6 +34,24 @@ test('the page loads no third-party script, style or font', () => {
 	assert.doesNotMatch(fs.readFileSync(path.join(SITE, 'assets', 'site.css'), 'utf8'), /@import|url\(['"]?https?:/);
 });
 
+test('the night theme reads the same whether the system or the theme button asks for it', () => {
+	const css = fs.readFileSync(path.join(SITE, 'assets', 'site.css'), 'utf8');
+	const decls = (body) =>
+		body
+			.split(';')
+			.map((d) => d.replace(/\/\*[\s\S]*?\*\//g, '').trim())
+			.filter(Boolean);
+	const bySystem = css.match(/@media \(prefers-color-scheme: dark\) \{\s*:root:not\(\[data-theme='light'\]\) \{([^}]*)\}\s*\}/)?.[1];
+	const byButton = css.match(/\n:root\[data-theme='dark'\] \{([^}]*)\}/)?.[1];
+	assert.ok(bySystem && byButton, 'site.css keeps the night tokens in both blocks');
+	assert.deepEqual(decls(byButton), decls(bySystem), 'the two night blocks have drifted apart');
+	// the choice applies before the body paints, and a button that can't work without the script starts hidden
+	assert.match(html.slice(0, html.indexOf('</head>')), /<script src="assets\/theme\.js"><\/script>/);
+	assert.match(html, /<button class="nav-theme"[^>]*\shidden>/);
+	for (const tag of html.match(/<source\b[^>]*prefers-color-scheme[^>]*>/g) || [])
+		assert.match(tag, /\sdata-dark\s/, `the button can't switch ${tag}`);
+});
+
 test('every image has alt text, and every screenshot is the synthetic demo with its provenance beside it', () => {
 	for (const [tag] of html.matchAll(/<img\b[^>]*>/g)) assert.match(tag, /\salt="/, `no alt: ${tag.slice(0, 80)}`);
 	const shots = files.filter((f) => /\.(webp|png|jpe?g)$/.test(f));

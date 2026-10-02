@@ -110,8 +110,9 @@ contract are in `.impeccable/surfaces/site-index-html.md`.
   synthetic demo without a key and writes each image with its provenance sidecar. The flow diagram comes from
   `node scripts/docs-update/flow-diagram.mjs`.
 - **Checked like the trip page.** `tests/repo/site.test.mjs` covers links, third-party requests, alt text,
-  provenance, the file types, the search and preview metadata, a Pause button and a description on every demo, and
-  the SHA-pinned deploy. `tests/e2e/site.spec.mjs` runs the page with motion on in the four e2e projects and both
+  provenance, the file types, the search and preview metadata, a Pause button and a description on every demo, the
+  night theme's two token blocks (system and button) staying identical, and the SHA-pinned deploy. `tests/e2e/site.spec.mjs` runs the page with motion on in the four e2e projects and both
   themes: never wider than the screen, no lantern behind a word, the sun setting with the scroll (and still without
-  motion), and every Pause a 44 px disc off its screen that pauses and plays. The eye check is 390 px and desktop, light and dark, in Chromium and WebKit, with reduced
+  motion), every Pause a 44 px disc off its screen that pauses and plays, and the theme button switching day and night, remembered
+  across a reload. The eye check is 390 px and desktop, light and dark, in Chromium and WebKit, with reduced
   motion (the still frames) and without (the loops).

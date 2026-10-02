@@ -513,8 +513,10 @@ Easing is `--ease-out` for anything that moves; the landing ring is the exceptio
 The GitHub Pages page (`site/index.html`, `site/assets/site.css`) is the lantern-paper world applied to one page about
 planning a trip: airmail postcards from the demo trip, lying under one trip day's sky
 ([ADR-20261002-landing-postcards](memory-bank/standards/decisions/ADR-20261002-landing-postcards.md); the direction
-contract is `.impeccable/surfaces/site-index-html.md`). It copies the trip page's tokens and follows the system theme
-(no theme button). The items below are the only deviations or extensions. Everything else follows the sections above.
+contract is `.impeccable/surfaces/site-index-html.md`). It copies the trip page's tokens. It starts from the system theme, and a
+sun/moon button in the bar switches day and night (`theme.js`, in `<head>` so a remembered night paints from the first
+frame); the browser remembers a choice only while it differs from the system's. Without the script the page follows
+the system and the button stays hidden. The items below are the only deviations or extensions. Everything else follows the sections above.
 
 - **The sky.** The ground is one day, top to bottom: `--sky-1` to `--sky-6`, a morning blue through a lilac turn
   (`--sky-35`, never grey) to an afternoon gold and the rose before dusk. A sun sits in the first screen's top right;
@@ -544,7 +546,12 @@ contract is `.impeccable/surfaces/site-index-html.md`). It copies the trip page'
 - **Pause.** Every looping demo has one: a 44 px round disc of stock under the phone's right edge, in the card's
   bottom margin, never over the screen it controls. It shows only its glyph, has an accessible name, and turns into a
   Play disc while paused.
-- **Postmarks.** They're ink at 0.62 by day and a light ink at 0.82 at night, so they read on dark stock.
+- **Postmarks.** They're ink at 0.62 by day and a light ink at 0.82 at night, so they read on dark stock. On the
+  hero's postcard the postmark sits level with the stamp, striking its left edge, and the address starts below both,
+  so no line ever runs under the ink or under the phone lying across the corner.
+- **Two choices in the hero.** "Plan your trip" (ink) and "Try the demo trip" (stock with a hairline edge) are the same
+  size and shape, side by side, and stack full width on a phone. Nothing else competes with them there; the Google
+  Maps guide waits in the second step and in the rate card.
 - **The packing list and the luggage tag.** The "also packed in every page" list is a sheet the planner wrote on:
   postcard stock under the postcards' airmail edge, with a brushed line (也都在这页, "all on this page too", answering
   the hero's) in ballpoint, airmail blue mixed with ink. Each item is ticked in ballpoint, a hand-drawn airmail-blue

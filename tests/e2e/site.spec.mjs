@@ -1,6 +1,6 @@
 // The landing page (site/), with its motion on, as a visitor sees it: the settling postcards and the drifting sky never
 // widen the page, no lantern or flock sits behind a word, and every demo's Pause is a 44 px disc off the screen it
-// controls that pauses and plays. Global setup stages site/ beside the trip page; the fixtures fail on page errors, a
+// controls that pauses and plays, and the theme button switches day and night. Global setup stages site/ beside the trip page; the fixtures fail on page errors, a
 // refused policy and any outside request.
 import { test, expect } from '../support/fixtures.mjs';
 import { SITE } from '../support/page.mjs';
@@ -170,6 +170,40 @@ for (const colorScheme of ['light', 'dark']) {
 				await pause.click();
 				await expect(pause, `demo ${i} after Play`).toHaveText(/^\s*Pause the .+ demo\s*$/);
 			}
+		});
+
+		test('the theme button switches day and night, remembers it, and going back follows the system again', async ({ page }) => {
+			const other = colorScheme === 'dark' ? 'light' : 'dark';
+			const button = page.locator(SITE.theme);
+			const look = () =>
+				page.evaluate(
+					({ shot }) => ({
+						theme: document.documentElement.dataset.theme || 'system',
+						shot: document.querySelector(shot).currentSrc,
+						sky: getComputedStyle(document.documentElement).getPropertyValue('--sky-1').trim(),
+					}),
+					SITE,
+				);
+			const start = await look();
+			await expect(button).toBeVisible();
+			await expect(button).toHaveAccessibleName(colorScheme === 'dark' ? 'Switch to day' : 'Switch to night');
+			const box = await button.boundingBox();
+			expect(Math.min(box.width, box.height), 'a 44 px tap').toBeGreaterThanOrEqual(44);
+
+			await button.click();
+			await expect(page.locator('html')).toHaveAttribute('data-theme', other);
+			const switched = await look();
+			expect(switched.sky, 'the sky changes with it').not.toBe(start.sky);
+			await expect.poll(async () => (await look()).shot, { message: "the hero phone shows the other theme's screen" }).toMatch(`-${other}.`);
+
+			await page.reload();
+			await expect(page.locator('html'), 'the choice is remembered').toHaveAttribute('data-theme', other);
+
+			await button.click();
+			await expect(page.locator('html'), 'back to the system: no choice held').not.toHaveAttribute('data-theme', /./);
+			expect((await look()).sky).toBe(start.sky);
+			await page.reload();
+			await expect(page.locator('html')).not.toHaveAttribute('data-theme', /./);
 		});
 	});
 }
