@@ -38,6 +38,25 @@ export function nowIn(timeZone, at = new Date()) {
 	return { date: `${p.year}-${p.month}-${p.day}`, mins: (+p.hour % 24) * 60 + +p.minute };
 }
 
+/** the live demo's clock: a set moment of the trip ("YYYY-MM-DD HH:MM", in the trip's time), run on by the time
+ *  since the page opened, so a visitor lands on a day under way and it keeps moving */
+export function demoNow(clock, elapsedMs) {
+	const m = +clock.slice(11, 13) * 60 + +clock.slice(14, 16) + Math.floor(Math.max(0, elapsedMs) / 6e4);
+	return { date: addDays(clock.slice(0, 10), Math.floor(m / 1440)), mins: m % 1440 };
+}
+
+/** the live demo's year: the days that move a trip starting on `start` into `today`'s year. Whole weeks, so every
+ *  weekday holds; the trip lands on its own weekday nearest the same date (Sat 13 Mar 2027 → Sat 11 Mar 2028) */
+export const demoShift = (start, today) => Math.round((dayNumber(`${today.slice(0, 4)}${start.slice(4, 10)}`) - dayNumber(start)) / 7) * 7;
+
+/** `text` with every "YYYY-MM-DD" from `from` to `to` moved `days` days; a date outside (a source's, a credit's) stays */
+export const shiftDates = (text, days, from, to) =>
+	days
+		? String(text).replace(/\b(\d{4}-\d{2}-\d{2})\b/g, (d) =>
+				dayNumber(d) >= dayNumber(from) && dayNumber(d) <= dayNumber(to) ? addDays(d, days) : d,
+			)
+		: text;
+
 /** a date's weekday, Monday = 0 … Sunday = 6 (the order of Google's opening hours) */
 export const weekdayIndex = (s) => (new Date(dayNumber(s) * 864e5).getUTCDay() + 6) % 7;
 

@@ -15,6 +15,7 @@ const TYPES = {
 	'.webp': 'image/webp',
 	'.png': 'image/png',
 	'.svg': 'image/svg+xml',
+	'.woff2': 'font/woff2',
 };
 
 http
@@ -22,7 +23,9 @@ http
 		const url = new URL(req.url, 'http://localhost');
 		if (url.pathname === '/__health') return void res.end('ok');
 		if (fakeRtdb(req, res, url)) return;
-		const file = path.join(root, path.normalize(decodeURIComponent(url.pathname)).replace(/^([/\\])+/, ''));
+		// a folder serves its index.html, as GitHub Pages does (the landing page links demo/)
+		const want = url.pathname.endsWith('/') ? `${url.pathname}index.html` : url.pathname;
+		const file = path.join(root, path.normalize(decodeURIComponent(want)).replace(/^([/\\])+/, ''));
 		if (!file.startsWith(root + path.sep)) return void res.writeHead(403).end();
 		fs.readFile(file, (err, body) => {
 			if (err) return void res.writeHead(404).end();

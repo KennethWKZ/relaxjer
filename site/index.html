@@ -11,8 +11,8 @@
 			name="description"
 			content="Plan a group trip with your AI agent: one page every phone opens, even offline. What's next, fixed times, costs per person, food and toilets nearby, group sync. Free." />
 		<link rel="canonical" href="https://kennethwkz.github.io/relaxjer/" />
-		<meta name="theme-color" content="#dfe9f6" media="(prefers-color-scheme: light)" />
-		<meta name="theme-color" content="#0c1017" media="(prefers-color-scheme: dark)" />
+		<meta name="theme-color" content="#d3e6f9" media="(prefers-color-scheme: light)" data-scheme="light" />
+		<meta name="theme-color" content="#0c1424" media="(prefers-color-scheme: dark)" data-scheme="dark" />
 		<meta property="og:type" content="website" />
 		<meta property="og:site_name" content="RelaxJer" />
 		<meta property="og:locale" content="en" />
@@ -24,19 +24,21 @@
 		<meta property="og:image:height" content="630" />
 		<meta
 			property="og:image:alt"
-			content="RelaxJer in brush lettering beside a postcard and a phone showing the demo trip's Now and Next card, on an airmail-blue table." />
+			content="RelaxJer in brush lettering beside a postcard and a phone showing the demo trip's Now and Next card, under a morning sky." />
 		<meta name="twitter:card" content="summary_large_image" />
 		<meta name="twitter:title" content="RelaxJer: one page for the whole trip" />
 		<meta name="twitter:description" content="Your AI agent plans it. Every phone in the group opens it, even offline. Free and open source." />
 		<meta name="twitter:image" content="https://kennethwkz.github.io/relaxjer/assets/og.png" />
 		<meta
 			name="twitter:image:alt"
-			content="RelaxJer in brush lettering beside a postcard and a phone showing the demo trip's Now and Next card, on an airmail-blue table." />
+			content="RelaxJer in brush lettering beside a postcard and a phone showing the demo trip's Now and Next card, under a morning sky." />
 		<link rel="icon" href="assets/lantern.svg" type="image/svg+xml" />
 		<link rel="sitemap" type="application/xml" href="sitemap.xml" />
 		<link rel="preload" href="assets/fonts/ma-shan-zheng-subset.woff2" as="font" type="font/woff2" crossorigin />
 		<link rel="preload" href="assets/fonts/gabarito-latin.woff2" as="font" type="font/woff2" crossorigin />
 		<link rel="stylesheet" href="assets/site.css" />
+		<!-- the day/night choice, before the body paints (theme.js) -->
+		<script src="assets/theme.js"></script>
 		<script type="application/ld+json">
 			{
 				"@context": "https://schema.org",
@@ -87,12 +89,50 @@
 	</head>
 	<body>
 		<a class="skip" href="#main">Skip to the content</a>
+		<!-- the page's sky: one slow trip day, morning at the top to lantern night at the foot (decoration only) -->
+		<div class="scene" aria-hidden="true">
+			<!-- the sun keeps to the screen's corner and sets as the page scrolls toward night -->
+			<div class="sunpath"><span class="sun"></span></div>
+			<span class="cloud" style="--y: 4.5%; --x: -6%; --w: 340px; --o: 0.95; --drift: 50px"></span>
+			<span class="cloud" style="--y: 7.5%; --x: 52%; --w: 520px; --o: 0.92; --drift: -70px"></span>
+			<span class="cloud" style="--y: 12%; --x: 18%; --w: 240px; --o: 0.8; --drift: 40px"></span>
+			<span class="cloud" style="--y: 15%; --x: 76%; --w: 300px; --o: 0.85; --drift: -50px"></span>
+			<span class="cloud" style="--y: 20%; --x: -8%; --w: 480px; --o: 0.9; --drift: 80px"></span>
+			<span class="cloud" style="--y: 24%; --x: 60%; --w: 260px; --o: 0.75; --drift: -40px"></span>
+			<span class="cloud" style="--y: 29%; --x: 30%; --w: 380px; --o: 0.88; --drift: 60px"></span>
+			<span class="cloud" style="--y: 34%; --x: 80%; --w: 440px; --o: 0.9; --drift: -70px"></span>
+			<span class="cloud" style="--y: 39%; --x: -4%; --w: 300px; --o: 0.8; --drift: 50px"></span>
+			<span class="cloud" style="--y: 44%; --x: 46%; --w: 520px; --o: 0.85; --drift: -60px"></span>
+			<span class="cloud" style="--y: 50%; --x: 74%; --w: 280px; --o: 0.8; --drift: 40px"></span>
+			<span class="cloud" style="--y: 55%; --x: 6%; --w: 420px; --o: 0.7; --drift: -50px"></span>
+			<span class="cloud" style="--y: 60%; --x: 58%; --w: 340px; --o: 0.55; --drift: 60px"></span>
+			<span class="cloud" style="--y: 66%; --x: 22%; --w: 260px; --o: 0.35; --drift: -40px"></span>
+			<span class="birds" style="--y: 10.5%; --x: 34%; --w: 90px; --drift: 30px"></span>
+			<span class="birds" style="--y: 26%; --x: 70%; --w: 70px; --drift: -24px"></span>
+			<span class="birds" style="--y: 46%; --x: 20%; --w: 80px; --drift: 26px"></span>
+			<img class="lit" src="assets/lantern.svg" alt="" width="30" height="30" style="--y: 78%; --j: 0.24; --w: 30px" />
+			<img class="lit r" src="assets/lantern.svg" alt="" width="24" height="24" style="--y: 81%; --j: 0.32; --w: 24px" />
+			<img class="lit" src="assets/lantern.svg" alt="" width="20" height="20" style="--y: 85%; --j: 0.6; --w: 20px" />
+			<img class="lit r" src="assets/lantern.svg" alt="" width="34" height="34" style="--y: 88%; --j: 0.68; --w: 34px" />
+			<img class="lit" src="assets/lantern.svg" alt="" width="22" height="22" style="--y: 91%; --j: 0.92; --w: 22px" />
+			<img class="lit r" src="assets/lantern.svg" alt="" width="28" height="28" style="--y: 94%; --j: 0.2; --w: 28px" />
+			<img class="lit" src="assets/lantern.svg" alt="" width="22" height="22" style="--y: 96%; --j: 0.16; --w: 22px" />
+			<img class="lit r by-night" src="assets/lantern.svg" alt="" width="22" height="22" style="--y: 14%; --j: 0.24; --w: 22px" />
+			<img class="lit by-night" src="assets/lantern.svg" alt="" width="18" height="18" style="--y: 22%; --j: 0.12; --w: 18px" />
+			<img class="lit r by-night" src="assets/lantern.svg" alt="" width="20" height="20" style="--y: 33%; --j: 0.96; --w: 20px" />
+			<img class="lit r by-night" src="assets/lantern.svg" alt="" width="24" height="24" style="--y: 48%; --j: 0.2; --w: 24px" />
+			<img class="lit by-night" src="assets/lantern.svg" alt="" width="18" height="18" style="--y: 57%; --j: 0.36; --w: 18px" />
+			<img class="lit r by-night" src="assets/lantern.svg" alt="" width="22" height="22" style="--y: 68%; --j: 0.52; --w: 22px" />
+		</div>
 		<header class="bar">
 			<div class="bar-row">
 				<a class="brand" href="#top" aria-label="RelaxJer, back to the top">RelaxJer</a>
 				<nav class="nav" aria-label="On this page">
 					<a class="nav-wide" href="#features">Features</a>
-					<a class="nav-wide" href="#how">How it works</a>
+					<a class="nav-wide" href="#plan">How it works</a>
+					<button class="nav-theme" type="button" aria-label="Switch to night" title="Switch to night" hidden>
+						<svg class="i" aria-hidden="true"><use href="#i-moon" /></svg>
+					</button>
 					<a class="nav-gh" href="https://github.com/KennethWKZ/relaxjer">
 						GitHub
 						<svg class="i" aria-hidden="true"><use href="#i-ext" /></svg>
@@ -113,7 +153,10 @@
 							Plan your trip
 							<svg class="i" aria-hidden="true"><use href="#i-down" /></svg>
 						</a>
-						<a class="text-link" href="https://github.com/KennethWKZ/relaxjer/blob/main/guides/google-maps.md#setup">Set up Google Maps</a>
+						<a class="go go-paper" href="demo/">
+							Try the demo trip
+							<svg class="i" aria-hidden="true"><use href="#i-arrow" /></svg>
+						</a>
 					</div>
 				</div>
 
@@ -151,12 +194,11 @@
 							<svg class="postmark" viewBox="0 0 132 92" aria-hidden="true"><use href="#postmark-art" /></svg>
 							<p>To: everyone in the group chat</p>
 							<p>Taipei demo trip, Day 3</p>
-							<p>5 phones, 1 link</p>
 						</div>
 					</div>
 					<figure class="phone">
 						<picture>
-							<source media="(prefers-color-scheme: dark)" srcset="assets/screens/now-dark.webp" />
+							<source data-dark media="(prefers-color-scheme: dark)" srcset="assets/screens/now-dark.webp" />
 							<img
 								src="assets/screens/now-light.webp"
 								width="390"
@@ -172,8 +214,8 @@
 			<section class="band" id="features" aria-labelledby="features-h">
 				<h2 id="features-h">Postcards from the trip</h2>
 				<p class="section-lede">
-					Each card replays the demo trip: a made-up group of five, one week in Taipei. The screens follow the real page; every name and price on them
-					is invented.
+					Each card replays the demo trip: a made-up group of five, one week in Taipei. Or <a href="demo/">open the demo trip</a> itself, mid-morning
+					on Day 3.
 				</p>
 
 				<div class="spread">
@@ -253,8 +295,8 @@
 								</div>
 								<button class="pause" type="button" hidden>
 									<svg class="pause-i" aria-hidden="true"><use href="#i-pause" /></svg
-									><svg class="play-i" aria-hidden="true"><use href="#i-play" /></svg><span class="lbl">Pause</span
-									><span class="sr-only"> the what’s-next demo</span>
+									><svg class="play-i" aria-hidden="true"><use href="#i-play" /></svg
+									><span class="sr-only"><span class="lbl">Pause</span> the what’s-next demo</span>
 								</button>
 							</figure>
 						</div>
@@ -267,10 +309,7 @@
 							<svg class="postmark" viewBox="0 0 132 92" aria-hidden="true"><use href="#postmark-art" /></svg>
 							<p class="note-brush" lang="zh-Hans" aria-hidden="true">下一站</p>
 							<h3 id="now-h">What’s next? It’s already on the screen.</h3>
-							<p>
-								Open the link and the page knows the day and the hour at your destination. Now and next sit at the top, and the Sections menu opens on
-								the same two, marked like stops on the day’s string.
-							</p>
+							<p>Open the link and the page already knows the day and the hour at your destination. Now and next sit right at the top.</p>
 						</div>
 					</article>
 
@@ -386,8 +425,8 @@
 								</div>
 								<button class="pause" type="button" hidden>
 									<svg class="pause-i" aria-hidden="true"><use href="#i-pause" /></svg
-									><svg class="play-i" aria-hidden="true"><use href="#i-play" /></svg><span class="lbl">Pause</span
-									><span class="sr-only"> the fixed-times demo</span>
+									><svg class="play-i" aria-hidden="true"><use href="#i-play" /></svg
+									><span class="sr-only"><span class="lbl">Pause</span> the fixed-times demo</span>
 								</button>
 							</figure>
 						</div>
@@ -396,7 +435,7 @@
 							<h3 id="fixed-h">Booked times stay put.</h3>
 							<p>
 								Flights, tickets and tables carry a red seal. Running late? Push the rest of the day back: the flexible stops move, the sealed ones
-								hold, and the push stops at the next fixed time.
+								stay.
 							</p>
 						</div>
 					</article>
@@ -572,8 +611,8 @@
 								</figure>
 								<button class="pause" type="button" hidden>
 									<svg class="pause-i" aria-hidden="true"><use href="#i-pause" /></svg
-									><svg class="play-i" aria-hidden="true"><use href="#i-play" /></svg><span class="lbl">Pause</span
-									><span class="sr-only"> the group-sync demo</span>
+									><svg class="play-i" aria-hidden="true"><use href="#i-play" /></svg
+									><span class="sr-only"><span class="lbl">Pause</span> the group-sync demo</span>
 								</button>
 							</div>
 						</div>
@@ -587,12 +626,12 @@
 							<p class="note-brush" lang="zh-Hans" aria-hidden="true">一起改</p>
 							<h3 id="sync-h">Add it on one phone. Every phone has it.</h3>
 							<p>
-								Turn on group sync and added stops, pushed-back times, flight changes and ticks on shared lists reach everyone, with the name of
-								whoever added each stop. A phone asks for that name once, the first time it opens the page. It runs on your own Firebase, and each
-								phone encrypts a change before it leaves.
+								Add a stop, push the day back or tick a shared list, and every phone sees it, with who added what. It runs on your own free Firebase,
+								encrypted on each phone.
 							</p>
 							<p class="small">
-								<b>Off unless the planner turns it on</b> for a trip. Without it, each phone keeps its own changes, and a link shares them.
+								<b>Off unless the planner turns it on.</b>
+								<a href="https://github.com/KennethWKZ/relaxjer/blob/main/guides/trip-page.md#group-sync">How group sync works</a>
 							</p>
 						</div>
 					</article>
@@ -779,8 +818,8 @@
 								</figure>
 								<button class="pause" type="button" hidden>
 									<svg class="pause-i" aria-hidden="true"><use href="#i-pause" /></svg
-									><svg class="play-i" aria-hidden="true"><use href="#i-play" /></svg><span class="lbl">Pause</span
-									><span class="sr-only"> the Undo demo</span>
+									><svg class="play-i" aria-hidden="true"><use href="#i-play" /></svg
+									><span class="sr-only"><span class="lbl">Pause</span> the Undo demo</span>
 								</button>
 							</div>
 						</div>
@@ -794,14 +833,9 @@
 							<p class="note-brush" lang="zh-Hans" aria-hidden="true">放心</p>
 							<h3 id="undo-h">Tapped Remove by mistake? Put it back.</h3>
 							<p>
-								With group sync on, each phone changes only the stops it added, so one stray tap can’t clear someone else’s plans. Every removal
-								offers Undo for a few seconds, and Group sync keeps a list of what was removed lately, with Put back.
+								Every removal offers Undo. With group sync on, each phone changes only its own stops, a list keeps recent removals to put back, and a
+								planner can take everyone back to the original plan.
 							</p>
-							<p>
-								Planners hold a code you set when you turn sync on. A planner can change anyone’s stops, clear one person’s, put the whole group back
-								on the original plan, or block a stray phone so its changes reach nobody. The sheet shows who added how many.
-							</p>
-							<p class="small"><b>A guard against slips, not a lock.</b> The page’s password is what keeps the plan to your group.</p>
 						</div>
 					</article>
 
@@ -881,8 +915,8 @@
 								</div>
 								<button class="pause" type="button" hidden>
 									<svg class="pause-i" aria-hidden="true"><use href="#i-pause" /></svg
-									><svg class="play-i" aria-hidden="true"><use href="#i-play" /></svg><span class="lbl">Pause</span
-									><span class="sr-only"> the costs demo</span>
+									><svg class="play-i" aria-hidden="true"><use href="#i-play" /></svg
+									><span class="sr-only"><span class="lbl">Pause</span> the costs demo</span>
 								</button>
 							</figure>
 						</div>
@@ -1018,8 +1052,8 @@
 								</div>
 								<button class="pause" type="button" hidden>
 									<svg class="pause-i" aria-hidden="true"><use href="#i-pause" /></svg
-									><svg class="play-i" aria-hidden="true"><use href="#i-play" /></svg><span class="lbl">Pause</span
-									><span class="sr-only"> the split-day demo</span>
+									><svg class="play-i" aria-hidden="true"><use href="#i-play" /></svg
+									><span class="sr-only"><span class="lbl">Pause</span> the split-day demo</span>
 								</button>
 							</figure>
 						</div>
@@ -1027,8 +1061,8 @@
 							<p class="note-brush" lang="zh-Hans" aria-hidden="true">分头玩</p>
 							<h3 id="split-h">Split up, meet again.</h3>
 							<p>
-								When part of the group goes its own way for an afternoon, the day forks at a dashed knot with that plan’s rules, and the stop where
-								they rejoin says so.
+								When part of the group goes its own way for an afternoon, the day forks with that plan’s rules, and the stop where they meet again
+								says so.
 							</p>
 						</div>
 					</article>
@@ -1124,8 +1158,8 @@
 								</div>
 								<button class="pause" type="button" hidden>
 									<svg class="pause-i" aria-hidden="true"><use href="#i-pause" /></svg
-									><svg class="play-i" aria-hidden="true"><use href="#i-play" /></svg><span class="lbl">Pause</span
-									><span class="sr-only"> the optional-plans demo</span>
+									><svg class="play-i" aria-hidden="true"><use href="#i-play" /></svg
+									><span class="sr-only"><span class="lbl">Pause</span> the optional-plans demo</span>
 								</button>
 							</figure>
 						</div>
@@ -1133,8 +1167,8 @@
 							<p class="note-brush" lang="zh-Hans" aria-hidden="true">看心情</p>
 							<h3 id="options-h">Room for a maybe.</h3>
 							<p>
-								Extra sights and shops never go on the schedule. Where one suits a stop, a Nearby options chip there opens its card over the day, so
-								nobody loses their place.
+								Extra sights and shops never crowd the schedule. Where one suits a stop, a Nearby options chip there opens it over the day, so nobody
+								loses their place.
 							</p>
 						</div>
 					</article>
@@ -1229,8 +1263,8 @@
 								</div>
 								<button class="pause" type="button" hidden>
 									<svg class="pause-i" aria-hidden="true"><use href="#i-pause" /></svg
-									><svg class="play-i" aria-hidden="true"><use href="#i-play" /></svg><span class="lbl">Pause</span
-									><span class="sr-only"> the nearby demo</span>
+									><svg class="play-i" aria-hidden="true"><use href="#i-play" /></svg
+									><span class="sr-only"><span class="lbl">Pause</span> the nearby demo</span>
 								</button>
 							</figure>
 						</div>
@@ -1314,8 +1348,8 @@
 								</div>
 								<button class="pause" type="button" hidden>
 									<svg class="pause-i" aria-hidden="true"><use href="#i-pause" /></svg
-									><svg class="play-i" aria-hidden="true"><use href="#i-play" /></svg><span class="lbl">Pause</span
-									><span class="sr-only"> the offline demo</span>
+									><svg class="play-i" aria-hidden="true"><use href="#i-play" /></svg
+									><span class="sr-only"><span class="lbl">Pause</span> the offline demo</span>
 								</button>
 							</figure>
 						</div>
@@ -1323,14 +1357,18 @@
 							<p class="note-brush" lang="zh-Hans" aria-hidden="true">没信号也行</p>
 							<h3 id="offline-h">No signal? It still works.</h3>
 							<p>
-								The plan, the costs and the lists live inside the page, so they keep working in the metro, on a roaming plan that ran out, or on a
-								phone that slept in a bag. The page says when it’s offline, and it installs to the home screen like an app.
+								The plan, the costs and the lists live inside the page, so they work in the metro or on a phone with no data. It installs to the home
+								screen like an app.
 							</p>
 						</div>
 					</article>
 
 					<!-- private -->
-					<article class="card w4 t-r2 drop settle" id="private" aria-labelledby="private-h" style="--spot: var(--ink); --spot-ink: var(--paper)">
+					<article
+						class="card w4 t-r2 drop settle"
+						id="private"
+						aria-labelledby="private-h"
+						style="--spot: var(--vault); --spot-ink: var(--vault-ink)">
 						<div class="pic">
 							<figure class="demo" data-demo style="--T: 8s; --still: 0.7">
 								<div class="phone" role="img" aria-label="Animated: the host asks for the page's password; once it's typed, the trip page opens.">
@@ -1386,41 +1424,39 @@
 								</div>
 								<button class="pause" type="button" hidden>
 									<svg class="pause-i" aria-hidden="true"><use href="#i-pause" /></svg
-									><svg class="play-i" aria-hidden="true"><use href="#i-play" /></svg><span class="lbl">Pause</span
-									><span class="sr-only"> the password demo</span>
+									><svg class="play-i" aria-hidden="true"><use href="#i-play" /></svg
+									><span class="sr-only"><span class="lbl">Pause</span> the password demo</span>
 								</button>
 							</figure>
 						</div>
 						<div class="back">
 							<p class="note-brush" lang="zh-Hans" aria-hidden="true">自己人</p>
 							<h3 id="private-h">Only for your group.</h3>
-							<p>
-								The page sits behind a password, and each planner brings their own keys. Sync is encrypted on your own database, and a strict security
-								policy lets the page run only its own code.
-							</p>
+							<p>The page sits behind a password, and each planner brings their own keys. Sync is encrypted, on a database that’s yours.</p>
 						</div>
 					</article>
 				</div>
 
 				<div class="duo">
 					<div class="packing settle" style="--tilt: -0.6deg">
+						<p class="note-brush" lang="zh-Hans" aria-hidden="true">也都在这页</p>
 						<h3>Also packed in every page</h3>
 						<div class="pack-groups">
 							<div class="pack-group">
 								<h4>Each day</h4>
 								<ul>
 									<li>
-										<svg class="i" aria-hidden="true"><use href="#i-check" /></svg
+										<svg class="i" aria-hidden="true"><use href="#i-tick" /></svg
 										><span>Now and Next on the day, and a countdown with the to-dos before you fly</span>
 									</li>
 									<li>
-										<svg class="i" aria-hidden="true"><use href="#i-check" /></svg><span>Today’s route, one tap per leg in the phone’s maps</span>
+										<svg class="i" aria-hidden="true"><use href="#i-tick" /></svg><span>Today’s route, one tap per leg in the phone’s maps</span>
 									</li>
 									<li>
-										<svg class="i" aria-hidden="true"><use href="#i-check" /></svg><span>Copy the day into the group chat</span>
+										<svg class="i" aria-hidden="true"><use href="#i-tick" /></svg><span>Copy the day into the group chat</span>
 									</li>
 									<li>
-										<svg class="i" aria-hidden="true"><use href="#i-check" /></svg
+										<svg class="i" aria-hidden="true"><use href="#i-tick" /></svg
 										><span>Option A or B, decided on the day, and a rain plan for every day</span>
 									</li>
 								</ul>
@@ -1429,17 +1465,17 @@
 								<h4>Getting around</h4>
 								<ul>
 									<li>
-										<svg class="i" aria-hidden="true"><use href="#i-check" /></svg><span>A map with an offline MRT planner</span>
+										<svg class="i" aria-hidden="true"><use href="#i-tick" /></svg><span>A map with an offline MRT planner</span>
 									</li>
 									<li>
-										<svg class="i" aria-hidden="true"><use href="#i-check" /></svg
+										<svg class="i" aria-hidden="true"><use href="#i-tick" /></svg
 										><span>Taxi fares per car, and live bikes at each bike-share dock</span>
 									</li>
 									<li>
-										<svg class="i" aria-hidden="true"><use href="#i-check" /></svg><span>A card to show the driver, in the local language</span>
+										<svg class="i" aria-hidden="true"><use href="#i-tick" /></svg><span>A card to show the driver, in the local language</span>
 									</li>
 									<li>
-										<svg class="i" aria-hidden="true"><use href="#i-check" /></svg
+										<svg class="i" aria-hidden="true"><use href="#i-tick" /></svg
 										><span>Walking counted ×1.4 for seniors when you add a stop, and a taxi first for long legs</span>
 									</li>
 								</ul>
@@ -1448,19 +1484,19 @@
 								<h4>Adding a stop</h4>
 								<ul>
 									<li>
-										<svg class="i" aria-hidden="true"><use href="#i-check" /></svg
+										<svg class="i" aria-hidden="true"><use href="#i-tick" /></svg
 										><span>It works out the walk, the taxi and the metro from the stop before</span>
 									</li>
 									<li>
-										<svg class="i" aria-hidden="true"><use href="#i-check" /></svg
+										<svg class="i" aria-hidden="true"><use href="#i-tick" /></svg
 										><span>Too early to get there? It says so and offers a time that works</span>
 									</li>
 									<li>
-										<svg class="i" aria-hidden="true"><use href="#i-check" /></svg
+										<svg class="i" aria-hidden="true"><use href="#i-tick" /></svg
 										><span>A word before a fixed time, the airport run, or a fifth added stop</span>
 									</li>
 									<li>
-										<svg class="i" aria-hidden="true"><use href="#i-check" /></svg><span>The group’s wishlist, suggested on the days it fits</span>
+										<svg class="i" aria-hidden="true"><use href="#i-tick" /></svg><span>The group’s wishlist, suggested on the days it fits</span>
 									</li>
 								</ul>
 							</div>
@@ -1468,17 +1504,17 @@
 								<h4>Money and shopping</h4>
 								<ul>
 									<li>
-										<svg class="i" aria-hidden="true"><use href="#i-check" /></svg
+										<svg class="i" aria-hidden="true"><use href="#i-tick" /></svg
 										><span>Each person’s share, with totals in your home currency at a rate you can change</span>
 									</li>
 									<li>
-										<svg class="i" aria-hidden="true"><use href="#i-check" /></svg><span>A budget chart, with estimates drawn dashed</span>
+										<svg class="i" aria-hidden="true"><use href="#i-tick" /></svg><span>A budget chart, with estimates drawn dashed</span>
 									</li>
 									<li>
-										<svg class="i" aria-hidden="true"><use href="#i-check" /></svg><span>Tax refunds and the minimum spend, tagged on the shops</span>
+										<svg class="i" aria-hidden="true"><use href="#i-tick" /></svg><span>Tax refunds and the minimum spend, tagged on the shops</span>
 									</li>
 									<li>
-										<svg class="i" aria-hidden="true"><use href="#i-check" /></svg><span>Shop lists, each with its own pins on the map</span>
+										<svg class="i" aria-hidden="true"><use href="#i-tick" /></svg><span>Shop lists, each with its own pins on the map</span>
 									</li>
 								</ul>
 							</div>
@@ -1486,21 +1522,21 @@
 								<h4>Before and after</h4>
 								<ul>
 									<li>
-										<svg class="i" aria-hidden="true"><use href="#i-check" /></svg><span>A checklist, shared with the group when sync is on</span>
+										<svg class="i" aria-hidden="true"><use href="#i-tick" /></svg><span>A checklist, shared with the group when sync is on</span>
 									</li>
 									<li>
-										<svg class="i" aria-hidden="true"><use href="#i-check" /></svg
+										<svg class="i" aria-hidden="true"><use href="#i-tick" /></svg
 										><span>Entry rules, and the forms to fill in on the checklist with due dates</span>
 									</li>
 									<li>
-										<svg class="i" aria-hidden="true"><use href="#i-check" /></svg><span>The weather, and what to wear where</span>
+										<svg class="i" aria-hidden="true"><use href="#i-tick" /></svg><span>The weather, and what to wear where</span>
 									</li>
 									<li>
-										<svg class="i" aria-hidden="true"><use href="#i-check" /></svg
+										<svg class="i" aria-hidden="true"><use href="#i-tick" /></svg
 										><span>The airport run, compared for the whole group and picked on the day</span>
 									</li>
 									<li>
-										<svg class="i" aria-hidden="true"><use href="#i-check" /></svg><span>The evening home, worked back from take-off</span>
+										<svg class="i" aria-hidden="true"><use href="#i-tick" /></svg><span>The evening home, worked back from take-off</span>
 									</li>
 								</ul>
 							</div>
@@ -1508,20 +1544,20 @@
 								<h4>The page itself</h4>
 								<ul>
 									<li>
-										<svg class="i" aria-hidden="true"><use href="#i-check" /></svg><span>Chinese and English, and switching keeps your place</span>
+										<svg class="i" aria-hidden="true"><use href="#i-tick" /></svg><span>Chinese and English, and switching keeps your place</span>
 									</li>
 									<li>
-										<svg class="i" aria-hidden="true"><use href="#i-check" /></svg><span>Light, dark, or the same as the phone</span>
+										<svg class="i" aria-hidden="true"><use href="#i-tick" /></svg><span>Light, dark, or the same as the phone</span>
 									</li>
 									<li>
-										<svg class="i" aria-hidden="true"><use href="#i-check" /></svg><span>Search across the whole plan, in both languages</span>
+										<svg class="i" aria-hidden="true"><use href="#i-tick" /></svg><span>Search across the whole plan, in both languages</span>
 									</li>
 									<li>
-										<svg class="i" aria-hidden="true"><use href="#i-check" /></svg
+										<svg class="i" aria-hidden="true"><use href="#i-tick" /></svg
 										><span>Location only from a card that says why, and it stays on the phone</span>
 									</li>
 									<li>
-										<svg class="i" aria-hidden="true"><use href="#i-check" /></svg><span>An update bar when the planner publishes a new version</span>
+										<svg class="i" aria-hidden="true"><use href="#i-tick" /></svg><span>An update bar when the planner publishes a new version</span>
 									</li>
 								</ul>
 							</div>
@@ -1551,26 +1587,9 @@
 				</div>
 			</section>
 
-			<!-- ─────────── how it works ─────────── -->
-			<section class="band" id="how" aria-labelledby="how-h">
-				<h2 id="how-h">The route a trip takes</h2>
-				<p class="section-lede">Each step is a skill your AI agent runs from this repo. It asks you before anything is published.</p>
-				<div class="routemap" tabindex="0" role="region" aria-label="The flow diagram, scrolls sideways on small screens">
-					<picture>
-						<source media="(prefers-color-scheme: dark)" srcset="assets/flow-dark.svg" />
-						<img
-							src="assets/flow-light.svg"
-							width="928"
-							height="384"
-							loading="lazy"
-							alt="Your requirements go through the trip-intake, data-sync, build-page, verify-page and publish-htmlapp skills to one password-protected page on the group's phones; a trip retro turns lessons into knowledge for the next trip." />
-					</picture>
-				</div>
-				<p class="flow-hint">The same steps, in words, are below.</p>
-			</section>
-
 			<section class="band" id="plan" aria-labelledby="plan-h">
 				<h2 id="plan-h">Plan a trip in four steps</h2>
+				<p class="section-lede">You talk; your AI agent does the work, and asks you before anything is published.</p>
 				<ol class="steps">
 					<li class="step">
 						<span class="stamp" aria-hidden="true"
@@ -1578,18 +1597,16 @@
 						>
 						<div class="step-card">
 							<h3>Tell your agent about the trip</h3>
+							<p>Copy RelaxJer to your computer, open it in your AI agent, and say “Set up RelaxJer on my computer.”</p>
+							<pre><code>git clone https://<wbr />github.com/<wbr />KennethWKZ/<wbr />relaxjer</code></pre>
 							<p>
-								Clone the repo, open it in your AI agent (Claude Code, Codex, Cursor or Gemini CLI), and describe the trip in your own words: dates,
-								flights, who’s coming, which of them are seniors, the hotels, what’s booked, what you’d love to do.
+								Then tell it about the trip the way you’d tell a friend: dates, flights, who’s coming and which of them are seniors, what’s booked,
+								what you’d love to do.
 							</p>
-							<pre><code>git clone https://<wbr />github.com/<wbr />KennethWKZ/<wbr />relaxjer
-cd relaxjer &amp;&amp; corepack enable &amp;&amp; pnpm install</code></pre>
-							<p>
-								Start with “Set up RelaxJer on my computer”: the <code>planner-setup</code> skill checks the tools and opens the demo trip. Then shape
-								the plan in plain words (“add a rest after lunch on day 4”, “two of us cycle on day 5”), and ask travel questions any time. In Claude
-								Code, <code>relaxbro</code>, a travel agent, looks into hours, bookings and the pace while your agent works.
+							<p class="note">
+								Your trip stays on your computer.
+								<a href="https://github.com/KennethWKZ/relaxjer/blob/main/guides/getting-started.md">Getting started</a> walks through every step.
 							</p>
-							<p class="note">Your trip stays in <code>trips/</code> on your computer. It’s never committed or uploaded.</p>
 						</div>
 					</li>
 					<li class="step">
@@ -1599,12 +1616,12 @@ cd relaxjer &amp;&amp; corepack enable &amp;&amp; pnpm install</code></pre>
 						<div class="step-card">
 							<h3>Connect Google Maps <span class="rec-tag">Recommended</span></h3>
 							<p>
-								Your own Google keys give the page live opening hours, ratings, photos and Google search, and the refresh fills in walking and transit
-								times. About 20 minutes to set up; a family trip stays within Google’s free monthly allowance.
+								Your own Google keys bring live opening hours, ratings, photos and search, plus real walking and transit times. About 20 minutes to
+								set up, and a family trip stays within Google’s free allowance.
 							</p>
 							<p>
 								<a href="https://github.com/KennethWKZ/relaxjer/blob/main/guides/google-maps.md#setup">Follow the Google Maps guide</a>, or skip it:
-								the page falls back to a free map.
+								the page uses a free map.
 							</p>
 						</div>
 					</li>
@@ -1614,12 +1631,7 @@ cd relaxjer &amp;&amp; corepack enable &amp;&amp; pnpm install</code></pre>
 						>
 						<div class="step-card">
 							<h3>Your agent builds one page</h3>
-							<p>
-								It pulls the places and the weather, builds a single file, then checks it: the tests, and a look at a phone-sized screen in two
-								browsers.
-							</p>
-							<pre><code>pnpm resync --trip trips/<wbr />&lt;your-trip&gt; --write
-pnpm build --trip trips/<wbr />&lt;your-trip&gt; --keys ~/<wbr />.config/<wbr />relaxjer/<wbr />google.json</code></pre>
+							<p>It gathers the places and the weather, builds the page, and checks it on a phone-sized screen.</p>
 						</div>
 					</li>
 					<li class="step">
@@ -1628,15 +1640,13 @@ pnpm build --trip trips/<wbr />&lt;your-trip&gt; --keys ~/<wbr />.config/<wbr />
 						>
 						<div class="step-card">
 							<h3>Share it with the group</h3>
+							<p>Your agent publishes it behind a password, and you send the link to the group chat. Everyone adds it to their home screen.</p>
 							<p>
-								Publish the page behind a password (ht-ml.app, for example) and send the link to your group chat. Everyone installs it to their home
-								screen.
+								<b>Group sync, if you want it:</b> once, you create a free Firebase project with a Realtime Database (about 5 minutes,
+								<a href="https://github.com/KennethWKZ/relaxjer/blob/main/.agents/skills/sync-setup/SKILL.md">the steps</a>), and your agent turns
+								sync on, so a change on one phone reaches every phone.
 							</p>
-							<p>
-								Want the group’s changes on every phone? Your agent sets up group sync first, on your own free Firebase database, with the
-								<code>sync-setup</code> skill.
-							</p>
-							<p class="note">A trip page carries hotels, flights and names, so it never goes anywhere public, including this site.</p>
+							<p class="note">A real trip page carries hotels, flights and names, so it never goes anywhere public, this site included.</p>
 						</div>
 					</li>
 				</ol>
@@ -1701,6 +1711,19 @@ pnpm build --trip trips/<wbr />&lt;your-trip&gt; --keys ~/<wbr />.config/<wbr />
 					<a href="https://github.com/KennethWKZ/relaxjer/blob/main/memory-bank/standards/decision-index.md">memory bank</a>. Tests define done: repo
 					hygiene in a second, then the page in Chromium and WebKit at phone and desktop sizes.
 				</p>
+				<p>Under the hood, each step is a skill:</p>
+				<div class="routemap" tabindex="0" role="region" aria-label="The flow diagram, scrolls sideways on small screens">
+					<picture>
+						<source data-dark media="(prefers-color-scheme: dark)" srcset="assets/flow-dark.svg" />
+						<img
+							src="assets/flow-light.svg"
+							width="928"
+							height="384"
+							loading="lazy"
+							alt="Your requirements go through the trip-intake, data-sync, build-page, verify-page and publish-htmlapp skills to one password-protected page on the group's phones; a trip retro turns lessons into knowledge for the next trip." />
+					</picture>
+				</div>
+
 				<p>
 					Planning, not coding? <a href="https://github.com/KennethWKZ/relaxjer/blob/main/guides/getting-started.md">Getting started</a> walks through
 					every step and every skill, and
@@ -1715,14 +1738,27 @@ pnpm build --trip trips/<wbr />&lt;your-trip&gt; --keys ~/<wbr />.config/<wbr />
 		</main>
 
 		<footer class="foot">
-			<div class="airmail" aria-hidden="true"></div>
+			<!-- lantern night: the day ends where the group lets its wishes go -->
+			<div class="night" aria-hidden="true">
+				<span class="moon"></span>
+				<img class="lit" src="assets/lantern.svg" alt="" width="30" height="30" style="--x: 9%; --y: 58%; --d: 0.4" />
+				<img class="lit" src="assets/lantern.svg" alt="" width="22" height="22" style="--x: 22%; --y: 26%; --d: 0.8" />
+				<img class="lit" src="assets/lantern.svg" alt="" width="36" height="36" style="--x: 36%; --y: 64%; --d: 0.1" />
+				<img class="lit" src="assets/lantern.svg" alt="" width="26" height="26" style="--x: 52%; --y: 34%; --d: 0.6" />
+				<img class="lit" src="assets/lantern.svg" alt="" width="32" height="32" style="--x: 66%; --y: 70%; --d: 0.3" />
+				<img class="lit" src="assets/lantern.svg" alt="" width="24" height="24" style="--x: 80%; --y: 40%; --d: 0.9" />
+				<img class="lit" src="assets/lantern.svg" alt="" width="28" height="28" style="--x: 92%; --y: 62%; --d: 0.5" />
+				<svg class="ridge" viewBox="0 0 1200 140" preserveAspectRatio="none">
+					<path d="M0 78 C120 40 220 60 330 70 C450 82 540 26 680 34 C800 42 900 74 1010 64 C1090 56 1150 50 1200 56 V140 H0Z" fill="#251c46" />
+					<path d="M0 108 C150 86 280 98 420 102 C560 106 690 78 840 86 C960 92 1080 100 1200 96 V140 H0Z" fill="#120f26" />
+				</svg>
+			</div>
 			<div class="foot-in">
 				<p>
 					<span class="brush brush-sm">RelaxJer</span> is free and open source under the
-					<a href="https://github.com/KennethWKZ/relaxjer/blob/main/LICENSE">MIT licence</a>. The screens come from the synthetic demo trip. Trip
-					pages are never hosted here.
+					<a href="https://github.com/KennethWKZ/relaxjer/blob/main/LICENSE">MIT licence</a>.
 				</p>
-				<p>
+				<p class="foot-links">
 					<a href="https://github.com/KennethWKZ/relaxjer">GitHub</a>
 					·
 					<a href="https://github.com/KennethWKZ/relaxjer#readme">README</a>
@@ -1771,7 +1807,15 @@ pnpm build --trip trips/<wbr />&lt;your-trip&gt; --keys ~/<wbr />.config/<wbr />
 				<path d="M7 8v13M4.5 8.5h5v6h-5zM17 8l-3 8h6zM16 16v5M18 16v5M12 3v18" />
 			</symbol>
 			<symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01" /></symbol>
+			<!-- the theme button's sun and moon, drawn as on the trip page -->
+			<symbol id="i-sun" viewBox="0 0 24 24">
+				<circle cx="12" cy="12" r="4" />
+				<path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4" />
+			</symbol>
+			<symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" /></symbol>
 			<symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7" /></symbol>
+			<!-- a ballpoint tick: a short down-stroke, then the long sweep up -->
+			<symbol id="i-tick" viewBox="0 0 24 24"><path d="M3.8 13.4c1.8.8 3.4 2.6 4.7 5.1 2.7-6.2 6.7-10.8 11.9-14.1" /></symbol>
 			<symbol id="i-x" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11" /></symbol>
 			<symbol id="i-clock" viewBox="0 0 24 24">
 				<circle cx="12" cy="12" r="9" />
@@ -1827,8 +1871,8 @@ pnpm build --trip trips/<wbr />&lt;your-trip&gt; --keys ~/<wbr />.config/<wbr />
 				<circle cx="46" cy="46" r="40" fill="none" stroke="currentColor" stroke-width="2" />
 				<circle cx="46" cy="46" r="22" fill="none" stroke="currentColor" stroke-width="1.4" />
 				<text><textPath href="#pm-ring" startOffset="2">DEMO TRIP · TAIPEI · RELAXJER ·</textPath></text>
-				<text x="46" y="44" text-anchor="middle" style="font-size: 10px">15 MAR</text>
-				<text x="46" y="56" text-anchor="middle" style="font-size: 10px">2027</text>
+				<text x="46" y="44" text-anchor="middle" style="font-size: 10px">DAY</text>
+				<text x="46" y="57" text-anchor="middle" style="font-size: 12px">3</text>
 				<path
 					d="M90 28c5-5 9 5 14 0s9 5 14 0 9 5 14 0M90 40c5-5 9 5 14 0s9 5 14 0 9 5 14 0M90 52c5-5 9 5 14 0s9 5 14 0 9 5 14 0M90 64c5-5 9 5 14 0s9 5 14 0 9 5 14 0"
 					fill="none"

@@ -1,5 +1,5 @@
 /* RelaxJer's landing page: postcards from the trip (DESIGN.md, "Surface: the landing page").
-   Airmail-blue table by day, the trip page's night sky by night. Each feature is a postcard: its picture side replays
+   They lie under one trip day's sky, from a morning sun to lantern night; the night theme is the same page under stars. Each feature is a postcard: its picture side replays
    the synthetic demo trip on a small phone (the .m screens copy the trip page's own layout and tokens), its back is
    written plainly. Everything operated is system sans; headlines are Gabarito; the brand and the brushed lines are
    Ma Shan Zheng. Both faces are self-hosted subsets (fonts/, with their SIL OFL licences). */
@@ -19,7 +19,27 @@
 
 :root {
 	/* the landing world */
-	--table: #dfe9f6; /* airmail onionskin: the page ground */
+	--table: #c9e0f7; /* the day sky at its plainest: what the ground falls back to */
+	/* one slow day, top to bottom: morning, a long clear afternoon, golden hour, the rose before dusk */
+	--sky-1: #d3e6f9;
+	--sky-2: #c9e0f7;
+	--sky-3: #bfd9f4;
+	--sky-35: #e6dcf2; /* the turn of the afternoon: blue to gold through lilac, never grey */
+	--sky-4: #f7dfc4;
+	--sky-5: #f7d9d0;
+	--sky-6: #e9dcf1;
+	--sun: #ffd79c;
+	--sun-low: #ffa977; /* the sun as it sets, low and warm */
+	--sun-travel: 1; /* how far down the screen it sinks by the foot of the page */
+	--pic-dusk: 0%; /* how far a postcard's colour sinks toward the night sky: by day, not at all */
+	--pic-lift: #ffffff; /* the light at the top of a postcard's picture */
+	--vault: #15161a; /* the privacy card's picture: a dark room, in both themes */
+	--vault-ink: #ffffff;
+	--moon-o: 1; /* the moon over the footer: by day only, since the night sky already has one */
+	--cloud-o: 1;
+	--birds-o: 0.5;
+	--stars-o: 0;
+	--by-night: 0;
 	--table-2: #d2dff0;
 	--stock: #ffffff; /* postcard stock */
 	--stock-2: #f3f5f9;
@@ -51,7 +71,7 @@
 	--warn: #9a5700;
 	--bad: #b3261e;
 	--hl: #ffe45c;
-	--glass: rgba(223, 233, 246, 0.84);
+	--glass: rgba(255, 255, 255, 0.6);
 	--glass-edge: rgba(24, 44, 84, 0.1);
 	--scrim: rgba(12, 14, 20, 0.5);
 	--code: #f3f5f9;
@@ -88,9 +108,29 @@
 	color-scheme: light;
 }
 
+/* the night theme: the system's dark, unless the bar's button asked for day (theme.js) … */
 @media (prefers-color-scheme: dark) {
-	:root {
-		--table: #0c1017;
+	:root:not([data-theme='light']) {
+		--table: #0d1426;
+		--sky-1: #0c1424;
+		--sky-2: #0e172c;
+		--sky-3: #121a36;
+		--sky-35: #151839;
+		--sky-4: #18173a;
+		--sky-5: #1d1736;
+		--sky-6: #151127;
+		--sun: #e9e4ff; /* the moon */
+		--sun-low: #e9e4ff; /* the moon keeps its colour */
+		--sun-travel: 0.35; /* and only drifts a little */
+		--pic-dusk: 40%; /* by night each colour glows like a lantern, not a lamp */
+		--pic-lift: #3b4668;
+		--vault: #343c52;
+		--vault-ink: #eef0f4;
+		--moon-o: 0;
+		--cloud-o: 0.07;
+		--birds-o: 0;
+		--stars-o: 0.85;
+		--by-night: 1;
 		--table-2: #111722;
 		--stock: #161b25;
 		--stock-2: #1e2430;
@@ -99,7 +139,7 @@
 		--rule-card: #2a313d;
 		--red: #e8564b;
 		--blue: #5b8fe6;
-		--postmark: rgba(201, 211, 230, 0.5);
+		--postmark: rgba(201, 211, 230, 0.82);
 		--card-shadow: 0 0 0 1px rgba(238, 240, 244, 0.06), 0 18px 40px -22px rgba(0, 0, 0, 0.9);
 		--lift-shadow: 0 0 0 1px rgba(238, 240, 244, 0.08), 0 28px 56px -24px rgba(0, 0, 0, 0.95);
 		--device: #000000;
@@ -120,13 +160,71 @@
 		--good: #5fd49a;
 		--warn: #f3b35a;
 		--bad: #ff8a80;
-		--glass: rgba(12, 16, 23, 0.82);
+		--glass: rgba(12, 18, 36, 0.72);
 		--glass-edge: rgba(238, 240, 244, 0.08);
 		--scrim: rgba(0, 0, 0, 0.62);
 		--code: #1e2430;
 		--night: #26324d;
 		color-scheme: dark;
 	}
+}
+/* … or the button asked for night. Both blocks must read the same: tests/repo/site.test.mjs holds them to it. */
+:root[data-theme='dark'] {
+	--table: #0d1426;
+	--sky-1: #0c1424;
+	--sky-2: #0e172c;
+	--sky-3: #121a36;
+	--sky-35: #151839;
+	--sky-4: #18173a;
+	--sky-5: #1d1736;
+	--sky-6: #151127;
+	--sun: #e9e4ff; /* the moon */
+	--sun-low: #e9e4ff; /* the moon keeps its colour */
+	--sun-travel: 0.35; /* and only drifts a little */
+	--pic-dusk: 40%; /* by night each colour glows like a lantern, not a lamp */
+	--pic-lift: #3b4668;
+	--vault: #343c52;
+	--vault-ink: #eef0f4;
+	--moon-o: 0;
+	--cloud-o: 0.07;
+	--birds-o: 0;
+	--stars-o: 0.85;
+	--by-night: 1;
+	--table-2: #111722;
+	--stock: #161b25;
+	--stock-2: #1e2430;
+	--stock-edge: rgba(238, 240, 244, 0.08);
+	--rule: #263041;
+	--rule-card: #2a313d;
+	--red: #e8564b;
+	--blue: #5b8fe6;
+	--postmark: rgba(201, 211, 230, 0.82);
+	--card-shadow: 0 0 0 1px rgba(238, 240, 244, 0.06), 0 18px 40px -22px rgba(0, 0, 0, 0.9);
+	--lift-shadow: 0 0 0 1px rgba(238, 240, 244, 0.08), 0 28px 56px -24px rgba(0, 0, 0, 0.95);
+	--device: #000000;
+	--device-edge: rgba(238, 240, 244, 0.14);
+
+	--paper: #0c1017;
+	--paper-2: #151a23;
+	--paper-3: #1e2430;
+	--ink: #eef0f4;
+	--ink-2: #bcc1cb;
+	--ink-3: #969ca8;
+	--line: #2a313d;
+	--seal: #ff6a5c;
+	--seal-ink: #1a0503;
+	--good: #5fd49a;
+	--focus: #7fb0ff;
+	--link: #8ab8ff;
+	--good: #5fd49a;
+	--warn: #f3b35a;
+	--bad: #ff8a80;
+	--glass: rgba(12, 18, 36, 0.72);
+	--glass-edge: rgba(238, 240, 244, 0.08);
+	--scrim: rgba(0, 0, 0, 0.62);
+	--code: #1e2430;
+	--night: #26324d;
+	color-scheme: dark;
 }
 
 * {
@@ -146,8 +244,18 @@ html {
 	}
 }
 body {
+	position: relative;
 	margin: 0;
-	background: var(--table);
+	background: linear-gradient(
+		to bottom,
+		var(--sky-1) 0,
+		var(--sky-2) 8%,
+		var(--sky-3) 52%,
+		var(--sky-35) 62%,
+		var(--sky-4) 72%,
+		var(--sky-5) 86%,
+		var(--sky-6) 100%
+	);
 	color: var(--ink);
 	font-family: var(--font-ui);
 	font-size: 1.0625rem;
@@ -157,6 +265,117 @@ body {
 }
 ::selection {
 	background: color-mix(in srgb, var(--blue) 26%, transparent);
+}
+
+/* ───────── the sky behind everything: a sun over the morning, clouds through the day, stars by night ───────── */
+.scene {
+	--lane: max(16px, (100% - var(--wide)) / 2 + 16px);
+	position: absolute;
+	inset: 0;
+	z-index: 0;
+	overflow: hidden;
+	pointer-events: none;
+}
+.scene::before {
+	/* stars: night only (the tokens give them no opacity by day) */
+	content: '';
+	position: absolute;
+	inset: 0;
+	opacity: var(--stars-o);
+	background: url('stars.svg') 0 0 / 480px 480px;
+}
+main {
+	position: relative;
+	z-index: 1;
+	/* a tilted postcard or the hero phone can reach past the edge as it settles; the body's clip only hides that
+	   (the viewport still pans into it on a phone), clipping here removes it */
+	overflow-x: clip;
+}
+.sunpath {
+	/* the sun's frame: the page's first screen, until the scroll can carry it (then the screen itself) */
+	position: absolute;
+	inset: 0 0 auto;
+	height: max(100vh, 760px);
+	overflow: hidden;
+}
+.sun {
+	position: absolute;
+	top: clamp(-220px, -14vw, -90px);
+	right: clamp(-200px, -10vw, -70px);
+	width: clamp(380px, 50vw, 720px);
+	aspect-ratio: 1;
+	border-radius: 50%;
+	background: radial-gradient(
+		circle,
+		color-mix(in srgb, var(--sun) 80%, #fff) 0 13%,
+		color-mix(in srgb, var(--sun) 72%, transparent) 14%,
+		color-mix(in srgb, var(--sun) 30%, transparent) 36%,
+		transparent 68%
+	);
+}
+.sun::after {
+	/* the same sun at dusk, faded in as it sinks */
+	content: '';
+	position: absolute;
+	inset: 0;
+	border-radius: 50%;
+	opacity: 0;
+	background: radial-gradient(
+		circle,
+		color-mix(in srgb, var(--sun-low) 80%, #fff) 0 13%,
+		color-mix(in srgb, var(--sun-low) 72%, transparent) 14%,
+		color-mix(in srgb, var(--sun-low) 30%, transparent) 36%,
+		transparent 68%
+	);
+}
+.cloud {
+	position: absolute;
+	top: var(--y);
+	left: var(--x);
+	width: var(--w);
+	aspect-ratio: 320 / 120;
+	opacity: calc(var(--o) * var(--cloud-o));
+	background: url('cloud.svg') center / contain no-repeat;
+	filter: drop-shadow(0 18px 24px rgba(36, 70, 120, 0.12));
+}
+.birds {
+	position: absolute;
+	top: var(--y);
+	left: var(--x);
+	width: var(--w);
+	aspect-ratio: 120 / 50;
+	opacity: var(--birds-o);
+	background: url('birds.svg') center / contain no-repeat;
+}
+/* the lanterns keep to the side lanes (--lane), the margin outside the text column, so none ever sits behind a word;
+   on a phone the lane is the 16 px gutter and they shrink to fit it */
+.scene .lit {
+	--s: clamp(10px, var(--lane) - 6px, var(--w));
+	position: absolute;
+	top: var(--y);
+	left: calc((var(--lane) - var(--s)) * var(--j));
+	width: var(--s);
+	height: var(--s);
+	filter: drop-shadow(0 0 8px rgba(255, 178, 84, 0.9)) drop-shadow(0 0 22px rgba(255, 140, 60, 0.4));
+}
+.scene .lit.r {
+	left: auto;
+	right: calc((var(--lane) - var(--s)) * var(--j));
+}
+.scene .by-night {
+	opacity: var(--by-night);
+}
+@media (max-width: 599px) {
+	/* a phone has no side lanes: a lantern in the 16 px gutter reads as a speck, so they keep to the footer's night */
+	.scene .lit {
+		display: none;
+	}
+	.cloud {
+		width: calc(var(--w) * 0.62);
+	}
+	.birds {
+		width: calc(var(--w) * 0.75);
+	}
 }
 a {
 	color: var(--link);
@@ -265,7 +484,8 @@ svg.i {
 	display: flex;
 	gap: 4px;
 }
-.nav a {
+.nav a,
+.nav-theme {
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
@@ -280,7 +500,24 @@ svg.i {
 		background-color 160ms ease,
 		transform 160ms var(--ease-out);
 }
-.nav a:active {
+.nav-theme {
+	justify-content: center;
+	width: 44px;
+	padding: 0;
+	border: 0;
+	background: none;
+	font: inherit;
+	cursor: pointer;
+}
+.nav-theme[hidden] {
+	display: none;
+}
+.nav-theme svg {
+	width: 20px;
+	height: 20px;
+}
+.nav a:active,
+.nav-theme:active {
 	background: var(--table-2);
 	transform: scale(0.97);
 	transition-duration: 0ms;
@@ -290,7 +527,8 @@ svg.i {
 	box-shadow: inset 0 0 0 1px var(--stock-edge);
 }
 @media (hover: hover) and (pointer: fine) {
-	.nav a:hover {
+	.nav a:hover,
+	.nav-theme:hover {
 		background: var(--table-2);
 	}
 	.nav .nav-gh:hover {
@@ -432,12 +670,16 @@ svg.i {
 	transform: scale(0.97);
 	transition-duration: 0ms;
 }
-.text-link {
-	display: inline-flex;
-	align-items: center;
-	gap: 6px;
-	min-height: 44px;
-	font-weight: 650;
+/* the second choice beside it: the same size and shape, on postcard stock */
+.go-paper {
+	background: var(--stock);
+	color: var(--ink);
+	box-shadow: inset 0 0 0 1px var(--stock-edge);
+}
+@media (hover: hover) and (pointer: fine) {
+	.go-paper:hover {
+		background: var(--stock-2);
+	}
 }
 
 /* ───────── hero ───────── */
@@ -483,7 +725,17 @@ svg.i {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
-	gap: 12px 24px;
+	gap: 12px;
+}
+/* on a phone the pair stacks, each the full width, so neither wraps alone */
+@media (max-width: 559px) {
+	.actions {
+		flex-direction: column;
+		align-items: stretch;
+	}
+	.actions .go {
+		justify-content: center;
+	}
 }
 
 /* the hero's table: a picture postcard under, the back of one on top, a phone lying across it */
@@ -598,9 +850,11 @@ svg.i {
 .pc-addr {
 	position: relative;
 	display: grid;
-	align-content: end;
+	align-content: start;
 	gap: 0;
-	padding-bottom: 6px;
+	/* the address starts right below the stamp and its postmark, however its lines wrap, which leaves the corner the
+	   phone lies across empty */
+	padding: 116px 0 6px;
 }
 .pc-addr .stamp {
 	position: absolute;
@@ -608,8 +862,9 @@ svg.i {
 	top: 4px;
 }
 .pc-addr .postmark {
-	right: 46px;
-	top: 44px;
+	/* level with the stamp, striking its left edge as a real one does, never over the address */
+	right: 44px;
+	top: 10px;
 }
 .pc-addr p {
 	padding: 7px 0 3px;
@@ -665,7 +920,7 @@ svg.i {
 	}
 	.pc-addr {
 		position: static;
-		padding-bottom: 4px;
+		padding: 0 0 4px; /* the stamp sits beside the message here, and the postmark is left off */
 	}
 	.pc-addr p {
 		margin-right: 34%;
@@ -806,18 +1061,42 @@ svg.i {
 	--tilt: -1.4deg;
 }
 
-/* the picture side: one spot colour at full strength, printed with a faint halftone */
+/* the picture side: one spot colour at full strength, printed with a faint halftone; by night it sinks toward the sky */
 .pic {
+	--pic: color-mix(in srgb, var(--spot), var(--sky-3) var(--pic-dusk));
 	position: relative;
 	display: grid;
 	place-items: center;
 	padding: 28px 18px 64px;
-	background-color: var(--spot);
-	background-image: radial-gradient(color-mix(in srgb, var(--spot-ink) 14%, transparent) 0.9px, transparent 1.3px);
-	background-size: 7px 7px;
+	background-color: var(--pic);
+	background-image:
+		radial-gradient(color-mix(in srgb, var(--spot-ink) 12%, transparent) 0.9px, transparent 1.3px),
+		radial-gradient(
+			circle at 84% 13%,
+			color-mix(in srgb, #fff 58%, var(--pic)) 0 30px,
+			color-mix(in srgb, #fff 22%, transparent) 31px,
+			transparent 130px
+		),
+		linear-gradient(to bottom, color-mix(in srgb, var(--pic-lift) 24%, var(--pic)), var(--pic) 62%);
+	background-size:
+		7px 7px,
+		100% 100%,
+		100% 100%;
 	color: var(--spot-ink);
 	min-height: 100%;
 	isolation: isolate;
+}
+.pic::after {
+	/* the hills, in a deeper shade of the card's colour */
+	content: '';
+	position: absolute;
+	inset: auto 0 0;
+	z-index: -1;
+	height: 26%;
+	background: color-mix(in srgb, var(--pic) 74%, #000);
+	-webkit-mask: url('hills.svg') bottom / 100% 100% no-repeat;
+	mask: url('hills.svg') bottom / 100% 100% no-repeat;
+	pointer-events: none;
 }
 .pic-cap {
 	position: absolute;
@@ -826,6 +1105,15 @@ svg.i {
 	font-family: var(--font-brush);
 	font-size: 1.375rem;
 	line-height: 1;
+	opacity: 0.9;
+}
+.back::before,
+.packing::before {
+	content: '';
+	position: absolute;
+	inset: 0 0 auto;
+	height: 6px;
+	background: repeating-linear-gradient(-45deg, var(--red) 0 13px, transparent 13px 19px, var(--blue) 19px 32px, transparent 32px 38px);
 	opacity: 0.9;
 }
 .back {
@@ -887,35 +1175,39 @@ svg.i {
 	color: var(--ink-2);
 }
 
-/* the pause button on every demo (WCAG 2.2.2): a filled paper chip, label and icon */
+/* the pause button on every demo (WCAG 2.2.2): a round paper disc with the glyph alone, under the phone's right edge
+   in the card's bottom margin, so it never covers the screen it controls. Its words are for screen readers */
 .pause {
 	position: absolute;
-	left: 12px;
-	bottom: 12px;
+	top: 100%;
+	right: 0;
 	z-index: 5;
-	display: inline-flex;
-	align-items: center;
-	gap: 8px;
-	min-height: 44px;
-	padding: 0 14px 0 12px;
+	margin-top: 10px;
+	display: grid;
+	place-items: center;
+	width: 44px;
+	height: 44px;
+	padding: 0;
 	border: 0;
-	border-radius: 10px;
+	border-radius: 50%;
 	background: var(--stock);
 	color: var(--ink);
 	box-shadow:
 		0 0 0 1px var(--stock-edge),
 		0 6px 14px -8px rgba(12, 18, 34, 0.5);
-	font: 700 0.9375rem/1 var(--font-ui);
 	cursor: pointer;
 	transition: transform 160ms var(--ease-out);
+}
+.pause:focus-visible {
+	border-radius: 50%;
 }
 .pause:active {
 	transform: scale(0.96);
 	transition-duration: 0ms;
 }
 .pause svg {
-	width: 16px;
-	height: 16px;
+	width: 18px;
+	height: 18px;
 	fill: currentColor;
 	stroke: none;
 }
@@ -3757,16 +4049,21 @@ html:not(.js) .demo .route * {
 		gap: 48px;
 	}
 }
+/* the packing list: a sheet the planner wrote on, under the same airmail edge as the postcards, ticked in ballpoint */
 .packing {
+	--hand: color-mix(in srgb, var(--blue) 72%, var(--ink));
 	position: relative;
-	padding: 28px 26px 26px;
+	padding: 30px 26px 26px;
 	border-radius: var(--r-card);
 	background: var(--stock);
 	box-shadow: var(--card-shadow);
 	transform: rotate(-0.6deg);
-	/* ruled like a notebook page, in the table's blue */
-	background-image: repeating-linear-gradient(to bottom, transparent 0 43px, color-mix(in srgb, var(--blue) 16%, transparent) 43px 44px);
-	background-position: 0 70px;
+}
+.packing::before {
+	border-radius: var(--r-card) var(--r-card) 0 0;
+}
+.packing .note-brush {
+	margin-bottom: 6px;
 }
 .packing h3,
 .tag h3 {
@@ -3787,32 +4084,41 @@ html:not(.js) .demo .route * {
 	gap: 12px;
 	align-items: start;
 	padding: 10px 0;
+	/* ruled like a notebook page, in the table's blue: a line under each item, so none runs through a wrapped one */
+	border-bottom: 1px solid color-mix(in srgb, var(--blue) 16%, transparent);
 	font-weight: 600;
 	line-height: 1.4;
 }
 .packing li svg {
 	width: 26px;
 	height: 26px;
-	padding: 3px;
-	border-radius: 7px;
-	background: var(--good);
-	color: var(--paper);
-	stroke-width: 3;
+	color: var(--blue);
+	stroke-width: 2.6;
+}
+/* a hand never ticks the same way twice */
+.packing li:nth-child(3n + 2) svg {
+	rotate: -7deg;
+}
+.packing li:nth-child(3n) svg {
+	rotate: 5deg;
+	scale: 0.94;
 }
 .packing li span {
 	padding-top: 2px;
 }
-/* the list in groups, two columns where they fit; each heading takes one ruled line */
+/* the list in groups, flowing down two columns where they fit (so a short group leaves no hole beside a long one);
+   each heading takes one ruled line */
 .pack-groups {
-	display: grid;
-	grid-template-columns: minmax(0, 1fr);
 	column-gap: 36px;
 	margin-top: 18px;
 }
 @media (min-width: 700px) {
 	.pack-groups {
-		grid-template-columns: repeat(2, minmax(0, 1fr));
+		columns: 2;
 	}
+}
+.pack-group {
+	break-inside: avoid;
 }
 .pack-group h4 {
 	margin: 0;
@@ -4121,19 +4427,59 @@ thead th.rec {
 	}
 }
 
-/* ───────── footer: the envelope's edge ───────── */
+/* ───────── footer: lantern night, the end of the day ───────── */
 .foot {
-	margin-top: clamp(80px, 10vw, 128px);
+	--ink: #eef0f4;
+	--ink-2: #c9cfe0;
+	--link: #a9c8ff;
+	--focus: #a9c8ff;
+	margin-top: clamp(64px, 8vw, 104px);
 	position: relative;
-	background: var(--stock);
+	z-index: 1;
+	color: var(--ink-2);
+	background: linear-gradient(to bottom, transparent 0, #3a2d5c 22%, #1d1840 46%, #120f26 70%);
 }
-.foot .airmail {
-	height: 10px;
+.night {
+	position: relative;
+	height: clamp(220px, 26vw, 320px);
+	overflow: hidden;
+	background: url('stars.svg') 0 0 / 480px 480px;
+	-webkit-mask: linear-gradient(to bottom, transparent, #000 34%);
+	mask: linear-gradient(to bottom, transparent, #000 34%);
+}
+.night .moon {
+	position: absolute;
+	right: 14%;
+	top: 14%;
+	width: clamp(34px, 4vw, 54px);
+	aspect-ratio: 1;
+	border-radius: 50%;
+	opacity: var(--moon-o);
+	background: radial-gradient(circle at 38% 36%, #fffdf6, #ece7ff 60%, #d3cbf3);
+	box-shadow:
+		0 0 22px 6px rgba(236, 231, 255, 0.32),
+		0 0 80px 22px rgba(236, 231, 255, 0.12);
+}
+.night .ridge {
+	position: absolute;
+	inset: auto 0 0;
+	width: 100%;
+	height: 46%;
+}
+.night .lit {
+	position: absolute;
+	left: var(--x);
+	top: var(--y);
+	filter: drop-shadow(0 0 8px rgba(255, 178, 84, 0.9)) drop-shadow(0 0 22px rgba(255, 140, 60, 0.45));
+}
+.foot .brush-sm {
+	color: #ffffff;
+	line-height: 0; /* the larger brush word mustn't push its line down */
 }
 .foot-in {
 	max-width: var(--wide);
 	margin: 0 auto;
-	padding: 28px 16px 48px;
+	padding: 4px 16px 48px;
 	display: grid;
 	gap: 12px;
 	color: var(--ink-2);
@@ -4144,7 +4490,8 @@ thead th.rec {
 		padding-inline: 24px;
 	}
 }
-.foot a {
+/* the row of links gets 44 px taps; a link inside a sentence stays inline, so its line keeps the paragraph's spacing */
+.foot-links a {
 	display: inline-flex;
 	align-items: center;
 	min-height: 44px;
@@ -4216,5 +4563,103 @@ thead th.rec {
 	.table-wrap,
 	.pause {
 		box-shadow: 0 0 0 1px var(--ink);
+	}
+}
+
+/* scrolling is the day passing: clouds drift with the page, and the footer's lanterns rise as it comes into view.
+   Tied to the scroll, so nothing in the background moves by itself (WCAG 2.2.2); where the browser can't, they hold */
+@supports (animation-timeline: scroll()) {
+	@media (prefers-reduced-motion: no-preference) {
+		.cloud,
+		.birds {
+			animation: drift linear both;
+			animation-timeline: scroll(root);
+		}
+		/* the sun keeps to the screen and sets as the page nears night, warming as it goes */
+		.sunpath {
+			position: fixed;
+			inset: 0;
+			height: auto;
+		}
+		.sun {
+			animation: sunset linear both;
+			animation-timeline: scroll(root);
+		}
+		.sun::after {
+			animation: dusk linear both;
+			animation-timeline: scroll(root);
+		}
+		.night .moon {
+			animation: moonrise linear both;
+			animation-timeline: view();
+			animation-range: entry 0% cover 60%;
+		}
+		.scene .lit {
+			animation: float-up linear both;
+			animation-timeline: scroll(root);
+		}
+		.night .lit {
+			animation: lift linear both;
+			animation-timeline: view();
+			animation-range: entry 0% cover 70%;
+		}
+	}
+}
+@keyframes drift {
+	from {
+		translate: calc(var(--drift) * -1) 0;
+	}
+	to {
+		translate: var(--drift) 0;
+	}
+}
+@keyframes sunset {
+	0% {
+		translate: 0 0;
+	}
+	55% {
+		translate: calc(var(--sun-travel) * -4vw) calc(var(--sun-travel) * 40vh);
+	}
+	86% {
+		translate: calc(var(--sun-travel) * -8vw) calc(var(--sun-travel) * 78vh);
+	}
+	100% {
+		translate: calc(var(--sun-travel) * -10vw) calc(var(--sun-travel) * 115vh);
+	}
+}
+@keyframes dusk {
+	0%,
+	30% {
+		opacity: 0;
+	}
+	80%,
+	100% {
+		opacity: 1;
+	}
+}
+@keyframes moonrise {
+	from {
+		translate: 0 70px;
+	}
+	to {
+		translate: 0 0;
+	}
+}
+@keyframes float-up {
+	from {
+		translate: 0 140px;
+	}
+	to {
+		translate: 0 -140px;
+	}
+}
+@keyframes lift {
+	from {
+		translate: 0 calc(60px + var(--d) * 50px);
+		scale: 0.8;
+	}
+	to {
+		translate: 0 0;
+		scale: 1;
 	}
 }

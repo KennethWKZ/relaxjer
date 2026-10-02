@@ -1,6 +1,6 @@
 ---
 created: 2026-10-01
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # Testing
@@ -47,6 +47,14 @@ Tier 0 (`pnpm test`) runs on every commit, so keep it under a few seconds: no ne
   parallel and every sync page holds the same trip id. Setup also gives it a planner code (`TEST_PLANNER_CODE`), so the
   specs can claim planner on a phone and block the other; `add-stop.spec.mjs` covers Undo and the 4-stop caution on a
   page with no sync.
+- **The landing page runs in the same projects** (`tests/e2e/site.spec.mjs`): global setup copies `site/` beside the
+  trip page, and the spec opens it with motion on, because that's where its overflow and its moving sky live. A state
+  that only lasts a moment, a postcard part-way through settling, is measured by seeking its animation through its
+  run, not by hoping a sampled frame lands on it. It skips under `TRIP_DIR` and `LEGACY_ENGINE_DIR`: the landing page
+  depends on neither, so those runs would only repeat it. Its checks walk the whole page, and CI's WebKit paints the sky's blur and
+  glow in software, several times slower than a laptop, so in WebKit they get 120 s (`test.setTimeout` in a `beforeEach`; a file-level `test.slow(callback)` doesn't reach the tests' timeout). Keep them cheap
+  anyway: settle what the check doesn't measure up front, scroll instantly, and work out what doesn't change with the
+  scroll once.
 - **The real database rules run on Firebase's emulator,** not in CI: `pnpm test:sync-rules` (needs Java; firebase-tools
   comes through npx). Run it after any change to `scripts/sync/database.rules.json`, and change the stand-in to match.
 

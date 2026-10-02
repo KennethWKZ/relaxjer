@@ -27,7 +27,8 @@ try {
 } catch {
 	/* old browser: no section skipping */
 } // see style.css: content-visibility needs scroll anchoring
-let lang = store.get('lang', 'zh') === 'en' ? 'en' : 'zh';
+// the live demo (build --demo-clock) greets its visitors, who come from an English landing page, in English
+let lang = store.get('lang', window.DEMO_CLOCK ? 'en' : 'zh') === 'en' ? 'en' : 'zh';
 let themePref = ['dark', 'system'].includes(store.get('theme', 'light')) ? store.get('theme') : 'light';
 let checks = store.get('checks', {}) || {};
 // group sync (ADR-20261001-group-sync): on when the build put the trip's database in (pnpm build --sync). Then added

@@ -46,6 +46,20 @@ function fltEditHTML(kind) {
       <details class="flt-d"><summary>${icon('clock')}${Z('航班延误？改时间', 'Flight delayed? Change the time')}${icon('chev', 'chev')}</summary><div class="flt-f"><input type="time" data-flt="${kind}" value="${esc(cur)}" aria-label="${Z('新时间', 'New time')}"><button type="button" class="go-btn" data-flt-save="${kind}">${icon('check')}${Z('保存并重算', 'Save & recalculate')}</button>${moved ? `<button type="button" class="go-btn ghost" data-flt-reset="${kind}">${Z(`改回 ${booked}`, `Back to ${booked}`)}</button>` : ''}</div><p class="xsmall muted">${SYNC ? Z('全组的页面都会跟着改。', 'Everyone’s page changes with it.') : Z('存在这支手机；其他人要在自己手机改。', 'Saved on this phone; others change theirs.')}</p></details></div>`;
 }
 
+// the live demo (build --demo-clock): a strip that says what this page is, and the way back to the landing page
+function demoStrip() {
+	if (!window.DEMO_CLOCK) return;
+	let el = $('#demoStrip');
+	if (!el) {
+		$('#app').insertAdjacentHTML('beforebegin', '<p class="demo-strip" id="demoStrip"></p>');
+		el = $('#demoStrip');
+	}
+	const clock = window.DEMO_CLOCK;
+	const day = DAYS.find((d) => d.date === clock.slice(0, 10));
+	const when = `${dateLabel(clock.slice(0, 10), day && day.dow)} ${clock.slice(11)}`;
+	el.innerHTML = `<span>${esc(Z(`示范行程：时钟从 ${when}（当地时间）开始走。`, `Demo trip: its clock starts at ${when}, local time, and runs on.`))}</span><a href="../">${Z('回到 RelaxJer', 'Back to RelaxJer')}</a>`;
+}
+
 function render() {
 	applyFlights();
 	applyShifts();
@@ -60,6 +74,14 @@ function render() {
 	lb.setAttribute('aria-label', other === 'en' ? 'English · 改用英文' : '中文 · Switch to Chinese');
 	lb.title = lb.getAttribute('aria-label');
 	$('#brand-dates').textContent = Time.rangeLabel(TRIP.start, TRIP.end, lang);
+	// the tab's title in the reader's language: the brand lettering in Chinese, the trip's English name in English. The
+	// header keeps the brand as the trip's mark (it's the home-screen name too) and names it in the reader's language.
+	const tripName = lang === 'en' && Array.isArray(TRIP.name) && TRIP.name[1] ? TRIP.name[1] : BRAND;
+	document.title = `${tripName} ${TRIP.start.slice(0, 4)}`;
+	const mark = $('a.brand');
+	mark.setAttribute('aria-label', tripName);
+	if (tripName === BRAND) mark.removeAttribute('title');
+	else mark.title = tripName;
 	$('#q').placeholder = L(TRIP.searchHint);
 	$('#searchBtn').setAttribute('aria-label', Z('搜索', 'Search'));
 	homeSync();
@@ -72,6 +94,7 @@ function render() {
 	applyTheme();
 	$('#searchClose').textContent = Z('完成', 'Done');
 	$('#foot').innerHTML = esc(L(TRIP.footer));
+	demoStrip();
 	renderTabs(now.date);
 	if (mapFullOn) {
 		mapFullOn = false;

@@ -54,6 +54,31 @@ test('Time: ordinals', () => {
 test('Time: now in the destination, not on the phone', () => {
 	const at = new Date('2027-03-13T17:30:00Z'); // 01:30 next day in Taipei
 	assert.deepEqual(Time.nowIn('Asia/Taipei', at), { date: '2027-03-14', mins: 90 });
+	// the live demo's clock opens at its set moment and runs on, across midnight too
+	assert.deepEqual(Time.demoNow('2027-03-15 10:05', 0), { date: '2027-03-15', mins: 605 });
+	assert.deepEqual(Time.demoNow('2027-03-15 10:05', 30 * 6e4 + 59e3), { date: '2027-03-15', mins: 635 });
+	assert.deepEqual(Time.demoNow('2027-03-15 23:50', 20 * 6e4), { date: '2027-03-16', mins: 10 });
+	assert.deepEqual(Time.demoNow('2027-03-15 10:05', -5e3), { date: '2027-03-15', mins: 605 }, 'a clock set back never runs it backwards');
+	// the live demo moves into the visitor's year by whole weeks: the same weekday, the nearest date
+	assert.equal(Time.demoShift('2027-03-13', '2027-10-02'), 0);
+	assert.equal(Time.demoShift('2027-03-13', '2026-10-02'), -364);
+	for (const [today, start] of [
+		['2028-06-01', '2028-03-11'],
+		['2029-01-01', '2029-03-10'],
+		['2031-12-31', '2031-03-15'],
+		['2032-02-29', '2032-03-13'],
+	]) {
+		const n = Time.demoShift('2027-03-13', today);
+		assert.equal(n % 7, 0, `${today}: whole weeks`);
+		assert.equal(Time.addDays('2027-03-13', n), start, `${today}: lands on ${start}`);
+		assert.equal(Time.weekdayIndex(Time.addDays('2027-03-13', n)), Time.weekdayIndex('2027-03-13'), `${today}: still a Saturday`);
+	}
+	assert.equal(
+		Time.shiftDates('due 2027-03-10, checked 2027-03-01 · at 2027-03-15 10:05 · data from 2026-09-30', 364, '2026-11-13', '2027-07-17'),
+		'due 2028-03-08, checked 2028-02-28 · at 2028-03-13 10:05 · data from 2026-09-30',
+		'trip-season dates move; a date outside the season (a source) stays',
+	);
+	assert.equal(Time.shiftDates('2027-03-10', 0, '2027-01-01', '2027-12-31'), '2027-03-10');
 	assert.deepEqual(Time.nowIn('Asia/Tokyo', at), { date: '2027-03-14', mins: 150 });
 });
 

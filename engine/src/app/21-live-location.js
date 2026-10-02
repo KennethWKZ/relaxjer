@@ -149,6 +149,7 @@ function geoBusy(b) {
 }
 function geoAsk() {
 	if (store.get('geoNo', null) === tpNow().date) return '';
+	if (window.DEMO_CLOCK) return ''; // a live-demo visitor isn't on the trip: where they are can't say if the group is late
 	const card = (title, text, action) =>
 		`<div class="geo-ask"><p class="late-h">${icon('pin')}<span>${title}</span></p>
       <p class="small">${text}</p>

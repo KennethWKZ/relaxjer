@@ -89,8 +89,8 @@ the hotel's old-name note assumes `PLACES.hotel`.
   Before launch it still needs a formal MyIPO + SSM check.
 - **Hosting:** GitHub Pages serves one simple landing page: what RelaxJer is, and how a family uses the repo to plan
   their trip (clone, add their own keys, describe the trip to the agent, build, publish behind a password). No trip
-  pages go on Pages, not even the demo. Pages sites are public even from a private repo, so real trips keep a
-  password-gated host (ht-ml.app today). The `publish-htmlapp` skill refuses to push a real trip to Pages.
+  pages go on Pages but the synthetic demo, which CI builds with no key (ADR-20261002-live-demo-on-pages, 2026-10-02).
+  Pages sites are public even from a private repo, so real trips keep a password-gated host (ht-ml.app today). The `publish-htmlapp` skill refuses to push a real trip to Pages.
 - ~~Google's terms vs the data cache~~: Google allows storing place IDs, and coordinates for 30 days, and expects Places
   content on a Google map. The pipeline stores fetched details in trip files, and the MapLibre fallback shows them.
   **Published without a legal read**, decided 2026-10-01 for a self-learning, non-commercial project: the guide says up

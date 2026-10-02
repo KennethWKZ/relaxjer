@@ -1,6 +1,6 @@
 // Build: engine/src/* + a trip's data and img/ → <name>.html (artifact body) and <name>-standalone.html (single file,
 // images inlined), plus the My Maps KML. Moved verbatim from the first trip's repo; only where files are read and written changed.
-//   node engine/build.mjs --trip <trip dir> [--out <dir>] [--keys <google.json>] [--sync <sync.json>]
+//   node engine/build.mjs --trip <trip dir> [--out <dir>] [--keys <google.json>] [--sync <sync.json>] [--demo-clock <YYYY-MM-DD HH:MM>]
 // The trip dir holds data.js, the *.json side files and img/. The Google browser key + Map ID go in only when --keys
 // names a file (keep it outside the repo, e.g. ~/.config/relaxjer/google.json, mode 600): a page built without it,
 // like the demo, can be shared without leaking a key. Without one the page keeps the free MapLibre map.
@@ -22,8 +22,22 @@ const trip = path.resolve(arg('trip', ''));
 const out = path.resolve(arg('out', path.join(trip, 'dist')));
 const keysFile = arg('keys', 'none').replace(/^~(?=\/)/, os.homedir());
 const syncFile = arg('sync', 'none').replace(/^~(?=\/)/, os.homedir());
+// the live demo's clock (ADR-20261002-live-demo-on-pages): the page opens at this moment of the trip, in the trip's own
+// time, and runs on from there, so a visitor sees a day under way. The demo trip only: a real trip keeps the real time.
+const demoClock = arg('demo-clock', null);
+if (demoClock && !/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(demoClock)) {
+	console.error(`--demo-clock: YYYY-MM-DD HH:MM in the trip's time, got ${JSON.stringify(demoClock)}`);
+	process.exit(2);
+}
+// strict on purpose: the repo's own demo folder by path, so a copy or a link of it is refused too
+if (demoClock && trip !== path.resolve(engine, '..', 'examples', 'demo-trip')) {
+	console.error('--demo-clock is for the demo trip (examples/demo-trip) only: a real trip keeps the real time');
+	process.exit(2);
+}
 if (!arg('trip') || !fs.existsSync(path.join(trip, 'data.js'))) {
-	console.error('usage: node engine/build.mjs --trip <dir with data.js> [--out <dir>] [--keys <google.json>] [--sync <sync.json>]');
+	console.error(
+		'usage: node engine/build.mjs --trip <dir with data.js> [--out <dir>] [--keys <google.json>] [--sync <sync.json>] [--demo-clock <YYYY-MM-DD HH:MM>]',
+	);
 	process.exit(2);
 }
 fs.mkdirSync(out, { recursive: true });
@@ -235,7 +249,7 @@ const head = `<title>${htmlEsc(title)}</title>
 const scripts = (
 	imgMap,
 	kmlB64,
-) => `<script>window.CREDITS=${safe(credits)};window.GEO=${safe(geo)};window.EXTRA=${safe(extra)};window.WISH=${safe(wish)};window.SHARE_URL=${safe(shareUrl)};window.APP_ICONS=${safe(APP_ICONS)};window.GMAPS=${safe(gmaps)};window.SYNC=${safe(sync)};window.FORECAST=${safe(forecast)};window.DRINKS=${safe(drinks)};window.TOILETS=${safe(toilets)};window.MRT=${safe(mrt)};window.YB=${safe(transit.yb)};window.BUS=${safe(transit.bus)};window.SHOPS=${safe(shops)};window.KML_B64=${safe(kmlB64 || '')};${imgMap ? `window.IMG=${imgMap ? 'null' : 'null'};` : ''}</script>
+) => `<script>window.CREDITS=${safe(credits)};window.GEO=${safe(geo)};window.EXTRA=${safe(extra)};window.WISH=${safe(wish)};window.SHARE_URL=${safe(shareUrl)};window.APP_ICONS=${safe(APP_ICONS)};window.GMAPS=${safe(gmaps)};window.SYNC=${safe(sync)};window.DEMO_CLOCK=${safe(demoClock)};window.FORECAST=${safe(forecast)};window.DRINKS=${safe(drinks)};window.TOILETS=${safe(toilets)};window.MRT=${safe(mrt)};window.YB=${safe(transit.yb)};window.BUS=${safe(transit.bus)};window.SHOPS=${safe(shops)};window.KML_B64=${safe(kmlB64 || '')};${imgMap ? `window.IMG=${imgMap ? 'null' : 'null'};` : ''}</script>
 <script>${data}</script>
 <script>${app}</script>`;
 
@@ -287,7 +301,7 @@ ${scripts(imgMap, kmlB64)}
 };
 const { artifact, standalone, kb } = writePages('');
 console.log(
-	`google key ${gmaps ? 'yes' : 'no'} · group sync ${sync ? `yes (planner code ${sync.planner ? 'set' : 'not set'})` : 'no'} · artifact ${kb(artifact)} · standalone ${kb(standalone)} · photos ${credits.length} · geo ${geo ? 'yes' : 'no'} · food ${extra.food?.length || 0} · tickets ${extra.tickets?.length || 0} · wish ${wish.length} · brush glyphs ${brush.size}`,
+	`google key ${gmaps ? 'yes' : 'no'} · group sync ${sync ? `yes (planner code ${sync.planner ? 'set' : 'not set'})` : 'no'}${demoClock ? ` · demo clock ${demoClock}` : ''} · artifact ${kb(artifact)} · standalone ${kb(standalone)} · photos ${credits.length} · geo ${geo ? 'yes' : 'no'} · food ${extra.food?.length || 0} · tickets ${extra.tickets?.length || 0} · wish ${wish.length} · brush glyphs ${brush.size}`,
 );
 
 // 3) Google My Maps export (KML): one combined file + one file per layer

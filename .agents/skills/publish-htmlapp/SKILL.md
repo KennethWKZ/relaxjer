@@ -11,7 +11,7 @@ publish and every republish**, unless they have told you to publish this change.
 ## Refuse
 
 - **GitHub Pages, or any public link, for a real trip.** A trip page carries hotels, flights and names. Pages hosts the
-  project's landing page only.
+  project's landing page and the synthetic demo trip, which `pages.yml` builds; nothing you publish goes there.
 - **A page that failed `verify-page`**, or wasn't verified.
 - **A page built with a key the planner didn't mean to ship.** The build's own output line says whether a key went in.
 

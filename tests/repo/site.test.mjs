@@ -1,13 +1,17 @@
 // The landing page (site/) is public, so it may only ever show the synthetic demo, it must work under GitHub Pages'
-// /relaxjer/ sub-path, and its deploy must publish site/ and nothing else (ADR-20260930-repo-layout; story step 6b).
+// /relaxjer/ sub-path, and its deploy must publish site/ and the demo trip's page and nothing else
+// (ADR-20260930-repo-layout, ADR-20261002-live-demo-on-pages; story step 6b).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { ROOT } from '../support/stage.mjs';
 
 const SITE = path.join(ROOT, 'site');
 const html = fs.readFileSync(path.join(SITE, 'index.html'), 'utf8');
+// pages built at deploy time, beside site/ (pages.yml): the live demo
+const BUILT = new Set(['demo/']);
 const files = fs
 	.readdirSync(SITE, { recursive: true, withFileTypes: true })
 	.filter((e) => e.isFile())
@@ -16,7 +20,7 @@ const files = fs
 test('every local asset the page links resolves, relative to the page', () => {
 	const refs = [...html.matchAll(/\s(?:src|href|srcset)="([^"#]+)"/g)].map((m) => m[1]).filter((u) => !/^(https?:|mailto:)/.test(u));
 	assert.ok(refs.length > 5);
-	const bad = refs.filter((u) => u.startsWith('/') || !fs.existsSync(path.join(SITE, u)));
+	const bad = refs.filter((u) => u.startsWith('/') || !(BUILT.has(u) || fs.existsSync(path.join(SITE, u))));
 	assert.deepEqual(bad, [], 'a root-relative path breaks under the /relaxjer/ sub-path; a missing file breaks the page');
 	// inline data: URLs (the lantern's paper fibre) hold their own url(#…) references; only files matter here
 	const css = fs.readFileSync(path.join(SITE, 'assets', 'site.css'), 'utf8').replace(/url\("data:[^"]*"\)/g, '');
@@ -28,6 +32,24 @@ test('the page loads no third-party script, style or font', () => {
 	// a canonical link names the page's own address; it loads nothing
 	assert.doesNotMatch(html, /<link(?![^>]*rel="canonical")[^>]+href="https?:/);
 	assert.doesNotMatch(fs.readFileSync(path.join(SITE, 'assets', 'site.css'), 'utf8'), /@import|url\(['"]?https?:/);
+});
+
+test('the night theme reads the same whether the system or the theme button asks for it', () => {
+	const css = fs.readFileSync(path.join(SITE, 'assets', 'site.css'), 'utf8');
+	const decls = (body) =>
+		body
+			.split(';')
+			.map((d) => d.replace(/\/\*[\s\S]*?\*\//g, '').trim())
+			.filter(Boolean);
+	const bySystem = css.match(/@media \(prefers-color-scheme: dark\) \{\s*:root:not\(\[data-theme='light'\]\) \{([^}]*)\}\s*\}/)?.[1];
+	const byButton = css.match(/\n:root\[data-theme='dark'\] \{([^}]*)\}/)?.[1];
+	assert.ok(bySystem && byButton, 'site.css keeps the night tokens in both blocks');
+	assert.deepEqual(decls(byButton), decls(bySystem), 'the two night blocks have drifted apart');
+	// the choice applies before the body paints, and a button that can't work without the script starts hidden
+	assert.match(html.slice(0, html.indexOf('</head>')), /<script src="assets\/theme\.js"><\/script>/);
+	assert.match(html, /<button class="nav-theme"[^>]*\shidden>/);
+	for (const tag of html.match(/<source\b[^>]*prefers-color-scheme[^>]*>/g) || [])
+		assert.match(tag, /\sdata-dark\s/, `the button can't switch ${tag}`);
 });
 
 test('every image has alt text, and every screenshot is the synthetic demo with its provenance beside it', () => {
@@ -83,10 +105,37 @@ test('every animated demo can be paused, and says in words what it shows', () =>
 	}
 });
 
-test('the Pages workflow publishes site/ only, with actions pinned to commit SHAs', () => {
+test('the Pages workflow publishes site/ and the demo trip, never a real trip, with actions pinned to commit SHAs', () => {
 	const wf = fs.readFileSync(path.join(ROOT, '.github', 'workflows', 'pages.yml'), 'utf8');
-	assert.match(wf, /upload-pages-artifact@[0-9a-f]{40}[\s\S]*?path: site\b/);
+	assert.match(wf, /upload-pages-artifact@[0-9a-f]{40}[\s\S]*?path: _site\b/);
+	// what goes up: site/ as it is, and the demo trip's single file at demo/
+	const copies = [...wf.matchAll(/^\s*cp\s+(.+)$/gm)].map((m) => m[1].trim());
+	assert.deepEqual(copies, ['-R site/. _site/', '.cache/demo/trip-standalone.html _site/demo/index.html']);
+	// the only trip it ever builds is the synthetic demo, with no key, no sync file and no secret anywhere
+	const trips = [...wf.matchAll(/--trip\s+(\S+)/g)].map((m) => m[1]);
+	assert.deepEqual(trips, ['examples/demo-trip']);
+	assert.doesNotMatch(wf, /--keys|--sync|secrets\.|GOOGLE_|FIREBASE_/);
+	assert.match(wf, /grep -q 'google key no · group sync no · demo clock /, 'the build itself must report no key and no sync');
+	assert.match(wf, /set -o pipefail[\s\S]*engine\/build\.mjs[^\n]*\| tee/, 'a failing build must fail the step, not hide behind tee');
+	assert.match(wf, /pnpm test && pnpm test:release[\s\S]*engine\/build\.mjs/, 'the demo contract and the release gate run before the build');
 	for (const [, ref] of wf.matchAll(/uses:\s*[\w./-]+@(\S+)/g)) assert.match(ref, /^[0-9a-f]{40}$/, `unpinned action ref: ${ref}`);
 	assert.match(wf, /pages: write/);
 	assert.match(wf, /id-token: write/);
+});
+
+test("the demo clock is the demo trip's only: the build refuses it for any other trip", () => {
+	const r = spawnSync(
+		process.execPath,
+		[path.join(ROOT, 'engine', 'build.mjs'), '--trip', path.join(ROOT, 'tests'), '--demo-clock', '2027-03-15 10:05'],
+		{ encoding: 'utf8' },
+	);
+	assert.equal(r.status, 2);
+	assert.match(r.stderr, /for the demo trip \(examples\/demo-trip\) only/);
+	const bad = spawnSync(
+		process.execPath,
+		[path.join(ROOT, 'engine', 'build.mjs'), '--trip', path.join(ROOT, 'examples', 'demo-trip'), '--demo-clock', 'tomorrow'],
+		{ encoding: 'utf8' },
+	);
+	assert.equal(bad.status, 2);
+	assert.match(bad.stderr, /YYYY-MM-DD HH:MM/);
 });

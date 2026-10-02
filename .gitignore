@@ -5,6 +5,8 @@
 # Builds, caches, test output
 /dist/
 /.cache/
+# the live demo, built into site/ only at deploy time (pages.yml) or for a local look
+/site/demo/
 /test-results/
 /playwright-report/
 /blob-report/

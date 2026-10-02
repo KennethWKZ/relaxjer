@@ -510,16 +510,71 @@ Easing is `--ease-out` for anything that moves; the landing ring is the exceptio
 
 ## Surface: the landing page (site/)
 
-The GitHub Pages page (`site/index.html`, `site/assets/site.css`) is the lantern-paper world applied to one page about planning a trip. It copies the trip page's tokens and follows the system theme (no theme button). The items below are the only deviations or extensions. Everything else follows the sections above.
+The GitHub Pages page (`site/index.html`, `site/assets/site.css`) is the lantern-paper world applied to one page about
+planning a trip: airmail postcards from the demo trip, lying under one trip day's sky
+([ADR-20261002-landing-postcards](memory-bank/standards/decisions/ADR-20261002-landing-postcards.md); the direction
+contract is `.impeccable/surfaces/site-index-html.md`). It copies the trip page's tokens. It starts from the system theme, and a
+sun/moon button in the bar switches day and night (`theme.js`, in `<head>` so a remembered night paints from the first
+frame); the browser remembers a choice only while it differs from the system's. Without the script the page follows
+the system and the button stays hidden. The items below are the only deviations or extensions. Everything else follows the sections above.
 
-- **Steps, not days.** Lantern colours 1–4 (Firecracker Red, Temple Blue, Persimmon, Jade) own the four planning steps. Each step gets its pair in `--c` / `--ci`, the same way the engine writes a day's pair. Lantern colours 5–7 don't appear.
-- **The step string.** Each step's stretch of string is a 2 px line in its colour at 55 %, so the string changes colour at every knot. The knot is the trip page's ordinary stop: a paper ring (14 px) with a 2.5 px `--c` border. A 20 px cord at the same 55 % hangs the lantern from its knot.
-- **Lanterns.** They reuse the engine's paper fibre and bamboo rings verbatim, with the same day shadow, night shadow and night glow. Each holds a brush wish and a sans title. The instructions hang beneath on a paper card that has no top border and 12 px bottom corners.
-- **Brush face.** It's self-hosted, not fetched: `site/assets/fonts/` holds a Ma Shan Zheng subset under the SIL OFL, with the licence beside it. The subset has only the glyphs the page letters (the brand, the four wishes, the seal glyph), so a new brushed glyph means re-subsetting. The brand runs at display scale in the hero (clamp 4rem to 7.5rem, line height 0.95).
-- **Phone frames.** Real 390 px captures of the synthetic demo sit in ink device frames: black at night, with a 1 px light edge. Their radii come from the device, not the component scale: 34 / 25 px (frame / screen) in the hero, 28 / 21 px below 520 px, and 22 / 17 px for the smaller shots. The overlapping hero pair (tilted −5° and 2°) carries a soft device shadow (`0 24px 60px -24px`). Don't carry these radii or this shadow into components.
-- **Fact rows.** The seniors section uses the trip page's key/value rows: a 7.5rem key column in Ink 3 at 750, values at 650, hairline rules between rows, and a lead number at title size (1.4375rem, 800, tabular). Below 420 px the key stacks above the value.
-- **Comparison table.** Rows are split by hairlines, with a 2 px ink rule under the head and column subheads at label size in Ink 3. The recommended column is tinted Temple Blue (`--l2`, step 2's colour, since step 2 connects Google Maps) at 7 %, with a Temple Blue rule under its head. The word "recommended" always sits beside the tint.
-- **Motion.** There is one authored moment. The first time a step scrolls into view, its lantern settles once on its string: a 1100 ms damped swing (−2.4°, 1.1°, −0.4°, 0) pivoting on the knot, 90 ms later for each step. Without the script, or under reduced motion, the lanterns hang still. Presses keep the engine's scale to 0.97.
-- **Flow diagram.** It's drawn in this system's paper and inks with one accent, the step-3 lantern orange. At night that's Persimmon itself. On day paper it's deepened to `#c2530f` (4.6:1), because Persimmon reaches only 3.2:1 on white. The accent is never seal red. The page's one seal sits beside the fixed-times promise.
+- **The sky.** The ground is one day, top to bottom: `--sky-1` to `--sky-6`, a morning blue through a lilac turn
+  (`--sky-35`, never grey) to an afternoon gold and the rose before dusk. A sun sits in the first screen's top right;
+  clouds and birds drift over the hero and the cards. The night theme is the same page under stars (`stars.svg` at
+  0.85), with clouds at 0.07 and no birds. All of it is `aria-hidden` art in `.scene`, a few small SVGs.
+- **The sunset.** Where a scroll timeline exists (`@supports (animation-timeline: scroll())`), the sun keeps to the
+  screen's corner and sinks as the page scrolls, fading into its low colour (`--sun-low`) by the last sections, and a
+  moon rises over the footer. At night the moon drifts only 0.35 of the way. Without a scroll timeline, or under
+  reduced motion, the sky stays painted down the page. Text on the bare sky keeps AA where the sun passes behind it.
+- **Lanterns keep to the side lanes.** A margin lantern sits in `--lane`, the space outside the text column, so none
+  is ever behind a word. Below 600 px there is no lane, so margin lanterns are hidden and only the footer's night has
+  them.
+- **Postcards.** Each feature is a card on postcard stock (`--stock`: white, `#161b25` at night) with 6 px corners, the
+  resting `--card-shadow` and a slight tilt (−1.4° to 1.3°). The back carries a 6 px band of red and blue airmail
+  chevrons on its top edge, a perforated stamp (84 × 100 px, holes punched only at the edge), a round postmark at
+  −11°, the brushed Chinese line (clamp 1.9rem to 2.5rem, in a deepened shade of the card's colour) and a Gabarito
+  headline (800, clamp 1.5rem to 1.875rem).
+- **One spot per postcard.** The picture side is one colour at full strength with a faint halftone, a light at its
+  top and hills in a deeper shade: a lantern colour (1–7), the seal, airmail blue, the night, or the privacy card's
+  dark room (`--vault`, `#15161a`; night grey `#343c52` in the dark theme, never inverted ink). In the dark theme each
+  picture sinks 40 % toward the night sky (`--pic-dusk`) and its top light turns night blue, so the cards glow like
+  lanterns instead of daylight panels.
+- **Phones.** An ink device frame (black at night, with a 1 px light edge): 6 px padding, 26 / 20 px radii
+  (frame / screen) around the hero's real 390 px capture. A card's demo is a drawn mini trip page (`.m`: the page's
+  390 × 760 layout scaled by `--k`, 0.5 to 0.64), with radii scaled from 44 px. The hero phone lies across its
+  postcard at 9°. Don't carry these radii or the device shadow into components.
+- **Pause.** Every looping demo has one: a 44 px round disc of stock under the phone's right edge, in the card's
+  bottom margin, never over the screen it controls. It shows only its glyph, has an accessible name, and turns into a
+  Play disc while paused.
+- **Postmarks.** They're ink at 0.62 by day and a light ink at 0.82 at night, so they read on dark stock. On the
+  hero's postcard the postmark sits level with the stamp, striking its left edge, and the address starts below both,
+  so no line ever runs under the ink or under the phone lying across the corner.
+- **Two choices in the hero.** "Plan your trip" (ink) and "Try the demo trip" (stock with a hairline edge) are the same
+  size and shape, side by side, and stack full width on a phone. Nothing else competes with them there; the Google
+  Maps guide waits in the second step and in the rate card.
+- **The packing list and the luggage tag.** The "also packed in every page" list is a sheet the planner wrote on:
+  postcard stock under the postcards' airmail edge, with a brushed line (也都在这页, "all on this page too", answering
+  the hero's) in ballpoint, airmail blue mixed with ink. Each item is ticked in ballpoint, a hand-drawn airmail-blue
+  stroke that turns a little from item to item, never a filled checkbox, and has a hairline in airmail blue at 16 %
+  under it, never through a wrapped line. The groups, with airmail-blue headings, flow down two columns where they fit,
+  so a short group leaves no hole beside a long one. The seniors facts hang beside it on a luggage tag in lantern 7
+  (gold), with a punched eyelet and a string, using the trip page's key/value rows.
+- **Four stamps on a route.** The how-to's four steps are stamps in lantern colours 1–4, tilted a little each way,
+  with each step's brush wish set vertically, on a dashed airmail route. Each step's card is stock.
+- **Rate card.** Google against the free map is a table on stock: hairline rows, a 2 px ink rule under the head and
+  column subheads at label size in Ink 3. The recommended column is tinted Temple Blue (`--l2`) at 8 %, with a Temple
+  Blue rule under its head, and the word "recommended" always sits beside the tint.
+- **Lantern night.** The footer is the day's end: stars, a two-layer hill ridge, the moon and seven glowing lanterns,
+  with light text on it. Its row of links has 44 px taps; a link inside a sentence stays inline, so its line keeps
+  the paragraph's spacing.
+- **Faces.** Both are self-hosted subsets with their licences in `site/assets/fonts/`: Ma Shan Zheng for the brand and
+  the brushed lines (only the glyphs the page letters, so a new brushed glyph means re-subsetting), and Gabarito
+  (Latin) for headlines. The brand runs at display scale in the hero. Everything operated stays system sans.
+- **Motion.** The sky moves only with the scroll, never by itself. A postcard settles once, the first time it comes
+  into view: it rises 26 px and turns 2.5° back to its tilt over 900 ms, and its postmark presses 520 ms later. A demo
+  loops only while its card is in view. Under reduced motion every demo holds its still frame and the sky holds still.
+  Presses keep the engine's scale to 0.97.
 
-**The Step Not A Day Rule.** On the landing page a lantern colour means one planning step. The only borrowings are the recommended column (step 2's blue) and the flow accent (step 3's orange). Nothing else that belongs to no step takes a lantern colour.
+**The One Spot Rule.** A postcard carries one strong colour, on its picture side. Its back is stock and ink. Only the
+brushed line (a deepened shade) and the stamp (a lantern of its own) carry colour. By night the colour sinks toward the
+sky; it never turns into the brightest thing on the page.

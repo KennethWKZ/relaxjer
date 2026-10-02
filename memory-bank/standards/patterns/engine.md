@@ -47,6 +47,8 @@ pack export instead, document it in `trip-format.md`, and have the contract chec
 1. `pnpm test` (tier 0) and `pnpm test:e2e` (tier 1), or `pnpm test:all` for both plus the short trip.
 2. `pnpm parity --live <legacy repo> --trip trips/<slug>` while the first trip is live: only the known diffs
    ([ADR-20261001-live-page-on-relaxjer](../decisions/ADR-20261001-live-page-on-relaxjer.md)).
+   Against a commit from before 2026-10-02, `pnpm parity --ref` also shows `[en] #_title`: in English the tab's title
+   is the trip's English name now, not its brush name. That one is meant.
 3. A UI change: a real-browser pass at 390 px and desktop, in Chromium and WebKit ([`frontend.md`](./frontend.md)).
 4. Page errors of the last build, with engine line numbers: `node tests/support/probe.mjs [hash] [width]`.
 5. If a known-debt test now passes, delete its `test.fail()` in the same change.

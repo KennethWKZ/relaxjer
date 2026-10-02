@@ -1,6 +1,6 @@
 ---
 created: 2026-10-01
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # Frontend: Design and UX Rules
@@ -52,6 +52,12 @@ states and its feedback, as 25 testable rules with sources.
   drawn as a dashed 22 % tint, no colour-only meaning, and readable at 390 px.
 - **No layout shift, no overflow.** Nothing may run wider than 390 px in either language (the first trip had two such
   bugs). Long words wrap with balanced lines (`text-wrap: balance`), not `nowrap`.
+- **A control never covers what it controls.** A play or pause control, a close button or a floating action sits
+  beside or below the content it acts on, never over it. Where its glyph says enough (pause, play, close), it's an
+  icon-only 44 px button whose words are for screen readers only.
+- **The phone keyboard never hides the field being typed in.** A bottom sheet with a text field moves up to sit on the
+  keyboard while it's open, and the focused field scrolls into view (`.kb-up` in `19-back-button.js`;
+  `knowledge/engine-browser.md`). A new sheet with a field gets the same check in WebKit at 390 px.
 - **Never describe people by family relationship** in any copy.
 - **Avoid the travel-app defaults:** stock hero photos, a teal accent, grids of identical icon cards.
 
@@ -80,14 +86,33 @@ contract are in `.impeccable/surfaces/site-index-html.md`.
   (`<meta>`; no inline script, no connections). Only relative paths, and no third-party script, style or font: the
   brush face and Gabarito are self-hosted subsets in `site/assets/fonts/`, each with its SIL OFL. A new brush glyph
   means fetching a new subset that includes it.
+- **The ground is one trip day, and it stays decoration.** The page's sky runs from a morning sun at the top through
+  an afternoon gold to lantern night in the footer; the night theme puts the same page under stars. Everything in it
+  (`.scene`, the footer's `.night`) is `aria-hidden` art that moves only with the scroll (`animation-timeline`), so it
+  holds still under reduced motion and where a browser lacks scroll timelines. The sun keeps to the screen's corner and
+  sets as the page scrolls (`.sunpath`, fixed only where the scroll can carry it), warming to `--sun-low`, and a moon
+  rises over the footer by day; at night the moon only drifts (`--sun-travel`). Lanterns keep to the side lanes outside
+  the text column (`--lane`), shrinking to fit the 16 px gutter on a phone, so none sits behind a word; clouds may pass
+  behind text because they only lighten the ground. `main` clips sideways (`overflow-x: clip`): a settling postcard
+  or the hero phone can reach past the edge, and the body's clip alone still lets a phone pan into it.
+- **The live demo sits beside it.** `pages.yml` builds the demo trip with no key and no sync file, its clock set to
+  Day 3 mid-morning (`--demo-clock`), in each visitor's own year, and publishes it at `demo/`
+  ([ADR-20261002-live-demo-on-pages](../decisions/ADR-20261002-live-demo-on-pages.md)). That build opens in English,
+  says it's a demo with a link back, and never asks for location. The page links `demo/`
+  relatively; the site test knows it's built at deploy time.
 - **A demo is a drawing of the real page.** Each loop is a mini trip page (`.m`) in CSS keyframes, after a capture of
   the demo build (the synced one for sync features): same strings, same flow. It runs only in view, has a Pause button
-  and an `aria-label="Animated: …"`, and holds its `--still` frame under reduced motion. A UI change on the trip page
+  and an `aria-label="Animated: …"`, and holds its `--still` frame under reduced motion. The Pause button is a round,
+  icon-only 44 px disc under the phone's right edge, in the card's bottom margin, never on the screen it controls; its
+  name ("Pause the … demo", then "Play …") is screen-reader text. A UI change on the trip page
   that a card shows means redrawing that card; no test catches the drift.
 - **Only the demo, ever.** The screenshots come from `node scripts/docs-update/site-screens.mjs`, which builds the
   synthetic demo without a key and writes each image with its provenance sidecar. The flow diagram comes from
   `node scripts/docs-update/flow-diagram.mjs`.
 - **Checked like the trip page.** `tests/repo/site.test.mjs` covers links, third-party requests, alt text,
-  provenance, the file types, the search and preview metadata, a Pause button and a description on every demo, and
-  the SHA-pinned deploy. The eye check is 390 px and desktop, light and dark, in Chromium and WebKit, with reduced
+  provenance, the file types, the search and preview metadata, a Pause button and a description on every demo, the
+  night theme's two token blocks (system and button) staying identical, and the SHA-pinned deploy. `tests/e2e/site.spec.mjs` runs the page with motion on in the four e2e projects and both
+  themes: never wider than the screen, no lantern behind a word, the sun setting with the scroll (and still without
+  motion), every Pause a 44 px disc off its screen that pauses and plays, and the theme button switching day and night, remembered
+  across a reload. The eye check is 390 px and desktop, light and dark, in Chromium and WebKit, with reduced
   motion (the still frames) and without (the loops).

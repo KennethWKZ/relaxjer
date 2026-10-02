@@ -156,7 +156,7 @@ function lateHTML() {
 		? `<p class="shift-on">${icon('clock')}<span>${esc(Z(`今天后面已顺延 +${tot} 分`, `Today's rest pushed back +${tot} min`))}</span><button type="button" class="mlink" data-shift-edit="${d.id}">${Z('调整', 'Adjust')}</button><button type="button" class="mlink" data-shift-clear="${d.date}">${Z('恢复原时间', 'Undo')}</button></p>`
 		: '';
 	const ask = !box
-		? `<div class="late-ask">${!segs.length ? `<button type="button" class="mlink" data-shift-edit="${d.id}">${icon('clock')}${Z('跑慢了？把后面往后推', 'Running late? Push the rest back')}</button>` : ''}${!meLL && navigator.geolocation && !geoAsk() ? `<button type="button" class="mlink" data-late-loc>${icon('pin')}${Z('用我的位置检查进度', 'Check progress from my location')}</button>` : ''}</div>`
+		? `<div class="late-ask">${!segs.length ? `<button type="button" class="mlink" data-shift-edit="${d.id}">${icon('clock')}${Z('跑慢了？把后面往后推', 'Running late? Push the rest back')}</button>` : ''}${!meLL && navigator.geolocation && !window.DEMO_CLOCK && !geoAsk() ? `<button type="button" class="mlink" data-late-loc>${icon('pin')}${Z('用我的位置检查进度', 'Check progress from my location')}</button>` : ''}</div>`
 		: '';
 	return box + on + ask;
 }
@@ -672,7 +672,8 @@ function addFindRender(q) {
 		(hits.length
 			? `<p class="xsmall muted">${Z(`${hits.length} 个`, `${hits.length} places`)}${hits.length > 25 ? Z('，只列前25个', ', first 25 shown') : ''}</p><ul class="ideas">${hits.slice(0, 25).map(row).join('')}</ul>`
 			: `<p class="xsmall muted">${Z('页面里没有这个地方。', "The page doesn't have this place.")}</p>`) +
-		(q
+		// Google's search needs the page's Google key: without one the button could only fail
+		(q && window.GMAPS
 			? `<button type="button" class="go-btn ghost" data-add-g>${icon('search')}${esc(Z(`在 Google 搜「${q}」`, `Search Google for "${q}"`))}</button>`
 			: '');
 }

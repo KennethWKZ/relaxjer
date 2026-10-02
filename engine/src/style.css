@@ -559,6 +559,26 @@ svg.i {
 	color: #111;
 }
 
+/* the live demo's strip (build --demo-clock): what this page is, and the way back */
+.demo-strip {
+	max-width: var(--col);
+	margin: 0 auto;
+	padding: 4px 16px;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0 14px;
+	font-size: 0.9375rem;
+	color: var(--ink-2);
+}
+.demo-strip a {
+	display: inline-flex;
+	align-items: center;
+	min-height: 44px;
+	font-weight: 650;
+	color: var(--link);
+}
+
 /* ───────── Page ───────── */
 main {
 	max-width: var(--col);
