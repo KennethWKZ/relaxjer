@@ -50,3 +50,18 @@ test('ci runs once per pull request, and on every push to main', () => {
 	assert.match(rel, /gh workflow run ci\.yml/, 'the release job starts ci on the release pull request');
 	assert.match(rel, /actions: write/, 'with the permission to start it');
 });
+
+test('the browser tests skip only when the changes job says so, and the gate knows it', () => {
+	const wf = read('.github/workflows/ci.yml');
+	const e2e = wf.slice(wf.indexOf('\n  e2e:'), wf.indexOf('\n  ci-ok:'));
+	assert.match(e2e, /needs: changes/, 'e2e waits for the changes job');
+	assert.match(e2e, /if: \$\{\{ needs\.changes\.outputs\.e2e == 'true' \}\}/, 'and runs when it says so');
+	assert.match(wf, /node scripts\/ci\/needs-e2e\.mjs/, 'the changes job asks scripts/ci/needs-e2e.mjs');
+	const gate = wf.slice(wf.indexOf('\n  ci-ok:'));
+	assert.match(
+		gate,
+		/\.key == "e2e" and \.value\.result == "skipped" and \$want == "false"/,
+		'ci-ok accepts a skip of e2e alone, and only a wanted one',
+	);
+	assert.doesNotMatch(wf.split(/^jobs:/m)[0], /paths(-ignore)?:/, 'no path filter on the triggers: ci-ok must always report');
+});

@@ -119,7 +119,7 @@ The full comparison, the costs, the guardrails and Google's terms are in [`guide
 ```sh
 pnpm test          # tier 0: hygiene, agent config, memory-bank, trip contract, units (~1 s)
 pnpm test:e2e      # the page in Chromium + WebKit at 390 px and desktop
-pnpm verify        # lint + format check + tier 0 + pipeline tests (CI adds gitleaks and the e2e jobs)
+pnpm verify        # lint + format check + tier 0 + pipeline tests (CI adds gitleaks, and the e2e jobs unless only docs changed)
 pnpm build --trip examples/demo-trip   # the synthetic demo trip
 ```
 

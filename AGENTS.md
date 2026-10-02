@@ -99,7 +99,7 @@ pnpm setup:e2e                   # once: Chromium + WebKit for tier 1 and for pr
 pnpm test:e2e                    # tier 1: Chromium + WebKit × 390 px + desktop, ~2–3 min (3 workers locally)
 pnpm test:e2e:short              # the trip-agnostic e2e on a generated 4-day trip (it moves hotel on night 2)
 pnpm test:all                    # tier 0 + tier 1 + the 4-day short trip: before calling engine or data work done
-pnpm verify                      # lint + format check + tier 0 + pipeline tests (CI adds gitleaks and e2e; pre-push the history scan and release gate)
+pnpm verify                      # lint + format check + tier 0 + pipeline tests (CI adds gitleaks, and e2e unless only docs changed; pre-push the history scan and release gate)
 pnpm lint / pnpm format          # ESLint --fix / Prettier --write
 pnpm gen:adr-index               # regenerate memory-bank/standards/decision-index.md after an ADR change
 pnpm build --trip trips/<slug> --keys ~/.config/relaxjer/google.json   # a real trip; omit --keys for the demo
