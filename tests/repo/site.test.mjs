@@ -54,9 +54,9 @@ test('the night theme reads the same whether the system or the theme button asks
 
 test('every image has alt text, and every screenshot is the synthetic demo with its provenance beside it', () => {
 	for (const [tag] of html.matchAll(/<img\b[^>]*>/g)) assert.match(tag, /\salt="/, `no alt: ${tag.slice(0, 80)}`);
-	// the home-screen icon is the lantern favicon, drawn (scripts/docs-update/site-icon.mjs), not a screenshot
+	// the home-screen icon is the logo's lantern, drawn (scripts/docs-update/site-icon.mjs), not a screenshot
 	const icon = path.join('assets', 'apple-touch-icon.png');
-	assert.match(fs.readFileSync(path.join(SITE, `${icon}.json`), 'utf8'), /lantern\.svg rendered[^"]*No trip data/);
+	assert.match(fs.readFileSync(path.join(SITE, `${icon}.json`), 'utf8'), /logo-mark\.svg rendered[^"]*No trip data/);
 	const shots = files.filter((f) => /\.(webp|png|jpe?g)$/.test(f) && f !== icon);
 	assert.ok(shots.length >= 3);
 	for (const f of shots) {

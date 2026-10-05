@@ -1,4 +1,4 @@
-# RelaxJer
+# <picture><source media="(prefers-color-scheme: dark)" srcset="site/assets/logo-dark.svg"><img alt="RelaxJer" src="site/assets/logo.svg" height="64"></picture>
 
 _Malaysian for "just relax": family trips at a comfortable pace, with the planning done for you._
 

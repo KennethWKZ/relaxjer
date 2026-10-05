@@ -108,8 +108,13 @@ contract are in `.impeccable/surfaces/site-index-html.md`.
   that a card shows means redrawing that card; no test catches the drift.
 - **Only the demo, ever.** The screenshots come from `node scripts/docs-update/site-screens.mjs`, which builds the
   synthetic demo without a key and writes each image with its provenance sidecar. The flow diagram comes from
-  `node scripts/docs-update/flow-diagram.mjs`, and the home-screen icon (the lantern favicon as an opaque PNG, since
+  `node scripts/docs-update/flow-diagram.mjs`, and the home-screen icon (the logo's lantern as an opaque PNG, since
   iOS ignores an SVG one) from `node scripts/docs-update/site-icon.mjs`.
+- **The logo is drawn from the page's own pieces.** The lantern carries 松 ("relax", as in 放轻松) on its paper, beside
+  "RelaxJer" in the brush face, turned into paths from the self-hosted subset so it needs no font:
+  `node scripts/docs-update/site-logo.mjs` writes `logo.svg` and `logo-mark.svg` with a `-dark` twin of each (only the
+  ink changes). The README and the sticky bar use it; the favicon stays the plain lantern, where 松 would blur at 16 px.
+  A change to the brush subset means running it again.
 - **Found by its words.** The title and description name what people search for ("group trip planner") within
   Google's limits (about 60 and 155 characters), not just the brand; the `<h1>` stays the brush name. The sitemap
   carries no `lastmod`, since nothing would keep it current. The `google-site-verification` tag proves the

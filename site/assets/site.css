@@ -476,7 +476,19 @@ svg.i {
 	margin-right: auto;
 	display: inline-flex;
 	align-items: center;
+	gap: 2px;
 	min-height: 48px;
+}
+/* the logo's lantern (scripts/docs-update/site-logo.mjs); its box has the lantern's own side margins */
+.brand picture {
+	flex: none;
+}
+.brand img {
+	display: block;
+	max-width: none;
+	width: 36px;
+	height: 36px;
+	margin-left: -7px;
 }
 .nav {
 	display: flex;
