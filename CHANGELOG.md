@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.4.0](https://github.com/KennethWKZ/relaxjer/compare/v1.3.0...v1.4.0) (2026-10-05)
+
+
+### ✨ Features
+
+* **site:** a logo, the lantern with 松 beside the brush RelaxJer ([6e0449a](https://github.com/KennethWKZ/relaxjer/commit/6e0449acce6ba4068c0523fcb2bb167a13e9b49e))
+* **site:** a logo, the lantern with 松 beside the brush RelaxJer ([24002b8](https://github.com/KennethWKZ/relaxjer/commit/24002b8b9f7b57c99f7c902a846625d3c9b6e654))
+
 ## [1.3.0](https://github.com/KennethWKZ/relaxjer/compare/v1.2.5...v1.3.0) (2026-10-02)
 
 
