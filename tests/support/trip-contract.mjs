@@ -127,8 +127,15 @@ export function checkTrip(trip) {
 		if (d.freeEvening != null && typeof d.freeEvening !== 'boolean') bad(`${d.id}: freeEvening must be true or false`);
 		if (d.freeFrom != null && minutes(d.freeFrom) == null) bad(`${d.id}: freeFrom must be HH:MM`);
 		for (const [k, leg] of (d.route || []).entries()) {
-			if (!Array.isArray(leg) || !PLACES[leg[0]] || !PLACES[leg[1]] || !MODES.has(leg[2]))
-				bad(`${d.id} route leg ${k}: needs [known place, known place, ${[...MODES].join('|')}], got ${JSON.stringify(leg)}`);
+			if (
+				!Array.isArray(leg) ||
+				!PLACES[leg[0]] ||
+				!PLACES[leg[1]] ||
+				!MODES.has(leg[2]) ||
+				leg.length > 4 ||
+				(leg.length === 4 && !/^\d{2}:\d{2}$/.test(leg[3]))
+			)
+				bad(`${d.id} route leg ${k}: needs [known place, known place, ${[...MODES].join('|')}, optional 'HH:MM'], got ${JSON.stringify(leg)}`);
 		}
 		for (const b of d.blocks) {
 			for (const p of [...(b.places || []), ...(b.opts || []).map((o) => o.place).filter(Boolean)])

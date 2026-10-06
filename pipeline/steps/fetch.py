@@ -1,10 +1,10 @@
 """Fetch everything the trip page needs from Google (the user's own key, from this machine only): place details,
 ratings, hours, status, every branch of the trip's chains (pipeline.json "chains"), nearest metro + walking time, and
 each day's route-leg times. Writes <trip>/.cache/google-out.json for apply.py. Run via pipeline/resync.py."""
-import json, os, re, sys
+import datetime, json, os, re, sys
 from concurrent.futures import ThreadPoolExecutor
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from lib.trip import S, PLACES, DAYS, cfg, utc_at
+from lib.trip import S, PLACES, DAYS, cfg, leg_time
 from lib.google import CACHE, OUT, details, text, nearby, route, dist, save
 e = json.load(open(S + 'extra.json')); wa = json.load(open(S + 'wish-a.json')); wb = json.load(open(S + 'wish-b.json')); geo = json.load(open(S + 'geo.json'))
 out = {'food': {}, 'branch': {}, 'place': {}, 'chains': {}, 'mrt': {}, 'legs': {}}
@@ -77,16 +77,19 @@ with ThreadPoolExecutor(8) as ex:
 stations = {v['id'] for v in out['mrt'].values() if v}
 with ThreadPoolExecutor(8) as ex: en = dict(zip(stations, ex.map(lambda i: (details(i, 'en').get('displayName') or {}).get('text'), stations)))
 out['station_en'] = en
-# 5) each day's route legs, at a plausible time of day
+# 5) each day's route legs, at the leg's own time (a 4th 'HH:MM') or a plausible one; a drive still ahead gets Google's typical and heavy-traffic times
 LEGS = {d['id']: [tuple(l) for l in d['route']] for d in DAYS if d.get('route')}  # each day's route (memory-bank/standards/trip-format.md)
 DATES = {d['id']: d['date'] for d in DAYS}
 MODE = {'transit': 'TRANSIT', 'walking': 'WALK', 'driving': 'DRIVE', 'bicycling': 'BICYCLE'}
+NOW = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
 def leg(item):
-    (day, i), (a, b, m) = item
-    hh = 9 if i == 0 else 20 if i == len(LEGS[day]) - 1 else 13
-    when = utc_at(DATES[day], hh, 30)  # in the trip's time zone
+    (day, i), (a, b, m, *at) = item
+    when = leg_time(DATES[day], i, len(LEGS[day]), at[0] if at else None)  # in the trip's time zone
     ga, gb = geo['places'][a], geo['places'][b]
-    r = route((ga['lat'], ga['lng']), (gb['lat'], gb['lng']), MODE[m], when)
+    if m == 'driving' and when > NOW:  # Google predicts traffic only for a departure still ahead
+        r = route((ga['lat'], ga['lng']), (gb['lat'], gb['lng']), 'DRIVE', when, 'BEST_GUESS')
+        r['_bad'] = ((route((ga['lat'], ga['lng']), (gb['lat'], gb['lng']), 'DRIVE', when, 'PESSIMISTIC').get('routes') or [{}])[0]).get('duration')
+    else: r = route((ga['lat'], ga['lng']), (gb['lat'], gb['lng']), MODE[m], when)
     if m == 'bicycling' and not r.get('routes'): r = route((ga['lat'], ga['lng']), (gb['lat'], gb['lng']), 'WALK', None); r['_asWalk'] = True
     return (day, i), r
 items = [((d, i), l) for d, ls in LEGS.items() for i, l in enumerate(ls)]

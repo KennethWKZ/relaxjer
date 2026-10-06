@@ -81,7 +81,7 @@ def _keep_paid_answers():
 PRICE = {'text': {'ids': 0, 'essentials': 32, 'pro': 32, 'enterprise': 35, 'atmosphere': 40},
          'nearby': {'ids': 32, 'essentials': 32, 'pro': 32, 'enterprise': 35, 'atmosphere': 40},
          'details': {'ids': 0, 'essentials': 5, 'pro': 17, 'enterprise': 20, 'atmosphere': 25},
-         'routes': 5, 'other': 40}
+         'routes': 5, 'routes_traffic': 10, 'other': 40}  # routes_traffic: Compute Routes Pro (traffic-aware), checked 2026-10-07
 TIER = {**dict.fromkeys(['id', 'name', 'attributions', 'nextPageToken'], 'ids'),
         **dict.fromkeys('displayName businessStatus googleMapsUri googleMapsLinks primaryType primaryTypeDisplayName '
                         'accessibilityOptions utcOffsetMinutes iconBackgroundColor iconMaskBaseUri containingPlaces '
@@ -98,7 +98,7 @@ ORDER = ['ids', 'essentials', 'pro', 'enterprise', 'atmosphere']
 def cost(k):
     """list price in US$ of asking one cached call again"""
     url, mask = k.rsplit('|', 2)[-2:]
-    if 'routes.googleapis.com' in url: return PRICE['routes'] / 1000
+    if 'routes.googleapis.com' in url: return PRICE['routes_traffic' if 'TRAFFIC_AWARE' in k else 'routes'] / 1000
     kind = 'text' if 'places:searchText' in url else 'nearby' if 'places:searchNearby' in url else 'details' if '/v1/places/' in url else 'other'
     if kind == 'other': return PRICE['other'] / 1000
     fields = [f.removeprefix('places.').split('.')[0] for f in mask.split(',') if f]
@@ -120,8 +120,10 @@ def text(q, bias=None, rect=None, n=20, page=None):
     return call('txt', 'https://places.googleapis.com/v1/places:searchText', b, 'places.' + DET.replace(',', ',places.') + ',nextPageToken')
 def nearby(lat, lng, types, radius):
     return call('near', 'https://places.googleapis.com/v1/places:searchNearby', {'includedTypes': types, 'maxResultCount': 3, 'rankPreference': 'DISTANCE', 'languageCode': LANG, 'locationRestriction': {'circle': {'center': {'latitude': round(lat, 5), 'longitude': round(lng, 5)}, 'radius': radius}}}, 'places.id,places.displayName,places.location,places.types')
-def route(o, d, mode, when):
+def route(o, d, mode, when, traffic=None):
+    """traffic: 'BEST_GUESS' or 'PESSIMISTIC' asks a drive's predicted time at `when` (Compute Routes Pro); without it the request, and its cache key, stay as before"""
     b = {'origin': {'location': {'latLng': {'latitude': o[0], 'longitude': o[1]}}}, 'destination': {'location': {'latLng': {'latitude': d[0], 'longitude': d[1]}}}, 'travelMode': mode, 'languageCode': LANG}
     if mode == 'TRANSIT': b['departureTime'] = when
+    if mode == 'DRIVE' and traffic: b.update(departureTime=when, routingPreference='TRAFFIC_AWARE_OPTIMAL', trafficModel=traffic)
     return call('route', 'https://routes.googleapis.com/directions/v2:computeRoutes', b, 'routes.duration,routes.distanceMeters,routes.legs.steps.travelMode,routes.legs.steps.staticDuration,routes.legs.steps.distanceMeters,routes.legs.steps.transitDetails.transitLine.name,routes.legs.steps.transitDetails.transitLine.nameShort,routes.legs.steps.transitDetails.stopCount,routes.legs.steps.transitDetails.headsign,routes.legs.steps.transitDetails.stopDetails.departureStop.name,routes.legs.steps.transitDetails.stopDetails.arrivalStop.name,routes.legs.steps.transitDetails.transitLine.vehicle.type')
 def dist(a, b): return 6371000 * math.hypot(math.radians(b[1]-a[1]) * math.cos(math.radians((a[0]+b[0])/2)), math.radians(b[0]-a[0]))

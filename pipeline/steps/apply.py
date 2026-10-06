@@ -117,6 +117,7 @@ for k, r in o['legs'].items():
     legs[k] = {'min': round(int(rt['duration'][:-1]) / 60), 'km': round(rt.get('distanceMeters', 0) / 1000, 1), 'walk': round(walk_s / 60),
                'rides': [{'line': T2S(x['transitLine'].get('name') or x['transitLine'].get('nameShort', '')), 'line_en': x['transitLine'].get('nameShort', ''), 'from': T2S(x['stopDetails']['departureStop']['name']), 'to': T2S(x['stopDetails']['arrivalStop']['name']), 'stops': x.get('stopCount'), 'kind': x['transitLine'].get('vehicle', {}).get('type', '')} for x in rides]}
     if r.get('_asWalk'): legs[k]['asWalk'] = True
+    if r.get('_bad'): legs[k]['bad'] = round(int(r['_bad'][:-1]) / 60)  # the same drive in heavy traffic (Google's pessimistic prediction)
 geo['legs'] = legs; geo['legs_checked'] = TODAY
 if '--write' in sys.argv:
     F.save()  # lookups made while applying (far-away metro)

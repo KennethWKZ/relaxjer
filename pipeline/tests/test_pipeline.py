@@ -18,6 +18,12 @@ class Trip(unittest.TestCase):
         self.assertEqual(trip.utc_at('2027-03-15', 10), '2027-03-15T02:00:00Z')  # 10:00 in Taipei
         self.assertEqual(trip.utc_at('2027-03-15', 9, 30), '2027-03-15T01:30:00Z')
 
+    def test_a_leg_sets_off_at_its_own_time_or_a_plausible_one(self):
+        self.assertEqual(trip.leg_time('2027-03-15', 1, 3, '18:00'), '2027-03-15T10:00:00Z')  # the leg's own 'HH:MM' wins
+        self.assertEqual(trip.leg_time('2027-03-15', 0, 3), '2027-03-15T01:30:00Z')  # first leg 09:30
+        self.assertEqual(trip.leg_time('2027-03-15', 1, 3), '2027-03-15T05:30:00Z')  # between 13:30
+        self.assertEqual(trip.leg_time('2027-03-15', 2, 3), '2027-03-15T12:30:00Z')  # last leg 20:30
+
 class Hours(unittest.TestCase):
     WEEK = ['星期一: 休息', '星期二: 11:00 – 20:00', '星期三: 11:00 – 20:00', '星期四: 11:00 – 20:00', '星期五: 11:00 – 20:00', '星期六: 10:00 – 14:00, 17:00 – 21:00', '星期日: 24 小時營業']
 
@@ -103,6 +109,19 @@ class Google(unittest.TestCase):
         n, usd = google.estimate(calls)
         self.assertEqual(n, 5)
         self.assertAlmostEqual(usd, (0 + 35 + 32 + 25 + 5) / 1000)
+
+    def test_a_drive_with_traffic_asks_for_the_planned_hour_and_bills_as_pro(self):
+        seen = []
+        fake = lambda tag, url, body=None, mask='', method='POST': seen.append((url, body, mask)) or {}
+        with mock.patch.object(google, 'call', fake):
+            google.route((25.0, 121.5), (25.1, 121.6), 'DRIVE', '2027-03-15T10:00:00Z', 'PESSIMISTIC')
+            google.route((25.0, 121.5), (25.1, 121.6), 'DRIVE', '2027-03-15T10:00:00Z')
+        (url, traffic, mask), (_, plain, _) = seen
+        self.assertEqual((traffic['routingPreference'], traffic['trafficModel'], traffic['departureTime']), ('TRAFFIC_AWARE_OPTIMAL', 'PESSIMISTIC', '2027-03-15T10:00:00Z'))
+        self.assertNotIn('departureTime', plain)  # without traffic the request, and the cache key of every past answer, stay as they were
+        key = lambda body: 'route|' + json.dumps(body, sort_keys=True, ensure_ascii=False) + '|' + url + '|' + mask
+        self.assertAlmostEqual(google.cost(key(traffic)), 10 / 1000)  # Compute Routes Pro
+        self.assertAlmostEqual(google.cost(key(plain)), 5 / 1000)  # Compute Routes Essentials
 
     def test_a_place_with_no_google_id_is_searched_by_its_maps_name(self):
         import contextlib, io, runpy, sys
