@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.6.1](https://github.com/KennethWKZ/relaxjer/compare/v1.6.0...v1.6.1) (2026-10-07)
+
+
+### 🐛 Bug Fixes
+
+* **engine:** closing a sheet after a tab jump keeps the reader where they were ([754b8f2](https://github.com/KennethWKZ/relaxjer/commit/754b8f2edde3d5e78013e6fb9de35eed115ad9e9))
+* **engine:** closing a sheet after a tab jump keeps the reader where they were ([6696440](https://github.com/KennethWKZ/relaxjer/commit/6696440b880fbbdbe161276c3ce26a56b75baeb7))
+* **engine:** every lantern's text reaches 4.5:1 in both themes ([c319a4e](https://github.com/KennethWKZ/relaxjer/commit/c319a4e9acfea64ad14260bd2f23548c720abc6c))
+* **engine:** every lantern's text reaches 4.5:1 in both themes ([afd29d0](https://github.com/KennethWKZ/relaxjer/commit/afd29d0c346fda58f3d5a2db841ad1b217fbd40e))
+* **engine:** the pre-departure UX findings, from a reload's place to a split's push-back ([b5acd39](https://github.com/KennethWKZ/relaxjer/commit/b5acd399dc8e270a59cadbc7c8ec75983feb1ed3))
+* **engine:** the pre-departure UX findings, from a reload's place to a split's push-back ([a4bdeae](https://github.com/KennethWKZ/relaxjer/commit/a4bdeaec2734cd4d72ca17b0c500e40f69913c52))
+
+
+### 🧑‍💻 Continuous Integrations
+
+* **release:** merge pull requests by squash, so the changelog lists each change once ([#36](https://github.com/KennethWKZ/relaxjer/issues/36)) ([ec1b90e](https://github.com/KennethWKZ/relaxjer/commit/ec1b90e7f70a3d256a62e54b7d6c662a595fe250))
+
 ## [1.6.0](https://github.com/KennethWKZ/relaxjer/compare/v1.5.1...v1.6.0) (2026-10-07)
 
 
