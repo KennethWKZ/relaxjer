@@ -388,7 +388,7 @@ A schedule row is a three-column grid: time (4.6rem, right-aligned), the 18 px s
 
 ## Elevation & Depth
 
-Hybrid. Content is flat and tonal: Fog Grey and Mist Grey containers on white paper, separated by hairline rules, with no shadow at rest. Shadows belong to two things only: surfaces that float above the page (header glass, results sheet, toast, Back pill, sections button, dialogs) and the lanterns themselves, whose shadow is tinted with their own colour so they read as lit paper, not cards. In dark mode the lanterns switch from a flat fill to a radial glow rising from below the base (the paper mixed 38 % toward warm `#fff4c9`), and their shadow blooms in their own hue.
+Hybrid. Content is flat and tonal: Fog Grey and Mist Grey containers on white paper, separated by hairline rules, with no shadow at rest. Shadows belong to two things only: surfaces that float above the page (header glass, results sheet, toast, Back pill, sections button, dialogs) and the lanterns themselves, whose shadow is tinted with their own colour so they read as lit paper, not cards. In dark mode the dark-ink lanterns (3, 6, 7) switch from a flat fill to a radial glow rising from below the base (the paper mixed 38 % toward warm `#fff4c9`); the white-ink ones (1, 2, 4, 5) keep their flat fill, because lightening the paper under white ink took text below 4.5:1. Every lantern's shadow blooms in its own hue.
 
 ### Shadow Vocabulary
 
@@ -420,15 +420,15 @@ Every control is a plain, heavy-lettered rectangle with a 44 px floor (48–52 p
 - **Shape:** 12 px for the go button, 9–11 px for link and lantern buttons.
 - **Go (primary):** ink fill, paper text, 700 weight, 48 px tall, 0 18px padding. The one action that matters on a card (for example "open checklist").
 - **Link button:** Fog Grey fill, link-blue text, 0.9375rem at 700, 44 px, with a 15 px line icon. Map, route and site links under every stop. Below 600 px, the map pin and directions become 44 px icon squares; the website link keeps its word, because its generic glyph doesn't say "website".
-- **Lantern button:** a tint of the day ink at 10 %, a 1.5 px border in the day ink at 75 % (3:1 on the lantern), day ink text. On press the tint goes to 22 %. Never a bare outline: a ghost button doesn't read as tappable.
-- **Route legs:** a two-up grid of 46 px tiles tinted with the day ink at 13 %. The "whole route" leg spans both columns and inverts: day-ink fill, day-colour text.
+- **Lantern button:** the lantern fill (`--lN-fill`, always away from the ink: a 20 % black shade under white ink, a 20 % white tint under dark ink), a 1.5 px border in the day ink at 75 % (3:1 on the lantern), day ink text. On press the tint goes to 22 %. Never a bare outline: a ghost button doesn't read as tappable.
+- **Route legs:** a two-up grid of 46 px tiles in the lantern fill. The "whole route" leg spans both columns and inverts: day-ink fill, day-colour text.
 - **Icon and text buttons:** 44 px, transparent; the text button is link blue at 600.
 - **Hover / Focus:** hover only under `(hover: hover) and (pointer: fine)`, one step darker paper. Focus is a 3 px Focus Blue outline, 2 px offset, 6 px radius; on a lantern the ring is drawn in the day's ink, since blue vanishes on the lantern paper.
 - **Disabled / busy:** disabled is dimmed to 55 % and still readable; a button waiting on the phone ("Finding you…") is disabled, `aria-busy`, at 80 %, and its label says what it's doing.
 
 ### Chips
 
-- **Style:** 32 px, 8 px radius, 0.9375rem at 650. On a lantern they tint with the day ink at 14 %. A two-line cost chip shows each person's amount on top and the group's below.
+- **Style:** 32 px, 8 px radius, 0.9375rem at 650. On a lantern they take the lantern fill, and muted text on a white-ink lantern stays at full strength (`--lN-mute`), so every label reaches 4.5:1. A two-line cost chip shows each person's amount on top and the group's below.
 - **Tags:** 30 px, 7 px radius, paper fill with a hairline rule border.
 - **Metro line badge:** a full-round pill tinted with the line colour at 16 %, holding a solid line-colour code badge.
 
