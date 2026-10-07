@@ -40,6 +40,11 @@ What the first trip taught about the page in real browsers. Each lesson is backe
   A `position: fixed` child of a dialog with a `transform` is placed by the dialog, not the screen. Not
   `interactive-widget=resizes-content` in the viewport tag: it gives Android a second, untested path, and WebKit logs
   that it doesn't know the key (it failed every WebKit test on CI, 2026-10-02).
+- **Closing a sheet after a tab jump threw the reader back to the jumped-to heading** (2026-10-07, both engines, Esc,
+  ✕, outside tap and Back). A sheet's close steps back through history, and the browser restores the scroll position it
+  saved for the jump's step, not where the reader had scrolled to since. An overlay now remembers `scrollY` and puts it
+  back once the step back has settled (`keepPlace` in `19-back-button.js`). Only a person's own scroll showed it (a
+  script's `scrollBy` didn't), so its e2e test scrolls with PageDown.
 
 ## Home-screen apps
 
