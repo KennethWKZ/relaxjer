@@ -3,7 +3,7 @@ id: ADR-20261001-day-split
 date: 2026-10-01
 title: 'A Day Can Split: Part of the Group Takes Its Own Plan, Hung Where the String Forks'
 domain: data
-status: accepted
+status: amended
 ---
 
 # A Day Can Split: Part of the Group Takes Its Own Plan, Hung Where the String Forks
@@ -37,7 +37,9 @@ the stop where they rejoin. Decided by Kenneth on 2026-10-01, after a design bri
   - A directions link, and "Route on the map", which draws the line dashed in the day's colour on either map engine.
   - On phones the fold-out uses the full width, like the meal options. The rejoin stop shows "Rejoining here: One of
     us (Regular)", worded so it reads for one rider or several.
-- **Times are the plan's own**: a push-back doesn't move them.
+- **Times are the plan's own**: a push-back doesn't move them. _Amended by
+  [ADR-20261007-split-follows-pushback](ADR-20261007-split-follows-pushback.md): the fork and the rejoin now follow a
+  push-back; the times inside each plan still don't._
 - **The switch is per phone** (`store` key `splitPick`). It's a view, not plan data, so it isn't synced.
 - **Route lines come from a free router** (OpenStreetMap bike routing), stored in the trip's data, so the page draws
   them with no Google call and no cost.

@@ -119,7 +119,7 @@ function planHTML(to, compact) {
 	const pl = mrtPlan(meLL, to);
 	const wk = Math.max(1, Math.round(pl.walk));
 	const dk = km(meLL, to);
-	const taxi = Math.round(((dk * 1.3) / 22) * 60 + 4); // city taxi ~22 km/h door to door
+	const taxi = Math.round(taxiMin(dk)); // door to door, hailing included
 	const fare = taxiFare(dk);
 	const taxiP = (lead) =>
 		`<p class="plan${lead ? ' lead' : ''}">${icon('car')}<span>${

@@ -68,7 +68,8 @@ trip's own currency symbol and group size; the page adds the per-person share. `
 When one or some of the group do something else for part of a day (a ride, a visit), the plan hangs, folded, on the
 day's string where it forks, and the stop where they come back says so
 ([ADR-20261001-day-split](decisions/ADR-20261001-day-split.md)). That stop reads `Rejoining here: <who> (<plans>)`, so
-`who` can name one person or several. Its times are the plan's own: a push-back doesn't move them.
+`who` can name one person or several. A push-back moves the fork and each plan's rejoin with the day's stops; the times inside each plan stay as planned
+([ADR-20261007-split-follows-pushback](decisions/ADR-20261007-split-follows-pushback.md)).
 Which plan a phone shows is remembered on that phone and isn't synced.
 
 | Field     | What it is                                                                                |

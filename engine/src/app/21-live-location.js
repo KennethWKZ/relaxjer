@@ -817,7 +817,9 @@ function spotRestore(sp) {
 		}
 		const y = window.scrollY,
 			top = el.getBoundingClientRect().top;
-		if (Math.abs(y - lastY) > 2 && Math.abs(top - lastTop + (y - lastY)) < 2) {
+		// the page moved and the content with it: someone scrolled. Any amount counts: a smooth scroll's first frame moves
+		// under 2 px, and correcting it then cancelled the scroll (scroll anchoring moves the page but not the content)
+		if (Math.abs(y - lastY) > 0.5 && Math.abs(top - lastTop + (y - lastY)) < 2) {
 			took = true;
 			requestAnimationFrame(pin);
 			return;
@@ -831,3 +833,21 @@ function spotRestore(sp) {
 	requestAnimationFrame(pin);
 }
 let pinN = 0;
+// a reload (the update bar's Update, a pull to refresh) lands where the reader was. The browser's own restore puts back a
+// pixel offset before the sections above have drawn at their real height (Chromium skips drawing them), and a tab jump
+// left its heading in the address: either landed a day or two away. So the place is saved whenever the page is hidden
+// or reloads, and a reload within 30 minutes restores it (25-theme.js) instead.
+function spotSave() {
+	const sp = spotNow();
+	if (sp) store.set('reloadSpot', { ...sp, at: Date.now() });
+}
+addEventListener('pagehide', spotSave);
+document.addEventListener('visibilitychange', () => {
+	if (document.hidden) spotSave(); // iPhone Safari doesn't always send pagehide
+});
+function reloadSpot() {
+	const nav = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
+	const sp = store.get('reloadSpot', null);
+	store.set('reloadSpot', null);
+	return nav && nav.type === 'reload' && sp && Date.now() - sp.at < 30 * 60000 ? sp : null;
+}

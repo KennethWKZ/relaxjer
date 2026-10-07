@@ -23,6 +23,16 @@ What the first trip taught about the page in real browsers. Each lesson is backe
   - remember open `<details>` by their nearest id, so lists built on open reopen too;
   - carry the old section heights over;
   - hold the spot for 2 s, and let go on touch, scroll or a deliberate programmatic scroll.
+- **A reload must keep the reader's place too** (2026-10-07: the update bar's Update landed Android Chrome a day or two
+  early). The browser restores a pixel offset before skipped sections above have drawn at their real height, and a tab
+  jump left its heading in the address, which the page jumped to on load. So the page saves the same spot on `pagehide`,
+  on `visibilitychange` to hidden (iPhone Safari doesn't always send `pagehide`) and before Update, and a reload within
+  30 minutes restores it with scroll restoration set to manual. WebKit still scrolled to the address's `#heading` at
+  load, after the page's own restore, so that reload drops the `#heading` from the address first.
+- **A hold must let go of any scroll the reader starts, however small.** The 2 s "keep my place" hold took a page move
+  of over 2 px a frame as the reader's scroll; a smooth scroll's first frame moves less, and the hold's correction (an
+  instant scroll) cancelled it, so the page wouldn't move at all for 2 s after a reload. Any page move matched by the
+  content counts now; scroll anchoring moves the page but not the content, so it still doesn't.
 
 ## Layout at 390 px
 

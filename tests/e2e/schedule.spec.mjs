@@ -2,6 +2,7 @@
 // the next fixed item.
 import { test, expect, openTrip } from '../support/fixtures.mjs';
 import { setStored } from '../support/page.mjs';
+/* global DAYS */
 
 // tagged @demo: stop ids, times and dates are the demo trip's
 test.describe('timeline rules', { tag: '@demo' }, () => {
@@ -57,4 +58,29 @@ test.describe('timeline rules', { tag: '@demo' }, () => {
 		await expect(time(page, 'd5-s3')).toContainText('14:30–17:30');
 		await expect(page.locator('#d5 .stop.shifted')).toHaveCount(0);
 	});
+});
+
+// the forecast's source and check date only lived in a chip's tooltip, which a phone never shows
+test('the Weather section says where the forecast comes from and when it was checked', async ({ page }) => {
+	await openTrip(page);
+	const has = await page.evaluate(() => !!(window.FORECAST && window.FORECAST.checked && Object.keys(window.FORECAST.days || {}).length));
+	if (!has) {
+		// a trip whose days are still beyond the forecast: give it one, as the refresh would
+		const first = await page.evaluate(() => DAYS[0].date);
+		await page.addInitScript((d) => {
+			// the page sets window.FORECAST = null when it has none: keep this one unless it brings a real forecast
+			let fc = { checked: d, days: { [d]: { x: { tmin: 20, tmax: 26, rain: 30, mm: 1, code: 3 } } } };
+			Object.defineProperty(window, 'FORECAST', {
+				configurable: true,
+				get: () => fc,
+				set: (v) => {
+					if (v) fc = v;
+				},
+			});
+		}, first);
+		await page.reload();
+	}
+	const line = page.locator('#weather [data-fc-checked]');
+	await expect(line).toHaveCount(1);
+	await expect(line).toContainText('Open-Meteo');
 });

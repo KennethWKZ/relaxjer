@@ -1,6 +1,6 @@
 // Getting around: instant tab jumps with a landing ring, the Back pill, the Sections menu, site search, offline notice.
 import { test, expect, openTrip } from '../support/fixtures.mjs';
-import { settle, setStored } from '../support/page.mjs';
+import { readingSpot, settle, setStored } from '../support/page.mjs';
 
 /* global DAYS -- the trip data, read inside the page */
 
@@ -105,6 +105,71 @@ for (const how of ['Escape', 'Back']) {
 	});
 }
 
+// A reload (the update bar's Update, a pull to refresh) used to land on the browser's old pixel offset, before the
+// sections above had drawn at their real height (Chromium skips drawing them), or on the heading a tab jump had put in the
+// address: a day or two from where the reader was.
+for (const via of ['scroll', 'tab jump']) {
+	test(`a reload lands where the reader was (after a ${via})`, async ({ page }) => {
+		await openTrip(page);
+		const day = await page.evaluate(() => DAYS[Math.min(2, DAYS.length - 1)].id);
+		if (via === 'tab jump') await page.locator(`.tab[href="#${day}"]`).first().click();
+		else await page.evaluate((id) => document.getElementById(id).scrollIntoView({ block: 'start', behavior: 'instant' }), day);
+		await settle(page);
+		for (let i = 0; i < 2; i++) await page.keyboard.press('PageDown');
+		await settle(page);
+		const before = await readingSpot(page);
+		await page.reload();
+		await settle(page);
+		expect(await readingSpot(page)).toEqual(before);
+	});
+}
+
+// The driver card was five taps and a scroll from the plan (Map tab, All places, the place, Details, Show driver): the
+// stops in the plan didn't carry it. A taxi is the seniors' first choice for long legs, so the next stop is one tap away.
+test("today's next stop opens its show-the-driver card in one tap, full screen on a phone", async ({ page }) => {
+	await openTrip(page);
+	const day = await page.evaluate(() => DAYS[1]);
+	await setStored(page, { now: `${day.date} 06:00` }); // before the day's first stop: every place in it is still ahead
+	const next = page.locator(`#${day.id} .stop.next`);
+	await expect(next).toHaveCount(1);
+	// only the current and next stops carry it: on every stop it cost a 70 px line each at 390 px
+	await expect(page.locator(`#${day.id} .stop:not(.now):not(.next) [data-driver]`).first()).toBeHidden();
+	const btn = next.locator('[data-driver]');
+	if (!(await btn.count())) test.skip(true, "this trip's next stop has no place");
+	await btn.scrollIntoViewIfNeeded();
+	await btn.click();
+	const card = page.locator('#driver');
+	await expect(card).toBeVisible();
+	await expect(page.locator('#drv-name')).not.toBeEmpty();
+	const vp = page.viewportSize();
+	if (vp.width < 600) {
+		// it opens with a short scale (style.css @starting-style): measure once it has settled
+		await expect.poll(async () => (await card.boundingBox()).width, { message: 'the whole width of the phone' }).toBeGreaterThanOrEqual(vp.width - 1);
+		expect((await card.boundingBox()).height, 'and its whole height').toBeGreaterThanOrEqual(vp.height - 1);
+	}
+	// actions used while walking are 52 px or more (affordances rule 2)
+	const heights = await card.locator('.links-row > *').evaluateAll((es) => es.map((e) => e.getBoundingClientRect().height));
+	for (const h of heights) expect(h).toBeGreaterThanOrEqual(52);
+});
+
+// From the pre-departure pass: a search jump left the old day's tab lit, and the search box showed no focus ring
+test("a search jump lights the hit's day in the strip, and the search box shows its focus", async ({ page }) => {
+	await openTrip(page);
+	const day = await page.evaluate(() => DAYS[Math.min(2, DAYS.length - 1)].id);
+	const name = (await page.locator(`#${day}-s0 .stop-name`).textContent()).trim().slice(0, 6);
+	await page.locator('#searchBtn').click();
+	await page.locator('#q').fill(name);
+	await expect(page.locator('.search-field')).not.toHaveCSS('box-shadow', 'none');
+	await page.locator('#results-inner .result[data-hit]').first().click();
+	// the strip lights the section of whatever the jump landed on
+	const sec = await page
+		.locator('#app .flash')
+		.first()
+		.evaluate((e) => e.closest('[data-sec]').id);
+	await settle(page);
+	await expect(page.locator('.tab[aria-current="true"]').first()).toHaveAttribute('href', `#${sec}`);
+});
+
 test('site search finds a stop and jumps to it @demo', async ({ page }) => {
 	await openTrip(page);
 	await page.locator('#searchBtn').click();
@@ -113,11 +178,12 @@ test('site search finds a stop and jumps to it @demo', async ({ page }) => {
 	await expect(hit).toBeVisible();
 	const text = (await hit.textContent()).trim();
 	await hit.click();
+	const landed = await page.locator('#d4 .flash').elementHandle(); // the flash fades after 1.3 s: hold on to it now
 	await settle(page);
-	// Day 4 is on screen, and its title (the text that matched) sits under the sticky bar
-	const d4 = await top(page, '#d4');
-	expect(d4).toBeGreaterThanOrEqual(LANDED.min);
-	expect(d4).toBeLessThan(await page.evaluate(() => innerHeight / 2));
+	// the text that matched sits just under the sticky bar, in Day 4, like any other jump (it used to land mid-screen)
+	const at = await landed.evaluate((e) => e.getBoundingClientRect().top);
+	expect(at).toBeGreaterThanOrEqual(LANDED.min);
+	expect(at).toBeLessThan(LANDED.max);
 	await expect(page.locator('#d4')).toContainText(text.split('→')[0].trim());
 });
 

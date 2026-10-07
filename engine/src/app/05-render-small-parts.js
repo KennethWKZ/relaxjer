@@ -99,6 +99,10 @@ const km = (a, b) => {
 		y = (b.lat - a.lat) * r;
 	return 6371 * Math.hypot(x, y);
 };
+// a taxi door to door, in minutes: the road runs about 1.3× the straight line at about 22 km/h in the city, plus about
+// 10 min to hail one and get in. One model everywhere: the add sheet, an added stop, the late check and the planner
+// once gave the same leg as 19 and 13 min
+const taxiMin = (k) => ((k * 1.3) / 22) * 60 + 10;
 const placeLL = (pid) => {
 	const g = GEO && GEO.places && GEO.places[pid];
 	return g && g.lat ? { lat: +g.lat, lng: +g.lng } : null;

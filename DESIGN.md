@@ -18,6 +18,8 @@ colors:
   bad: '#b3261e'
   hl: '#ffe45c'
   hl-now: '#ffab3d'
+  star: '#b07a00'
+  mine-ink: '#a8325a'
   glass: 'rgba(255, 255, 255, 0.82)'
   glass-edge: 'rgba(21, 22, 26, 0.08)'
   scrim: 'rgba(12, 14, 20, 0.5)'
@@ -32,6 +34,8 @@ colors:
   night-seal-ink: '#1a0503'
   night-focus: '#7fb0ff'
   night-link: '#8ab8ff'
+  night-star: '#f2a900'
+  night-mine-ink: '#f19ab8'
   night-good: '#5fd49a'
   night-warn: '#f3b35a'
   night-bad: '#ff8a80'
@@ -321,7 +325,10 @@ White paper and near-black ink carry the operated layer; seven saturated lantern
 
 - **Link Blue** (`link`) and **Focus Blue** (`focus`): links, link-buttons and the 3 px focus ring.
 - **Highlighter** (`hl`, `hl-now`): search hits, the current hit, the landing flash and the yellow callout tint. Same value in both themes.
-- **Status inks** (`good`, `warn`, `bad`): go / wait / skip decisions, checked items and the progress fill, always as a 14–18 % tint behind a full-strength icon.
+- **Star** (`star`, `night-star`): the rating star and the Rating button's icon, a darker gold by day so the icon reaches 3:1 on paper-2.
+- **Mine** (`mine-ink`, `night-mine-ink`): "Add to plan" and the "Added" tag on a stop the group added, at 4.5:1 in both themes.
+- **Status inks** (`good`, `warn`, `bad`): go / wait / skip decisions, checked items, the progress fill and a split plan's "picked" badge, always as a 14–18 % tint behind a full-strength icon.
+- **Nearby icons** (fixed values, same in both themes, icons only): teal `#0f8a7e` for drinks, plum `#a0527e` for rest spots, slate blue `#4a6fa5` for toilets. The pill's text stays `ink`, so the colour is never the only cue.
 
 ### Neutral
 
@@ -378,7 +385,7 @@ One phone-first column, `--col` (46rem) wide, centred, with a 16 px gutter. Only
 
 The header is sticky and translucent (20 px blur, 180 % saturation) and measures its own height into `--bar-h`. Below it, each day has a sticky 40 px day bar (the day's swatch, date and route) that fades in when that day's lantern scrolls under the header. Anchored targets keep a scroll margin of `--bar-h` + 12–56 px so a jump never lands under the header.
 
-A schedule row is a three-column grid: time (4.6rem, right-aligned), the 18 px string, then the stop. Now/Next rows and fact rows are two-column key/value grids (5.25rem and 6.5rem keys).
+A schedule row is a three-column grid: time (4.6rem, right-aligned), the 18 px string, then the stop. Now/Next rows and fact rows are two-column key/value grids (5.25rem and 6.5rem keys). On a trip day the Now/Next card's two actions (Open today, Go to next stop) come right under the rows and share one row, a long label wrapping inside its 48 px button, so both sit on an iPhone's first screen (390 × 664); the location card and its buttons follow them.
 
 **Phone compaction (below 600 px, checked at 390 px):** secondary button labels collapse to icons and stay available to screen readers; the brush wish drops to 2.125rem; blocks tighten to 16 px and hanging cards to 12 px padding; the sections button becomes a 52 px square. From 440 px down the header drops the trip dates; from 380 px down the time column narrows to 4rem. From 720 px up the wish grows to 3.25rem, photos run three to a row, travel methods go two-up and tiers three-up.
 

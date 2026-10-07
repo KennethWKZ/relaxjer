@@ -77,6 +77,7 @@ function applyShifts() {
 			it._s0 = base ? parseT(base).s : null;
 		});
 		const segs = shiftsOf(d.date);
+		if (d.split) d.split._sh = shiftAt(d, tMin(d.split.at), segs); // the fork moves like any flexible stop
 		d.schedule.forEach((it) => {
 			it._sh = it.fixed ? 0 : shiftAt(d, it._s0, segs);
 			it.t = it._sh ? shiftTxt(it._base, it._sh) : it._base;
@@ -99,7 +100,7 @@ const etaMin = (a, b) => {
 	const w = walkMin(a, b);
 	if (w <= 15) return w;
 	const pl = mrtPlan(a, b);
-	const taxi = ((km(a, b) * 1.3) / 22) * 60 + 10;
+	const taxi = taxiMin(km(a, b));
 	return Math.min(w, taxi, pl.none ? Infinity : pl.total);
 };
 // where we are vs today's plan: the next planned place we are not at, and how late we'd get there leaving now
@@ -142,7 +143,7 @@ function lateHTML() {
 	let box = '';
 	if (lt && lt.fixed) {
 		const dk = km(meLL, lt.tgt.ll);
-		const taxi = Math.round(((dk * 1.3) / 22) * 60 + 4);
+		const taxi = Math.round(taxiMin(dk));
 		box = `<div class="late risk"><p class="late-h">${icon('alert')}${esc(Z(`赶${L(lt.tgt.it.t)}「${stopName(lt.tgt.it)}」要抓紧`, `Hurry for ${L(lt.tgt.it.t)} ${stopName(lt.tgt.it)}`))}</p>
         <p class="small">${esc(Z(`现在出发预计 ${hm(lt.arrive)} 到，晚约 ${lt.late} 分钟。这是固定时间，行程不会自动往后推：建议马上叫计程车（约${taxi}分钟）。`, `Leaving now you'd arrive ~${hm(lt.arrive)}, about ${lt.late} min late. It's a fixed time, so nothing shifts: take a taxi now (~${taxi} min).`))}</p>
         <div class="links-row">${lt.tgt.it.place ? ext(gmDir(PLACES[lt.tgt.it.place].maps, 'driving'), Z('导航过去', 'Directions'), 'route', 'go-btn') : ''}</div></div>`;
@@ -167,7 +168,7 @@ function shiftBanner(d) {
 	const first = d.schedule.filter((it) => it._sh).sort((a, b) => a._s0 - b._s0)[0];
 	const nf = first && d.schedule.find((it) => it.fixed && it._s0 > first._s0);
 	const tot = segs.reduce((a, g) => a + g.min, 0);
-	return `<div class="shift-bar"><p>${icon('clock')}<span>${first ? esc(Z(`已顺延：从「${stopName(first)}」起 +${tot} 分${nf ? `，到 ${L(nf.t)}「${stopName(nf)}」固定行程为止` : ''}。`, `Pushed back +${tot} min from ${stopName(first)}${nf ? ` until the fixed ${L(nf.t)} ${stopName(nf)}` : ''}.`)) : esc(Z(`已顺延 +${tot} 分`, `Pushed back +${tot} min`))}</span></p><div class="links-row"><button type="button" class="mlink" data-shift-edit="${d.id}">${Z('调整', 'Adjust')}</button><button type="button" class="mlink" data-shift-clear="${d.date}">${Z('恢复原时间', 'Back to planned times')}</button></div></div>`;
+	return `<div class="shift-bar"><p>${icon('clock')}<span>${first ? esc(Z(`已顺延：从「${stopName(first)}」起 +${tot} 分${nf ? `，到 ${L(nf.t)}「${stopName(nf)}」固定行程为止` : '，一直到当天结束'}。`, `Pushed back +${tot} min from ${stopName(first)}${nf ? ` until the fixed ${L(nf.t)} ${stopName(nf)}` : ' to the end of the day'}.`)) : esc(Z(`已顺延 +${tot} 分`, `Pushed back +${tot} min`))}</span></p><div class="links-row"><button type="button" class="mlink" data-shift-edit="${d.id}">${Z('调整', 'Adjust')}</button><button type="button" class="mlink" data-shift-clear="${d.date}">${Z('恢复原时间', 'Back to planned times')}</button></div></div>`;
 }
 // pick the first stop to move and by how much
 function shiftSheet(dayId) {
@@ -256,7 +257,7 @@ function leaveStep(T, x) {
 const toHotelMin = (ll) => {
 	const H = placeLL(hotelOf(ROLE.leave)); // back to where the bags are, on the airport evening
 	const w = walkMin(ll, H);
-	return w <= 15 ? Math.round(w) : Math.round(((km(ll, H) * 1.3) / 22) * 60 + 4 + 6);
+	return w <= 15 ? Math.round(w) : Math.round(taxiMin(km(ll, H)));
 }; // walk, or a taxi incl. hailing
 function leaveBudgetHTML() {
 	const T = leaveTimes();
@@ -434,21 +435,24 @@ function mineStopHTML(d, x, prevLL) {
 						})()
 					: ''
 			}
-      ${prevLL ? `<p class="stop-note">${icon(wk > 20 ? 'car' : 'walk')} ${esc(wk > 20 ? Z(`从上一站 ${distLabel(k)}：计程车约${Math.round(((k * 1.3) / 22) * 60 + 4)}分钟，或搭${METRO[0]}`, `${distLabel(k)} from the stop before: taxi ~${Math.round(((k * 1.3) / 22) * 60 + 4)} min, or the ${METRO[1]}`) : Z(`从上一站 ${distLabel(k)} · 走路约${wk}分钟`, `${distLabel(k)} from the stop before · ~${wk} min walk`))}</p>` : ''}
-      <div class="stop-links">${extI(gmSearch(x.q, x.gpid), Z('地图', 'Map'), 'pin')}${extI(gmDir(x.q, 'transit', undefined, x.gpid), Z('路线', 'Directions'), 'route')}${canEditStop(x) ? `<button type="button" class="mlink" data-mine-edit="${esc(x.id)}">${icon('clock')}<span class="dlbl">${Z('改时间', 'Change')}</span></button><button type="button" class="mlink" data-mine-del="${esc(x.id)}" aria-label="${Z('删除', 'Remove')}">${icon('x')}<span class="dlbl">${Z('删除', 'Remove')}</span></button>` : ''}</div>
+      ${prevLL ? `<p class="stop-note">${icon(wk > 20 ? 'car' : 'walk')} ${esc(wk > 20 ? Z(`从上一站 ${distLabel(k)}：计程车约${Math.round(taxiMin(k))}分钟，或搭${METRO[0]}`, `${distLabel(k)} from the stop before: taxi ~${Math.round(taxiMin(k))} min, or the ${METRO[1]}`) : Z(`从上一站 ${distLabel(k)} · 走路约${wk}分钟`, `${distLabel(k)} from the stop before · ~${wk} min walk`))}</p>` : ''}
+      <div class="stop-links">${extI(gmSearch(x.q, x.gpid), Z('地图', 'Map'), 'pin')}${extI(gmDir(x.q, 'transit', undefined, x.gpid), Z('路线', 'Directions'), 'route')}${canEditStop(x) ? `<button type="button" class="mlink" data-mine-edit="${esc(x.id)}">${icon('clock')}<span>${Z('改时间', 'Change')}</span></button><button type="button" class="mlink" data-mine-del="${esc(x.id)}" aria-label="${Z('删除', 'Remove')}">${icon('x')}<span class="dlbl">${Z('删除', 'Remove')}</span></button>` : ''}</div>
       ${nearDrinks(d, { place: x.id })}
     </div></li>`;
 }
 /* a day that splits (DAYS[].split, trip-format.md): part of the group takes its own plan for a few hours. It hangs,
    folded, on the string where it forks: its go / wait / skip rule, a switch between its plans (times, bike docks with
-   live counts, a route for the map), and a note on the stop where they come back. Its times are the plan's own and
-   don't move with a push-back; the switch is remembered per phone. */
+   live counts, a route for the map), and a note on the stop where they come back. A push-back moves the fork and the
+   rejoin with the day's stops; the times inside each plan (pick-up, return by) are its own and stay as planned
+   (ADR-20261007-split-follows-pushback). The switch is remembered per phone. */
 function splitPick(d) {
 	const id = (store.get('splitPick', {}) || {})[d.id];
 	const opts = d.split.options;
 	return opts.find((o) => o.id === id) || opts.find((o) => o.default) || opts[0];
 }
 const splitSum = (o) => [o.km && `≈${o.km} km`, o.back && Z(`约 ${o.back} 回来`, `back ≈${o.back}`)].filter(Boolean).join(' · ');
+// the folded card's line: the plan's name, then its distance and return when it has them (no stray "·" without them)
+const splitLine = (o) => [L(o.name), splitSum(o)].filter(Boolean).join(' · ');
 const ybSpot = (p) => (p.yb ? `<span class="yb-live" data-yb="${esc(p.yb)}">${Z('打开后查可借车辆…', 'Checking live bikes…')}</span>` : '');
 function splitDir(o) {
 	const at = (p) => `${p.lat},${p.lng}`;
@@ -456,7 +460,8 @@ function splitDir(o) {
 	return `https://www.google.com/maps/dir/?api=1&origin=${at(o.start)}&destination=${at(o.end)}${via ? `&waypoints=${encodeURIComponent(via)}` : ''}&travelmode=bicycling`;
 }
 function splitPanel(d, o, on) {
-	const back = d.schedule.find((it) => parseT(it.t || '').s === tMin(o.join));
+	const back = d.schedule.find((it) => it._s0 != null && it._s0 === tMin(o.join)); // by its planned time: a push-back moves it
+	const joinT = back && back._sh ? hm(parseT(back.t).s) : o.join;
 	const rows = [
 		o.km && [
 			Z('距离', 'Distance'),
@@ -468,7 +473,7 @@ function splitPanel(d, o, on) {
 			`${o.back ? `≈${esc(o.back)} · ` : ''}${esc(L(o.end.name))}${ybSpot(o.end)}${o.alt ? `<span class="split-alt">${Z('满了就还到', 'Full? Return at')} ${esc(L(o.alt.name))}</span>${ybSpot(o.alt)}` : ''}`,
 		],
 		...(o.rows || []).map(([k, v]) => [esc(L(k)), fmt(v)]),
-		[Z('会合', 'Rejoin'), `${esc(o.join)}${back ? ` · ${fmt(back.what)}` : ''}`],
+		[Z('会合', 'Rejoin'), `${esc(joinT)}${back ? ` · ${fmt(back.what)}` : ''}`],
 		o.fee && [Z('费用', 'Cost'), fmt(o.fee)],
 	].filter(Boolean);
 	const links = [
@@ -487,23 +492,25 @@ function splitHTML(d) {
 	const sp = d.split;
 	const cur = splitPick(d);
 	const opts = sp.options;
-	return `<li class="stop split" id="${d.id}-split" data-s="${tMin(sp.at)}"><div class="stop-t">${esc(sp.at)}</div><div class="stop-knot"></div><div class="stop-b">
+	const sh = sp._sh || 0;
+	return `<li class="stop split${sh ? ' shifted' : ''}" id="${d.id}-split" data-s="${tMin(sp.at) + sh}"><div class="stop-t">${esc(sh ? hm(tMin(sp.at) + sh) : sp.at)}${sh ? `<span class="t-was">${esc(Z(`原 ${sp.at}`, `was ${sp.at}`))}</span>` : ''}</div><div class="stop-knot"></div><div class="stop-b">
       <p class="stop-name">${esc(L(sp.h))}<span class="split-who">${esc(L(sp.who))}</span></p>
       ${sp.sub ? `<p class="stop-note">${fmt(sp.sub)}</p>` : ''}
-      <details class="more split-card"><summary>${icon(sp.icon || 'bike')}<span class="split-h"><span class="split-name">${Z('路线与规则', 'Plans and rules')}</span><span class="split-sum" data-split-sum>${esc(`${L(cur.name)} · ${splitSum(cur)}`)}</span></span>${icon('chev', 'chev')}</summary>
+      <details class="more split-card"><summary>${icon(sp.icon || 'bike')}<span class="split-h"><span class="split-name">${Z('路线与规则', 'Plans and rules')}</span><span class="split-sum" data-split-sum>${esc(splitLine(cur))}</span></span>${icon('chev', 'chev')}</summary>
         <div class="more-body stack">
           ${sp.go ? `<div class="decide">${sp.go.map(optRow).join('')}</div>` : ''}
           ${opts.length > 1 ? `<div class="seg split-seg" role="group" aria-label="${Z('选一个', 'Pick one')}">${opts.map((o) => `<button type="button" aria-pressed="${o === cur}" data-split-pick="${d.id}|${esc(o.id)}">${esc(L(o.name))}</button>`).join('')}</div>` : ''}
           ${opts.map((o) => splitPanel(d, o, o === cur)).join('')}
           ${(sp.lists || []).map((g) => `<p class="tail-sub">${fmt(g.h)}</p>${list(g.list)}`).join('')}
           ${sp.note ? `<p class="note">${fmt(sp.note)}</p>` : ''}
+          ${sh ? `<p class="note">${icon('clock')} ${esc(Z(`已顺延 +${sh} 分：${hm(tMin(sp.at) + sh)} 分开；各方案里的时间（借车、还车）仍按原计划。`, `Pushed back +${sh} min: it splits at ${hm(tMin(sp.at) + sh)}. The times inside each plan (pick-up, return by) stay as planned.`))}</p>` : ''}
         </div>
       </details></div></li>`;
 }
 // on the stop where they come back: who rejoins here, and on which plans
 function splitBack(d, it) {
 	if (!d.split) return '';
-	const s = parseT(it.t || '').s;
+	const s = it._s0; // its planned time: a push-back moves the stop, and the rejoin with it
 	const here = d.split.options.filter((o) => tMin(o.join) === s).map((o) => L(o.name));
 	if (s == null || !here.length) return '';
 	const who = L(d.split.who);
@@ -729,7 +736,7 @@ const legModes = (a, b) => {
 	const k = km(a, b);
 	const walk = walkMin(a, b) * GROUP_WALK;
 	const pl = walk > 12 ? mrtPlan(a, b) : { none: true };
-	return { walk, taxi: k > 0.4 ? ((k * 1.3) / 22) * 60 + 10 : null, mrt: pl.none ? null : pl.total };
+	return { walk, taxi: k > 0.4 ? taxiMin(k) : null, mrt: pl.none ? null : pl.total };
 };
 const modeName = (m) => ({ walk: Z('走路', 'walking'), taxi: Z('计程车', 'by taxi'), mrt: Z(`搭${METRO[0]}`, `by ${METRO[1]}`) })[m] || m;
 const legLine = (modes) =>
@@ -774,25 +781,32 @@ function addLegNote() {
 	const go = prev ? legModes(prev.ll, here) : null;
 	const on = next ? legModes(here, next.ll) : null;
 	const c = Plan.legCheck({ at: m, from: prev ? { start: prev.s, end: prev.e } : null, go, next: next ? next.s : null, onward: on });
+	// on the leaving day a time is only worth offering while the group can still be back for its bags (leaveDeadline)
+	const D = day === ROLE.leave ? leaveDeadline(addItem) : null;
+	const soonest = c.earliest != null ? Math.ceil(c.earliest / 5) * 5 : null;
+	const usable = soonest != null && (!next || soonest < next.s) && (!D || soonest + 30 <= D.by);
 	// a suggested time ("+" under a stop) that leaves no time to get here moves to when the group can, on a 5-minute
 	// mark, while that's still before the next timed stop
 	if (addAutoT && c.short) {
-		const soon = Math.ceil(c.earliest / 5) * 5;
 		addAutoT = false;
-		if (!next || soon < next.s) {
-			$('[data-add-t]').value = hm(soon);
+		if (usable) {
+			$('[data-add-t]').value = hm(soonest);
 			return addClashNote();
 		}
 	}
 	addAutoT = false;
 	const out = [];
+	if (d.date === now.date && m < now.mins - 5)
+		out.push(
+			`<p class="warn">${icon('clock')}<span>${esc(Z(`这个时间已经过了（现在 ${hm(now.mins)}）`, `That time has passed (it's ${hm(now.mins)} now)`))}</span></p>`,
+		);
 	if (prev && c.best) {
 		out.push(
 			`<p class="leg-line">${icon('route')}<span><b>${esc(Z(`从${fromName}`, `From ${fromName}`))}</b> · ${esc(distLabel(km(prev.ll, here)))} · ${esc(legLine(go))}</span></p>`,
 		);
 		out.push(
 			c.short
-				? `<p class="warn">${icon('alert')}<span>${esc(Z(`时间太早：最快约 ${hm(c.earliest)} 到（${modeName(c.best.mode)}）`, `Too early: the soonest is about ${hm(c.earliest)} (${modeName(c.best.mode)})`))}</span><button type="button" class="mlink" data-add-use-time="${hm(Math.ceil(c.earliest / 5) * 5)}">${esc(Z(`改成 ${hm(Math.ceil(c.earliest / 5) * 5)}`, `Use ${hm(Math.ceil(c.earliest / 5) * 5)}`))}</button></p>`
+				? `<p class="warn">${icon('alert')}<span>${esc(Z(`时间太早：最快约 ${hm(c.earliest)} 到（${modeName(c.best.mode)}）`, `Too early: the soonest is about ${hm(c.earliest)} (${modeName(c.best.mode)})`))}</span>${usable ? `<button type="button" class="mlink" data-add-use-time="${hm(soonest)}">${esc(Z(`改成 ${hm(soonest)}`, `Use ${hm(soonest)}`))}</button>` : ''}</p>`
 				: `<p class="ok-note">${icon('check')} ${esc(Z(`来得及：${modeName(c.best.mode)}约 ${c.best.min} 分`, `Works: about ${c.best.min} min ${modeName(c.best.mode)}`))}</p>`,
 		);
 	}
@@ -816,13 +830,16 @@ function addClashMain(el) {
 	const day = ($('[data-add-day][aria-pressed="true"]') || {}).dataset?.addDay;
 	const tv = ($('[data-add-t]') || {}).value;
 	const cl = day && mineClash(day, tv);
-	if (!cl && day === ROLE.leave && addItem && tMin(tv) != null) {
+	if (day === ROLE.leave && addItem && tMin(tv) != null) {
 		const D = leaveDeadline(addItem);
 		if (tMin(tv) + 30 > D.by) {
 			el.innerHTML = `${icon('alert')} ${esc(Z(`太晚了：这里最晚 ${hm(D.by)} 要离开（回酒店约${D.t}分钟，${hm(D.back)}拿行李）`, `Too late: leave here by ${hm(D.by)} (~${D.t} min to the hotel, bags at ${hm(D.back)})`))}`;
 			return;
 		}
-		el.innerHTML = `<span class="ok-note">${icon('clock')} ${esc(Z(`最晚 ${hm(D.by)} 离开这里就赶得上`, `Leave by ${hm(D.by)} and you're fine`))}</span>`;
+		const by = esc(Z(`最晚 ${hm(D.by)} 离开这里就赶得上`, `Leave by ${hm(D.by)} and you're fine`));
+		el.innerHTML = cl
+			? `${icon('alert')} ${esc(Z(`接近固定行程：${L(cl.t)} ${L(cl.what).replace(/\*\*/g, '')}`, `Close to a fixed time: ${L(cl.t)} ${L(cl.what).replace(/\*\*/g, '')}`))} · ${by}`
+			: `<span class="ok-note">${icon('clock')} ${by}</span>`;
 		return;
 	}
 	el.innerHTML = cl
@@ -990,7 +1007,7 @@ function secDay(d, today) {
         ${splitBack(d, it)}
         ${it.shops ? shopBoxHTML() : ''}
         ${it._clash ? `<p class="warn">${icon('alert')}${esc(Z(`推迟后会撞到 ${L(it._clash.t)}「${stopName(it._clash)}」：这一项缩短或跳过`, `Now runs into the fixed ${L(it._clash.t)} ${stopName(it._clash)}: shorten or skip this`))}</p>` : ''}
-        ${it.place || it.link ? `<div class="stop-links">${it.place ? placeLinks(it.place, { noDriver: true, noSite: false }) : ''}${it.link ? `<a class="mlink" href="${SITES[it.link] ? SITES[it.link].url : it.link}">${icon('arrow')}${Z('看详情', 'Details')}</a>` : ''}</div>` : ''}
+        ${it.place || it.link ? `<div class="stop-links">${it.place ? placeLinks(it.place, { noSite: false }) : ''}${it.link ? `<a class="mlink" href="${SITES[it.link] ? SITES[it.link].url : it.link}">${icon('arrow')}${Z('看详情', 'Details')}</a>` : ''}</div>` : ''}
         ${mealEats(d, it)}
         ${nearOpts(d, it)}
         ${nearWish(d, it)}
@@ -999,7 +1016,8 @@ function secDay(d, today) {
 	});
 	if (d.split) {
 		// it forks after the last stop that starts by then; added stops still sort around it by time
-		const at = d.schedule.reduce((k, it, j) => (parseT(it.t || '').s != null && parseT(it.t || '').s <= tMin(d.split.at) ? j : k), -1);
+		const fork = tMin(d.split.at) + (d.split._sh || 0);
+		const at = d.schedule.reduce((k, it, j) => (parseT(it.t || '').s != null && parseT(it.t || '').s <= fork ? j : k), -1);
 		if (at >= 0) planned[at] += splitHTML(d);
 	}
 	const sched = mineMerge(d, planned);

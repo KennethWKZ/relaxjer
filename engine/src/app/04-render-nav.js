@@ -23,13 +23,40 @@ function renderTabs(today) {
 	}).join('');
 	tabsCue();
 }
-// the strip's scrollbar is hidden: fade each edge that has more days behind it (style.css .tabs.more-l / .more-r)
-function tabsCue() {
-	const t = $('#tabs');
+// a sideways row's scrollbar is hidden: fade each edge that has more behind it (style.css .more-l / .more-r), on the
+// day tabs and on every other row that scrolls sideways (photos, the map's filters), so the row says it scrolls
+const X_ROWS = '.photos, .map-ctrl';
+function edgeCue(t) {
 	if (!t) return;
 	const max = t.scrollWidth - t.clientWidth;
 	t.classList.toggle('more-l', t.scrollLeft > 2);
 	t.classList.toggle('more-r', t.scrollLeft < max - 2);
 }
+const tabsCue = () => edgeCue($('#tabs'));
 $('#tabs').addEventListener('scroll', tabsCue, { passive: true });
-window.addEventListener('resize', tabsCue);
+window.addEventListener('resize', () => {
+	tabsCue();
+	$$(X_ROWS).forEach(edgeCue);
+});
+// rows drawn later (a section Chromium skipped, the map's filters when it opens) get their cue once they have a size
+const xSized = new ResizeObserver((es) => es.forEach((e) => edgeCue(e.target)));
+let xWatch = 0;
+new MutationObserver(() => {
+	if (xWatch) return;
+	xWatch = requestAnimationFrame(() => {
+		xWatch = 0;
+		$$(X_ROWS).forEach((t) => {
+			if (!t._cue) {
+				t._cue = 1;
+				xSized.observe(t);
+			}
+		});
+	});
+}).observe(document.body, { childList: true, subtree: true });
+document.addEventListener(
+	'scroll',
+	(e) => {
+		if (e.target.matches && e.target.matches(X_ROWS)) edgeCue(e.target);
+	},
+	{ capture: true, passive: true },
+);

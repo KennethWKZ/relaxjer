@@ -1,7 +1,8 @@
 // Your own stops: "+" under a timeline dot, clash warnings near fixed times, and share links that others can import.
 // The #add= link format is a contract: links already sent to a group chat must keep working after the refactor.
 import { test, expect, openTrip } from '../support/fixtures.mjs';
-import { settle } from '../support/page.mjs';
+import { settle, setStored } from '../support/page.mjs';
+/* global DAYS, FLIGHTS */
 
 // tagged @demo: day ids, gaps and times are the demo trip's
 test.describe('your own stops', { tag: '@demo' }, () => {
@@ -26,6 +27,27 @@ test.describe('your own stops', { tag: '@demo' }, () => {
 		// sits between the 14:00 stop and the 17:00 stop
 		const order = await page.locator('#d2 .sched > li.stop').evaluateAll((ls) => ls.map((l) => (l.classList.contains('mine') ? 'mine' : l.id)));
 		expect(order.indexOf('mine')).toBe(order.indexOf('d2-s4') + 1);
+	});
+
+	// the pre-departure pass measured Change and ✕ at 39 × 44 px, Change as a bare clock on phones, and the pink of
+	// "Add to plan" and "Added" at 2.7:1 in dark mode
+	test("an added stop's Change and Remove are full targets, Change says so, and the pink reads at night", async ({ page }) => {
+		await openTrip(page);
+		await setStored(page, { theme: 'dark' }); // the page's own theme switch, not the system's
+		await page.locator('[data-add-gap="d2|4"]').click();
+		const sheet = page.locator('#placeSheet');
+		await expect(sheet.locator('[data-add-res] [data-add]').first()).toHaveCSS('color', 'rgb(241, 154, 184)');
+		await sheet.locator('[data-add-res] [data-add]').first().click();
+		await sheet.locator('[data-add-save]').click();
+		const mine = page.locator('#d2 .stop.mine');
+		await expect(mine.locator('.mine-tag')).toHaveCSS('color', 'rgb(241, 154, 184)');
+		await expect(mine.locator('[data-mine-edit]')).toContainText('Change');
+		await expect(mine.locator('[data-mine-edit] span')).toBeVisible();
+		for (const b of ['[data-mine-edit]', '[data-mine-del]']) {
+			const box = await mine.locator(b).boundingBox();
+			expect(box.width, b).toBeGreaterThanOrEqual(44);
+			expect(box.height, b).toBeGreaterThanOrEqual(44);
+		}
 	});
 
 	test('with the phone keyboard up, the sheet sits above it and the field being typed in shows', async ({ page }) => {
@@ -127,4 +149,37 @@ test.describe('your own stops', { tag: '@demo' }, () => {
 		await page.reload();
 		await expect(page.locator('#d3 .stop.mine'), 'back for good').toContainText('Demo Undo Stop');
 	});
+});
+
+// From the pre-departure pass: a time already past today got no word, and on the leaving day the sheet offered
+// "Use 19:40" after the group had to leave for the airport, with the going-home deadline hidden behind a fixed-time note.
+test('the add sheet says a time has passed, and on the leaving day offers nothing after the group must leave', async ({ page }) => {
+	await openTrip(page);
+	const t = await page.evaluate(() => {
+		// the leaving day, as Plan.dayRoles reads it: the evening before an after-midnight take-off, else the flight's day
+		const [h, m] = String(FLIGHTS.ret.dep).split(':').map(Number);
+		const eve = h * 60 + m < 720 ? new Date(Date.parse(FLIGHTS.ret.date) - 864e5).toISOString().slice(0, 10) : FLIGHTS.ret.date;
+		return { day: DAYS[1], leave: DAYS.find((d) => d.date === eve) || DAYS[DAYS.length - 1] };
+	});
+	const pick = async (dayId, time) => {
+		await page.locator(`[data-add-gap^="${dayId}|"]:visible`).last().click(); // stops already past are folded away
+		const sheet = page.locator('#placeSheet');
+		await sheet.locator('[data-add-res] [data-add]').first().click();
+		await sheet.locator('[data-add-t]').fill(time);
+		await sheet.locator('[data-add-t]').dispatchEvent('change');
+		return sheet;
+	};
+	await setStored(page, { now: `${t.day.date} 15:00` });
+	let sheet = await pick(t.day.id, '09:00');
+	await expect(sheet.locator('[data-add-leg]')).toContainText(/That time has passed|这个时间已经过了/);
+	await page.keyboard.press('Escape');
+	await setStored(page, { now: `${t.leave.date} 10:00` });
+	sheet = await pick(t.leave.id, '23:30');
+	await expect(sheet.locator('[data-add-clash]')).toContainText(/Too late: leave here by|太晚了：这里最晚/);
+	const by = await sheet.locator('[data-add-clash]').textContent();
+	const deadline = /(\d{2}):(\d{2})/.exec(by);
+	for (const b of await sheet.locator('[data-add-use-time]').all()) {
+		const [h, m] = (await b.getAttribute('data-add-use-time')).split(':').map(Number);
+		expect(h * 60 + m, 'never offered after the time to leave').toBeLessThanOrEqual(+deadline[1] * 60 + +deadline[2]);
+	}
 });

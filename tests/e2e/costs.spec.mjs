@@ -91,3 +91,18 @@ test('the rate takes a home currency worth far more, or far less, than the desti
 		for (const n of [r(a / rate), r(b / rate)]) await expect(rm).toContainText(n);
 	}
 });
+
+// the reserve line and the shared-cost rows had no home-currency figure, while the pool line had one
+test('the budget gives every shared amount in the home currency too', async ({ page }) => {
+	await openTrip(page);
+	const missing = await page.evaluate(() => {
+		const out = [];
+		document.querySelectorAll('#budget dl.kv > div').forEach((row) => {
+			if (!row.querySelector('[data-rm]')) out.push(row.querySelector('dt')?.textContent.trim().slice(0, 30));
+		});
+		const note = document.querySelector('#budget .sec-lede ~ p.note');
+		if (note && /\d/.test(note.textContent) && !note.querySelector('[data-rm]')) out.push('reserve line');
+		return out;
+	});
+	expect(missing).toEqual([]);
+});
