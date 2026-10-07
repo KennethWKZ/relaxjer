@@ -72,19 +72,31 @@ started, attached over the Chrome DevTools Protocol. Any agent can do this, thro
 
 2. **Attach the agent.** As an MCP server: `npx chrome-devtools-mcp@1.10.1 --browser-url=http://127.0.0.1:9222`. From
    a script: `chromium.connectOverCDP('http://127.0.0.1:9222')` (Playwright).
-3. **Open the site's home page first,** and pick the currency there. If a check or a cookie banner appears, the person
-   handles it in that window, then the agent goes on. An agent never solves a CAPTCHA, signs in or pays.
+3. **Open the site's home page first,** and set the currency there (below). Go at a person's pace: a few seconds on
+   each page, one site at a time. If a check or a cookie banner appears, the person handles it in that window, then
+   the agent goes on. An agent never solves a CAPTCHA, signs in or pays.
 
 What each reseller let through on the first trip (2026-10-07, Chrome 154, macOS):
 
 | Site     | Plain fetch | Chrome launched by Playwright, fresh profile | Chrome started by hand, fresh profile, attached          |
 | -------- | ----------- | -------------------------------------------- | -------------------------------------------------------- |
 | Trip.com | HTTP 432    | HTTP 432                                     | read it, once the home page had been opened first        |
-| Klook    | CAPTCHA     | HTTP 403                                     | HTTP 403, even its home page; a long-used profile got in |
+| Klook    | CAPTCHA     | HTTP 403                                     | HTTP 403, even its home page; an everyday profile got in |
 | KKday    | CAPTCHA     | read it with a window; HTTP 403 headless     | read it                                                  |
 
-Trip.com takes the currency in its address (`curr=MYR`); Klook and KKday ignore address parameters and keep the
-currency picked in the page header, per profile.
+Klook's check (DataDome) also caught the everyday profile once an agent had loaded a dozen pages in a few minutes, and
+fresh profiles had been turned away from the same address: it asked for a slider, which the person completes.
+
+**Setting the currency** (checked 2026-10-07):
+
+| Site     | How                                                                                       | Kept in                          |
+| -------- | ----------------------------------------------------------------------------------------- | -------------------------------- |
+| Trip.com | `curr=MYR` in the address                                                                 | the address                      |
+| Klook    | the language and currency button in the header (`EN(MY) · USD`) → Currency → the currency | the `klk_currency` cookie        |
+| KKday    | the currency button in the header (`USD ⌄`) → the currency                                | the `currency` cookie, HTTP-only |
+
+Use the site's own menu. Klook ignored `?currency=MYR` in the address, and writing KKday's cookie by hand changed the
+label to RM but left the USD number. A fresh KKday profile on a Malaysian address already opened in RM.
 
 **Security:** while the port is open, any program on the machine can drive that browser. Chrome listens on
 `127.0.0.1` only by default; leave it so. Sign in to nothing in that profile, and quit Chrome when the research is done.
