@@ -32,6 +32,32 @@ test('neighbouring buttons and tabs keep 8 px apart [3]', async ({ page }) => {
 	expect(gaps).toEqual([]);
 });
 
+// measured, not read from CSS: the pre-departure pass found route legs, stop links, food chips, drink pills, the map's
+// filters and pin tags 4–6 px apart. A segmented control (one control in parts) and links inside a sentence are exempt.
+test('neighbouring targets in any container sit at least 8 px apart [3]', async ({ page }) => {
+	await openTrip(page);
+	await openAllDetails(page);
+	const close = await page.evaluate(() => {
+		const T = [...document.querySelectorAll('#app a, #app button, #app summary')].filter((e) => {
+			const r = e.getBoundingClientRect();
+			return r.width > 2 && r.height > 2 && getComputedStyle(e).display !== 'inline' && !e.parentElement.closest('.seg');
+		});
+		const out = new Set();
+		for (const a of T)
+			for (const b of T) {
+				if (a === b || a.parentElement !== b.parentElement) continue;
+				const x = a.getBoundingClientRect(),
+					y = b.getBoundingClientRect();
+				const vov = Math.min(x.bottom, y.bottom) - Math.max(x.top, y.top),
+					hov = Math.min(x.right, y.right) - Math.max(x.left, y.left);
+				const g = vov > 4 && y.left >= x.right - 0.5 ? y.left - x.right : hov > 4 && y.top >= x.bottom - 0.5 ? y.top - x.bottom : null;
+				if (g != null && g < 7.5) out.add(`${a.parentElement.className}: ${Math.round(g)} px`);
+			}
+		return [...out];
+	});
+	expect(close).toEqual([]);
+});
+
 test('every disclosure shows a chevron [11]', async ({ page }) => {
 	await openTrip(page);
 	await openAllDetails(page);
@@ -57,6 +83,38 @@ test('the day strip fades the edge that has more days [14]', async ({ page }) =>
 	await expect.poll(cue).toEqual({ more: true, l: false, r: true });
 	await tabs.evaluate((t) => t.scrollTo({ left: t.scrollWidth, behavior: 'instant' }));
 	await expect.poll(cue).toEqual({ more: true, l: true, r: false });
+});
+
+// the photo rows and the map's filters scroll sideways too, and had no cue at all
+test('every other sideways row fades the edge that has more [14]', async ({ page }) => {
+	await openTrip(page);
+	const rows = page.locator('#app .photos, #app .map-ctrl');
+	const n = await rows.count();
+	let checked = 0;
+	for (let i = 0; i < n; i++) {
+		const row = rows.nth(i);
+		// a jump past sections not drawn yet (content-visibility) can land off the row, and headless Chromium can leave a
+		// section undrawn while it is on screen (real Chrome, scrolled by a person, cues every row): check the rows it drew
+		let drawn = false;
+		for (let k = 0; k < 5 && !drawn; k++) {
+			await row.scrollIntoViewIfNeeded();
+			await page.waitForTimeout(100);
+			drawn = await row.evaluate((t) => {
+				const r = t.getBoundingClientRect();
+				return r.top >= 0 && r.bottom <= innerHeight && t.checkVisibility({ contentVisibilityAuto: true });
+			});
+		}
+		if (!drawn) continue;
+		const cue = () =>
+			row.evaluate((t) => ({ more: t.scrollWidth > t.clientWidth + 2, l: t.classList.contains('more-l'), r: t.classList.contains('more-r') }));
+		await row.evaluate((t) => t.scrollTo({ left: 0, behavior: 'instant' }));
+		if (!(await cue()).more) continue;
+		checked++;
+		await expect.poll(cue).toEqual({ more: true, l: false, r: true });
+		await row.evaluate((t) => t.scrollTo({ left: t.scrollWidth, behavior: 'instant' }));
+		await expect.poll(cue).toEqual({ more: true, l: true, r: false });
+	}
+	test.skip(!checked, 'nothing scrolls sideways at this width');
 });
 
 test('the selected tab shows more than a colour change, and the language button names the other language [16]', async ({ page }) => {

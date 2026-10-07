@@ -1,5 +1,5 @@
 ---
-total_decisions: 20
+total_decisions: 21
 last_updated: 2026-10-07
 ---
 
@@ -20,7 +20,7 @@ merged id never changes; a new ADR that collides takes a fresh slug.
 | [ADR-20260930-name-relaxjer](decisions/ADR-20260930-name-relaxjer.md)                             | 2026-09-30 | The Project Is Named RelaxJer                                                                                                    | naming   | accepted |
 | [ADR-20260930-repo-layout](decisions/ADR-20260930-repo-layout.md)                                 | 2026-09-30 | Repository Layout: One Framework Repo, Destination Packs, Gitignored Trips                                                       | layout   | accepted |
 | [ADR-20260930-test-strategy](decisions/ADR-20260930-test-strategy.md)                             | 2026-09-30 | Test Strategy: Characterise First, Then Split                                                                                    | testing  | accepted |
-| [ADR-20261001-day-split](decisions/ADR-20261001-day-split.md)                                     | 2026-10-01 | A Day Can Split: Part of the Group Takes Its Own Plan, Hung Where the String Forks                                               | data     | accepted |
+| [ADR-20261001-day-split](decisions/ADR-20261001-day-split.md)                                     | 2026-10-01 | A Day Can Split: Part of the Group Takes Its Own Plan, Hung Where the String Forks                                               | data     | amended  |
 | [ADR-20261001-group-sync](decisions/ADR-20261001-group-sync.md)                                   | 2026-10-01 | Group Sync Through the Planner's Own Firebase Realtime Database, Over Its Plain HTTPS API                                        | data     | amended  |
 | [ADR-20261001-live-page-on-relaxjer](decisions/ADR-20261001-live-page-on-relaxjer.md)             | 2026-10-01 | The First Trip's Live Page Is Built by RelaxJer                                                                                  | hosting  | accepted |
 | [ADR-20261001-memory-bank-agent-config](decisions/ADR-20261001-memory-bank-agent-config.md)       | 2026-10-01 | Project Context Lives in memory-bank/; Agent Tooling Works for Any Agent, With Claude Code Extras                                | agents   | accepted |
@@ -35,4 +35,5 @@ merged id never changes; a new ADR that collides takes a fresh slug.
 | [ADR-20261002-live-demo-on-pages](decisions/ADR-20261002-live-demo-on-pages.md)                   | 2026-10-02 | The Demo Trip Goes Live on GitHub Pages, Built by CI With No Key and Its Clock Set to a Day Under Way                            | hosting  | accepted |
 | [ADR-20261002-required-ci](decisions/ADR-20261002-required-ci.md)                                 | 2026-10-02 | A Red CI Blocks the Merge: main Requires One ci-ok Check, and the Maintainer Can Still Push                                      | tooling  | accepted |
 | [ADR-20261002-sync-planners](decisions/ADR-20261002-sync-planners.md)                             | 2026-10-02 | Group Sync Gets Planners, Own-Stop Edits, Undo and a Recently Removed List                                                       | data     | accepted |
+| [ADR-20261007-split-follows-pushback](decisions/ADR-20261007-split-follows-pushback.md)           | 2026-10-07 | A Push-Back Moves a Split Day’s Fork and Rejoin; Each Plan Keeps Its Own Times                                                   | engine   | accepted |
 | [ADR-20261007-traffic-aware-drives](decisions/ADR-20261007-traffic-aware-drives.md)               | 2026-10-07 | A Drive Still Ahead Gets Google’s Typical and Heavy-Traffic Times, at the Hour the Leg Sets Off                                  | data     | accepted |

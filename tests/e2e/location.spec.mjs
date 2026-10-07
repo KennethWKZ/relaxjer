@@ -87,6 +87,17 @@ test('the card comes back on a trip day when the browser forgot the answer', asy
 	expect(await page.evaluate(() => window.__geoAsked)).toBe(0);
 });
 
+test("on a trip day the Now card's buttons come before the location card, on an iPhone's first screen", async ({ page }) => {
+	await page.setViewportSize({ width: 390, height: 664 }); // an iPhone's visible area under Safari's bars
+	await stubGeo(page, 'prompt');
+	await openOn(page, 1, '10:30');
+	await expect(card(page)).toBeVisible();
+	const links = await page.locator('#now > .links-row').boundingBox(); // the card has its own row of buttons
+	const ask = await card(page).boundingBox();
+	expect(links.y, 'Open today and Go to next stop come first').toBeLessThan(ask.y);
+	expect(links.y + links.height, 'and end on the first screen').toBeLessThanOrEqual(664);
+});
+
 test('an approximate location says the late check needs precise location', async ({ page }) => {
 	await stubGeo(page, 'granted', { ...HERE, accuracy: 2500 }); // Android "Approximate" / iPhone Precise Location off
 	await openOn(page, 0);

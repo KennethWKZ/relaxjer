@@ -41,7 +41,7 @@ two of them seniors.
 - **Search** (the magnifier) finds any stop, place, note or list item across the whole plan, grouped by section with
   today first. It finds names in the language that isn't on screen, and a Traditional character finds its Simplified
   form (臺 finds 台). Matches are highlighted on the page, with previous / next and a count; Enter jumps to the first,
-  Esc closes.
+  Esc closes. A jump lands the match just under the header and lights its section's tab.
 - **Links:** every section, day and card has its own address (`#d3`, `#airport`, `#opt-101`), so a link in the group
   chat opens right there. A food, drink, wishlist or optional card opens in a sheet over the page, with "Show in the
   list".
@@ -54,7 +54,8 @@ two of them seniors.
 - **Before the trip:** "N days to go", the flight, the first night's hotel, up to three to-dos coming due (entry
   registrations, the week-before weather check), and buttons to the checklist and Day 1.
 - **On a trip day:** the day's badge and wish, what's on now and what's next (each a link to its stop), "Go to the next
-  stop" with Google directions, "Open today", and "Check progress from my location".
+  stop" with Google directions, "Open today", and "Check progress from my location". While a day's split is on, an
+  "Apart" row says who went where and when the group meets again, linking to the split.
 - **After the trip:** "Trip done. Welcome home."
 - **The week:** one lantern row per day with its date, title and focus.
 - **Trip facts:** the dates, the group, the hotel with its address in both languages, phone and links. If Google still
@@ -89,9 +90,10 @@ two of them seniors.
 
 - **Push the rest of the day back.** "Running late? Push the rest back" opens a sheet: from which stop, and by how
   long (15–90 minutes). Flexible stops move; fixed ones hold, and the push stops at the next fixed time. A banner then
-  says what moved ("+30 min from … until …", each moved stop showing "was HH:MM"), warns if a stop now runs into a
-  fixed time ("shorten or skip"), and offers Adjust or Back to the planned times. Nothing after "leave for the airport"
-  can be pushed. With group sync, a push reaches every phone.
+  says what moved ("+30 min from … until …", or "to the end of the day", each moved stop showing "was HH:MM"), warns if
+  a stop now runs into a fixed time ("shorten or skip"), and offers Adjust or Back to the planned times. On a day that
+  splits, the fork and the rejoin move with the stops; the times inside each plan (pick-up, return by) stay as planned.
+  Nothing after "leave for the airport" can be pushed. With group sync, a push reaches every phone.
 - **The running-late check.** With the phone's location, the page sees when you're 15 minutes or more behind the plan
   near a stop and offers "Push back N min" or No thanks (after No thanks it asks again only when you fall 20 minutes
   further behind). It never moves anything by itself. If a fixed time is about to
@@ -111,10 +113,13 @@ two of them seniors.
 - **The time:** a suggestion to start from (the next full hour today, an hour into the free time, noon, or the gap
   after the "+" stop), in 15-minute steps.
 - **Getting there:** the sheet works out the trip from the stop before (or from where you are, for the next few hours
-  today): the distance, and minutes walking (counted ×1.4 for seniors), by taxi and by metro. A time too early to get
-  there says so and offers "Use HH:MM"; the suggested time moves to the arrival time by itself when that still fits
-  before the next stop. It also says when to leave for the next timed stop, or warns that it can't be made.
-- **It checks the rest:** a clash with a fixed time, the going-home deadline ("leave here by HH:MM, bags at …"), and, on
+  today): the distance, and minutes walking (counted ×1.4 for seniors), by taxi (hailing one included, the same
+  minutes the added stop shows later) and by metro. A time too early to get there says so and offers "Use HH:MM",
+  only while that time still fits before the next stop and, on the leaving day, before the group must leave; the
+  suggested time moves to it by itself the same way. A time already past today says so. It also says when to leave
+  for the next timed stop, or warns that it can't be made.
+- **It checks the rest:** the going-home deadline on the leaving day ("leave here by HH:MM, bags at …", shown even next
+  to a fixed-time note), a clash with a fixed time, and, on
   a day that already has four added stops, a word before one more.
 - **On the day:** an added stop shows "Added" (or "Added by …" with group sync), its address, any warning, the distance
   and walk or taxi time from the stop before, Change and Remove, and the drinks, rest spots and toilets near it. It
@@ -199,7 +204,8 @@ itself is the planner's: it's in the trip's data, and nobody makes one on the pa
 - **Bike share:** live bikes and free docks on each dock, where the city publishes them (Taipei's YouBike).
 - **Show the driver:** a full-screen card with the place's local name, Google's name, the local address, the English
   one, the phone, "please take us here" (in Chinese; other languages come with story step 4), Copy address and Google
-  Maps.
+  Maps. On a trip day it's one tap from the current and the next stop in the plan; every place also has it in its
+  place sheet.
 - **Directions** links open the phone's maps app in the right mode (walk, transit, drive, bike).
 
 ## Money
@@ -226,7 +232,9 @@ itself is the planner's: it's in the trip's data, and nobody makes one on the pa
   draw with a calculator for the group (repeat visitors, companions, who can't join, the total in both currencies). Its
   ticks sit at the top of the checklist and show in the countdown when due.
 - **Weather:** what to expect, when to check (a dated check shows up in the countdown), links, the daily checks, what
-  to wear where, and the forecast on each trip day within 16 days.
+  to wear where, and the forecast on each trip day within 16 days. A line under the intro says where the forecast
+  comes from, when it was checked, the days it covers, and how to read it (the % is the chance of rain at any time that
+  day; the icon is the worst weather expected, even briefly).
 - **Priorities:** the group's must-dos, should-dos and if-we-feel-like-it list, the trip's brushed motto, and photo
   credits.
 

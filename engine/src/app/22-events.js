@@ -140,7 +140,10 @@ document.addEventListener('click', (e) => {
 	}
 	if (t.matches('[data-upd]')) {
 		if (navigator.onLine === false) toast(Z('没有网络：先用这一版，有网络再更新', 'Offline: keep this copy and update when you’re online'));
-		else location.reload();
+		else {
+			spotSave();
+			location.reload();
+		}
 		return;
 	}
 	if (t.matches('[data-home]')) {
@@ -562,7 +565,7 @@ document.addEventListener('click', (e) => {
 		store.set('splitPick', { ...(store.get('splitPick', {}) || {}), [d.id]: o.id });
 		card.querySelectorAll('[data-split-pick]').forEach((b) => b.setAttribute('aria-pressed', String(b === t)));
 		card.querySelectorAll('[data-split-opt]').forEach((p) => (p.hidden = p.dataset.splitOpt !== o.id));
-		card.querySelector('[data-split-sum]').textContent = `${L(o.name)} · ${splitSum(o)}`;
+		card.querySelector('[data-split-sum]').textContent = splitLine(o);
 		ybFill(card);
 		return;
 	}

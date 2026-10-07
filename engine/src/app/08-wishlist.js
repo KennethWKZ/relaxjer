@@ -160,6 +160,9 @@ function budgetChip(d) {
 
 function secBudget() {
 	const B = BUDGET;
+	// every group figure here also says what it is at home: each person's share on the rows, the group's on the reserve
+	const eachRm = (a, b) => `<span data-rm="${each(a)},${each(b)}">${rmText(each(a), each(b))}</span>`;
+	const sg = numsIn(L(B.suggest));
 	const dayRows = DAYS.map((d) => {
 		const b = d.blocks.find((x) => x.type === 'budget');
 		return b ? { d, b } : null;
@@ -178,11 +181,11 @@ function secBudget() {
       <p class="sec-lede">${Z('不包括', 'Not included')}: ${B.excludes.map(L).map(esc).join(Z('、', ', '))}</p>
       <div class="fx"><label for="rate">${Z('汇率', 'Rate')}: 1 ${esc(CUR.home)} =</label><input id="rate" type="number" inputmode="decimal" step="any" min="0" value="${rate}"><span>${esc(CUR.sym)}</span><span class="xsmall">${esc(L(CUR.rateNote))}</span></div>
       <div style="margin-top:14px">${totalBox(L(B.total).replace(/^约 |^About /, ''), [Z(`主行程 · ${GROUP[0]}`, `main costs · ${GROUP[1]}`), Z(`主行程 · ${GROUP[0]}`, `main costs · ${GROUP[1]}`)], B.totalMin, B.totalMax, eachLine(B.totalMin, B.totalMax))}</div>
-      <p class="note">${fmt(B.suggest)}</p>
+      <p class="note">${fmt(B.suggest)}${sg ? ` <span data-rm="${sg.join(',')}">${rmText(...sg)}</span>` : ''}</p>
       <p class="callout">${icon('users')}<span>${fmt(B.split)}</span></p>
       <p class="callout">${icon('info')}<span>${fmt(B.poolText)} <span data-rm="${B.pool},${B.pool}">${rmText(B.pool, B.pool)}</span></span></p>
       <h3 class="sub">${icon('list')}${Z('主要共同支出', 'Main shared costs')}</h3>
-      <dl class="kv">${B.rows.map((r) => `<div><dt>${fmt(r[0])}${r[4] === 'airport' && B.airportNote ? `<span class="check-sub"><a href="#airport">${esc(L(B.airportNote))}</a></span>` : ''}</dt><dd>${fmt(r[1])}<small class="dd-each">${Z('每人', 'each')} ${eachText(r[2], r[3])}</small></dd></div>`).join('')}<div class="sum"><dt>${Z('合计', 'Total')}</dt><dd>${fmt(B.total)}<small class="dd-each">${Z('每人', 'each')} ${eachText(B.totalMin, B.totalMax)}</small></dd></div></dl>
+      <dl class="kv">${B.rows.map((r) => `<div><dt>${fmt(r[0])}${r[4] === 'airport' && B.airportNote ? `<span class="check-sub"><a href="#airport">${esc(L(B.airportNote))}</a></span>` : ''}</dt><dd>${fmt(r[1])}<small class="dd-each">${Z('每人', 'each')} ${eachText(r[2], r[3])} ${eachRm(r[2], r[3])}</small></dd></div>`).join('')}<div class="sum"><dt>${Z('合计', 'Total')}</dt><dd>${fmt(B.total)}<small class="dd-each">${Z('每人', 'each')} ${eachText(B.totalMin, B.totalMax)} ${eachRm(B.totalMin, B.totalMax)}</small></dd></div></dl>
       <h3 class="sub">${icon('chart')}${Z(`每天花费（条＝${GROUP[0]}，小字＝每人，${CUR.sym}）`, `Per day (bar = all ${PAX}, small = each, ${CUR.sym})`)}</h3>
       <div class="bars">${bars}</div>
       ${axisHTML(ax)}
@@ -196,11 +199,20 @@ function secBudget() {
     </section>`;
 }
 
+// where each day's forecast chip comes from and what it says, in words a phone shows (the chip's tooltip never shows
+// on a phone): the source, when it was checked, the days it covers, and how to read the icon next to the %
+function fcLine() {
+	const days = FC && FC.days ? Object.keys(FC.days).sort() : [];
+	if (!FC || !FC.checked || !days.length) return '';
+	const span = days.length > 1 ? `${dateLabel(days[0])}–${dateLabel(days[days.length - 1])}` : dateLabel(days[0]);
+	return `<p class="small muted" data-fc-checked="${esc(FC.checked)}">${icon('info')} ${esc(Z(`每天卡片上的预报：Open-Meteo，${dateLabel(FC.checked)} 查，涵盖 ${span}。百分比是当天任何时候下雨的机会，图标是当天最差的天气（哪怕只有一阵）。`, `The forecast on each day: Open-Meteo, checked ${dateLabel(FC.checked)}, for ${span}. The % is the chance of rain at any time that day; the icon is the worst weather expected, even briefly.`))}</p>`;
+}
 function secWeather() {
 	const W = WEATHER;
 	return `<section class="sec" id="weather" data-sec="weather">
       <h2 class="sec-title">${icon('cloud')}${Z('天气和穿着', 'Weather & what to wear')}</h2>
       <p class="sec-lede">${fmt(W.lede)}</p>
+      ${fcLine()}
       <h3 class="sub">${icon('calendar')}${Z('什么时候看天气', 'When to check')}</h3>
       <dl class="kv">${W.when.map((w) => `<div><dt>${fmt(w.t)}</dt><dd class="wrap">${fmt(w.v)}</dd></div>`).join('')}</dl>
       <div class="links-row">${(W.sites || []).map((k) => siteLink(k)).join('')}</div>

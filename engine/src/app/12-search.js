@@ -137,7 +137,15 @@ function jumpTo(i) {
 		history.pushState({ tpJump: 1, tpSearch: 1 }, '');
 		syncBackPill();
 	}
-	scrollToEl(el, 'center', Math.abs(el.getBoundingClientRect().top) <= innerHeight * 3 && !noMotion());
+	// under the bar, like every other jump: landed mid-screen, the top of the screen still belonged to the section before,
+	// and the strip lit that one
+	scrollToEl(el, 'start', Math.abs(el.getBoundingClientRect().top) <= innerHeight * 3 && !noMotion());
+	// light the hit's section in the strip at once, as a tab jump does: the old day's tab stayed lit after the jump
+	const sec = el.closest('[data-sec]');
+	if (sec) {
+		setActive(sec.id);
+		spyHold = performance.now() + 1100;
+	}
 	flash(el);
 	if (window.Highlight && CSS.highlights) {
 		const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);

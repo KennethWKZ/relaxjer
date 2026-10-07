@@ -30,13 +30,23 @@ setInterval(() => {
 }, 60000);
 geoWatch(); // on a trip day, follow the phone if location is already allowed (never asks by itself)
 
+const backTo = reloadSpot();
+if (backTo) {
+	history.scrollRestoration = 'manual'; // our restore, not the browser's pixel offset
+	// and not the address's #heading either: WebKit still scrolled to it at load, after our restore
+	if (location.hash.length > 1 && !/^#add=/.test(location.hash)) history.replaceState(history.state, '', location.pathname + location.search);
+}
 render();
+if (backTo) {
+	spotRestore(backTo);
+	setTimeout(() => (history.scrollRestoration = 'auto'), 2500); // after the 2 s hold: Back and Forward work as before
+}
 const idle = window.requestIdleCallback || ((f) => setTimeout(f, 200));
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => idle(imgLoad, { timeout: 1500 }));
 else idle(imgLoad, { timeout: 1500 });
 if (/^#add=/.test(location.hash))
 	setTimeout(mineImportOffer, 300); // someone shared their added stops
-else if (location.hash.length > 1) {
+else if (location.hash.length > 1 && !backTo) {
 	const el = lazyFor(location.hash.slice(1));
 	// the same landing as a tab jump: WebKit needs holdLanding() here too, or a shared #entry link opened ~3,800 px off
 	if (el) setTimeout(() => scrollToEl(el, 'start'), 50);
