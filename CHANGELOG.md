@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.5.0](https://github.com/KennethWKZ/relaxjer/compare/v1.4.0...v1.5.0) (2026-10-07)
+
+
+### ✨ Features
+
+* **pipeline:** predict a planned drive's time in typical and heavy traffic ([0910291](https://github.com/KennethWKZ/relaxjer/commit/0910291194d59cdc8d7af1545a0b4e675ba6f58c))
+* **pipeline:** predict a planned drive's time in typical and heavy traffic ([648972c](https://github.com/KennethWKZ/relaxjer/commit/648972cfb54147fe675c59652b01bdd8e4829e62))
+
 ## [1.4.0](https://github.com/KennethWKZ/relaxjer/compare/v1.3.0...v1.4.0) (2026-10-05)
 
 
