@@ -49,7 +49,9 @@ chartered van's evening drive against the end of its hours.
 ## Consequences
 
 - **Cost:** two Pro calls per drive still ahead, about US$0.02 a leg; a week-long trip has a handful.
-- **Freshness:** a prediction made far ahead leans on historical traffic. A refresh in the trip's last week asks
+- **Freshness:** a prediction made far ahead leans on historical traffic. `pnpm resync --fresh-drives` (added the same
+  day) asks again only these drives, about twenty calls for a week-long trip, for newer predictions in the trip's last
+  week; every step prints its new Google calls. Without it, a refresh in the trip's last week asks
   again only if the leg or its time changed, since the answer is cached; `--fresh` asks everything again.
 - **Security:** nothing new leaves the machine: the same server key and the same two coordinates per leg, plus a
   time.

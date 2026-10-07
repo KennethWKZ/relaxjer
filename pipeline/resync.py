@@ -4,13 +4,17 @@
     uv run --project pipeline pipeline/resync.py --trip trips/<slug>            # dry run: print what would change
     uv run --project pipeline pipeline/resync.py --trip trips/<slug> --write    # apply to the trip's files, rebuild
                                                        (with ~/.config/relaxjer/google.json and sync/<slug>.json when present)
-    options: --fresh (ask Google again for everything)  --yes (the planner agrees to pay)  --no-google  --no-weather
-             --no-links  --no-build   (--reuse: the default now; still accepted)
+    options: --fresh (ask Google again for everything)  --fresh-drives (ask again only the drives still ahead, for newer
+             traffic predictions)  --yes (the planner agrees to pay)  --no-google  --no-weather  --no-links  --no-build
+             (--reuse: the default now; still accepted)
 
 Google bills every call (ADR-20261001-resync-cost-guard). So a run answers from the trip's Google cache and asks only
 what the cache lacks or what failed last time, and each step stops after 200 new calls unless the planner said --yes.
 --fresh, or a trip with no cache yet, prints how many calls that is and what they cost at list price, and goes ahead
 only on a yes: typed at the prompt, or --yes. An agent never says yes for the planner (.claude/hooks/guard-bash.mjs).
+--fresh-drives asks again only each traffic-aware drive whose departure is still ahead (two calls a drive), so it stays
+under the 200-call stop. Every Google step prints how many new calls it made and their list price, and the run ends
+with the total.
 Never refresh to test a key: guides/google-maps.md has a check that makes one call per API.
 
 Steps (the trip's pipeline.json "steps"; each is found in the trip's region pack, then its country pack, then here):
@@ -47,8 +51,14 @@ def script(name):
         p = os.path.join(REPO, d, name + '.py')
         if os.path.exists(p): return p
     sys.exit(f'no pipeline step "{name}" for this trip (looked in its region and country packs, then pipeline/steps)')
+REPORT = 'RESYNC_GOOGLE_NEW_CALLS'  # the line lib/google.py prints on stderr as a step exits (google.REPORT)
+def new_calls(stderr):
+    """a step's (new Google calls, US$ at list price) from its stderr, or None if it never asked Google; and the rest of stderr"""
+    lines = stderr.splitlines()
+    rep = [l.split() for l in lines if l.startswith(REPORT + ' ')]
+    return (int(rep[-1][1]), float(rep[-1][2])) if rep else None, '\n'.join(l for l in lines if not l.startswith(REPORT + ' '))
 if '--no-google' not in args:
-    FRESH, PAID = '--fresh' in args, '--yes' in args
+    FRESH, PAID, DRIVES = '--fresh' in args, '--yes' in args, '--fresh-drives' in args and '--fresh' not in args
     CF = CACHE_DIR + 'google-cache.json'
     cached = json.load(open(CF)) if os.path.exists(CF) else {}
     if FRESH or not cached:
@@ -60,16 +70,28 @@ if '--no-google' not in args:
         if not PAID:
             PAID = sys.stdin.isatty() and input('Pay Google for that? Type yes to go ahead: ').strip().lower() == 'yes'
             if not PAID: sys.exit('stopped before asking Google anything. To go ahead, the planner types yes here, or adds --yes.')
-    env = dict(os.environ, RESYNC_FRESH='1' if FRESH else '0', RESYNC_PAID='1' if PAID else '0')
+    if DRIVES: print('--fresh-drives: each drive still ahead is asked again for its traffic prediction (two calls a drive, '
+                     'US$10 per 1,000 at list price); everything else comes from the cache.')
+    env = dict(os.environ, RESYNC_FRESH='1' if FRESH else '0', RESYNC_PAID='1' if PAID else '0',
+               RESYNC_FRESH_DRIVES='1' if DRIVES else '0', RESYNC_REPORT='1')
+    total = [0, 0.0]
     for name in cfg('steps', DEFAULT_STEPS):
         dry = '' if WRITE or name == 'fetch' else ' (dry run)'
-        step(TITLE.get(name, name) + ((' (fresh)' if FRESH else ' (from the cache)') if name == 'fetch' else dry))
+        how = ' (fresh)' if FRESH else ' (from the cache; drives still ahead asked again)' if DRIVES else ' (from the cache)'
+        step(TITLE.get(name, name) + (how if name == 'fetch' else dry))
         r = subprocess.run([PY, script(name)] + (['--write'] if WRITE and name != 'fetch' else []), env=env, capture_output=True, text=True)
+        report, err = new_calls(r.stderr)
         out = r.stdout.strip().splitlines()
         if name == 'apply': print('\n'.join(out[:3])); print(f'  … {max(0, len(out) - 6)} more change lines …' if len(out) > 6 else ''); print('\n'.join(out[-3:]))
-        elif name == 'fetch': print(r.stdout.strip() or r.stderr[-800:])
-        else: print('\n'.join(out[-TAIL.get(name, 4):]) or r.stderr[-800:])
-        if r.returncode: print(r.stderr[-1200:]); sys.exit(f'{name} failed')
+        elif name == 'fetch': print(r.stdout.strip() or err[-800:])
+        else: print('\n'.join(out[-TAIL.get(name, 4):]) or err[-800:])
+        if report:  # a step that never asked Google (apply) has no report
+            n, usd = report
+            total[0] += n; total[1] += usd
+            print(f'new Google calls: {n:,}' + (f' (about US${usd:,.2f} at list price)' if n else ' (all from the cache)'))
+        if r.returncode: print(err[-1200:]); sys.exit(f'{name} failed')
+    step('Google: this run')
+    print(f'new Google calls: {total[0]:,}' + (f', about US${total[1]:,.2f} at list price, before the free monthly amounts' if total[0] else ': everything came from the cache'))
 if '--no-weather' not in args:
     step('Weather (Open-Meteo)')
     SPOTS = cfg('forecast_spots', {})
