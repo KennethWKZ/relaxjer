@@ -37,5 +37,11 @@ def utc_at(date, hh, mm=0):
     local = datetime.datetime.fromisoformat(f'{date}T{hh:02d}:{mm:02d}:00').replace(tzinfo=TZ)
     return local.astimezone(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
 
+def leg_time(date, i, n, at=None):
+    """when a day's route leg i (of n) sets off, in UTC: its own 'HH:MM' when the leg names one, else a plausible hour (09:30 first, 20:30 last, 13:30 between)"""
+    if at: hh, mm = map(int, at.split(':'))
+    else: hh, mm = (9 if i == 0 else 20 if i == n - 1 else 13), 30
+    return utc_at(date, hh, mm)
+
 def cfg(key, default):
     return CONFIG.get(key, default)

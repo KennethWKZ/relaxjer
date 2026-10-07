@@ -1,6 +1,6 @@
 ---
-total_decisions: 19
-last_updated: 2026-10-02
+total_decisions: 20
+last_updated: 2026-10-07
 ---
 
 # Decision Index
@@ -35,3 +35,4 @@ merged id never changes; a new ADR that collides takes a fresh slug.
 | [ADR-20261002-live-demo-on-pages](decisions/ADR-20261002-live-demo-on-pages.md)                   | 2026-10-02 | The Demo Trip Goes Live on GitHub Pages, Built by CI With No Key and Its Clock Set to a Day Under Way                            | hosting  | accepted |
 | [ADR-20261002-required-ci](decisions/ADR-20261002-required-ci.md)                                 | 2026-10-02 | A Red CI Blocks the Merge: main Requires One ci-ok Check, and the Maintainer Can Still Push                                      | tooling  | accepted |
 | [ADR-20261002-sync-planners](decisions/ADR-20261002-sync-planners.md)                             | 2026-10-02 | Group Sync Gets Planners, Own-Stop Edits, Undo and a Recently Removed List                                                       | data     | accepted |
+| [ADR-20261007-traffic-aware-drives](decisions/ADR-20261007-traffic-aware-drives.md)               | 2026-10-07 | A Drive Still Ahead Gets Google’s Typical and Heavy-Traffic Times, at the Hour the Leg Sets Off                                  | data     | accepted |
