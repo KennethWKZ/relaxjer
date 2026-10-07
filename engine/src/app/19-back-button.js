@@ -1,13 +1,22 @@
 /* ───────── Back button ─────────
      Sheets, dialogs and the full-screen map each take one history step, so the phone's Back gesture closes them
      instead of leaving the page. A jump to another section takes one too: Back (or the 返回 button, for chat-app
-     browsers that hide Back) returns to where you were. */
+     browsers that hide Back) returns to where you were.
+     Closing one steps back through history, and after a jump the browser's own scroll restoration for that step put the
+     reader back at the jumped-to heading. So an overlay remembers where the reader was, and that place comes back once
+     the step back has settled (keepPlace), whichever way it closed. */
 const overlays = [];
 let backPending = 0;
 let dropN = 0;
+let dropY = null;
 const afterBack = [];
+function keepPlace(y) {
+	if (y == null) return;
+	pinN++; // ends any landing hold from the jump before
+	window.scrollTo({ top: y, behavior: 'instant' });
+}
 function openOverlay(close) {
-	const o = { close };
+	const o = { close, y: window.scrollY };
 	overlays.push(o);
 	history.pushState({ tpOverlay: 1 }, '');
 	syncBackPill();
@@ -18,6 +27,7 @@ function dropOverlay(o) {
 	const i = overlays.indexOf(o);
 	if (i < 0) return;
 	overlays.splice(i, 1);
+	if (!dropN) dropY = o.y; // several closing at once: the first one's place
 	if (!dropN++)
 		queueMicrotask(() => {
 			const n = dropN;
@@ -35,7 +45,10 @@ window.addEventListener('popstate', () => {
 		backPending--;
 		if (!backPending) {
 			const q = afterBack.splice(0);
+			const y = dropY;
+			dropY = null;
 			setTimeout(() => {
+				keepPlace(y);
 				q.forEach((f) => f());
 				syncBackPill();
 			}, 30);
@@ -46,6 +59,7 @@ window.addEventListener('popstate', () => {
 	if (o) {
 		o.close();
 		syncBackPill();
+		setTimeout(() => keepPlace(o.y), 30);
 		return;
 	}
 	const y = history.state && history.state.y;
