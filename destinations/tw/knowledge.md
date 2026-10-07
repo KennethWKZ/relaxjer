@@ -34,8 +34,11 @@ trip: they're as of 2026.
   traffic. Leave the falls with that margin before the hire ends.
 - **TaipeiEYE's show** plays only some evenings a week (Wed, Fri and Sat, checked 2026-10-07), for about an hour.
   Place it before swapping days around it.
-- **Palace Museum:** the cheapest reseller listing is the fare for Taiwan residents; foreign adults pay the full fare
-  (Trip.com, checked 2026-10-07).
+- **Tickets for visitors:** the Palace Museum (NT$350) and Taipei 101 (NT$600) give senior and other concession fares to
+  Taiwan nationals only, so foreign seniors pay the adult fare. Two cheaper Palace Museum listings don't fit a visitor:
+  Trip.com's is the Taiwan-resident fare, and KKday's is the Southern Branch in Chiayi. For the Taipei museum, Trip.com,
+  Klook and KKday all charge the official fare. For Taipei 101 and TaipeiEYE they come in about 5–20% under the
+  official adult price (checked 2026-10-07).
 - **Tourist passes:** for a group seeing a handful of paid sights at a senior pace, no pass (Taipei Fun Pass, the MRT
   24/48/72-hour passes) beat an EasyCard plus single tickets (checked 2026-10-07). Work it out against the plan before
   recommending one.

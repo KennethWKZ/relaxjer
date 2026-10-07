@@ -18,10 +18,12 @@ What the first trip taught about place data. The pipeline's rules are in
 - **Compare a reseller with the official price, ticket by ticket.** A reseller can beat the official adult price,
   while a seniors' fare may be sold only by the venue. On the first trip the show's seniors' fare was on the official
   site alone.
-- **Read who a listing is for.** The cheapest listing for a museum was a residents' fare, which visitors can't use.
-- **Resellers block scripted reads.** Trip.com answers a plain fetch with HTTP 432, and Klook and KKday showed a
-  CAPTCHA. Read them in a real browser. A site nobody could read stays out of the comparison, and the planner hears
-  that it does: on the first trip Klook and KKday went unchecked.
+- **Read who and where a listing is for.** The two cheapest listings for one museum were a residents' fare and a
+  ticket to the same museum's branch in another city. Neither gets a visitor into the one on the plan.
+- **Compare in one currency.** Set each site to the planner's currency, then convert once, at the rate the trip uses.
+- **Resellers block scripted reads.** Read them in a real browser that a person started
+  ([`.agents/README.md`](../.agents/README.md) § A real browser). A site nobody could read stays out of the comparison,
+  and the planner hears that it does.
 
 ## Filtering
 

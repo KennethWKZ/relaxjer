@@ -54,3 +54,37 @@ folder). Use user scope, so the repo's tree stays clean:
 
 Without them, `DESIGN.md`, `PRODUCT.md` and `memory-bank/standards/patterns/frontend.md` still hold every rule the
 page follows.
+
+## A real browser for pages that block scripts
+
+Ticket resellers refuse plain fetches and most automated browsers, so an agent reads them through a Chrome that a person
+started, attached over the Chrome DevTools Protocol. Any agent can do this, through
+[Chrome DevTools MCP](https://github.com/ChromeDevTools/chrome-devtools-mcp) or Playwright's `connectOverCDP`.
+
+1. **Start Chrome with a debugging port and its own profile.** Chrome refuses the port on your everyday profile. Keep
+   this profile between runs, since a site that let it in once tends to remember it:
+
+   ```sh
+   # macOS; on Linux run google-chrome, on Windows chrome.exe, with the same two flags
+   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+     --remote-debugging-port=9222 --user-data-dir="$HOME/.relaxjer-research-chrome"
+   ```
+
+2. **Attach the agent.** As an MCP server: `npx chrome-devtools-mcp@1.10.1 --browser-url=http://127.0.0.1:9222`. From
+   a script: `chromium.connectOverCDP('http://127.0.0.1:9222')` (Playwright).
+3. **Open the site's home page first,** and pick the currency there. If a check or a cookie banner appears, the person
+   handles it in that window, then the agent goes on. An agent never solves a CAPTCHA, signs in or pays.
+
+What each reseller let through on the first trip (2026-10-07, Chrome 154, macOS):
+
+| Site     | Plain fetch | Chrome launched by Playwright, fresh profile | Chrome started by hand, fresh profile, attached          |
+| -------- | ----------- | -------------------------------------------- | -------------------------------------------------------- |
+| Trip.com | HTTP 432    | HTTP 432                                     | read it, once the home page had been opened first        |
+| Klook    | CAPTCHA     | HTTP 403                                     | HTTP 403, even its home page; a long-used profile got in |
+| KKday    | CAPTCHA     | read it with a window; HTTP 403 headless     | read it                                                  |
+
+Trip.com takes the currency in its address (`curr=MYR`); Klook and KKday ignore address parameters and keep the
+currency picked in the page header, per profile.
+
+**Security:** while the port is open, any program on the machine can drive that browser. Chrome listens on
+`127.0.0.1` only by default; leave it so. Sign in to nothing in that profile, and quit Chrome when the research is done.
