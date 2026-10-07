@@ -23,6 +23,7 @@ Read first: `pipeline/README.md` (commands, folders), `memory-bank/standards/pat
 pnpm resync --trip trips/<slug>             # dry run: print what would change (answers from the cache)
 pnpm resync --trip trips/<slug> --write     # write the trip's files and rebuild the page (with google.json and the trip's sync file when present)
 #   --fresh   ask Google again for everything (prints the cost, needs the planner's yes)
+#   --fresh-drives  ask again only the drives still ahead, for newer traffic predictions (two calls a drive)
 #   --no-google  --no-weather  --no-links  --no-build
 ```
 
@@ -34,6 +35,11 @@ showed as RM520 when an agent ran one on 2026-10-01 only to test a key. So the r
 - Each step stops after 200 new calls (`stopped: this step needs more than 200 Google calls…`). What it fetched is
   kept.
 - `--fresh`, or a trip with no cache yet, prints how many calls and what they cost, and stops without a yes.
+- Every Google step prints `new Google calls: N` and their list price, and the run ends with the total. Show the planner
+  that line after any run that asked Google.
+- **Drive times in the trip's last week:** `--fresh-drives` asks again only the traffic-aware drives still ahead (a
+  week-long trip has about ten, so about twenty calls), everything else from the cache. Compare each drive's `bad` in
+  `geo.json` with its deadline again afterwards.
 
 **Paying is the planner's call, never yours.** When a run stops for either reason, show the planner what it printed,
 and let them run the paid one themselves, adding `--yes` to the same command (and `--fresh` if they want everything

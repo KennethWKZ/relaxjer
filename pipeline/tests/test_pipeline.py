@@ -112,7 +112,7 @@ class Google(unittest.TestCase):
 
     def test_a_drive_with_traffic_asks_for_the_planned_hour_and_bills_as_pro(self):
         seen = []
-        fake = lambda tag, url, body=None, mask='', method='POST': seen.append((url, body, mask)) or {}
+        fake = lambda tag, url, body=None, mask='', method='POST', fresh=False: seen.append((url, body, mask)) or {}
         with mock.patch.object(google, 'call', fake):
             google.route((25.0, 121.5), (25.1, 121.6), 'DRIVE', '2027-03-15T10:00:00Z', 'PESSIMISTIC')
             google.route((25.0, 121.5), (25.1, 121.6), 'DRIVE', '2027-03-15T10:00:00Z')
@@ -122,6 +122,23 @@ class Google(unittest.TestCase):
         key = lambda body: 'route|' + json.dumps(body, sort_keys=True, ensure_ascii=False) + '|' + url + '|' + mask
         self.assertAlmostEqual(google.cost(key(traffic)), 10 / 1000)  # Compute Routes Pro
         self.assertAlmostEqual(google.cost(key(plain)), 5 / 1000)  # Compute Routes Essentials
+
+    def test_fresh_drives_asks_again_only_a_drive_with_traffic_once_and_counts_what_it_cost(self):
+        a_, b_, when = (25.031, 121.561), (25.041, 121.571), '2027-03-15T10:00:00Z'
+        asked = []
+        a, b = self.online(asked)
+        with a, b:  # an earlier run: both answers are in the cache
+            google.route(a_, b_, 'DRIVE', when, 'BEST_GUESS'); google.route(a_, b_, 'DRIVE', when)
+        self.assertEqual(len(asked), 2)
+        asked.clear()
+        a, b = self.online(asked, FRESH_DRIVES=True, NEW=[0], NEW_USD=[0.0], ASKED_AGAIN=set())
+        with a, b:
+            google.route(a_, b_, 'DRIVE', when, 'BEST_GUESS')  # a drive with traffic: asked again
+            google.route(a_, b_, 'DRIVE', when, 'BEST_GUESS')  # the same drive later in the run: the new answer, no second call
+            google.route(a_, b_, 'DRIVE', when)  # no traffic asked: stays cached
+            self.assertEqual(len(asked), 1)
+            self.assertEqual(google.NEW[0], 1)
+            self.assertAlmostEqual(google.NEW_USD[0], 10 / 1000)  # Compute Routes Pro
 
     def test_a_place_with_no_google_id_is_searched_by_its_maps_name(self):
         import contextlib, io, runpy, sys
@@ -163,6 +180,21 @@ class Resync(unittest.TestCase):
         self.assertAlmostEqual(google.dist((25.0, 121.5), (25.01, 121.5)), 1112, delta=2)
 
 class Steps(unittest.TestCase):
+    def test_each_google_step_reports_its_new_calls_and_resync_reads_them(self):
+        import subprocess, sys
+        env = dict(os.environ, RESYNC_REPORT='1')
+        code = 'from lib import google; google.NEW[0] = 2; google.NEW_USD[0] = 0.02'
+        r = subprocess.run([sys.executable, '-c', code], cwd=os.path.join(trip.REPO, 'pipeline'), env=env, capture_output=True, text=True)
+        self.assertIn(f'{google.REPORT} 2 0.0200', r.stderr)  # printed as the step exits
+        r = subprocess.run([sys.executable, '-c', code], cwd=os.path.join(trip.REPO, 'pipeline'), capture_output=True, text=True)
+        self.assertNotIn(google.REPORT, r.stderr)  # only inside a resync run
+        spec = os.path.join(trip.REPO, 'pipeline', 'resync.py')
+        src = open(spec).read().split("if '--no-google' not in args:")[0].replace("if '--trip' not in argv: sys.exit(__doc__)", '')
+        ns = {'__file__': spec}; sys.argv = ['resync.py', '--trip', trip.TRIP_DIR]; exec(src, ns)
+        self.assertEqual(ns['REPORT'], google.REPORT)
+        self.assertEqual(ns['new_calls'](f'a warning\n{google.REPORT} 18 0.1800\n'), ((18, 0.18), 'a warning'))
+        self.assertEqual(ns['new_calls']('')[0], None)  # a step that never asked Google
+
     def test_every_step_resolves_for_a_taiwan_trip(self):
         import importlib.util, sys
         spec = importlib.util.spec_from_file_location('resync_mod', os.path.join(trip.REPO, 'pipeline', 'resync.py'))

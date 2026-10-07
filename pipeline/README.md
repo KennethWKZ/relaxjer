@@ -5,7 +5,8 @@ Refreshes a trip's data from outside sources, then rebuilds its page:
 ```sh
 pnpm resync --trip trips/<slug>            # dry run: print what would change
 pnpm resync --trip trips/<slug> --write    # write the trip's files, rebuild the page
-#   --fresh (ask Google again for everything)  --yes (the planner agrees to pay)  --no-google  --no-weather  --no-links  --no-build
+#   --fresh (ask Google again for everything)  --fresh-drives (ask again only the drives still ahead, for newer traffic)
+#   --yes (the planner agrees to pay)  --no-google  --no-weather  --no-links  --no-build
 ```
 
 The rebuild after `--write` uses `~/.config/relaxjer/google.json` and the trip's group-sync file
@@ -16,6 +17,12 @@ after 200 new calls without `--yes`. `--fresh`, or a trip with no cache yet, pri
 trip: a few thousand calls, about US$130 at list price) and needs a yes
 ([ADR-20261001-resync-cost-guard](../memory-bank/standards/decisions/ADR-20261001-resync-cost-guard.md)). Never refresh
 to test a key ([`guides/google-maps.md`](../guides/google-maps.md), step 5).
+
+Every Google step prints `new Google calls: N` with their list price, and the run ends with the total, so a planner sees
+what a refresh asked Google for. `--fresh-drives` asks again only each traffic-aware drive whose departure is still
+ahead (two calls a drive, Compute Routes Pro), for newer traffic predictions in the trip's last week; everything else
+comes from the cache, so it stays under the 200-call stop
+([ADR-20261007-traffic-aware-drives](../memory-bank/standards/decisions/ADR-20261007-traffic-aware-drives.md)).
 
 Needs [uv](https://docs.astral.sh/uv/) (it installs Python 3.13 and the two dependencies, `opencc` and `pillow`) and
 node. Google calls use **your own key** ([ADR-20260930-google-keys](../memory-bank/standards/decisions/ADR-20260930-google-keys.md)): `~/.config/relaxjer/google-places.key` (mode 600), with Places API
