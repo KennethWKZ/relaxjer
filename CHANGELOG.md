@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.6.0](https://github.com/KennethWKZ/relaxjer/compare/v1.5.1...v1.6.0) (2026-10-07)
+
+
+### ✨ Features
+
+* **pipeline:** refresh only the drives' traffic, and print each step's new Google calls ([7e01e3a](https://github.com/KennethWKZ/relaxjer/commit/7e01e3ab618548df253d70a2e17e368bc84db60b))
+* **pipeline:** refresh only the drives' traffic, and print each step's new Google calls ([2d78827](https://github.com/KennethWKZ/relaxjer/commit/2d788273f3756547d4afde83e472cd3a5ce742cc))
+
 ## [1.5.1](https://github.com/KennethWKZ/relaxjer/compare/v1.5.0...v1.5.1) (2026-10-07)
 
 
