@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.5.1](https://github.com/KennethWKZ/relaxjer/compare/v1.5.0...v1.5.1) (2026-10-07)
+
+
+### 📝 Documentation
+
+* **agents:** day swaps and a hire's last drive in trip-customize; relaxbro lists unread pages ([613f5ab](https://github.com/KennethWKZ/relaxjer/commit/613f5abcfab43c1b256e9b39fcd1a639c3f7e573))
+* **agents:** set each reseller's currency through its own menu, and browse at a person's pace ([05df4d0](https://github.com/KennethWKZ/relaxjer/commit/05df4d0ed92f98a3deff6c0564ab392709b91bea))
+* lessons from planning the first trip (day swaps, deadline drives, ticket resellers) ([f062f11](https://github.com/KennethWKZ/relaxjer/commit/f062f112f9d08534f4f74697c1f6ae3eab58b3d7))
+* plan deadlines, day swaps and reseller tickets the way the first trip learned ([9c75bc9](https://github.com/KennethWKZ/relaxjer/commit/9c75bc9cc0abb4e1dd2c2e0454d5305d475214a8))
+* read ticket resellers through a Chrome a person started, and check who a fare is for ([74553c9](https://github.com/KennethWKZ/relaxjer/commit/74553c9292d779972c920a8061e85b00a73b1c9c))
+* **tw:** the drive back from a Jiufen–Shifen day, show days, reseller fares and passes ([401dae0](https://github.com/KennethWKZ/relaxjer/commit/401dae0ac65c6c6856b964d0afdad41f1b48dda5))
+
 ## [1.5.0](https://github.com/KennethWKZ/relaxjer/compare/v1.4.0...v1.5.0) (2026-10-07)
 
 
