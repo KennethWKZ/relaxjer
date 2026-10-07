@@ -51,3 +51,7 @@ on every commit (`.husky/commit-msg`, `commitlint.config.mjs`).
 | footer lines at most 100 chars                      | `footer-max-line-length`                                           | error   |
 
 Merge, revert, `fixup!` and `squash!` commits are skipped by commitlint's defaults.
+
+Pull requests merge by squash: a one-commit branch lands as that commit's header plus ` (#n)`, and a pull request with
+several commits lands under its title, so give that title the same format
+([ADR-20261007-squash-merges](decisions/ADR-20261007-squash-merges.md)).

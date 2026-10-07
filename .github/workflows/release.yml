@@ -7,7 +7,9 @@
 # It can write to the repo, so its actions are pinned to commit SHAs, like pages.yml; the comment names the release.
 # Needs once: Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests", and
 # Settings → General → "Automatically delete head branches", so a merged release branch doesn't linger (release-please
-# makes it again for the next release).
+# makes it again for the next release), and Settings → General → Pull Requests: only "Allow squash merging", titled
+# "Default to pull request title, unless the pull request has a single commit" (ADR-20261007-squash-merges: a merge
+# commit repeats the title, and release-please would list the change twice).
 name: release
 on:
   push:

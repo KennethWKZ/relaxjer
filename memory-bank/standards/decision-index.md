@@ -1,5 +1,5 @@
 ---
-total_decisions: 21
+total_decisions: 22
 last_updated: 2026-10-07
 ---
 
@@ -36,4 +36,5 @@ merged id never changes; a new ADR that collides takes a fresh slug.
 | [ADR-20261002-required-ci](decisions/ADR-20261002-required-ci.md)                                 | 2026-10-02 | A Red CI Blocks the Merge: main Requires One ci-ok Check, and the Maintainer Can Still Push                                      | tooling  | accepted |
 | [ADR-20261002-sync-planners](decisions/ADR-20261002-sync-planners.md)                             | 2026-10-02 | Group Sync Gets Planners, Own-Stop Edits, Undo and a Recently Removed List                                                       | data     | accepted |
 | [ADR-20261007-split-follows-pushback](decisions/ADR-20261007-split-follows-pushback.md)           | 2026-10-07 | A Push-Back Moves a Split Day’s Fork and Rejoin; Each Plan Keeps Its Own Times                                                   | engine   | accepted |
+| [ADR-20261007-squash-merges](decisions/ADR-20261007-squash-merges.md)                             | 2026-10-07 | Pull Requests Merge by Squash, So the Changelog Lists Each Change Once                                                           | tooling  | accepted |
 | [ADR-20261007-traffic-aware-drives](decisions/ADR-20261007-traffic-aware-drives.md)               | 2026-10-07 | A Drive Still Ahead Gets Google’s Typical and Heavy-Traffic Times, at the Hour the Leg Sets Off                                  | data     | accepted |

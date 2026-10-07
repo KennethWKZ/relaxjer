@@ -7,7 +7,6 @@ All notable changes to this project will be documented in this file. See [commit
 
 ### ✨ Features
 
-* **pipeline:** refresh only the drives' traffic, and print each step's new Google calls ([7e01e3a](https://github.com/KennethWKZ/relaxjer/commit/7e01e3ab618548df253d70a2e17e368bc84db60b))
 * **pipeline:** refresh only the drives' traffic, and print each step's new Google calls ([2d78827](https://github.com/KennethWKZ/relaxjer/commit/2d788273f3756547d4afde83e472cd3a5ce742cc))
 
 ## [1.5.1](https://github.com/KennethWKZ/relaxjer/compare/v1.5.0...v1.5.1) (2026-10-07)
@@ -27,7 +26,6 @@ All notable changes to this project will be documented in this file. See [commit
 
 ### ✨ Features
 
-* **pipeline:** predict a planned drive's time in typical and heavy traffic ([0910291](https://github.com/KennethWKZ/relaxjer/commit/0910291194d59cdc8d7af1545a0b4e675ba6f58c))
 * **pipeline:** predict a planned drive's time in typical and heavy traffic ([648972c](https://github.com/KennethWKZ/relaxjer/commit/648972cfb54147fe675c59652b01bdd8e4829e62))
 
 ## [1.4.0](https://github.com/KennethWKZ/relaxjer/compare/v1.3.0...v1.4.0) (2026-10-05)
@@ -35,7 +33,6 @@ All notable changes to this project will be documented in this file. See [commit
 
 ### ✨ Features
 
-* **site:** a logo, the lantern with 松 beside the brush RelaxJer ([6e0449a](https://github.com/KennethWKZ/relaxjer/commit/6e0449acce6ba4068c0523fcb2bb167a13e9b49e))
 * **site:** a logo, the lantern with 松 beside the brush RelaxJer ([24002b8](https://github.com/KennethWKZ/relaxjer/commit/24002b8b9f7b57c99f7c902a846625d3c9b6e654))
 
 ## [1.3.0](https://github.com/KennethWKZ/relaxjer/compare/v1.2.5...v1.3.0) (2026-10-02)
@@ -43,16 +40,13 @@ All notable changes to this project will be documented in this file. See [commit
 
 ### ✨ Features
 
-* **site:** found by "trip planner", with a home-screen icon ([525e000](https://github.com/KennethWKZ/relaxjer/commit/525e0005a705771386ed5a6ea936da38bf58926c))
 * **site:** found by "trip planner", with a home-screen icon ([8291525](https://github.com/KennethWKZ/relaxjer/commit/8291525f21855d04ddf9dcbb42578fe630865a80))
 * **site:** the verification tag for the maintainer's search console property ([f40e458](https://github.com/KennethWKZ/relaxjer/commit/f40e45805917e067b391a2ffc65b89510700cafc))
 
 
 ### 🚚 Chores
 
-* **site:** a second search console owner's verification tag ([ab0df11](https://github.com/KennethWKZ/relaxjer/commit/ab0df11c534e97cbdd75060471567aab9b9206d5))
 * **site:** a second search console owner's verification tag ([6f55d43](https://github.com/KennethWKZ/relaxjer/commit/6f55d4322336d07d1f2c2aada9a0d5b132640965))
-* **site:** drop the former search console owner's verification tag ([d68d46d](https://github.com/KennethWKZ/relaxjer/commit/d68d46dfdfc37b3c42cd6aa64c4d731b53c6fcd9))
 * **site:** drop the former search console owner's verification tag ([7143528](https://github.com/KennethWKZ/relaxjer/commit/7143528533704739b57b79e1ff96404d39a9d1dd))
 
 ## [1.2.5](https://github.com/KennethWKZ/relaxjer/compare/v1.2.4...v1.2.5) (2026-10-02)
@@ -65,7 +59,6 @@ All notable changes to this project will be documented in this file. See [commit
 
 ### 🧑‍💻 Continuous Integrations
 
-* drop the release job's own ci run, which a pull request's merge gate never counts ([def208c](https://github.com/KennethWKZ/relaxjer/commit/def208cca7ba54980e5545acab61fb4ca8acb5ca))
 * drop the release job's own ci run, which a pull request's merge gate never counts ([fa8abc8](https://github.com/KennethWKZ/relaxjer/commit/fa8abc8c730089c975ebcab933d367e1cd38d77e))
 
 ## [1.2.4](https://github.com/KennethWKZ/relaxjer/compare/v1.2.3...v1.2.4) (2026-10-02)
@@ -81,7 +74,6 @@ All notable changes to this project will be documented in this file. See [commit
 ### 🧑‍💻 Continuous Integrations
 
 * a pull request runs ci once, and a push runs it only on main ([edfb540](https://github.com/KennethWKZ/relaxjer/commit/edfb5404960c56426987bbdbd93ffbebc839016b))
-* the release job starts ci on the release pull request, so it needs no approval to merge ([76f5a6d](https://github.com/KennethWKZ/relaxjer/commit/76f5a6d431666e0bebc88a7094bcaad6023b16fc))
 * the release job starts ci on the release pull request, so it needs no approval to merge ([6fcb1f2](https://github.com/KennethWKZ/relaxjer/commit/6fcb1f2070134662dff9b853041d65189fc020e0))
 
 ## [1.2.2](https://github.com/KennethWKZ/relaxjer/compare/v1.2.1...v1.2.2) (2026-10-02)
@@ -89,13 +81,11 @@ All notable changes to this project will be documented in this file. See [commit
 
 ### 🐛 Bug Fixes
 
-* the publish audit finds the map after group sync redraws the page ([2b68fba](https://github.com/KennethWKZ/relaxjer/commit/2b68fbad2a41a1fccb38dcfb6d9833f02482aa3e))
 * the publish audit finds the map after group sync redraws the page ([c945c83](https://github.com/KennethWKZ/relaxjer/commit/c945c832a1320ed38c2317dab474e0c121914249))
 
 
 ### 🧑‍💻 Continuous Integrations
 
-* a red ci blocks the merge: main requires one ci-ok check that waits on every job ([f17d32d](https://github.com/KennethWKZ/relaxjer/commit/f17d32d41f724a952173ca6da032bea4a12af2d6))
 * a red ci blocks the merge: main requires one ci-ok check that waits on every job ([b3764f8](https://github.com/KennethWKZ/relaxjer/commit/b3764f8a7670cbf2b56e14d06dda39a7c66ee9a5))
 
 ## [1.2.1](https://github.com/KennethWKZ/relaxjer/compare/v1.2.0...v1.2.1) (2026-10-02)

@@ -41,6 +41,8 @@ release, which goes public once ci is green on that commit and the release gate 
   [ADR-20261002-required-ci](ADR-20261002-required-ci.md) its merge waits for it. The workflow
   holds a write token, so its actions are pinned to commit SHAs, like `pages.yml`; `ci.yml` keeps following each
   action's major tag. The repo setting "Allow GitHub Actions to create and approve pull requests" is on for it.
+  Pull requests merge by squash only, so each change is one commit on `main` and one changelog line
+  ([ADR-20261007-squash-merges](ADR-20261007-squash-merges.md)).
 
 ## Alternatives
 
