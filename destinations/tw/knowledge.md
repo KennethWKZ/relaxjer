@@ -27,6 +27,19 @@ trip: they're as of 2026.
   1.3× the straight line (`taxiFare`). Suggest a taxi first for seniors on long legs.
 - **YouBike 2.0:** live dock counts come from the operator's own API, which beats Google for this.
 
+## Day trips, shows and passes
+
+- **Jiufen and Shifen by chartered car** fill one long day at a senior pace. The evening drive from Shifen back to
+  central Taipei is about 60 min on a weekday, and 85 in heavy traffic (Google, checked 2026-10-07), against 45 with no
+  traffic. Leave the falls with that margin before the hire ends.
+- **TaipeiEYE's show** plays only some evenings a week (Wed, Fri and Sat, checked 2026-10-07), for about an hour.
+  Place it before swapping days around it.
+- **Palace Museum:** the cheapest reseller listing is the fare for Taiwan residents; foreign adults pay the full fare
+  (Trip.com, checked 2026-10-07).
+- **Tourist passes:** for a group seeing a handful of paid sights at a senior pace, no pass (Taipei Fun Pass, the MRT
+  24/48/72-hour passes) beat an EasyCard plus single tickets (checked 2026-10-07). Work it out against the plan before
+  recommending one.
+
 ## Shops
 
 - Store names change: one supermarket chain trades under a new local name, so check chain names in the trip's
