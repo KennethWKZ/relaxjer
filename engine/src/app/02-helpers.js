@@ -71,7 +71,7 @@ function imgLoad() {
 	});
 }
 const dayById = Object.fromEntries(DAYS.map((d) => [d.id, d]));
-const colorVars = (c) => `--c:var(--l${c});--ci:var(--l${c}-ink)`;
+const colorVars = (c) => `--c:var(--l${c});--ci:var(--l${c}-ink);--cf:var(--l${c}-fill);--cm:var(--l${c}-mute);--cg:var(--l${c}-glow)`;
 
 /* Google Maps links */
 const gpidOf = (q) => {

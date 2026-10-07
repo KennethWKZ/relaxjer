@@ -35,6 +35,31 @@
 	--l6-ink: #25070f;
 	--l7: #e0b020;
 	--l7-ink: #1d1502;
+	/* what sits on a lantern. A chip, button or route leg is filled away from the ink (fill): shaded toward black under
+	   white ink, lightened toward white under dark ink, so its text gains contrast instead of losing it. White ink on the
+	   paper is only 4.6–6.4:1, so a white-ink day also keeps muted text at full strength (mute) and has no inner glow at
+	   night (glow); a dark-ink day glows as before. */
+	--l1-fill: rgb(0 0 0 / 0.2);
+	--l1-mute: 1;
+	--l1-glow: var(--l1);
+	--l2-fill: rgb(0 0 0 / 0.2);
+	--l2-mute: 1;
+	--l2-glow: var(--l2);
+	--l3-fill: rgb(255 255 255 / 0.2);
+	--l3-mute: 0.85;
+	--l3-glow: color-mix(in srgb, var(--l3) 62%, #fff4c9);
+	--l4-fill: rgb(0 0 0 / 0.2);
+	--l4-mute: 1;
+	--l4-glow: var(--l4);
+	--l5-fill: rgb(0 0 0 / 0.2);
+	--l5-mute: 1;
+	--l5-glow: var(--l5);
+	--l6-fill: rgb(255 255 255 / 0.2);
+	--l6-mute: 0.85;
+	--l6-glow: color-mix(in srgb, var(--l6) 62%, #fff4c9);
+	--l7-fill: rgb(255 255 255 / 0.2);
+	--l7-mute: 0.85;
+	--l7-glow: color-mix(in srgb, var(--l7) 62%, #fff4c9);
 
 	/* Taipei Metro line colours (data, not decoration) */
 	--mrt-red: #e3002c;
@@ -917,12 +942,12 @@ ul.list li::marker {
 }
 @media (prefers-color-scheme: dark) {
 	:root:not([data-theme='light']) .lantern {
-		background: radial-gradient(130% 95% at 50% 115%, color-mix(in srgb, var(--c) 62%, #fff4c9), var(--c) 62%);
+		background: radial-gradient(130% 95% at 50% 115%, var(--cg, color-mix(in srgb, var(--c) 62%, #fff4c9)), var(--c) 62%);
 		box-shadow: 0 16px 40px -18px color-mix(in srgb, var(--c) 90%, transparent);
 	}
 }
 :root[data-theme='dark'] .lantern {
-	background: radial-gradient(130% 95% at 50% 115%, color-mix(in srgb, var(--c) 62%, #fff4c9), var(--c) 62%);
+	background: radial-gradient(130% 95% at 50% 115%, var(--cg, color-mix(in srgb, var(--c) 62%, #fff4c9)), var(--c) 62%);
 	box-shadow: 0 16px 40px -18px color-mix(in srgb, var(--c) 90%, transparent);
 }
 
@@ -930,7 +955,7 @@ ul.list li::marker {
 	font-size: var(--fs-sm);
 	font-weight: 750;
 	letter-spacing: 0.01em;
-	opacity: 0.92;
+	opacity: var(--cm, 0.92);
 	display: flex;
 	flex-wrap: wrap;
 	gap: 4px 12px;
@@ -946,7 +971,7 @@ ul.list li::marker {
 .wish-gloss {
 	font-size: var(--fs-sm);
 	font-weight: 600;
-	opacity: 0.88;
+	opacity: var(--cm, 0.88);
 	margin-top: 2px;
 }
 .l-title {
@@ -973,7 +998,7 @@ ul.list li::marker {
 	line-height: 1.3;
 }
 .lantern .chip {
-	background: color-mix(in srgb, var(--ci) 14%, transparent);
+	background: var(--cf, color-mix(in srgb, var(--ci) 14%, transparent));
 }
 .l-actions {
 	display: flex;
@@ -989,7 +1014,7 @@ ul.list li::marker {
 	padding: 0 14px;
 	border-radius: 11px;
 	border: 1.5px solid color-mix(in srgb, var(--ci) 75%, transparent);
-	background: color-mix(in srgb, var(--ci) 10%, transparent);
+	background: var(--cf, color-mix(in srgb, var(--ci) 10%, transparent));
 	color: var(--ci);
 	font-weight: 700;
 	font-size: var(--fs-sm);
@@ -3442,7 +3467,7 @@ html.map-full-on body {
 .l-route-h span {
 	font-weight: 600;
 	font-size: var(--fs-xs);
-	opacity: 0.85;
+	opacity: var(--cm, 0.85);
 }
 .l-legs {
 	display: grid;
@@ -3457,7 +3482,7 @@ html.map-full-on body {
 	min-height: 46px;
 	padding: 6px 10px;
 	border-radius: 11px;
-	background: color-mix(in srgb, var(--ci) 13%, transparent);
+	background: var(--cf, color-mix(in srgb, var(--ci) 13%, transparent));
 	color: var(--ci);
 	text-decoration: none;
 	font-weight: 750;
@@ -3481,7 +3506,7 @@ html.map-full-on body {
 	flex: none;
 	font-size: var(--fs-xs);
 	font-weight: 700;
-	opacity: 0.8;
+	opacity: var(--cm, 0.8);
 }
 .l-leg.all {
 	grid-column: 1 / -1;
@@ -3489,7 +3514,7 @@ html.map-full-on body {
 	color: var(--c);
 }
 .l-leg.all .l-leg-m {
-	opacity: 0.9;
+	opacity: 1; /* day colour on day ink: 4.7:1 at best, no room to mute it */
 }
 .l-leg:active {
 	transform: scale(0.97);
@@ -3820,7 +3845,7 @@ body {
 	margin-top: 1px;
 	font-size: var(--fs-2xs, 0.75rem);
 	font-weight: 650;
-	opacity: 0.85;
+	opacity: var(--cm, 0.85);
 	line-height: 1.25;
 }
 /* search results grouped by day / section */
@@ -5643,6 +5668,9 @@ h2.landed {
 	font-weight: 600;
 	opacity: 0.8;
 }
+.lantern .chip-rm {
+	opacity: var(--cm, 0.8);
+}
 .chip-2l .chip-sub {
 	white-space: normal;
 }
@@ -5651,7 +5679,7 @@ h2.landed {
 }
 .l-leg-sub {
 	font-weight: 600;
-	opacity: 0.85;
+	opacity: var(--cm, 0.85);
 }
 /* near-me buttons: a small pin after the words says "uses my location" */
 .toc-near {
