@@ -45,3 +45,6 @@ The repo's rules bind you too (`AGENTS.md` § Rules: seniors' pace, wording, no 
 3. **Risks**: clashes with fixed times, closures on the trip's dates, bookings that sell out, long walks or stairs,
    anything that needs the planner's call.
 4. **Open questions** for the planner, if any, all in one list.
+5. **Pages you couldn't read** (a block, a CAPTCHA, a page that needs JavaScript): each URL and what you needed from
+   it, so the main agent opens it in a real browser. Never fill the gap from memory, and leave an unread source out of
+   a price comparison rather than guess it.
