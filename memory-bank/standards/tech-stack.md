@@ -24,7 +24,7 @@ RelaxJer still runs nothing.
 | Page         | Vanilla JS and CSS, no framework and no bundler. `engine/build.mjs` joins the sections into one IIFE, inlines the core modules, the packs, the trip data, photos and icons                                                                                                                                                                                                                                    |
 | Map          | MapLibre GL 5.24 from cdnjs (jsDelivr as fallback) on OpenFreeMap styles (liberty, dark): free, no key. Google Maps JavaScript + Places when the build gets the user's browser key (`--keys`)                                                                                                                                                                                                                 |
 | Fonts        | The phone's system sans for everything operated. The brush face comes from Google Fonts at view time, subset to the page's own glyphs (`text=`); offline, the system Kaiti faces take over                                                                                                                                                                                                                    |
-| Build, tests | Node 24, pnpm 11 (Corepack, `packageManager`), `node:test`, Playwright 1.63 (Chromium + WebKit)                                                                                                                                                                                                                                                                                                               |
+| Build, tests | Node 24, pnpm 11 (Corepack, `packageManager`), `node:test`, Playwright 1.64 (Chromium + WebKit)                                                                                                                                                                                                                                                                                                               |
 | Pipeline     | Python ≥ 3.12 via uv (`pipeline/pyproject.toml`): `opencc` (Traditional → Simplified names), `pillow` (images). Google Places (New) + Routes with the user's server key; Open-Meteo weather; OpenStreetMap Overpass as fallback                                                                                                                                                                               |
 | Group sync   | Optional, per trip: the planner's own Firebase Realtime Database (Spark plan, or Blaze when it shares the Maps project), reached with `fetch` and `EventSource`, records AES-GCM encrypted on the phone, a planner code checked on the phone (PBKDF2-SHA-256, 210,000 rounds); `firebase-tools` 15.32.1 through npx for the planner's setup (`pnpm sync` with `rules`, `init`, `planner`, `end` and `status`) |
 | Security     | The page's own Content-Security-Policy (inline scripts by hash) and subresource integrity on MapLibre ([ADR-20261001-page-csp](./decisions/ADR-20261001-page-csp.md))                                                                                                                                                                                                                                         |
@@ -38,10 +38,12 @@ RelaxJer still runs nothing.
 - **Commits and releases:** Conventional Commits (commitlint). release-please keeps a release pull request open;
   merging it tags the release, which goes public once ci is green (`release.yml`,
   [ADR-20261002-ci-image-and-releases](./decisions/ADR-20261002-ci-image-and-releases.md)).
-- **CI:** the e2e jobs run in Playwright's image, its version equal to `@playwright/test`, each project in two halves.
-- **Supply chain:** `minimumReleaseAge: 4320` (3 days), `allowBuilds: {}`, a checksum-verified gitleaks in CI. `ci.yml`
-  follows each action's latest major tag (`setup-uv` is pinned to a release), and `pages.yml` and `release.yml`, which
-  can write, pin commit SHAs (story index).
+- **CI:** the e2e jobs run on arm64 runners (`ubuntu-24.04-arm`) in Playwright's arm64 image, its version equal to
+  `@playwright/test`, each project in two halves.
+- **Supply chain:** `minimumReleaseAge: 4320` (3 days; an early release only by exact version,
+  [ADR-20261008-release-age-exceptions](./decisions/ADR-20261008-release-age-exceptions.md)), `allowBuilds: {}`, a
+  checksum-verified gitleaks in CI. `ci.yml` follows each action's latest major tag (`setup-uv` is pinned to a
+  release), and `pages.yml` and `release.yml`, which can write, pin commit SHAs (story index).
 - **Docs:** `pnpm gen:adr-index` writes the decision index from the ADR files.
 
 ## Agent tooling ([ADR-20261001-memory-bank-agent-config](./decisions/ADR-20261001-memory-bank-agent-config.md))

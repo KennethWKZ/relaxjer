@@ -1,5 +1,6 @@
 // CI's browser jobs run inside Playwright's image, so its version must be the one package.json installs: an image for
-// another version has other browser builds, and Playwright refuses to start them (ADR-20261002-ci-image-and-releases).
+// another version has other browser builds, and Playwright refuses to start them. An image built for one architecture
+// won't start on runners of the other (ADR-20261002-ci-image-and-releases).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -8,12 +9,19 @@ import path from 'node:path';
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..', '..');
 const read = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');
 
-test('the e2e jobs run in the Playwright image of the version package.json pins', () => {
+test('the e2e jobs run in the Playwright image of the version package.json pins, built for their runners', () => {
 	const pinned = JSON.parse(read('package.json')).devDependencies['@playwright/test'];
 	assert.match(pinned, /^\d+\.\d+\.\d+$/, '@playwright/test is pinned to an exact version');
-	const images = [...read('.github/workflows/ci.yml').matchAll(/mcr\.microsoft\.com\/playwright:v([\d.]+)-\w+/g)].map((m) => m[1]);
+	const wf = read('.github/workflows/ci.yml');
+	const images = [...wf.matchAll(/mcr\.microsoft\.com\/playwright:v([\d.]+)-\w+/g)].map((m) => m[1]);
 	assert.ok(images.length, 'the e2e jobs name a Playwright image');
 	for (const v of images) assert.equal(v, pinned, `ci.yml's Playwright image v${v} is not @playwright/test ${pinned}`);
+	// a tag built for one architecture runs only on runners of it: GitHub's arm64 runners are the `-arm` labels
+	const e2e = wf.slice(wf.indexOf('\n  e2e:'), wf.indexOf('\n  ci-ok:'));
+	const runsOn = (/^ {4}runs-on:\s*(\S+)/m.exec(e2e) || [])[1];
+	const arch = (/mcr\.microsoft\.com\/playwright:v[\d.]+-\w+-(amd64|arm64)\b/.exec(e2e) || [])[1];
+	const runnerArch = /-arm$/.test(runsOn) ? 'arm64' : 'amd64';
+	if (arch) assert.equal(arch, runnerArch, `the e2e image is built for ${arch}, but ${runsOn} runners are ${runnerArch}`);
 });
 
 test('the release workflow can write, so its actions are pinned to commit SHAs, and it publishes only past the gate', () => {

@@ -10,8 +10,9 @@ status: amended
 
 ## Summary
 
-CI's e2e jobs run inside Playwright's official image (`mcr.microsoft.com/playwright:v<version>-noble`), which already
-holds the browsers and their system packages, so no job installs packages from Ubuntu's mirror. Each browser's tests
+CI's e2e jobs run on GitHub's arm64 runners inside Playwright's official image
+(`mcr.microsoft.com/playwright:v<version>-noble-arm64`), which already holds the browsers and their system packages,
+so no job installs packages from Ubuntu's mirror. Each browser's tests
 run in two halves side by side (`--shard`). Releases come from release-please: it keeps one release pull request open
 on `main`, with the version bump and the `CHANGELOG.md` lines from the commits; merging it tags the commit and drafts the
 release, which goes public once ci is green on that commit and the release gate passes. It replaces `pnpm release`
@@ -27,10 +28,13 @@ release, which goes public once ci is green on that commit and the release gate 
 
 ## Decision
 
-- **The e2e jobs run in `mcr.microsoft.com/playwright:v1.63.0-noble`** (Ubuntu 24.04, Node 24, git), as the runner's
-  user (`--user 1001`). The image's version must equal `@playwright/test` in `package.json`: Playwright won't start
-  another version's browsers. `tests/repo/ci.test.mjs` fails when they drift, so a Playwright bump changes both in one
-  commit.
+- **The e2e jobs run on arm64 runners (`ubuntu-24.04-arm`) in `mcr.microsoft.com/playwright:v<version>-noble-arm64`**
+  (Ubuntu 24.04, Node 24, git), as the runner's user (`--user 1001`). The image's version must equal `@playwright/test`
+  in `package.json`: Playwright won't start another version's browsers. Its architecture must be the runner's: an
+  image built for one won't start on the other. `tests/repo/ci.test.mjs` fails when either drifts, so a Playwright
+  bump changes `package.json` and `ci.yml` in one commit. Arm64 since 2026-10-08 (Kenneth): it's the maintainer's
+  default architecture, and for 1.64.0 Microsoft published the arm64 image while the amd64 one was still missing.
+  x64 runners (`ubuntu-latest`) with the multi-arch `-noble` tag are the fallback when an arm64 image is missing.
 - **Each project runs in two halves** (`--shard=1/2`, `2/2`), both the demo pass and the short-trip pass: eight jobs
   instead of four. The job limit goes from 30 minutes back to 20.
 - **`release.yml`**, on every push to `main`, runs release-please (`release-please-config.json`,
@@ -46,26 +50,30 @@ release, which goes public once ci is green on that commit and the release gate 
 
 ## Alternatives
 
-| Option                                                     | Why not                                                                                                    |
-| ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| An Alpine image                                            | Playwright's browsers need glibc and support Ubuntu and Debian only; WebKit would have to be built by hand |
-| Our own image in GHCR (Playwright's plus pnpm)             | Saves about 15 s a job, but it's one more image to rebuild on every Playwright bump                        |
-| Cache the browser downloads (`actions/cache`)              | The slow part is the system packages, which `--with-deps` installs every run anyway                        |
-| A self-hosted runner with everything installed             | A public repo: anyone's pull request would run code on the maintainer's machine                            |
-| Keep `pnpm release`, with a tag-triggered release workflow | Built first, then dropped the same day: still the maintainer's machine and four commands for each release  |
-| A "Cut release" button that runs `pnpm release` in CI      | CI would push to `main` itself, past the local pre-push checks                                             |
-| semantic-release (a release on every push)                 | No review before a release, and a release for every fix (about eight on 2026-10-02 alone)                  |
+| Option                                                         | Why not                                                                                                    |
+| -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| An Alpine image                                                | Playwright's browsers need glibc and support Ubuntu and Debian only; WebKit would have to be built by hand |
+| Our own image in GHCR (Playwright's plus pnpm)                 | Saves about 15 s a job, but it's one more image to rebuild on every Playwright bump                        |
+| Cache the browser downloads (`actions/cache`)                  | The slow part is the system packages, which `--with-deps` installs every run anyway                        |
+| A self-hosted runner with everything installed                 | A public repo: anyone's pull request would run code on the maintainer's machine                            |
+| Keep `pnpm release`, with a tag-triggered release workflow     | Built first, then dropped the same day: still the maintainer's machine and four commands for each release  |
+| A "Cut release" button that runs `pnpm release` in CI          | CI would push to `main` itself, past the local pre-push checks                                             |
+| semantic-release (a release on every push)                     | No review before a release, and a release for every fix (about eight on 2026-10-02 alone)                  |
+| x64 runners (`ubuntu-latest`) with the multi-arch `-noble` tag | The setup until 2026-10-08, and the fallback now: the 1.64.0 bump would have waited on MCR's amd64 image   |
 
 ## Consequences
 
 - **Security:** the image is Microsoft's, pinned to an exact version tag (not a digest, so the tag is trusted, as with
   `ci.yml`'s actions). The release job's token can write releases and nothing else that CI couldn't already read; its
   actions are pinned to SHAs.
-- **Operational:** a Playwright bump touches `package.json` and `ci.yml` together (the test says so). Pulling the
-  image takes about 30–60 s a job instead of the install; no mirror stalls. A release is a merge of the
-  release pull request; if ci fails on it, the release stays a draft until it's fixed and the publish job is re-run.
-- **Cost:** eight e2e jobs instead of four. Free on a public repo; on a private one they'd use more of the monthly
-  minutes, though each is shorter.
+- **Operational:** a Playwright bump touches `package.json` and `ci.yml` together (the test says so). The images can
+  come out after the npm release, one architecture at a time: for 1.64.0, the morning after, only the arm64 ones were
+  on MCR. So check that `v<version>-noble-arm64` exists before opening a bump's pull request (pushing a branch runs no
+  ci). Pulling the image takes about 30–60 s a job instead of the install; no mirror stalls. A release is a merge of
+  the release pull request; if ci fails on it, the release stays a draft until it's fixed and the publish job is
+  re-run.
+- **Cost:** eight e2e jobs instead of four. Free on a public repo, on arm64 runners as on x64; on a private one they'd
+  use more of the monthly minutes, though each is shorter (check GitHub's current pricing for arm64 runners).
 
 ## Read when
 
