@@ -104,6 +104,21 @@ test('reviewer agents are read-only', () => {
 	assert.deepEqual(bad, []);
 });
 
+// `--not` negates every ref after it, the branch included: `git log --not --remotes HEAD` lists nothing, so a check
+// built on it passes over zero commits
+test('agent commands that list unpushed commits name the branch before --not', () => {
+	const files = [
+		...fs.readdirSync(at('.claude', 'agents')).map((f) => path.join('.claude', 'agents', f)),
+		...dirs('.agents', 'skills')
+			.filter((n) => !vendored.includes(n))
+			.map((n) => path.join('.agents', 'skills', n, 'SKILL.md')),
+	];
+	assert.deepEqual(
+		files.filter((f) => /git (?:log|rev-list)(?: -\S+)* --not\b/.test(read(f))),
+		[],
+	);
+});
+
 test('every hook in .claude/settings.json runs a script that exists', () => {
 	const settings = JSON.parse(read('.claude', 'settings.json'));
 	const commands = Object.values(settings.hooks).flatMap((groups) => groups.flatMap((g) => g.hooks.map((h) => h.command)));

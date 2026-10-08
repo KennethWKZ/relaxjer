@@ -13,11 +13,11 @@ rebase, push, tag or publish. Run only checks.
 2. `pnpm verify`: lint, format check, tier 0 (repo hygiene, agent config, memory-bank, contract, units), pipeline tests.
 3. `pnpm test:release`: no real trip's details in any committable file.
 4. The history scan over what would be pushed:
-   `git rev-list --not --remotes HEAD`, then for each commit
+   `git rev-list HEAD --not --remotes`, then for each commit
    `echo "refs/heads/main <sha> refs/heads/main 0000000000000000000000000000000000000000" | node tests/release/scan-history.mjs`.
    Or run it once for the branch tip the same way.
 5. `gitleaks git --redact --no-banner --config .gitleaks.toml`, when gitleaks is installed. Say so when it isn't.
-6. The commits themselves (`git log --not --remotes`):
+6. The commits themselves (`git log HEAD --not --remotes`):
    - Conventional Commits in the house style (`memory-bank/standards/commit-message-format.md`);
    - no real names, hotels, flight numbers, dates or booking codes in a message.
 7. Changes to `knowledge/`, `.agents/`, `.claude/`, `AGENTS.md` or `memory-bank/`: each should say why, and carry the

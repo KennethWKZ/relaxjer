@@ -4,7 +4,8 @@ RelaxJer turns a family's trip requirements into one offline-friendly, installab
 AI agent (Claude Code, Codex, Cursor, Gemini CLI, Copilot…) and every person working in the repo. It maps the context
 in `memory-bank/` and states the rules that bind.
 
-**Status:** v1.0.0. Story steps 0–3b, 5, 6, 6c and 6d are done (engine moved, split and generalised; the `tw` pack;
+**Status:** v1.6.1. <!-- x-release-please-version -->
+Story steps 0–3b, 5, 6, 6c and 6d are done (engine moved, split and generalised; the `tw` pack;
 the pipeline; the agent tooling, with skills from a fresh clone to a published page; the affordance fixes; group sync),
 and the landing page (6b) deploys from `site/`. Group sync, on the planner's own Firebase database, and the page's
 security policy are live on the first trip; a day can split for part of the group, a stop can suggest optional plans,

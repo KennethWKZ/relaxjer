@@ -33,6 +33,15 @@ test('the release workflow can write, so its actions are pinned to commit SHAs, 
 	assert.equal(cfg['force-tag-creation'], true, 'a draft still gets its tag');
 	const manifest = JSON.parse(read('.release-please-manifest.json'));
 	assert.equal(manifest['.'], JSON.parse(read('package.json')).version, 'the manifest and package.json name the same version');
+	// the release pull request also moves AGENTS.md's status: release-please rewrites the first x.y.z on its marked line
+	assert.ok((cfg.packages['.']['extra-files'] || []).includes('AGENTS.md'), 'release-please updates AGENTS.md');
+	assert.deepEqual(
+		read('AGENTS.md')
+			.split('\n')
+			.filter((l) => l.includes('x-release-please')),
+		[`**Status:** v${manifest['.']}. <!-- x-release-please-version -->`],
+		"AGENTS.md's status line names the current release, on the one line release-please updates",
+	);
 });
 
 // main's ruleset requires one check, ci-ok (ADR-20261002-required-ci): it must wait on every other job, or a job added
