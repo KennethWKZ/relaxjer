@@ -1,6 +1,6 @@
 ---
-total_decisions: 22
-last_updated: 2026-10-07
+total_decisions: 23
+last_updated: 2026-10-08
 ---
 
 # Decision Index
@@ -26,7 +26,7 @@ merged id never changes; a new ADR that collides takes a fresh slug.
 | [ADR-20261001-memory-bank-agent-config](decisions/ADR-20261001-memory-bank-agent-config.md)       | 2026-10-01 | Project Context Lives in memory-bank/; Agent Tooling Works for Any Agent, With Claude Code Extras                                | agents   | accepted |
 | [ADR-20261001-option-chips](decisions/ADR-20261001-option-chips.md)                               | 2026-10-01 | An Optional Plan Can Be Suggested at a Stop, and Opens Over the Day                                                              | data     | accepted |
 | [ADR-20261001-page-csp](decisions/ADR-20261001-page-csp.md)                                       | 2026-10-01 | The Trip Page Carries Its Own Content-Security-Policy, and MapLibre Loads With Subresource Integrity                             | security | accepted |
-| [ADR-20261001-project-tooling](decisions/ADR-20261001-project-tooling.md)                         | 2026-10-01 | Project Tooling Follows the Maintainer's Standard Setup                                                                          | tooling  | accepted |
+| [ADR-20261001-project-tooling](decisions/ADR-20261001-project-tooling.md)                         | 2026-10-01 | Project Tooling Follows the Maintainer's Standard Setup                                                                          | tooling  | amended  |
 | [ADR-20261001-resync-cost-guard](decisions/ADR-20261001-resync-cost-guard.md)                     | 2026-10-01 | The Data Refresh Answers From Its Cache, and Paying Google for More Is the Planner’s Call                                        | data     | accepted |
 | [ADR-20261002-ci-image-and-releases](decisions/ADR-20261002-ci-image-and-releases.md)             | 2026-10-02 | CI's Browser Jobs Run in Playwright's Image, in Halves, and release-please Makes the Releases                                    | tooling  | amended  |
 | [ADR-20261002-embed-brush-font](decisions/ADR-20261002-embed-brush-font.md)                       | 2026-10-02 | Nothing From the Network Holds the Trip Page's First Paint: the Brush Face Travels in the Page                                   | layout   | accepted |
@@ -38,3 +38,4 @@ merged id never changes; a new ADR that collides takes a fresh slug.
 | [ADR-20261007-split-follows-pushback](decisions/ADR-20261007-split-follows-pushback.md)           | 2026-10-07 | A Push-Back Moves a Split Day’s Fork and Rejoin; Each Plan Keeps Its Own Times                                                   | engine   | accepted |
 | [ADR-20261007-squash-merges](decisions/ADR-20261007-squash-merges.md)                             | 2026-10-07 | Pull Requests Merge by Squash, So the Changelog Lists Each Change Once                                                           | tooling  | accepted |
 | [ADR-20261007-traffic-aware-drives](decisions/ADR-20261007-traffic-aware-drives.md)               | 2026-10-07 | A Drive Still Ahead Gets Google’s Typical and Heavy-Traffic Times, at the Hour the Leg Sets Off                                  | data     | accepted |
+| [ADR-20261008-release-age-exceptions](decisions/ADR-20261008-release-age-exceptions.md)           | 2026-10-08 | A Release Comes In Before Its Three Days Only by Exact Version, Until It Turns Three Days Old                                    | tooling  | accepted |

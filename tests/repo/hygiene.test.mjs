@@ -124,4 +124,16 @@ test('new dependency releases wait before they install', () => {
 	const ws = fs.readFileSync(path.join(ROOT, 'pnpm-workspace.yaml'), 'utf8');
 	const age = Number((/^minimumReleaseAge:\s*(\d+)/m.exec(ws) || [])[1]);
 	assert.ok(age >= 1440, 'minimumReleaseAge is at least a day');
+	// an early release is named by exact version, never by name, range or wildcard (ADR-20261008-release-age-exceptions):
+	// every line from the key to the next top-level key is blank, a comment or one `name@x.y.z` entry
+	const lines = ws.split(/\r?\n/);
+	const keys = lines.filter((l) => /minimumReleaseAgeExclude/.test(l.replace(/#.*/, '')));
+	assert.ok(keys.length <= 1, 'one minimumReleaseAgeExclude');
+	for (const key of keys) assert.match(key, /^minimumReleaseAgeExclude:[ \t]*(#.*)?$/, 'minimumReleaseAgeExclude is a plain top-level block list');
+	const from = lines.findIndex((l) => l.startsWith('minimumReleaseAgeExclude:'));
+	for (const line of from < 0 ? [] : lines.slice(from + 1)) {
+		if (/^[^\s#-]/.test(line)) break;
+		if (/^\s*(#.*)?$/.test(line)) continue;
+		assert.match(line, /^\s*-\s*(['"]?)(@[\w.-]+\/)?[\w.-]+@\d+\.\d+\.\d+\1\s*(#.*)?$/, `${line.trim()}: an early release names one exact version`);
+	}
 });

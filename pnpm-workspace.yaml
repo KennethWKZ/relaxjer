@@ -1,6 +1,13 @@
 # pnpm settings (no workspace packages yet; see memory-bank/standards/decisions/ADR-20260930-repo-layout.md)
 # a new release must be 3 days old before it installs: time for a hijacked package to be caught and pulled
 minimumReleaseAge: 4320
+# a release let in early: the maintainer's call, exact versions only, and it goes once the release is 3 days old
+# (ADR-20261008-release-age-exceptions)
+minimumReleaseAgeExclude:
+  # Playwright 1.64.0, published 2026-10-07 20:44 UTC: remove after 2026-10-10 20:44 UTC
+  - '@playwright/test@1.64.0'
+  - 'playwright@1.64.0'
+  - 'playwright-core@1.64.0'
 engineStrict: true
 strictPeerDependencies: true
 # no dependency needs install scripts; add one here only after reading what it runs

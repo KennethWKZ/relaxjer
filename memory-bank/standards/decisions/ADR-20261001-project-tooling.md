@@ -3,7 +3,7 @@ id: ADR-20261001-project-tooling
 date: 2026-10-01
 title: "Project Tooling Follows the Maintainer's Standard Setup"
 domain: tooling
-status: accepted
+status: amended
 ---
 
 # Project Tooling Follows the Maintainer's Standard Setup
@@ -31,6 +31,9 @@ from, and hooks that install themselves.
 | Linting         | ESLint flat config, `@eslint/js` recommended + `eslint-config-prettier`                          | `engine/src/app/*.js` turns off `no-undef`/`no-unused-vars`: the build joins those fragments into one script, so per-file checks only see the split.                                               |
 | Commits         | Conventional Commits, checked by commitlint                                                      | Types match the changelog sections, so every type has one. House style: [`../commit-message-format.md`](../commit-message-format.md).                                                              |
 | Releases        | release-please (since 2026-10-02; `pnpm release` before)                                         | A release pull request; merging it releases ([ADR-20261002-ci-image-and-releases](ADR-20261002-ci-image-and-releases.md)).                                                                         |
+
+_Amended by [ADR-20261008-release-age-exceptions](ADR-20261008-release-age-exceptions.md): the maintainer can let one
+release in before its three days, by exact version, until it turns three days old._
 
 Adapted from the reference: no Jira or Bitbucket links, no commitizen Jira adapter, no branch-name rule (a community
 repo takes pull requests from any branch name), and `proseWrap: preserve` (the docs are hand-wrapped).
