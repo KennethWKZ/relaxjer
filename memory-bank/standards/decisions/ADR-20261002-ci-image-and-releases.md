@@ -35,7 +35,9 @@ release, which goes public once ci is green on that commit and the release gate 
   instead of four. The job limit goes from 30 minutes back to 20.
 - **`release.yml`**, on every push to `main`, runs release-please (`release-please-config.json`,
   `.release-please-manifest.json`): it opens or updates the `chore(release): vX.Y.Z` pull request, with the changelog
-  sections `.versionrc` had. Merging it tags the commit (`force-tag-creation`) and makes a **draft** release. A second
+  sections `.versionrc` had. The same pull request moves the version in `AGENTS.md`'s status line (`extra-files`; the
+  line carries an `x-release-please-version` marker, and `tests/repo/ci.test.mjs` checks it names the current
+  release). Merging it tags the commit (`force-tag-creation`) and makes a **draft** release. A second
   job runs `pnpm test:release`, waits for the commit's ci run to pass (45 minutes at most), and publishes the draft. The
   release pull request gets ci like any other (its first run waited for an "Approve and run"), and since
   [ADR-20261002-required-ci](ADR-20261002-required-ci.md) its merge waits for it. The workflow

@@ -9,6 +9,7 @@
 	"packages": {
 		".": {
 			"release-type": "node",
+			"extra-files": ["AGENTS.md"],
 			"changelog-sections": [
 				{ "type": "feat", "section": "✨ Features" },
 				{ "type": "fix", "section": "🐛 Bug Fixes" },
