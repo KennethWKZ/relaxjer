@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.6.2](https://github.com/KennethWKZ/relaxjer/compare/v1.6.1...v1.6.2) (2026-10-08)
+
+
+### 🐛 Bug Fixes
+
+* **agents:** the release check scans the commits a push would send ([#38](https://github.com/KennethWKZ/relaxjer/issues/38)) ([8582e54](https://github.com/KennethWKZ/relaxjer/commit/8582e54fac5fc143fcdf72af49cb57f7c41319c1))
+
+
+### 🔨 Builds
+
+* **deps:** run the browser tests on Playwright 1.64.0 ([#37](https://github.com/KennethWKZ/relaxjer/issues/37)) ([d56799b](https://github.com/KennethWKZ/relaxjer/commit/d56799b058bca8106d6f2f1df58e23427640091a))
+
 ## [1.6.1](https://github.com/KennethWKZ/relaxjer/compare/v1.6.0...v1.6.1) (2026-10-07)
 
 
