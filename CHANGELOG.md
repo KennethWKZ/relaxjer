@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.6.3](https://github.com/KennethWKZ/relaxjer/compare/v1.6.2...v1.6.3) (2026-10-10)
+
+
+### 🚚 Chores
+
+* **hooks:** rebuild the graphmind index on checkout, merge and rebase ([604abe5](https://github.com/KennethWKZ/relaxjer/commit/604abe51f68889c337c4cf4d47bc379d9d5fe267))
+
 ## [1.6.2](https://github.com/KennethWKZ/relaxjer/compare/v1.6.1...v1.6.2) (2026-10-08)
 
 
