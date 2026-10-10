@@ -1,0 +1,9 @@
+# graphmind: reindex on branch switch and new worktrees. No-op unless graphmind is installed.
+# $3 = 1 for a branch checkout; an all-zero $1 is a new `git worktree add`.
+if command -v graphmind >/dev/null 2>&1 && [ "$3" = "1" ]; then
+  if [ -z "$(printf '%s' "$1" | tr -d 0)" ]; then
+    graphmind build >/dev/null 2>&1 &
+  else
+    (graphmind build --changed "$1" "$2" >/dev/null 2>&1 || graphmind build >/dev/null 2>&1) &
+  fi
+fi

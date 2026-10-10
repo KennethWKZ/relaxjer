@@ -1,0 +1,4 @@
+# graphmind: rebuild after merge/pull. No-op unless graphmind is installed.
+if command -v graphmind >/dev/null 2>&1; then
+  graphmind build >/dev/null 2>&1 &
+fi
