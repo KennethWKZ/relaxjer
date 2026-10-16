@@ -16,6 +16,12 @@ What the first trip taught about the page in real browsers. Each lesson is backe
   Sections-menu jumps landed 770–900 px off target on WebKit, and deep links (`…#entry`) 3,800–10,000 px off. Fix: every
   jump re-lands a few times over about 1.2 s (`holdLanding()`), and stops on touch, another jump, or Back.
   (`tests/e2e/navigation.spec.mjs`)
+- **On a slow phone, Chromium's own scroll restoration for a history step comes late and wins.** Closing a sheet with
+  Back (or Esc) steps back through history; the page restores the reader's place ~30 ms later, but on a CPU slowed like
+  a budget phone's the browser restored ~0.8 s after that, with an offset it had saved mid-scroll: 8–211 px off. Seen as
+  a CI-only flake during the first trip. Fix: a step the page restores itself is `history.scrollRestoration = 'manual'`
+  (set before an overlay's `pushState`; the new step takes the mode from the one it leaves). The test runs on a CPU
+  slowed 6× in Chromium. (`tests/e2e/navigation.spec.mjs`)
 - **Smooth scrolls across undrawn sections stop short.** Snap to the target at `scrollend`. Tab and menu jumps are
   instant, with a landing glow instead of a long smooth scroll.
 - **Full redraws must keep the reader's place** (a language switch, a data refresh):

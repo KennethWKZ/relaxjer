@@ -84,9 +84,12 @@ test('the Sections menu jumps to a section and closes', async ({ page }) => {
 });
 
 // Closing a sheet steps back through history. After a tab jump, the browser's own scroll restoration for that step
-// used to win, and the reader landed back at the jumped-to heading, 1,000+ px from where they were reading.
+// used to win, and the reader landed back at the jumped-to heading, 1,000+ px from where they were reading. On a slow
+// phone it still won: it came ~0.8 s after the page's own restore, with an offset saved mid-scroll (up to ~200 px off),
+// so Chromium runs these on a CPU slowed like a budget phone's.
 for (const how of ['Escape', 'Back']) {
-	test(`after a tab jump, closing a sheet (${how}) keeps the reader where they were`, async ({ page }) => {
+	test(`after a tab jump, closing a sheet (${how}) keeps the reader where they were`, async ({ page, browserName }) => {
+		if (browserName === 'chromium') await (await page.context().newCDPSession(page)).send('Emulation.setCPUThrottlingRate', { rate: 6 });
 		await openTrip(page);
 		const day = await page.evaluate(() => DAYS[1].id);
 		await page.locator(`.tab[href="#${day}"]`).first().click();

@@ -18,6 +18,9 @@ function keepPlace(y) {
 function openOverlay(close) {
 	const o = { close, y: window.scrollY };
 	overlays.push(o);
+	// keepPlace restores this step: the browser must not. On a slow phone its own restore came ~0.8 s after ours and won,
+	// with an offset it saved mid-scroll. The mode is kept per history step, and the new step takes it from this one.
+	history.scrollRestoration = 'manual';
 	history.pushState({ tpOverlay: 1 }, '');
 	syncBackPill();
 	return o;
