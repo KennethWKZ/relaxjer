@@ -16,7 +16,7 @@ Everything above applies. This part covers only what Claude Code adds on top.
   group sync, publishing, planner docs, agent config, memory-bank). Each points at its source of truth.
 - **Hooks and permissions** (`.claude/settings.json`):
   - a Bash guard blocks `git add -f`, `--no-verify`, `git commit -n`, `HUSKY=0` and hooksPath changes, and an agent
-    agreeing to pay Google for a refresh (`resync … --yes`, `RESYNC_PAID`);
+    agreeing to pay Google for a refresh (`resync … --yes`, `RESYNC_PAID`, `--fresh-drives`, `RESYNC_FRESH_DRIVES`);
   - a publish guard leaves one door to publishing: the package script alone in Bash, which asks the planner every time
     (an "ask" rule). Every other route to the script, the share or the publish secrets is denied, and naming them in a
     Bash command trips it too, so write such text with the Write or Edit tool;

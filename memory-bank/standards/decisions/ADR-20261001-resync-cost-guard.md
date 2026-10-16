@@ -3,7 +3,7 @@ id: ADR-20261001-resync-cost-guard
 date: 2026-10-01
 title: 'The Data Refresh Answers From Its Cache, and Paying Google for More Is the Planner’s Call'
 domain: data
-status: accepted
+status: amended
 ---
 
 # The Data Refresh Answers From Its Cache, and Paying Google for More Is the Planner’s Call
@@ -43,6 +43,9 @@ It amends the "refresh before the trip" line of [ADR-20260930-google-keys](ADR-2
 - **The agent can't say yes.**
   - `.claude/hooks/guard-bash.mjs` blocks `resync … --yes` and setting `RESYNC_PAID`, in Bash, Monitor and
     context-mode's shells.
+  - Amended later (Kenneth): it also blocks `resync … --fresh-drives` and setting `RESYNC_FRESH_DRIVES`.
+    That run stays under the 200-call stop, so it pays as soon as it starts, dry run included, with no yes to stop
+    it; an agent once spent 18 calls on it while pricing it.
   - The planner runs the paid command themselves, in their own terminal or as a `!` command in Claude Code.
 - **Testing a key** is one call per API (`guides/google-maps.md`, step 5), never a refresh.
 

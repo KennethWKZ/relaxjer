@@ -17,6 +17,9 @@ const FIX = 'Fix the cause instead (AGENTS.md § Rules).';
 const PAY =
 	'Run it without that and show the planner the estimate it prints; the planner runs the paid one themselves ' +
 	'(`! pnpm resync --trip trips/<slug> … --yes`, the data-sync skill).';
+const DRIVES =
+	'Tell the planner its price (two calls a drive still ahead, the data-sync skill); they run it themselves ' +
+	'(`! pnpm resync --trip trips/<slug> --fresh-drives`), and a plain `--write` then applies its cached answers for free.';
 const RULES = [
 	[
 		cmd,
@@ -34,6 +37,9 @@ const RULES = [
 	// Google bills every call, and one refresh can cost US$100+ (ADR-20261001-resync-cost-guard)
 	[runs, /\bresync(\.py)?\b[^;&|\n]*[\s'",]--yes\b/, '`--yes` agrees to pay Google for a refresh, which is the planner’s call.', PAY],
 	[runs, /\bRESYNC_PAID['"\]\s]*[=:,]/, '`RESYNC_PAID` agrees to pay Google for a refresh, which is the planner’s call.', PAY],
+	// --fresh-drives stays under the 200-call stop, so it pays the moment it runs, dry run included, with no yes asked
+	[runs, /\bresync(\.py)?\b[^;&|\n]*[\s'",]--fresh-drives\b/, '`--fresh-drives` pays Google as soon as it runs, with no yes asked.', DRIVES],
+	[runs, /\bRESYNC_FRESH_DRIVES['"\]\s]*[=:,]/, '`RESYNC_FRESH_DRIVES` pays Google as soon as it runs, with no yes asked.', DRIVES],
 ];
 
 const hit = RULES.find(([text, re]) => re.test(text));

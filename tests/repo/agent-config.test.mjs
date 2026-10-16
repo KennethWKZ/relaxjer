@@ -167,7 +167,16 @@ test('the Bash guard leaves paying Google for a refresh to the planner', () => {
 	// built here, like the git ones above
 	const yes = ['-', '-yes'].join('');
 	const paid = ['RESYNC', 'PAID'].join('_');
+	const drives = ['-', '-fresh-drives'].join('');
+	const drivesEnv = ['RESYNC', 'FRESH', 'DRIVES'].join('_');
 	const blocked = [
+		// --fresh-drives stays under the 200-call stop, so it pays with no yes, even in a dry run
+		{ command: `pnpm resync --trip trips/x ${drives}` },
+		{ command: `pnpm resync --trip trips/x ${drives} --no-weather --no-links --no-build` },
+		{ command: `uv run --project pipeline pipeline/resync.py --trip trips/x --write ${drives}` },
+		{ command: `${drivesEnv}=1 uv run --project pipeline python pipeline/steps/fetch.py` },
+		{ code: `subprocess.run(['pnpm', 'resync', '--trip', 'x', '${drives}'])` },
+		{ commands: [{ label: 'x', command: `pnpm resync --trip trips/x ${drives}` }] },
 		{ command: `pnpm resync --trip trips/x --fresh ${yes}` },
 		{ command: `pnpm resync --trip trips/x --write ${yes} --no-weather` },
 		{ command: `uv run --project pipeline pipeline/resync.py --trip trips/x ${yes}` },
@@ -182,6 +191,8 @@ test('the Bash guard leaves paying Google for a refresh to the planner', () => {
 		{ command: 'pnpm resync --trip trips/x --fresh' },
 		{ command: 'pnpm resync --trip trips/x --write --no-weather' },
 		{ command: `grep -n ${paid} pipeline/lib/google.py` },
+		{ command: `rg -n ${drivesEnv} pipeline/lib/google.py` },
+		{ command: `rg -n -- '${drives}' .agents/skills/data-sync/SKILL.md` },
 		{ command: `npx -y firebase-tools@15.32.1 login ${yes}` },
 	];
 	for (const t of blocked) assert.equal(hook('guard-bash.mjs', { tool_input: t }), 2, `not blocked: ${JSON.stringify(t)}`);
