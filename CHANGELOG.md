@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.7.1](https://github.com/KennethWKZ/relaxjer/compare/v1.7.0...v1.7.1) (2026-10-16)
+
+
+### 🐛 Bug Fixes
+
+* **engine:** clear two known issues: the dead zoom handler, and Google search without a key ([#50](https://github.com/KennethWKZ/relaxjer/issues/50)) ([24aceb5](https://github.com/KennethWKZ/relaxjer/commit/24aceb5cc23155b22c94411a7461475a26eae354))
+* **engine:** number ranges stay on one line across the page ([#49](https://github.com/KennethWKZ/relaxjer/issues/49)) ([26e241a](https://github.com/KennethWKZ/relaxjer/commit/26e241a22c5aa303cc112087395f8aa483cb22cf))
+* **engine:** phone numbers stay on one line ([#51](https://github.com/KennethWKZ/relaxjer/issues/51)) ([2f74ca8](https://github.com/KennethWKZ/relaxjer/commit/2f74ca87b767e3f0e2cdb25703a77b10f5e80cc8))
+* **engine:** phone numbers written with spaces stay on one line too ([#53](https://github.com/KennethWKZ/relaxjer/issues/53)) ([27e207c](https://github.com/KennethWKZ/relaxjer/commit/27e207c0b2a5b79c59eb7caff639f12a3943710b))
+* **engine:** the airport tiles keep every word and range whole ([#47](https://github.com/KennethWKZ/relaxjer/issues/47)) ([efe8306](https://github.com/KennethWKZ/relaxjer/commit/efe83064f0f9f6be4fe2c0f602b8d91edc44ac4a))
+
+
+### 📝 Documentation
+
+* **knowledge:** numbers that broke at their dash, dead wiring, and known issues that go stale ([#52](https://github.com/KennethWKZ/relaxjer/issues/52)) ([7961c64](https://github.com/KennethWKZ/relaxjer/commit/7961c64f7cf4495698cd2391f88f83d6233cd1d9))
+
 ## [1.7.0](https://github.com/KennethWKZ/relaxjer/compare/v1.6.3...v1.7.0) (2026-10-16)
 
 
