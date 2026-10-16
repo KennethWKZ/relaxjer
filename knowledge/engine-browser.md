@@ -44,6 +44,13 @@ What the first trip taught about the page in real browsers. Each lesson is backe
 
 - **A `nowrap` link ran about 200 px off a 390 px screen in English** ("Shopping (10 shops…)"). Wrap with balanced lines
   instead. The same fix cured a home-screen button 1.4 px too wide. Test both languages at 390 px; English runs longer.
+- **A number broke at its dash wherever a line ran out:** "Manageabl" over "e" and "About 60–" over "75 min" in the
+  airport tiles, then "NT$110–" over "150" in lists, "08:00–" over "23:00" in hours lines and "Tel 02-" over
+  "2579-5880". Fixing the tiles alone left 38–69 split ranges per page: they were measured with every section drawn
+  and every list open, in both browsers, widths and languages, and the rest came from text written with bare `esc()`.
+  Fix: text people read goes through `fmt()` or `escText()`, which keep a range, its short unit and a phone number on
+  one line (`keepRanges()`, `engine/src/app/02-helpers.js`); a tile's cell never shrinks below its longest word. The stacked time column
+  is the one deliberate split. (`tests/e2e/layout.spec.mjs`, `tests/unit/core.test.mjs`)
 
 ## Maps and sheets
 

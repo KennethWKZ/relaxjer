@@ -31,6 +31,11 @@ pack export instead, document it in `trip-format.md`, and have the contract chec
 - ESLint turns `no-undef` and `no-unused-vars` off for these files, because per-file checks only see the split. The
   e2e suite fails on any page error instead, so a misspelt cross-fragment name shows up there.
 - UI strings are `Z(zh, en)` for now (story step 4 moves them to locale files). Every string needs both.
+- Text people read goes through `fmt()` (trip text: `**bold**`, per-person shares) or `escText()`; bare `esc()` is for
+  attributes, ids and URLs. Both keep a number range and a phone number on one line, which bare `esc()` doesn't
+  (`knowledge/engine-browser.md`, Layout).
+- An event handler acts on something drawn: `tests/repo/engine-wiring.test.mjs` fails on a `[data-…]` the event code
+  waits for that nothing renders. Remove the handler with the markup.
 - The page saves state through `store` (`01-storage.js`), under the trip's storage key. Never write `localStorage`
   directly.
 
