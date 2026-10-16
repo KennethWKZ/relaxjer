@@ -287,8 +287,8 @@ A guard against slips, not a lock: the page's password is what keeps the plan to
 
 Large text that follows the phone's own text size, buttons no smaller than a fingertip, high contrast in sunlight (and
 solid bars and edged links when the phone asks for more contrast), solid surfaces when it asks for less transparency,
-no sliding when it asks for less motion, a clear focus ring and screen-reader labels, walking counted ×1.4 when you
-add a stop (the planner counts it ×1.4 in the plan too), a taxi first for long legs, and Back after every jump. Redrawing the page (a new language, a push-back, an added stop) keeps you on
+no sliding when it asks for less motion, a clear focus ring and screen-reader labels, every walking time counted ×1.4
+for seniors (stop cards, the add sheet, the metro planner, the nearby lists and Google's walking minutes alike), a taxi first for long legs, and Back after every jump. Redrawing the page (a new language, a push-back, an added stop) keeps you on
 the same spot.
 
 ## Private and safe

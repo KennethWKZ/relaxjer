@@ -28,6 +28,10 @@ const GROUP = Money.groupWord(PAX); // how the data marks a group figure: ["五�
 const each = (n) => Money.share(n, PAX);
 const eachText = (min, max) => `${CUR.sym}${num(each(min))}${max > min ? '–' + num(each(max)) : ''}`;
 const numsIn = (x) => Money.amountsIn(x, CUR.sym);
+// walking, one model: 75 m a minute on streets 1.3× the straight line, at the group's pace (seniors walk ×1.4, AGENTS.md).
+// Every walking time the page shows is at that pace, Google's walking minutes too; a ride's minutes stay as they are.
+const GROUP_WALK = 1.4;
+const walkMinM = (m) => ((m * 1.3) / 75) * GROUP_WALK; // metres in a straight line → minutes, at the group's pace
 // number ranges and phone numbers stay on one line (core/wrap.mjs), in lists, hours, tables, notes and the airport
 // tiles' narrow cells. keepRanges takes escaped text; escText is esc for text people read (never an attribute).
 const keepRanges = Wrap.keepRanges;

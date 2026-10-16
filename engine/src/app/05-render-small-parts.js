@@ -251,7 +251,7 @@ function wcSheet(pk) {
 	const g = (GEO.places || {})[pk] || {};
 	const [r, a] = rrOf(gpidOfPk(pk));
 	const nm = placeTitle(pk);
-	const walk = (m) => Z(`走路约${Math.max(1, Math.round((m * 1.3) / 80))}分钟`, `~${Math.max(1, Math.round((m * 1.3) / 80))} min walk`);
+	const walk = (m) => Z(`走路约${Math.max(1, Math.round(walkMinM(m)))}分钟`, `~${Math.max(1, Math.round(walkMinM(m)))} min walk`);
 	const row = (n, meta, m, q, gpid) =>
 		`<li class="spot"><div class="spot-main"><span class="spot-n">${esc(n)}</span><span class="spot-m">${meta ? `<span class="spot-k wc">${esc(meta)}</span>` : ''}${distLabel(m / 1000)} · ${walk(m)}</span></div><span class="spot-a">${extI(gmDir(q, 'walking', undefined, gpid), Z('走路去', 'Walk there'), 'route')}</span></li>`;
 	const pub = wcNear(pk).map(([i, m]) => {
@@ -308,7 +308,7 @@ function spotsSheet(pk, rest, date) {
 		const q = `${x.name_trad} ${x.address_trad || ''}`;
 		const hrs = dayHours(x, date);
 		const tip = lang === 'en' ? x.tip_en : x.tip_zh;
-		return `<li class="spot"><button type="button" class="spot-main" data-spot="${esc(x.id)}"><span class="spot-n">${esc(drinkName(x))}</span><span class="spot-m">${x.kind ? `<span class="spot-k">${esc(L(REST_KIND[x.kind]))}</span>` : ''}${distLabel(nearOf(x, pk) / 1000)} · ${Z(`走路约${Math.max(1, Math.round((nearOf(x, pk) * 1.3) / 80))}分钟`, `~${Math.max(1, Math.round((nearOf(x, pk) * 1.3) / 80))} min walk`)}${x.rating ? ` · ★${esc(x.rating)}` : ''}</span>${tip && !x.kind ? `<span class="spot-t">${x.brand ? Z('招牌：', 'Try: ') : ''}${esc(tip)}</span>` : ''}${hrs ? `<span class="spot-t">${icon('clock')} ${keepRanges(esc(hrs))}</span>` : ''}</button><span class="spot-a">${extI(gmDir(q, 'walking', undefined, x.gpid), Z('走路去', 'Walk there'), 'route')}</span></li>`;
+		return `<li class="spot"><button type="button" class="spot-main" data-spot="${esc(x.id)}"><span class="spot-n">${esc(drinkName(x))}</span><span class="spot-m">${x.kind ? `<span class="spot-k">${esc(L(REST_KIND[x.kind]))}</span>` : ''}${distLabel(nearOf(x, pk) / 1000)} · ${Z(`走路约${Math.max(1, Math.round(walkMinM(nearOf(x, pk))))}分钟`, `~${Math.max(1, Math.round(walkMinM(nearOf(x, pk))))} min walk`)}${x.rating ? ` · ★${esc(x.rating)}` : ''}</span>${tip && !x.kind ? `<span class="spot-t">${x.brand ? Z('招牌：', 'Try: ') : ''}${esc(tip)}</span>` : ''}${hrs ? `<span class="spot-t">${icon('clock')} ${keepRanges(esc(hrs))}</span>` : ''}</button><span class="spot-a">${extI(gmDir(q, 'walking', undefined, x.gpid), Z('走路去', 'Walk there'), 'route')}</span></li>`;
 	};
 	const h = rest
 		? Z(`${placeTitle(pk)}附近 · 坐下歇脚`, `Sit & rest near ${placeTitle(pk)}`)
@@ -389,7 +389,10 @@ const mrtText = (m) =>
 	!m
 		? ''
 		: m.walk
-			? Z(`${m.train ? '火车' : METRO[0]}${m.zh}，步行约${m.min}分钟`, `${m.train ? 'Train' : Cap(METRO[1])} ${m.en || m.zh}, ~${m.min} min walk`)
+			? Z(
+					`${m.train ? '火车' : METRO[0]}${m.zh}，步行约${Math.round(m.min * GROUP_WALK)}分钟`,
+					`${m.train ? 'Train' : Cap(METRO[1])} ${m.en || m.zh}, ~${Math.round(m.min * GROUP_WALK)} min walk`,
+				)
 			: Z(`最近${METRO[0]}${m.zh}（约${m.km}公里，要转车）`, `Nearest ${METRO[1]} ${m.en || m.zh} (~${m.km} km; take a bus or taxi)`);
 const mrtLine = (m) => (m ? `<p class="xsmall">${icon('train')} ${escText(mrtText(m))}</p>` : '');
 function foodRow(f) {
@@ -482,14 +485,16 @@ const RIDE = {
 	RAIL: ['火车', 'train'],
 	LIGHT_RAIL: ['轻轨', 'light rail'],
 };
-const legSub = (t) => {
+// a walking leg's Google minutes at the group's pace; a ride's stay as Google gives them
+const legSub = (t, mode) => {
 	if (!t) return '';
+	const min = mode === 'walking' ? Math.round(t.min * GROUP_WALK) : t.min;
 	const rides = (t.rides || []).map((r) =>
 		r.kind === 'SUBWAY' || r.kind === 'LIGHT_RAIL'
 			? Z(r.line, r.line_en || r.line)
 			: Z((RIDE[r.kind] || ['车', 'ride'])[0], (RIDE[r.kind] || ['车', 'ride'])[1]),
 	);
-	return `<small class="l-leg-s">${Z(`约${t.min}分`, `~${t.min} min`)}${rides.length ? ` · ${esc(rides.join(' → '))}` : ''}</small>`;
+	return `<small class="l-leg-s">${Z(`约${min}分`, `~${min} min`)}${rides.length ? ` · ${esc(rides.join(' → '))}` : ''}</small>`;
 };
 function routeCard(day) {
 	const legs = LEGS[day.id];
@@ -499,7 +504,7 @@ function routeCard(day) {
 	const rows = legs
 		.map(
 			([a, b, m], li) =>
-				`<a class="l-leg" href="${esc(gmDir(PLACES[b].maps, m, PLACES[a].maps))}" target="_blank" rel="noopener" aria-label="${esc(`${nm(a)} → ${nm(b)} · ${Z(MODES[m][0], MODES[m][1])}`)}">${icon(MODES[m][2])}<span class="l-leg-t">${b === 'hotel' ? Z('回酒店', 'back to hotel') : `${Z('去', 'to')} ${esc(nm(b))}`}${legSub(LT[`${day.id}:${li}`])}</span><span class="l-leg-m dlbl">${esc(Z(MODES[m][0], MODES[m][1]))}</span></a>`,
+				`<a class="l-leg" href="${esc(gmDir(PLACES[b].maps, m, PLACES[a].maps))}" target="_blank" rel="noopener" aria-label="${esc(`${nm(a)} → ${nm(b)} · ${Z(MODES[m][0], MODES[m][1])}`)}">${icon(MODES[m][2])}<span class="l-leg-t">${b === 'hotel' ? Z('回酒店', 'back to hotel') : `${Z('去', 'to')} ${esc(nm(b))}`}${legSub(LT[`${day.id}:${li}`], m)}</span><span class="l-leg-m dlbl">${esc(Z(MODES[m][0], MODES[m][1]))}</span></a>`,
 		)
 		.join('');
 	const ids = [legs[0][0], ...legs.map((l) => l[1])];
