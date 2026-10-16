@@ -631,9 +631,6 @@ function mountLive(url) {
 				);
 				$$('[data-view]').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.view === k)));
 			},
-			zoom(f) {
-				m.easeTo({ zoom: m.getZoom() + (f < 1 ? 1 : -1), duration: reduce ? 0 : 250 });
-			},
 			filter(f) {
 				if (popup) popup.remove();
 				if (MAP_CAT_KEYS.includes(f)) mapCat = f;

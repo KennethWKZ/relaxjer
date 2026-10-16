@@ -55,8 +55,6 @@ the hotel's old-name note assumes `PLACES.hotel`.
 - WebKit desktop flakes under full parallel load, about 1 in 140 runs, a different test each time ("closed lists are
   not built until opened", "+ after a stop offers nearby places"). Both pass alone every time, and CI retries once. If
   it grows, run WebKit with fewer workers.
-- Without `--keys`, the add sheet still offers "Search Google", which then fails with "network?". It should hide.
-- `data-zoom` has a click handler in `22-events.js` that nothing renders.
 - When a push-back moves a day split's rejoin stop, its "Rejoining here" note disappears (it compares the moved time
   with the plan's `join`).
 - Walking minutes count ×1.4 only in the add sheet's getting-there check; cards, the transit planner and the nearby

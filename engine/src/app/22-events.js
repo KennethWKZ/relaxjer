@@ -541,7 +541,6 @@ document.addEventListener('click', (e) => {
 		withMap(() => map.select(pid));
 		return;
 	}
-	if (t.matches('[data-zoom]')) return map && map.zoom(t.dataset.zoom === 'in' ? 0.6 : 1.6);
 	if (t.matches('[data-pick]')) {
 		if (liveFailed) {
 			window.open(gmSearch(t.dataset.q), '_blank', 'noopener');
