@@ -69,5 +69,6 @@ What the first trip taught about the page in real browsers. Each lesson is backe
 
 - **Playwright's WebKit is close to iOS Safari, not identical.** Scroll, jump and install behaviour still get a pass on
   a real iPhone.
-- **WebKit desktop flakes about once in 140 runs** under full parallel load, a different test each time. Re-run the test
-  alone before chasing it.
+- **WebKit desktop flakes about once in 140 runs** under full parallel load, a different test each time. A test that
+  fails twice, or is always the same test, isn't that: a pass alone doesn't clear it
+  (`memory-bank/standards/patterns/testing.md`, "When a test fails only sometimes").

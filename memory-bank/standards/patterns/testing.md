@@ -38,6 +38,10 @@ Tier 0 (`pnpm test`) runs on every commit, so keep it under a few seconds: no ne
 - **Selectors live in the helpers.** When markup changes, change `tests/support/page.mjs`, not the invariants in the
   specs.
 - **Don't fake the Playwright clock:** the engine's 2 s scroll holds measure real time.
+- **A slow phone is a slowed CPU, not a faked clock.** When a behaviour depends on how fast the phone is (the browser's
+  own work landing after the page's), the Chromium projects run it on a CPU slowed through the DevTools protocol:
+  `(await page.context().newCDPSession(page)).send('Emulation.setCPUThrottlingRate', { rate: 6 })`, skipped in WebKit,
+  which has no such switch. The close-a-sheet tests in `tests/e2e/navigation.spec.mjs` do this.
 - **The page's Content-Security-Policy is on in every test.** A refusal fails the test like a page error
   ([ADR-20261001-page-csp](../decisions/ADR-20261001-page-csp.md)); a test that triggers one on purpose takes it off
   `pageErrors` itself (`tests/e2e/policy.spec.mjs`).
@@ -70,5 +74,21 @@ node tests/support/probe.mjs      # page errors of the last build, with engine l
 pnpm test:sync-rules              # the group-sync rules on Firebase's emulator (local, needs Java)
 ```
 
-WebKit desktop flakes about once in 140 runs under full parallel load (story index, "Known issues"). A single retry in
-CI covers it. Locally, re-run the one test alone before chasing it.
+## When a test fails only sometimes
+
+A test that passes when re-run alone isn't cleared. During the first trip, two "flakes" were real: one was a race in
+the test, and the other was a page bug a senior's slow phone would hit, which passed hundreds of runs on a laptop.
+
+1. **Read the failure.** A test that failed every CI retry is not a flake. Note how far off it was, and in which
+   direction.
+2. **Reproduce it under load:** `--repeat-each 40 --workers 6 --retries 0` on that test, the old code against the new.
+3. **Reproduce it on a slow phone,** if it still passes: a copy of the test on a slowed CPU (above) that logs what the
+   page does, such as each scroll event and its time.
+4. **Then fix the cause:**
+   - a race in the test: wait for the condition the test means (`expect.poll`), never longer timeouts;
+   - a page bug: fix the page, and keep the slowed CPU in the test so the suite catches it on any machine.
+5. **Prove it** with the same command: failures before, none after.
+
+WebKit desktop flakes about once in 140 runs under full parallel load, a different test each time (story index, "Known
+issues"). A single retry in CI covers that one; the steps above are for a test that fails twice, or always the same
+test.
