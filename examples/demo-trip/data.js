@@ -1191,7 +1191,7 @@ const AIRPORT = {
 			per: ['每人约 NT$480–720 / 人', 'about NT$480–720 each'],
 			time: ['约45分钟', '~45 min'],
 			xfer: ['门到门', 'Door to door'],
-			bags: ['后车厢', 'In the boot'],
+			bags: ['放后车厢，还可以', 'Manageable'], // a long word in a narrow cell (tests/e2e/layout.spec.mjs)
 			list: [['高峰期会贵', 'Surge pricing at peak']],
 			when: ['赶时间', 'In a hurry'],
 		},

@@ -38,6 +38,9 @@ const fmt = (x) =>
 			return `${amt}${tail}<span class="each-i"> · ${Z(`每人约${eachText(lo, hi)}`, `≈${eachText(lo, hi)} each`)}</span>`;
 		})
 		.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+// a number range stays on one line in a narrow cell, with a short unit after it ("60–75 min", "60–75分钟"): "About 60–"
+// over "75 min" stranded the dash
+const fmtNw = (x) => fmt(x).replace(/\d[\d,.]*–\d[\d,.]*(?: ?\p{L}{1,4}(?![\p{L}\p{N}]))?/gu, '<span class="nw">$&</span>');
 const eachLine = (min, max) =>
 	`<span class="each">${Z('每人约', 'Each ≈')} <b>${eachText(min, max)}</b> <span class="rm-i" data-rm="${each(min)},${each(max)}">${rmText(each(min), each(max))}</span></span>`;
 const ddEach = (v) => {
