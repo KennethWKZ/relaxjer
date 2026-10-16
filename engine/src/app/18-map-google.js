@@ -168,9 +168,6 @@ function mountGoogle() {
 			m.fitBounds(bounds(VIEWS[k] || GEO.bbox), 24);
 			$$('[data-view]').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.view === k)));
 		},
-		zoom(f) {
-			m.setZoom(m.getZoom() + (f < 1 ? 1 : -1));
-		},
 		filter(f) {
 			iw.close();
 			if (MAP_CAT_KEYS.includes(f)) mapCat = f;

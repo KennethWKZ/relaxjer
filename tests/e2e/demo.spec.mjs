@@ -66,3 +66,13 @@ test('a page without a Google key offers no Google search when adding a stop', a
 	await expect(sheet.locator('[data-add-res]')).toContainText("The page doesn't have this place.");
 	await expect(sheet.locator('[data-add-g]')).toHaveCount(0);
 });
+
+test("a page without a Google key offers no Google search in the map's place search", async ({ page }) => {
+	await openTrip(page);
+	const q = page.locator('#mapq');
+	await q.scrollIntoViewIfNeeded();
+	await q.fill('zzqx nowhere');
+	await expect(page.locator('#mapres')).toBeVisible();
+	await expect(page.locator('#mapres')).toContainText('Nothing found');
+	await expect(page.locator('#mapres [data-gsearch]')).toHaveCount(0);
+});
