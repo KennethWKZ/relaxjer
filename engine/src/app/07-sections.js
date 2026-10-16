@@ -1242,7 +1242,7 @@ function secOptional() {
 		return `<article class="hang" id="shop-${s.place}"><div class="hang-h"><div><p class="hang-name"${alt(other(s.name))}>${esc(L(s.name))}</p><p class="hang-meta">${escText(L(s.area))} · ${escText(L(s.rank))}</p></div></div>
         <p class="note"><strong>${Z('什么时候', 'When')}:</strong> ${fmt(s.when)}</p>${list(s.list)}
         ${a.zh ? `<p class="addr">${icon('pin')}<span>${esc(a.zh)}${lang === 'en' && a.en ? `<br><span class="xsmall">${esc(a.en)}</span>` : ''}</span></p>` : ''}
-        ${p.mrt ? `<p class="xsmall">${icon('train')} ${fmt(p.mrt)}</p>` : ''}${p.hours ? `<p class="xsmall">${icon('clock')} ${fmt(p.hours)}${p.tel ? ` · ${Z('电话', 'Tel')} <span class="sel">${esc(p.tel)}</span>` : ''}</p>` : ''}
+        ${p.mrt ? `<p class="xsmall">${icon('train')} ${fmt(p.mrt)}</p>` : ''}${p.hours ? `<p class="xsmall">${icon('clock')} ${fmt(p.hours)}${p.tel ? ` · ${Z('电话', 'Tel')} <span class="sel">${escText(p.tel)}</span>` : ''}</p>` : ''}
         <div class="links-row">${placeLinks(s.place, { noDriver: true })}${dayById[s.day] ? `<a class="mlink" href="#${s.day}">${icon('calendar')}Day ${dayById[s.day].n}</a>` : ''}</div></article>`;
 	};
 	return `<section class="sec" id="optional" data-sec="optional">

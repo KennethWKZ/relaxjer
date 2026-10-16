@@ -28,10 +28,9 @@ const GROUP = Money.groupWord(PAX); // how the data marks a group figure: ["五�
 const each = (n) => Money.share(n, PAX);
 const eachText = (min, max) => `${CUR.sym}${num(each(min))}${max > min ? '–' + num(each(max)) : ''}`;
 const numsIn = (x) => Money.amountsIn(x, CUR.sym);
-// a number range stays on one line with a short unit after it ("NT$110–150 each", "08:00–23:00", "09/30–11/14",
-// "60–75分钟"): a line ending "NT$110–" over "150" stranded the dash, in lists, hours, tables and the airport tiles'
-// narrow cells. Takes escaped text; escText is esc for text people read (never an attribute).
-const keepRanges = (h) => h.replace(/\d[\d,.:/]*–\d[\d,.:/]*(?: ?\p{L}{1,4}(?![\p{L}\p{N}]))?/gu, '<span class="rng">$&</span>');
+// number ranges and phone numbers stay on one line (core/wrap.mjs), in lists, hours, tables, notes and the airport
+// tiles' narrow cells. keepRanges takes escaped text; escText is esc for text people read (never an attribute).
+const keepRanges = Wrap.keepRanges;
 const escText = (s) => keepRanges(esc(s));
 // shares go in before **bold** turns into <strong>, so a bold group figure gets its share too; ranges go in last
 const fmt = (x) =>
