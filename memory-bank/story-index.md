@@ -52,11 +52,13 @@ the hotel's old-name note assumes `PLACES.hotel`.
 
 ## Known issues
 
+Each entry still reproduces today. Before fixing one, check it does (`git log -S`, and the tests that name it): during
+the first trip, two of the four picked up had been fixed, with tests, days earlier. The change that fixes one deletes
+its line.
+
 - WebKit desktop flakes under full parallel load, about 1 in 140 runs, a different test each time ("closed lists are
   not built until opened", "+ after a stop offers nearby places"). Both pass alone every time, and CI retries once. If
   it grows, run WebKit with fewer workers.
-- When a push-back moves a day split's rejoin stop, its "Rejoining here" note disappears (it compares the moved time
-  with the plan's `join`).
 - Walking minutes count ×1.4 only in the add sheet's getting-there check; cards, the transit planner and the nearby
   lists show the base pace.
 - ~~CI's WebKit jobs install WebKit's system packages from Ubuntu's mirror on every run~~ (once 20 minutes): since
