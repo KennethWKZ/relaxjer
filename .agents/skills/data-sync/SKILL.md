@@ -20,10 +20,10 @@ Read first: `pipeline/README.md` (commands, folders), `memory-bank/standards/pat
 ## Run
 
 ```sh
-pnpm resync --trip trips/<slug>             # dry run: print what would change (answers from the cache)
+pnpm resync --trip trips/<slug>             # dry run: print what would change, writing no trip file (it still asks Google what the cache lacks)
 pnpm resync --trip trips/<slug> --write     # write the trip's files and rebuild the page (with google.json and the trip's sync file when present)
 #   --fresh   ask Google again for everything (prints the cost, needs the planner's yes)
-#   --fresh-drives  ask again only the drives still ahead, for newer traffic predictions (two calls a drive)
+#   --fresh-drives  ask again only the drives still ahead, for newer traffic predictions (two calls a drive; paid, and no yes asked)
 #   --no-google  --no-weather  --no-links  --no-build
 ```
 
@@ -31,7 +31,8 @@ pnpm resync --trip trips/<slug> --write     # write the trip's files and rebuild
 showed as RM520 when an agent ran one on 2026-10-01 only to test a key. So the refresh guards the spend
 ([ADR-20261001-resync-cost-guard](../../../memory-bank/standards/decisions/ADR-20261001-resync-cost-guard.md)):
 
-- A run answers from the trip's cache, and asks Google only what's new or what failed last time.
+- A run answers from the trip's cache, and asks Google only what's new or what failed last time. A dry run does too:
+  "dry run" means no trip file is written, not that nothing is paid.
 - Each step stops after 200 new calls (`stopped: this step needs more than 200 Google calls…`). What it fetched is
   kept.
 - `--fresh`, or a trip with no cache yet, prints how many calls and what they cost, and stops without a yes.
@@ -40,11 +41,18 @@ showed as RM520 when an agent ran one on 2026-10-01 only to test a key. So the r
 - **Drive times in the trip's last week:** `--fresh-drives` asks again only the traffic-aware drives still ahead (a
   week-long trip has about ten, so about twenty calls), everything else from the cache. Compare each drive's `bad` in
   `geo.json` with its deadline again afterwards.
+  - **It pays without asking.** It stays under the 200-call stop, so it never stops for a yes: the calls go out the
+    moment it runs, in a dry run too. An agent once ran it as a "free" dry run to price it, and spent 18
+    calls (≈US$0.18) without the planner's go. So `.claude/hooks/guard-bash.mjs` blocks it for agents: tell the
+    planner the price (two calls a drive still ahead, at the list price runs print), and they run
+    `! pnpm resync --trip trips/<slug> --fresh-drives` themselves.
+  - Its answers land in the cache. Apply them with a plain `--write` (no `--fresh-drives`), which costs nothing.
+    Running `--fresh-drives` again pays a second time.
 
 **Paying is the planner's call, never yours.** When a run stops for either reason, show the planner what it printed,
 and let them run the paid one themselves, adding `--yes` to the same command (and `--fresh` if they want everything
 again), as a `!` command in Claude Code or in their own terminal. `.claude/hooks/guard-bash.mjs` blocks an agent's
-`--yes` and `RESYNC_PAID`. Never refresh to test a key: use the one-call-per-API check in `guides/google-maps.md`
+`--yes`, `RESYNC_PAID`, `--fresh-drives` and `RESYNC_FRESH_DRIVES`. Never refresh to test a key: use the one-call-per-API check in `guides/google-maps.md`
 (step 5).
 
 Always dry-run first, and read the diff before `--write`:

@@ -3,7 +3,7 @@
 Refreshes a trip's data from outside sources, then rebuilds its page:
 
 ```sh
-pnpm resync --trip trips/<slug>            # dry run: print what would change
+pnpm resync --trip trips/<slug>            # dry run: print what would change, writing no trip file (Google is still asked)
 pnpm resync --trip trips/<slug> --write    # write the trip's files, rebuild the page
 #   --fresh (ask Google again for everything)  --fresh-drives (ask again only the drives still ahead, for newer traffic)
 #   --yes (the planner agrees to pay)  --no-google  --no-weather  --no-links  --no-build
@@ -23,6 +23,8 @@ what a refresh asked Google for. `--fresh-drives` asks again only each traffic-a
 ahead (two calls a drive, Compute Routes Pro), for newer traffic predictions in the trip's last week; everything else
 comes from the cache, so it stays under the 200-call stop
 ([ADR-20261007-traffic-aware-drives](../memory-bank/standards/decisions/ADR-20261007-traffic-aware-drives.md)).
+Staying under the stop means it never asks for a yes: its calls go out the moment it runs, dry run included, so the
+planner agrees to its price first. Its answers are then in the cache, and a plain `--write` applies them for free.
 
 Needs [uv](https://docs.astral.sh/uv/) (it installs Python 3.13 and the two dependencies, `opencc` and `pillow`) and
 node. Google calls use **your own key** ([ADR-20260930-google-keys](../memory-bank/standards/decisions/ADR-20260930-google-keys.md)): `~/.config/relaxjer/google-places.key` (mode 600), with Places API
