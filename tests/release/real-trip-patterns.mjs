@@ -3,7 +3,8 @@
 //   - its name on the page (TRIP.brand), the hotel's name and address, the flight numbers;
 //   - every trip date, in each form the page writes it (2027-03-13, 3/13, 3月13日, 13 Mar, 3.13) and the header range;
 //   - any extra lines in trips/<slug>/never-publish.txt (one literal per line, # for comments).
-// Used by the release test (files as they are) and the pre-push history scan (every commit being published).
+// Used by the release test (files as they are), the commit-msg scan (the staged diff and the message: scan-staged.mjs)
+// and the pre-push history scan (every commit being published).
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';

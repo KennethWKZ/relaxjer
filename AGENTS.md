@@ -94,7 +94,7 @@ brief from those files.
 ## Commands
 
 ```sh
-corepack enable && pnpm install  # once; also wires .husky (pre-commit: trip/key guard, gitleaks, lint-staged, fast tests)
+corepack enable && pnpm install  # once; also wires .husky (pre-commit: trip/key guard, gitleaks, lint-staged, fast tests; commit-msg: real-trip scan, commitlint)
 pnpm test                        # tier 0: hygiene, agent config, memory-bank, trip contract, units (node:test, ~1 s)
 pnpm setup:e2e                   # once: Chromium + WebKit for tier 1 and for proving a publish
 pnpm test:e2e                    # tier 1: Chromium + WebKit × 390 px + desktop, ~2–3 min (3 workers locally)
@@ -125,7 +125,8 @@ node tests/support/probe.mjs     # debug: page errors of the last staged page, w
   - Don't `git add -f` around it, don't skip hooks with `--no-verify`, and don't `git add -A` in the first trip's legacy repo
     (maintainer only), which holds live keys.
 - **Nothing published carries a real trip's details** (name, hotel, flight numbers, dates). Not in the engine, docs,
-  tests or commit messages: the release gate and the pre-push history scan block them.
+  tests or commit messages: the commit-msg scan, the release gate and the pre-push history scan block them. While a
+  trip runs, today is one of its dates, so leave dates out of what you commit.
 - **Keys live outside the repo, and each user brings their own**
   ([ADR-20260930-google-keys](memory-bank/standards/decisions/ADR-20260930-google-keys.md)). Never paste one into a
   file, a test or the chat.

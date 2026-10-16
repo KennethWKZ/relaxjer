@@ -3,6 +3,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { ROOT } from '../support/stage.mjs';
@@ -109,6 +110,45 @@ test('the pre-commit hook is wired and blocks trips and secrets', () => {
 	assert.match(hook, /gitleaks/);
 	assert.match(hook, /trips\//);
 	assert.ok(fs.statSync(path.join(ROOT, '.husky', 'pre-commit')).mode & 0o111, 'hook is executable');
+});
+
+test("the commit-msg hook stops a real trip's details in the staged changes or the message", () => {
+	const hook = fs.readFileSync(path.join(ROOT, '.husky', 'commit-msg'), 'utf8');
+	const [scanAt, lintAt] = [hook.indexOf('node tests/release/scan-staged.mjs "$1"'), hook.indexOf('pnpm exec commitlint')];
+	assert.ok(scanAt >= 0 && scanAt < lintAt, 'the scan runs first, before the message is linted');
+	// a throwaway repo with a synthetic trip: its date stands for today, one of a running trip's dates
+	const dir = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'scan-staged-'));
+	try {
+		const run = (...a) => execFileSync('git', a, { cwd: dir, encoding: 'utf8' });
+		run('init', '-q');
+		fs.mkdirSync(path.join(dir, 'trips', 't'), { recursive: true });
+		fs.writeFileSync(
+			path.join(dir, 'trips', 't', 'data.js'),
+			"const TRIP = { brand: 'Synthetic Trip Name' }; const DAYS = [{ date: '2031-05-04' }]; const FLIGHTS = {}; const PLACES = {};",
+		);
+		const msg = path.join(dir, 'MSG');
+		const scan = (message, staged) => {
+			fs.writeFileSync(msg, message);
+			fs.writeFileSync(path.join(dir, 'notes.md'), staged);
+			run('add', 'notes.md');
+			try {
+				execFileSync('node', [path.join(ROOT, 'tests/release/scan-staged.mjs'), msg], { cwd: dir, encoding: 'utf8', stdio: 'pipe' });
+				return { code: 0, err: '' };
+			} catch (e) {
+				return { code: e.status, err: String(e.stderr) };
+			}
+		};
+		const inFile = scan('docs: a lesson\n', 'Checked on 2031-05-04 while the trip ran.\n');
+		assert.equal(inFile.code, 1, 'a trip date in a staged file');
+		assert.match(inFile.err, /the staged changes: a trip date ×1/);
+		assert.doesNotMatch(inFile.err, /2031-05-04/, 'it names what it found, never the detail');
+		assert.equal(scan('docs: checked on 4 May\n', 'A lesson with no date.\n').code, 1, 'a trip date in the message');
+		assert.equal(scan('docs: the Synthetic Trip Name lesson\n', 'A lesson.\n').code, 1, 'the trip name in the message');
+		assert.equal(scan('docs: a lesson\n# Checked on 2031-05-04 (a comment git drops)\n', 'A lesson.\n').code, 0, 'comment lines are not kept');
+		assert.equal(scan('docs: a lesson from the first trip\n', 'During the first trip, the agent …\n').code, 0, 'a clean commit passes');
+	} finally {
+		fs.rmSync(dir, { recursive: true, force: true });
+	}
 });
 
 test('the hooks are wired by husky and commits are linted', () => {

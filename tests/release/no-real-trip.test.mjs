@@ -1,7 +1,8 @@
 // Release gate, run by .husky/pre-push (not by `pnpm test`): nothing that would be published may carry a real trip's
 // details (name, hotel, flights, dates, private notes). The details are derived from the real trips on this machine
 // (tests/release/real-trip-patterns.mjs), so the gate itself never publishes them; on a machine without trips it
-// checks nothing. The pre-push hook also scans every commit being pushed (scan-history.mjs).
+// checks nothing. The commit-msg hook scans each commit before it exists (scan-staged.mjs), and the pre-push hook
+// scans every commit being pushed (scan-history.mjs).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
