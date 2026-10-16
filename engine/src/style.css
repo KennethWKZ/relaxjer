@@ -668,6 +668,10 @@ section#top {
 .muted {
 	color: var(--ink-2);
 }
+/* a number range and its unit, kept on one line (fmt) */
+.rng {
+	white-space: nowrap;
+}
 .small {
 	font-size: var(--fs-sm);
 }
@@ -1714,9 +1718,6 @@ details.more > .more-body {
 	font-weight: 700;
 	line-height: 1.3;
 	overflow-wrap: break-word; /* not anywhere: that lets the cell shrink below a word, and splits it */
-}
-.mg dd .nw {
-	white-space: nowrap; /* a number range (fmtNw) */
 }
 .method .list {
 	margin-top: 10px;

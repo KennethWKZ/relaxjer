@@ -133,7 +133,7 @@ function renderNear() {
 						(
 							x,
 						) => `<li class="near-row"><div class="near-top">${x.href ? `<a class="near-name" href="${x.href}">` : '<span class="near-name">'}${x.wish ? `<span class="near-tag">${Z('想去', 'Wish')}</span>` : ''}${esc(x.name)}${x.href ? '</a>' : '</span>'}<span class="near-dist">${distLabel(x.k)}${x.k < 3 ? ` · ${Z('走路约', 'walk ~')}${Math.max(1, Math.round((x.k * 1300) / 70))}${Z('分钟', ' min')}` : ''}</span></div>
-          ${x.meta ? `<p class="xsmall">${esc(x.meta)}${x.rating ? ` · ★${esc(x.rating)}` : ''}</p>` : ''}${x.hours ? `<p class="xsmall">${icon('clock')} ${esc(x.hours)}</p>` : ''}
+          ${x.meta ? `<p class="xsmall">${escText(x.meta)}${x.rating ? ` · ★${esc(x.rating)}` : ''}</p>` : ''}${x.hours ? `<p class="xsmall">${icon('clock')} ${escText(x.hours)}</p>` : ''}
           <div class="links-row">${ext(gmDir(x.q, x.k < 1.5 ? 'walking' : 'transit', origin), Z('怎么去', 'Directions'), 'route')}${x.href ? `<a class="mlink" href="${x.href}">${icon('info')}${Z('详情', 'Details')}</a>` : ''}</div></li>`,
 					)
 					.join('')}</ul>

@@ -8,6 +8,9 @@ import { openAllDetails } from '../support/page.mjs';
 const groupFigures = (page) =>
 	page.evaluate(() => {
 		const out = [];
+		// a range's no-wrap span ("1,200–1,800", fmt's keepRanges) is layout only: read the figure as one run of text
+		for (const s of document.querySelectorAll('#app .rng')) s.replaceWith(...s.childNodes);
+		document.getElementById('app').normalize();
 		const walk = document.createTreeWalker(document.getElementById('app'), NodeFilter.SHOW_TEXT);
 		const num = (s) => +s.replace(/,/g, '');
 		for (let n; (n = walk.nextNode());) {

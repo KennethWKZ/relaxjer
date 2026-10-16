@@ -26,6 +26,20 @@ for (const lang of ['en', 'zh']) {
 	});
 }
 
+// a price, time or date range used to break after its dash ("NT$110–" over "150"), in lists, hours lines and tables
+for (const lang of ['en', 'zh']) {
+	test(`no number range splits across lines (${lang})`, async ({ page }) => {
+		await openTrip(page);
+		if (lang === 'zh') await switchLang(page, 'zh');
+		await openAllDetails(page);
+		// Chromium leaves sections far off screen undrawn, and their text has no lines to measure
+		await page.evaluate(() => document.querySelectorAll('#app > section').forEach((s) => (s.style.contentVisibility = 'visible')));
+		// a stop's time column stacks its range on purpose ("10:45–" over "14:30")
+		const ranges = (await splitWords(page, '#app', '.stop-t')).filter((w) => /\d–\d/.test(w));
+		expect(ranges).toEqual([]);
+	});
+}
+
 // before the script fills the page, the empty page holds a screen's height: the first paint shows the bar, not the
 // footer the trip would push away a moment later
 test('the empty page holds the screen, so the footer never shows before the trip', async ({ page }) => {

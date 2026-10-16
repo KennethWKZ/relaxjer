@@ -38,18 +38,18 @@ function wishCard(w) {
 				? `<p class="xsmall">${icon('info')} ${Z('资料未能完全确认', 'Not fully verified')}</p>`
 				: '';
 	return `<article class="hang wishcard" id="wish-${esc(w.id)}">
-      <div class="hang-h"><span class="kind-ic">${icon(WISH_ICON[w.kind] || 'pin')}</span><div><p class="hang-name"${altX(wName(w), w.name_zh, w.name_en, w.name_trad, w.list_name)}>${mustB(w)}${esc(wName(w))}</p><p class="hang-meta">${esc(lang === 'en' ? w.order_en || '' : w.order_zh || '')}${(lang === 'en' ? w.price_en : w.price_zh) ? ` · ${esc(lang === 'en' ? w.price_en : w.price_zh)}` : ''}</p>${rating}</div></div>
-      <div class="pills fits">${(w.fits || []).map((f) => `<span class="fit" ${dayById[f.day] ? `style="${colorVars(dayById[f.day].c)}"` : ''}><b>${esc(fitLabel(f))}</b> ${esc(lang === 'en' ? f.en : f.zh)}</span>`).join('')}</div>
+      <div class="hang-h"><span class="kind-ic">${icon(WISH_ICON[w.kind] || 'pin')}</span><div><p class="hang-name"${altX(wName(w), w.name_zh, w.name_en, w.name_trad, w.list_name)}>${mustB(w)}${esc(wName(w))}</p><p class="hang-meta">${escText(lang === 'en' ? w.order_en || '' : w.order_zh || '')}${(lang === 'en' ? w.price_en : w.price_zh) ? ` · ${escText(lang === 'en' ? w.price_en : w.price_zh)}` : ''}</p>${rating}</div></div>
+      <div class="pills fits">${(w.fits || []).map((f) => `<span class="fit" ${dayById[f.day] ? `style="${colorVars(dayById[f.day].c)}"` : ''}><b>${esc(fitLabel(f))}</b> ${escText(lang === 'en' ? f.en : f.zh)}</span>`).join('')}</div>
       ${status}
       ${br.address_trad ? `<p class="addr">${icon('pin')}<span>${esc(br.label_zh && others.length ? `${lang === 'en' ? br.label_en || br.label_zh : br.label_zh}：` : '')}${esc(br.address_trad)}${lang === 'en' && br.address_en ? `<br><span class="xsmall">${esc(br.address_en)}</span>` : ''}</span></p>` : ''}
-      ${(lang === 'en' ? br.mrt_en : br.mrt_zh) ? `<p class="xsmall">${icon('train')} ${esc(lang === 'en' ? br.mrt_en : br.mrt_zh)}</p>` : mrtLine(br.mrt)}
-      ${(lang === 'en' ? br.hours_en : br.hours_zh) ? `<p class="xsmall">${icon('clock')} ${esc(lang === 'en' ? br.hours_en : br.hours_zh)}${br.hours_check ? ` <b class="hchk">${Z('与 Google 不同，以 Google 为准', 'Google differs; trust Google')}</b>` : ''}</p>` : ''}
+      ${(lang === 'en' ? br.mrt_en : br.mrt_zh) ? `<p class="xsmall">${icon('train')} ${escText(lang === 'en' ? br.mrt_en : br.mrt_zh)}</p>` : mrtLine(br.mrt)}
+      ${(lang === 'en' ? br.hours_en : br.hours_zh) ? `<p class="xsmall">${icon('clock')} ${escText(lang === 'en' ? br.hours_en : br.hours_zh)}${br.hours_check ? ` <b class="hchk">${Z('与 Google 不同，以 Google 为准', 'Google differs; trust Google')}</b>` : ''}</p>` : ''}
       ${rrLine(br.gpid, br.lat, br.lng)}
       ${closedNote(br)}
       ${gBox(br.gpid)}
       <div class="links-row">${gBtn(br.gpid)}${extI(gmSearch(q, br.gpid), Z('地图', 'Map'), 'pin')}${extI(gmDir(q, 'transit', undefined, br.gpid), Z('路线', 'Directions'), 'route')}${w.site ? extI(w.site, Z('官网', 'Website'), 'ext') : ''}${addBtn(wName(w), br.lat, br.lng, br.gpid, q, br.address_trad)}</div>
-      ${(lang === 'en' ? w.note_en : w.note_zh) ? `<details class="more wnote"><summary>${icon('info')}${Z('备注', 'Notes')}${icon('chev', 'chev')}</summary><div class="more-body"><p class="note">${esc(lang === 'en' ? w.note_en : w.note_zh)}</p></div></details>` : ''}
-      ${others.length ? `<details class="more branches"><summary>${icon('list')}${Z('其他分店', 'Other branches')} (${others.length})${icon('chev', 'chev')}</summary><div class="more-body"><ul class="blist">${others.map((b) => `<li><p class="small"><strong>${esc(lang === 'en' ? b.label_en || b.label_zh || '' : b.label_zh || '')}</strong> ${esc(b.address_trad || '')}</p>${(lang === 'en' ? b.mrt_en : b.mrt_zh) ? `<p class="xsmall">${esc(lang === 'en' ? b.mrt_en : b.mrt_zh)}${(lang === 'en' ? b.hours_en : b.hours_zh) ? ` · ${esc(lang === 'en' ? b.hours_en : b.hours_zh)}` : ''}</p>` : ''}${closedNote(b)}<div class="links-row">${ext(gmSearch(wQuery(b, w)), Z('地图', 'Map'), 'pin')}${ext(gmDir(wQuery(b, w), 'transit'), Z('路线', 'Directions'), 'route')}</div></li>`).join('')}</ul></div></details>` : ''}
+      ${(lang === 'en' ? w.note_en : w.note_zh) ? `<details class="more wnote"><summary>${icon('info')}${Z('备注', 'Notes')}${icon('chev', 'chev')}</summary><div class="more-body"><p class="note">${escText(lang === 'en' ? w.note_en : w.note_zh)}</p></div></details>` : ''}
+      ${others.length ? `<details class="more branches"><summary>${icon('list')}${Z('其他分店', 'Other branches')} (${others.length})${icon('chev', 'chev')}</summary><div class="more-body"><ul class="blist">${others.map((b) => `<li><p class="small"><strong>${esc(lang === 'en' ? b.label_en || b.label_zh || '' : b.label_zh || '')}</strong> ${esc(b.address_trad || '')}</p>${(lang === 'en' ? b.mrt_en : b.mrt_zh) ? `<p class="xsmall">${escText(lang === 'en' ? b.mrt_en : b.mrt_zh)}${(lang === 'en' ? b.hours_en : b.hours_zh) ? ` · ${escText(lang === 'en' ? b.hours_en : b.hours_zh)}` : ''}</p>` : ''}${closedNote(b)}<div class="links-row">${ext(gmSearch(wQuery(b, w)), Z('地图', 'Map'), 'pin')}${ext(gmDir(wQuery(b, w), 'transit'), Z('路线', 'Directions'), 'route')}</div></li>`).join('')}</ul></div></details>` : ''}
     </article>`;
 }
 function wishForDay(d) {
@@ -62,7 +62,7 @@ function wishForDay(d) {
 			const br = wBest(w);
 			const q = wQuery(br, w);
 			const f = (w.fits || []).find((x) => x.day === d.id) || (w.fits || [])[0];
-			return `<li class="wish-row"><div><a class="wr-name" href="#wish-${esc(w.id)}"${altX(wName(w), w.name_zh, w.name_en, w.name_trad, w.list_name)}>${mustB(w)}${esc(wName(w))}</a>${(lang === 'en' ? w.order_en : w.order_zh) ? `<span class="wr-order"> · ${esc(lang === 'en' ? w.order_en : w.order_zh)}</span>` : ''}${f ? `<p class="xsmall">${esc(lang === 'en' ? f.en : f.zh)}</p>` : ''}${closedNote(br, d.date)}</div><div class="links-row">${ext(gmSearch(q), Z('地图', 'Map'), 'pin')}${ext(gmDir(q, 'transit'), Z('路线', 'Directions'), 'route')}</div></li>`;
+			return `<li class="wish-row"><div><a class="wr-name" href="#wish-${esc(w.id)}"${altX(wName(w), w.name_zh, w.name_en, w.name_trad, w.list_name)}>${mustB(w)}${esc(wName(w))}</a>${(lang === 'en' ? w.order_en : w.order_zh) ? `<span class="wr-order"> · ${esc(lang === 'en' ? w.order_en : w.order_zh)}</span>` : ''}${f ? `<p class="xsmall">${escText(lang === 'en' ? f.en : f.zh)}</p>` : ''}${closedNote(br, d.date)}</div><div class="links-row">${ext(gmSearch(q), Z('地图', 'Map'), 'pin')}${ext(gmDir(q, 'transit'), Z('路线', 'Directions'), 'route')}</div></li>`;
 		})
 		.join('')}</ul></div>`;
 }
@@ -109,7 +109,7 @@ const wGroup = (h, c, items) =>
 const drinkHowTo = () =>
 	Pack.drinkGuide
 		? `<details class="more" style="margin-top:12px"><summary>${icon('boba')}${Z('怎么点饮料', 'How to order a drink')}${icon('chev', 'chev')}</summary><div class="more-body"><dl class="kv">
-      ${Pack.drinkGuide.map(([k, v]) => `<div><dt>${esc(L(k))}</dt><dd class="wrap">${esc(L(v))}</dd></div>`).join('\n      ')}
+      ${Pack.drinkGuide.map(([k, v]) => `<div><dt>${esc(L(k))}</dt><dd class="wrap">${escText(L(v))}</dd></div>`).join('\n      ')}
     </dl></div></details>`
 		: '';
 function secEat() {
@@ -185,7 +185,7 @@ function secBudget() {
       <p class="callout">${icon('users')}<span>${fmt(B.split)}</span></p>
       <p class="callout">${icon('info')}<span>${fmt(B.poolText)} <span data-rm="${B.pool},${B.pool}">${rmText(B.pool, B.pool)}</span></span></p>
       <h3 class="sub">${icon('list')}${Z('主要共同支出', 'Main shared costs')}</h3>
-      <dl class="kv">${B.rows.map((r) => `<div><dt>${fmt(r[0])}${r[4] === 'airport' && B.airportNote ? `<span class="check-sub"><a href="#airport">${esc(L(B.airportNote))}</a></span>` : ''}</dt><dd>${fmt(r[1])}<small class="dd-each">${Z('每人', 'each')} ${eachText(r[2], r[3])} ${eachRm(r[2], r[3])}</small></dd></div>`).join('')}<div class="sum"><dt>${Z('合计', 'Total')}</dt><dd>${fmt(B.total)}<small class="dd-each">${Z('每人', 'each')} ${eachText(B.totalMin, B.totalMax)} ${eachRm(B.totalMin, B.totalMax)}</small></dd></div></dl>
+      <dl class="kv">${B.rows.map((r) => `<div><dt>${fmt(r[0])}${r[4] === 'airport' && B.airportNote ? `<span class="check-sub"><a href="#airport">${escText(L(B.airportNote))}</a></span>` : ''}</dt><dd>${fmt(r[1])}<small class="dd-each">${Z('每人', 'each')} ${eachText(r[2], r[3])} ${eachRm(r[2], r[3])}</small></dd></div>`).join('')}<div class="sum"><dt>${Z('合计', 'Total')}</dt><dd>${fmt(B.total)}<small class="dd-each">${Z('每人', 'each')} ${eachText(B.totalMin, B.totalMax)} ${eachRm(B.totalMin, B.totalMax)}</small></dd></div></dl>
       <h3 class="sub">${icon('chart')}${Z(`每天花费（条＝${GROUP[0]}，小字＝每人，${CUR.sym}）`, `Per day (bar = all ${PAX}, small = each, ${CUR.sym})`)}</h3>
       <div class="bars">${bars}</div>
       ${axisHTML(ax)}

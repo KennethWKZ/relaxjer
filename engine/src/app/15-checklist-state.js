@@ -54,13 +54,13 @@ function showCard(p, card = $('#mapcard')) {
 			.map((li) => mline(MRT.ln[li]))
 			.join(
 				' ',
-			)}</p>${p.near ? `<p class="xsmall">${esc(p.near)}</p>` : ''}<div class="links-row">${extI(gmSearch(p.q), Z('地图', 'Map'), 'pin')}${extI(gmDir(p.q, 'walking'), Z('路线', 'Directions'), 'route')}</div></article>`;
+			)}</p>${p.near ? `<p class="xsmall">${escText(p.near)}</p>` : ''}<div class="links-row">${extI(gmSearch(p.q), Z('地图', 'Map'), 'pin')}${extI(gmDir(p.q, 'walking'), Z('路线', 'Directions'), 'route')}</div></article>`;
 	} else if (p.wc) {
 		card.innerHTML = `<article class="hang"><p class="hang-name">${icon('wc')} ${esc(p.name)}</p><p class="xsmall">${Z('公厕', 'Public toilet')} · Google</p><div class="links-row">${extI(gmSearch(p.q, p.wc.gpid), Z('地图', 'Map'), 'pin')}${extI(gmDir(p.q, 'walking', undefined, p.wc.gpid), Z('路线', 'Directions'), 'route')}</div></article>`;
 	} else if (p.drink) {
 		card.innerHTML = drinkCard(p.drink);
 	} else if (p.type === 'mrt') {
-		card.innerHTML = `<article class="hang"><p class="hang-name">${icon('train')} ${esc(p.name)}</p><p class="xsmall">${esc(p.near)}</p><div class="links-row">${extI(gmSearch(p.q), Z('地图', 'Map'), 'pin')}${extI(gmDir(p.q, 'walking'), Z('路线', 'Directions'), 'route')}</div></article>`;
+		card.innerHTML = `<article class="hang"><p class="hang-name">${icon('train')} ${esc(p.name)}</p><p class="xsmall">${escText(p.near)}</p><div class="links-row">${extI(gmSearch(p.q), Z('地图', 'Map'), 'pin')}${extI(gmDir(p.q, 'walking'), Z('路线', 'Directions'), 'route')}</div></article>`;
 	} else if (p.food) {
 		card.innerHTML = foodCard(p.food);
 	} else if (p.wish) {

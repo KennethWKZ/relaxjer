@@ -291,7 +291,7 @@ function leaveBudgetHTML() {
 // a free-time idea: name, one line of why/where/when, and ＋ to put it in the day
 // meta: plain text, or { html } already built (a cost with its per-person share)
 const ideaRow = (n, meta, lat, lng, gpid, q, addr) =>
-	`<li class="idea"><div class="idea-b"><span class="idea-n">${esc(n)}</span>${meta ? `<span class="idea-m">${meta.html != null ? meta.html : esc(meta)}</span>` : ''}</div>${addBtn(n, lat, lng, gpid, q, addr)}</li>`;
+	`<li class="idea"><div class="idea-b"><span class="idea-n">${esc(n)}</span>${meta ? `<span class="idea-m">${meta.html != null ? meta.html : keepRanges(esc(meta))}</span>` : ''}</div>${addBtn(n, lat, lng, gpid, q, addr)}</li>`;
 const awayHotel = (ll) => {
 	const k = km(placeLL(hotelOf(ROLE.free)), ll); // the free-time day's hotel
 	return k < 0.1 ? Z('就在酒店旁', 'next to the hotel') : Z(`离酒店${distLabel(k)}`, `${distLabel(k)} from hotel`);
@@ -1136,7 +1136,7 @@ function secAirport() {
 				.map(
 					(m) => `<article class="method ${m.pick ? 'pick' : ''}" id="m-${m.id}">
         <div class="method-h"><span class="ic">${icon(m.icon)}</span><div><p class="method-name">${fmt(m.name)}</p><p class="method-sub">${fmt(m.sub)}</p></div><p class="method-cost">${esc(m.cost)}<small>${fmt(m.per)}</small><small data-rm="${m.min},${m.max}">${rmText(m.min, m.max)}</small></p></div>
-        <dl class="method-grid"><div class="mg"><dt>${Z('门到门', 'Door to door')}</dt><dd>${fmtNw(m.time)}</dd></div><div class="mg"><dt>${Z('换乘', 'Changes')}</dt><dd>${fmtNw(m.xfer)}</dd></div><div class="mg"><dt>${Z('拖行李', 'With bags')}</dt><dd>${fmtNw(m.bags)}</dd></div></dl>
+        <dl class="method-grid"><div class="mg"><dt>${Z('门到门', 'Door to door')}</dt><dd>${fmt(m.time)}</dd></div><div class="mg"><dt>${Z('换乘', 'Changes')}</dt><dd>${fmt(m.xfer)}</dd></div><div class="mg"><dt>${Z('拖行李', 'With bags')}</dt><dd>${fmt(m.bags)}</dd></div></dl>
         ${list(m.list)}
         <p class="note"><strong>${Z('适合', 'Best when')}:</strong> ${fmt(m.when)}</p>
         ${m.pick ? `<p class="pick-badge">${icon('check')}${Z(`建议：大家要搭${METRO[0]}的话，这样最省力`, 'Recommended if we take the train')}</p>` : ''}
@@ -1228,7 +1228,7 @@ function optCard(o) {
 	const a = addrFor(o.place);
 	const g = (GEO && GEO.places && GEO.places[o.place]) || {};
 	const hours = lang === 'en' ? g.hours_en : g.hours_zh;
-	return `<article class="hang" id="${o.id}"><div class="hang-h">${credit[o.photo] ? `<img src="${imgSrc(o.photo, true)}" data-img="${imgKey(o.photo, true)}" alt="" width="64" height="64" loading="lazy">` : ''}<div><p class="hang-name"${alt(other(o.name))}>${esc(L(o.name))}</p><p class="hang-meta">${esc(L(o.meta))}</p></div></div>
+	return `<article class="hang" id="${o.id}"><div class="hang-h">${credit[o.photo] ? `<img src="${imgSrc(o.photo, true)}" data-img="${imgKey(o.photo, true)}" alt="" width="64" height="64" loading="lazy">` : ''}<div><p class="hang-name"${alt(other(o.name))}>${esc(L(o.name))}</p><p class="hang-meta">${escText(L(o.meta))}</p></div></div>
         <p class="note"><strong>${esc(L(o.when))}:</strong></p>${list(o.list)}
         <div class="total" style="margin-top:10px"><span>${fmt(o.cost)}</span></div><p class="note">${fmt(o.note)}</p>
         ${a.zh ? `<p class="addr">${icon('pin')}<span>${esc(a.zh)}${lang === 'en' && a.en ? `<br><span class="xsmall">${esc(a.en)}</span>` : ''}</span></p>` : ''}${hours ? `<p class="xsmall">${icon('clock')} ${esc(hours)}</p>` : ''}${mrtLine(g.mrt)}
@@ -1239,7 +1239,7 @@ function secOptional() {
 	const shop = (s) => {
 		const p = PLACES[s.place];
 		const a = addrFor(s.place);
-		return `<article class="hang" id="shop-${s.place}"><div class="hang-h"><div><p class="hang-name"${alt(other(s.name))}>${esc(L(s.name))}</p><p class="hang-meta">${esc(L(s.area))} · ${esc(L(s.rank))}</p></div></div>
+		return `<article class="hang" id="shop-${s.place}"><div class="hang-h"><div><p class="hang-name"${alt(other(s.name))}>${esc(L(s.name))}</p><p class="hang-meta">${escText(L(s.area))} · ${escText(L(s.rank))}</p></div></div>
         <p class="note"><strong>${Z('什么时候', 'When')}:</strong> ${fmt(s.when)}</p>${list(s.list)}
         ${a.zh ? `<p class="addr">${icon('pin')}<span>${esc(a.zh)}${lang === 'en' && a.en ? `<br><span class="xsmall">${esc(a.en)}</span>` : ''}</span></p>` : ''}
         ${p.mrt ? `<p class="xsmall">${icon('train')} ${fmt(p.mrt)}</p>` : ''}${p.hours ? `<p class="xsmall">${icon('clock')} ${fmt(p.hours)}${p.tel ? ` · ${Z('电话', 'Tel')} <span class="sel">${esc(p.tel)}</span>` : ''}</p>` : ''}
