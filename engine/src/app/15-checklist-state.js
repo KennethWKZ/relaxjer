@@ -188,7 +188,7 @@ function buildPins() {
 				always: false,
 			};
 			p.days.forEach((d) => s.days.includes(d) || s.days.push(d));
-			s.serves.push(`${p.name} ${Z(`步行约${m.min}分钟`, `~${m.min} min walk`)}`);
+			s.serves.push(`${p.name} ${Z(`步行约${Math.round(m.min * GROUP_WALK)}分钟`, `~${Math.round(m.min * GROUP_WALK)} min walk`)}`);
 			if (p.type === 'hotel') s.always = true;
 			st.set(k, s);
 		});

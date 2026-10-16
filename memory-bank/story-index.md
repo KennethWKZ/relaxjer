@@ -59,8 +59,6 @@ its line.
 - WebKit desktop flakes under full parallel load, about 1 in 140 runs, a different test each time ("closed lists are
   not built until opened", "+ after a stop offers nearby places"). Both pass alone every time, and CI retries once. If
   it grows, run WebKit with fewer workers.
-- Walking minutes count ×1.4 only in the add sheet's getting-there check; cards, the transit planner and the nearby
-  lists show the base pace.
 - ~~CI's WebKit jobs install WebKit's system packages from Ubuntu's mirror on every run~~ (once 20 minutes): since
   2026-10-02 the e2e jobs run in Playwright's image, in halves
   ([ADR-20261002-ci-image-and-releases](standards/decisions/ADR-20261002-ci-image-and-releases.md)). The two-phone

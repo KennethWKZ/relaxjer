@@ -1,6 +1,6 @@
 /* ───────── offline MRT hint: walk → ride → change → walk on the station graph. No routing API, no key in the page:
      ride minutes are Google's (built on the Mac), walking and waiting are estimates. ───────── */
-const walkMin = (a, b) => (km(a, b) * 1000 * 1.3) / 75;
+const walkMin = (a, b) => walkMinM(km(a, b) * 1000); // at the group's pace (02-helpers.js)
 const WAIT = { mrt: 4, branch: 8, lrt: 7, apt: 10, apx: 8 };
 const stName = (i) => (MRT ? (lang === 'en' ? MRT.st[i][2] || MRT.st[i][0] : MRT.st[i][0]) : '');
 let mrtG = null;
@@ -24,13 +24,13 @@ function mrtPlan(from, to) {
 	const G = mrtGraph();
 	const direct = walkMin(from, to);
 	if (!G) return { walk: direct, none: true };
-	// stations within a 20-min walk; if none, the nearest two anyway (the last bit is then a bus / taxi)
+	// stations within a 20-min walk at a fit adult's pace; if none, the nearest two anyway (the last bit is then a bus
+	// or a taxi). Walking already counts at the group's pace, so a short ride beats a long walk
 	const near = (pt) => {
 		const all = G.st.map((x, i) => ({ i, m: walkMin(pt, x) })).sort((a, b) => a.m - b.m);
-		const w = all.filter((x) => x.m <= 20).slice(0, 4);
-		return w.length ? w : all.filter((x) => x.m <= 60).slice(0, 2);
+		const w = all.filter((x) => x.m <= 20 * GROUP_WALK).slice(0, 4);
+		return w.length ? w : all.filter((x) => x.m <= 60 * GROUP_WALK).slice(0, 2);
 	};
-	const WW = 1.4; // walking counts extra (two seniors): a short ride beats a long walk
 	const o = near(from),
 		d = near(to);
 	if (!o.length || !d.length) return { walk: direct, none: true };
@@ -41,7 +41,7 @@ function mrtPlan(from, to) {
 	const w0 = new Map();
 	o.forEach(({ i, m }) =>
 		G.byStation[i].forEach((id) => {
-			const c = m * WW + WAIT[MRT.ln[G.nodes[id].li].k];
+			const c = m + WAIT[MRT.ln[G.nodes[id].li].k];
 			if (c < dist[id]) {
 				dist[id] = c;
 				prev[id] = -2;
@@ -66,8 +66,8 @@ function mrtPlan(from, to) {
 		const n = G.nodes[u];
 		const l = MRT.ln[n.li];
 		const ew = w1.get(n.si);
-		if (ew != null && du + ew * WW < best) {
-			best = du + ew * WW;
+		if (ew != null && du + ew < best) {
+			best = du + ew;
 			end = u;
 		}
 		const nx = G.lineNodes[n.li][n.pos + 1];
@@ -107,7 +107,7 @@ function mrtPlan(from, to) {
 	if (!rides.length) return { walk: direct, none: true };
 	const a = w0.get(path[0]) || 0,
 		z = w1.get(G.nodes[end].si) || 0;
-	return { walk: direct, total: best - (WW - 1) * (a + z), w0: a, w1: z, rides };
+	return { walk: direct, total: best, w0: a, w1: z, rides }; // all at the group's pace
 }
 const CARS = Math.ceil(PAX / 4); // taxis the group needs, 4 seats each
 // the city's taxi meter (Pack.taxiFare: [low, high] per car), or null where the pack has none
@@ -141,7 +141,7 @@ function planHTML(to, compact) {
 		return `<p class="plan">${icon('train')}<span>${Z(`${METRO[0]}约${tot}分钟`, `${Cap(METRO[1])} ~${tot} min`)}: ${pl.rides.map((r) => mline(MRT.ln[r.li])).join(' → ')}${Z('（估）', ' (est.)')}</span></p>`;
 	const leg = (m, zh, en) =>
 		m > 20
-			? `<li>${icon('bus')}${Z(`${zh}约${((m * 75) / 1300).toFixed(1)} km：搭公车或计程车（走路要${Math.round(m)}分钟）`, `${en} ~${((m * 75) / 1300).toFixed(1)} km: bus or taxi (a ${Math.round(m)}-min walk)`)}</li>`
+			? `<li>${icon('bus')}${Z(`${zh}约${(((m / GROUP_WALK) * 75) / 1300).toFixed(1)} km：搭公车或计程车（走路要${Math.round(m)}分钟）`, `${en} ~${(((m / GROUP_WALK) * 75) / 1300).toFixed(1)} km: bus or taxi (a ${Math.round(m)}-min walk)`)}</li>`
 			: null;
 	const steps = [
 		leg(pl.w0, `到 <b>${esc(stName(pl.rides[0].from))}</b>站`, `To <b>${esc(stName(pl.rides[0].from))}</b>`) ||

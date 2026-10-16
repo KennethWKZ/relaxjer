@@ -730,11 +730,9 @@ function addClashNote() {
 		);
 	addLegNote();
 }
-// walking counts at the group's pace: two seniors, ×1.4 (AGENTS.md)
-const GROUP_WALK = 1.4;
 const legModes = (a, b) => {
 	const k = km(a, b);
-	const walk = walkMin(a, b) * GROUP_WALK;
+	const walk = walkMin(a, b); // at the group's pace
 	const pl = walk > 12 ? mrtPlan(a, b) : { none: true };
 	return { walk, taxi: k > 0.4 ? taxiMin(k) : null, mrt: pl.none ? null : pl.total };
 };
