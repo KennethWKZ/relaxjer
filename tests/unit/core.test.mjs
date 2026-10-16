@@ -278,6 +278,10 @@ test('Wrap: a number range or a phone number stays on one line', () => {
 	assert.equal(k('60–75 minutes'), '[60–75] minutes'); // a long word stays free
 	assert.equal(k('Tel 02-2629-6860.'), 'Tel [02-2629-6860].');
 	assert.equal(k('from 2026-09-30, 6-7 min'), 'from [2026-09-30], [6-7] min');
+	assert.equal(k('Tel +886 2 2557 5379.'), 'Tel [+886 2 2557 5379].'); // spaced, after a country code
+	assert.equal(k('WhatsApp +886 981 521 124 or Line'), 'WhatsApp [+886 981 521 124] or Line');
+	assert.equal(k('call (02)2536-4459 or (02) 2883 9684'), 'call [(02)2536-4459] or [(02) 2883 9684]'); // an area code in brackets
+	assert.equal(k('3 cars 2 hours, room 12 3'), '3 cars 2 hours, room 12 3'); // spaced digits alone stay free
 	assert.equal(k('D3 at 19:00, A1 B1'), 'D3 at 19:00, A1 B1'); // a lone time or code: nothing to keep together
 	assert.equal(k('a &amp; b, &#39;x&#39;'), 'a &amp; b, &#39;x&#39;'); // escaped entities are left alone
 });
