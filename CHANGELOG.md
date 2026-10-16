@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.7.2](https://github.com/KennethWKZ/relaxjer/compare/v1.7.1...v1.7.2) (2026-10-16)
+
+
+### 🐛 Bug Fixes
+
+* **engine:** every walking time counts at the group's pace ([#56](https://github.com/KennethWKZ/relaxjer/issues/56)) ([a505799](https://github.com/KennethWKZ/relaxjer/commit/a5057990242d45a9b937f7d96fe071dc72847476))
+* **engine:** hyphen ranges and addresses stay whole too ([#54](https://github.com/KennethWKZ/relaxjer/issues/54)) ([821a927](https://github.com/KennethWKZ/relaxjer/commit/821a9277a4422e3b20def3491d78c97a61bd439e))
+
 ## [1.7.1](https://github.com/KennethWKZ/relaxjer/compare/v1.7.0...v1.7.1) (2026-10-16)
 
 
