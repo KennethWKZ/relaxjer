@@ -98,16 +98,18 @@ export function squeezed(page) {
 }
 
 /** Words (letters and digits; a number with its separators, "1,200", "10:45" or "02-2629-6860"; a range of them) that the browser split
- *  across two lines inside `sel`, leaving out text inside `skip`: "Manageabl" over "e" in an airport tile's cell. */
-export function splitWords(page, sel, skip = null) {
+ *  across two lines inside `sel`, leaving out text inside `skip` (with `numbers`, only number runs): "Manageabl" over "e" in an airport tile's cell. */
+export function splitWords(page, sel, skip = null, numbers = false) {
 	return page.evaluate(
-		([sel, skip]) => {
+		([sel, skip, numbers]) => {
+			// numbers: only number runs (a range, a phone number, a date), so Chinese wrapping between characters is left alone
+			const re = numbers ? /\d[\d,.:/]*(?:[–-]\d[\d,.:/]*)+/g : /[\p{L}\p{N}](?:[\p{L}\p{N}–]|[:,./-](?=\d))*/gu;
 			const out = [];
 			for (const el of document.querySelectorAll(sel)) {
 				const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
 				for (let n; (n = walker.nextNode());) {
 					if (skip && n.parentElement.closest(skip)) continue;
-					for (const m of n.textContent.matchAll(/[\p{L}\p{N}](?:[\p{L}\p{N}–]|[:,./-](?=\d))*/gu)) {
+					for (const m of n.textContent.matchAll(re)) {
 						if (/^\p{Script=Han}/u.test(m[0]) && !/\d/.test(m[0])) continue; // Chinese breaks between characters
 						const range = document.createRange();
 						range.setStart(n, m.index);
@@ -119,7 +121,7 @@ export function splitWords(page, sel, skip = null) {
 			}
 			return out;
 		},
-		[sel, skip],
+		[sel, skip, numbers],
 	);
 }
 

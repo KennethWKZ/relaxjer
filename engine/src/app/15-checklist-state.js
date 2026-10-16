@@ -70,7 +70,7 @@ function showCard(p, card = $('#mapcard')) {
 		const pl = PLACES[p.pid];
 		const g = (GEO.places || {})[p.pid] || {};
 		card.innerHTML = `<article class="hang"><p class="hang-name">${esc(p.name)}</p><p class="hang-meta">${p.days.map((d) => `<a href="#${d}" class="daychip" style="${colorVars(dayById[d].c)}">Day ${dayById[d].n}</a>`).join(' ') || esc(Z(p.type === 'hotel' ? '酒店' : '备选', p.type === 'hotel' ? 'Hotel' : 'Optional'))}</p>
-        ${a.zh ? `<p class="addr">${icon('pin')}<span>${esc(a.zh)}${a.en && lang === 'en' ? `<br><span class="xsmall">${esc(a.en)}</span>` : ''}</span></p>` : ''}${(lang === 'en' ? g.hours_en : g.hours_zh) ? `<p class="xsmall">${icon('clock')} ${esc(lang === 'en' ? g.hours_en : g.hours_zh)}</p>` : ''}${mrtLine(g.mrt)}${rrLine(g.gpid, g.lat, g.lng)}${pl.note ? `<p class="note">${fmt(pl.note)}</p>` : ''}
+        ${a.zh ? `<p class="addr">${icon('pin')}<span>${escText(a.zh)}${a.en && lang === 'en' ? `<br><span class="xsmall">${escText(a.en)}</span>` : ''}</span></p>` : ''}${(lang === 'en' ? g.hours_en : g.hours_zh) ? `<p class="xsmall">${icon('clock')} ${esc(lang === 'en' ? g.hours_en : g.hours_zh)}</p>` : ''}${mrtLine(g.mrt)}${rrLine(g.gpid, g.lat, g.lng)}${pl.note ? `<p class="note">${fmt(pl.note)}</p>` : ''}
         <div class="links-row">${placeLinks(p.pid)}${addBtn(p.name, p.lat, p.lng, g.gpid, pl ? pl.maps : p.q, a.zh)}</div></article>`;
 	}
 	card.dataset.pid = p.pid;
