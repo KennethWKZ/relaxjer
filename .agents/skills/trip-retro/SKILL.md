@@ -18,20 +18,21 @@ tested gets a test.
 
 ## 2. Sort each finding
 
-| The finding is…                                  | It goes to                                                                           |
-| ------------------------------------------------ | ------------------------------------------------------------------------------------ |
-| true for every trip (a browser quirk, a UX rule) | `knowledge/<topic>.md`                                                               |
-| true for one country or city                     | `destinations/<cc>/knowledge.md`, with the date it was checked                       |
-| a bug in the engine                              | a failing test first (`test.fail(true, reason)` if it's not fixed now), then the fix |
-| a gap in the data shape                          | `memory-bank/standards/trip-format.md`, the contract, and the engine                 |
-| a better way for the agent to work               | a proposed change to a skill, rule or `AGENTS.md`                                    |
-| only about this trip                             | nowhere in the repo; it stays in `trips/<slug>/`                                     |
+| The finding is…                                  | It goes to                                                                            |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------- |
+| true for every trip (a browser quirk, a UX rule) | `knowledge/<topic>.md`                                                                |
+| true for one country or city                     | `destinations/<cc>/knowledge.md`, with when it was checked (the month, on a trip day) |
+| a bug in the engine                              | a failing test first (`test.fail(true, reason)` if it's not fixed now), then the fix  |
+| a gap in the data shape                          | `memory-bank/standards/trip-format.md`, the contract, and the engine                  |
+| a better way for the agent to work               | a proposed change to a skill, rule or `AGENTS.md`                                     |
+| only about this trip                             | nowhere in the repo; it stays in `trips/<slug>/`                                      |
 
 ## 3. Scrub
 
 A lesson is generic. It carries no real names, hotel, flight numbers, dates, booking codes or group details, so write
-"the first trip" or "a group of five". The release gate (`pnpm test:release`) catches the obvious ones; read the diff for
-the rest.
+"the first trip" or "a group of five". A retro written during the trip must not carry today's date either: it is a
+trip date ([trip-data](../../../memory-bank/standards/patterns/trip-data.md), "Real trips"). The commit-msg hook and the
+release gate (`pnpm test:release`) catch the obvious ones; read the diff for the rest.
 
 ## 4. Propose
 

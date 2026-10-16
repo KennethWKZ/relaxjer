@@ -64,7 +64,12 @@ data must pass in `tests/support/trip-contract.mjs`. `examples/demo-trip/data.js
 ## Real trips
 
 - They live in `trips/<slug>/`, gitignored. Never `git add -f` one, and never paste their details into the engine,
-  docs, tests or a commit message: the release gate derives them locally and blocks the push.
+  docs, tests or a commit message. The gate derives them locally: the commit-msg hook (`tests/release/scan-staged.mjs`)
+  stops the commit before it exists, and the pre-push history scan checks every commit again.
+- **While a trip runs, today is one of its dates.** Don't date anything you commit then: a lesson, an ADR amendment
+  ("Amended later"), a "checked" note (the month alone). Write "during the first trip". The first trip's retro
+  dated a lesson and an amendment with the day it was written, and the push was refused until both were reworded and
+  the commits rewritten.
 - Add anything else that must never be published (a nickname, a booking code) to `trips/<slug>/never-publish.txt`,
   one literal per line.
 - A trip whose page is already published keeps its `TRIP.fileName` and `TRIP.storageKey`.
