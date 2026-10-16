@@ -2275,6 +2275,7 @@ dialog.sheet::backdrop {
 	user-select: all;
 	-webkit-user-select: all;
 	font-weight: 650;
+	white-space: nowrap; /* a phone number, read and copied as one: "02-" over "2579-5880" broke it */
 }
 .plabel {
 	font-size: var(--fs-xs);

@@ -26,19 +26,35 @@ for (const lang of ['en', 'zh']) {
 	});
 }
 
-// a price, time or date range used to break after its dash ("NT$110–" over "150"), in lists, hours lines and tables
+// a price, time or date range used to break after its dash ("NT$110–" over "150"), in lists, hours lines and tables,
+// and a phone number at a hyphen ("Tel 02-" over "2579-5880")
 for (const lang of ['en', 'zh']) {
-	test(`no number range splits across lines (${lang})`, async ({ page }) => {
+	test(`no number range or phone number splits across lines (${lang})`, async ({ page }) => {
 		await openTrip(page);
 		if (lang === 'zh') await switchLang(page, 'zh');
 		await openAllDetails(page);
 		// Chromium leaves sections far off screen undrawn, and their text has no lines to measure
 		await page.evaluate(() => document.querySelectorAll('#app > section').forEach((s) => (s.style.contentVisibility = 'visible')));
 		// a stop's time column stacks its range on purpose ("10:45–" over "14:30")
-		const ranges = (await splitWords(page, '#app', '.stop-t')).filter((w) => /\d–\d/.test(w));
+		const ranges = (await splitWords(page, '#app', '.stop-t')).filter((w) => /\d[–-]\d/.test(w));
 		expect(ranges).toEqual([]);
 	});
 }
+
+// trips carry a phone number in a place's Tel line, the demo none (its contract): a made-up one in the page's own Tel
+// span, in a line too narrow for it (notes go through keepRanges, which tests/unit/core.test.mjs covers)
+test('a Tel number in a narrow line stays whole', async ({ page }) => {
+	await openTrip(page);
+	await page.evaluate(() => {
+		const p = document.createElement('p');
+		p.id = 'phone-probe';
+		p.className = 'xsmall';
+		p.style.width = '6rem';
+		p.innerHTML = 'Hours 10:00 · Tel <span class="sel">00-1111-1111</span>';
+		document.getElementById('app').prepend(p);
+	});
+	expect(await splitWords(page, '#phone-probe')).toEqual([]);
+});
 
 // before the script fills the page, the empty page holds a screen's height: the first paint shows the bar, not the
 // footer the trip would push away a moment later

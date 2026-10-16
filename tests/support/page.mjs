@@ -97,7 +97,7 @@ export function squeezed(page) {
 	});
 }
 
-/** Words (letters and digits; a number with its separators, "1,200" or "10:45"; a range of them) that the browser split
+/** Words (letters and digits; a number with its separators, "1,200", "10:45" or "02-2629-6860"; a range of them) that the browser split
  *  across two lines inside `sel`, leaving out text inside `skip`: "Manageabl" over "e" in an airport tile's cell. */
 export function splitWords(page, sel, skip = null) {
 	return page.evaluate(
@@ -107,7 +107,7 @@ export function splitWords(page, sel, skip = null) {
 				const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
 				for (let n; (n = walker.nextNode());) {
 					if (skip && n.parentElement.closest(skip)) continue;
-					for (const m of n.textContent.matchAll(/[\p{L}\p{N}](?:[\p{L}\p{N}–]|[:,.](?=\d))*/gu)) {
+					for (const m of n.textContent.matchAll(/[\p{L}\p{N}](?:[\p{L}\p{N}–]|[:,./-](?=\d))*/gu)) {
 						if (/^\p{Script=Han}/u.test(m[0]) && !/\d/.test(m[0])) continue; // Chinese breaks between characters
 						const range = document.createRange();
 						range.setStart(n, m.index);

@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import * as Time from '../../engine/src/core/time.mjs';
 import * as Money from '../../engine/src/core/money.mjs';
 import * as Plan from '../../engine/src/core/plan.mjs';
+import * as Wrap from '../../engine/src/core/wrap.mjs';
 
 test('Time: clock parsing and formatting', () => {
 	assert.equal(Time.clockMinutes('09:05'), 545);
@@ -266,4 +267,17 @@ test('Plan: an added stop’s time is checked against getting there and getting 
 	assert.deepEqual([show.leaveBy, show.tight, show.onBest.mode], [1170, true, 'taxi']);
 	assert.equal(Plan.legCheck({ at: 600, from: null, go: null, next: null }).best, null, 'nothing to check against');
 	assert.equal(Plan.legCheck({ at: 1170, from: { start: 960, end: 1170 }, go: { walk: 4 } }).short, 0, 'a few minutes short: no word');
+});
+
+test('Wrap: a number range or a phone number stays on one line', () => {
+	const k = (s) => Wrap.keepRanges(s).replace(/<span class="rng">(.*?)<\/span>/g, '[$1]');
+	assert.equal(k('NT$110–150 each'), 'NT$[110–150 each]'); // a short unit goes with it
+	assert.equal(k('约60–75分钟'), '约[60–75分钟]');
+	assert.equal(k('Mon–Fri 08:00–23:00'), 'Mon–Fri [08:00–23:00]'); // days are words, not numbers
+	assert.equal(k('runs 09/30–11/14'), 'runs [09/30–11/14]');
+	assert.equal(k('60–75 minutes'), '[60–75] minutes'); // a long word stays free
+	assert.equal(k('Tel 02-2629-6860.'), 'Tel [02-2629-6860].');
+	assert.equal(k('from 2026-09-30, 6-7 min'), 'from [2026-09-30], [6-7] min');
+	assert.equal(k('D3 at 19:00, A1 B1'), 'D3 at 19:00, A1 B1'); // a lone time or code: nothing to keep together
+	assert.equal(k('a &amp; b, &#39;x&#39;'), 'a &amp; b, &#39;x&#39;'); // escaped entities are left alone
 });
