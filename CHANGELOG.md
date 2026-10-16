@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.7.0](https://github.com/KennethWKZ/relaxjer/compare/v1.6.3...v1.7.0) (2026-10-16)
+
+
+### ✨ Features
+
+* **hooks:** the commit-msg hook stops a real trip's details before the commit exists ([#44](https://github.com/KennethWKZ/relaxjer/issues/44)) ([f439db3](https://github.com/KennethWKZ/relaxjer/commit/f439db3646242da428fb9d0ab8256d8b0ede5d04))
+
+
+### 🐛 Bug Fixes
+
+* **agents:** the paid drive refresh is the planner's to run, and a dry run still asks Google ([#43](https://github.com/KennethWKZ/relaxjer/issues/43)) ([86ef7c7](https://github.com/KennethWKZ/relaxjer/commit/86ef7c7004bd91b0b80cf3d29fa934b0594b81e1))
+* **engine:** closing a sheet keeps the reader's place on a slow phone too ([#45](https://github.com/KennethWKZ/relaxjer/issues/45)) ([5977d83](https://github.com/KennethWKZ/relaxjer/commit/5977d83fc3932097573f2f9c06348e0f226ece78))
+
+
+### 📝 Documentation
+
+* **testing:** a test that passes when re-run alone isn't cleared ([#46](https://github.com/KennethWKZ/relaxjer/issues/46)) ([23e15dd](https://github.com/KennethWKZ/relaxjer/commit/23e15dd8146b7ab59b36ae08f1ff1979114cacf5))
+
+
+### ✅ Testing
+
+* **e2e:** wait for the browser's answer before checking the location card is gone ([#41](https://github.com/KennethWKZ/relaxjer/issues/41)) ([6f56ae0](https://github.com/KennethWKZ/relaxjer/commit/6f56ae01be5aada2f97b4bb00deb821652835922))
+
 ## [1.6.3](https://github.com/KennethWKZ/relaxjer/compare/v1.6.2...v1.6.3) (2026-10-10)
 
 
