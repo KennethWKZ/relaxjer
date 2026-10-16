@@ -150,8 +150,9 @@ test('a kept answer gives way to what the browser says now', async ({ page }) =>
 	await stubGeo(page, 'granted', HERE, 500);
 	await openOn(page, -3);
 	await setStored(page, { geoSeen: 'prompt' }); // the phone said "ask" last time, and has allowed it since
+	// wait for the answer first: a count of 0 straight after the reload can come before the kept answer draws the card
+	await expect.poll(() => page.evaluate(() => window.__geoAnswered), { timeout: 3000 }).toBe(true);
 	await expect(card(page)).toHaveCount(0);
-	expect(await page.evaluate(() => window.__geoAnswered)).toBe(true);
 });
 
 test('a "no" turns the card into steps to switch it back on', async ({ page }) => {
