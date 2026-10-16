@@ -387,7 +387,7 @@ The header is sticky and translucent (20 px blur, 180 % saturation) and measures
 
 A schedule row is a three-column grid: time (4.6rem, right-aligned), the 18 px string, then the stop. Now/Next rows and fact rows are two-column key/value grids (5.25rem and 6.5rem keys). On a trip day the Now/Next card's two actions (Open today, Go to next stop) come right under the rows and share one row, a long label wrapping inside its 48 px button, so both sit on an iPhone's first screen (390 × 664); the location card and its buttons follow them.
 
-**Phone compaction (below 600 px, checked at 390 px):** secondary button labels collapse to icons and stay available to screen readers; the brush wish drops to 2.125rem; blocks tighten to 16 px and hanging cards to 12 px padding; the sections button becomes a 52 px square. From 440 px down the header drops the trip dates; from 380 px down the time column narrows to 4rem. From 720 px up the wish grows to 3.25rem, photos run three to a row, travel methods go two-up and tiers three-up.
+**Phone compaction (below 600 px, checked at 390 px):** secondary button labels collapse to icons and stay available to screen readers; the brush wish drops to 2.125rem; blocks tighten to 16 px and hanging cards to 12 px padding; the sections button becomes a 52 px square. From 440 px down the header drops the trip dates; from 380 px down the time column narrows to 4rem. From 720 px up the wish grows to 3.25rem, photos run three to a row, travel methods go two-up and tiers three-up. A method's three facts sit side by side at every width and never split a word or a number range ("60–75 min"): a cell takes the room its longest one needs, and wraps to a full row of its own only when the three can't fit.
 
 ### Named Rules
 

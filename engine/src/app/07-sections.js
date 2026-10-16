@@ -1136,7 +1136,7 @@ function secAirport() {
 				.map(
 					(m) => `<article class="method ${m.pick ? 'pick' : ''}" id="m-${m.id}">
         <div class="method-h"><span class="ic">${icon(m.icon)}</span><div><p class="method-name">${fmt(m.name)}</p><p class="method-sub">${fmt(m.sub)}</p></div><p class="method-cost">${esc(m.cost)}<small>${fmt(m.per)}</small><small data-rm="${m.min},${m.max}">${rmText(m.min, m.max)}</small></p></div>
-        <dl class="method-grid"><div class="mg"><dt>${Z('门到门', 'Door to door')}</dt><dd>${fmt(m.time)}</dd></div><div class="mg"><dt>${Z('换乘', 'Changes')}</dt><dd>${fmt(m.xfer)}</dd></div><div class="mg"><dt>${Z('拖行李', 'With bags')}</dt><dd>${fmt(m.bags)}</dd></div></dl>
+        <dl class="method-grid"><div class="mg"><dt>${Z('门到门', 'Door to door')}</dt><dd>${fmtNw(m.time)}</dd></div><div class="mg"><dt>${Z('换乘', 'Changes')}</dt><dd>${fmtNw(m.xfer)}</dd></div><div class="mg"><dt>${Z('拖行李', 'With bags')}</dt><dd>${fmtNw(m.bags)}</dd></div></dl>
         ${list(m.list)}
         <p class="note"><strong>${Z('适合', 'Best when')}:</strong> ${fmt(m.when)}</p>
         ${m.pick ? `<p class="pick-badge">${icon('check')}${Z(`建议：大家要搭${METRO[0]}的话，这样最省力`, 'Recommended if we take the train')}</p>` : ''}
