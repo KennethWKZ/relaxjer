@@ -28,19 +28,23 @@ const GROUP = Money.groupWord(PAX); // how the data marks a group figure: ["五�
 const each = (n) => Money.share(n, PAX);
 const eachText = (min, max) => `${CUR.sym}${num(each(min))}${max > min ? '–' + num(each(max)) : ''}`;
 const numsIn = (x) => Money.amountsIn(x, CUR.sym);
-// shares go in before **bold** turns into <strong>, so a bold group figure gets its share too
+// a number range stays on one line with a short unit after it ("NT$110–150 each", "08:00–23:00", "09/30–11/14",
+// "60–75分钟"): a line ending "NT$110–" over "150" stranded the dash, in lists, hours, tables and the airport tiles'
+// narrow cells. Takes escaped text; escText is esc for text people read (never an attribute).
+const keepRanges = (h) => h.replace(/\d[\d,.:/]*–\d[\d,.:/]*(?: ?\p{L}{1,4}(?![\p{L}\p{N}]))?/gu, '<span class="rng">$&</span>');
+const escText = (s) => keepRanges(esc(s));
+// shares go in before **bold** turns into <strong>, so a bold group figure gets its share too; ranges go in last
 const fmt = (x) =>
-	esc(L(x))
-		.replace(Money.groupFigureRe(CUR.sym, PAX), (m, amt, a, b, tail, _at, text) => {
-			const lo = +a.replace(/,/g, ''),
-				hi = b ? +b.replace(/,/g, '') : lo;
-			if (Money.statesShare(text, CUR.sym, lo, hi, PAX)) return m; // "NT$600 each, NT$3,000 for 5" says it already
-			return `${amt}${tail}<span class="each-i"> · ${Z(`每人约${eachText(lo, hi)}`, `≈${eachText(lo, hi)} each`)}</span>`;
-		})
-		.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-// a number range stays on one line in a narrow cell, with a short unit after it ("60–75 min", "60–75分钟"): "About 60–"
-// over "75 min" stranded the dash
-const fmtNw = (x) => fmt(x).replace(/\d[\d,.]*–\d[\d,.]*(?: ?\p{L}{1,4}(?![\p{L}\p{N}]))?/gu, '<span class="nw">$&</span>');
+	keepRanges(
+		esc(L(x))
+			.replace(Money.groupFigureRe(CUR.sym, PAX), (m, amt, a, b, tail, _at, text) => {
+				const lo = +a.replace(/,/g, ''),
+					hi = b ? +b.replace(/,/g, '') : lo;
+				if (Money.statesShare(text, CUR.sym, lo, hi, PAX)) return m; // "NT$600 each, NT$3,000 for 5" says it already
+				return `${amt}${tail}<span class="each-i"> · ${Z(`每人约${eachText(lo, hi)}`, `≈${eachText(lo, hi)} each`)}</span>`;
+			})
+			.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>'),
+	);
 const eachLine = (min, max) =>
 	`<span class="each">${Z('每人约', 'Each ≈')} <b>${eachText(min, max)}</b> <span class="rm-i" data-rm="${each(min)},${each(max)}">${rmText(each(min), each(max))}</span></span>`;
 const ddEach = (v) => {

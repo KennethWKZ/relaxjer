@@ -24,10 +24,10 @@ function ticketBlock(id, open) {
 		[Z('价格', 'Price'), lang === 'en' ? t.price_en : t.price_zh],
 		[Z('时间', 'Hours'), lang === 'en' ? t.hours_en : t.hours_zh],
 	].filter((r) => r[1]);
-	return `<details class="more" ${open ? 'open' : ''}><summary>${icon('ticket')}${esc(lang === 'en' ? t.title_en : t.title_zh)}${icon('chev', 'chev')}</summary><div class="more-body stack">
-      ${(lang === 'en' ? t.summary_en : t.summary_zh) ? `<p class="small muted">${esc(lang === 'en' ? t.summary_en : t.summary_zh)}</p>` : ''}
-      ${steps && steps.length ? `<ol class="list">${steps.map((s) => `<li>${esc(s)}</li>`).join('')}</ol>` : ''}
-      ${rows.length ? `<dl class="kv">${rows.map((r) => `<div><dt>${esc(r[0])}</dt><dd class="wrap">${esc(r[1])}</dd></div>`).join('')}</dl>` : ''}
+	return `<details class="more" ${open ? 'open' : ''}><summary>${icon('ticket')}${escText(lang === 'en' ? t.title_en : t.title_zh)}${icon('chev', 'chev')}</summary><div class="more-body stack">
+      ${(lang === 'en' ? t.summary_en : t.summary_zh) ? `<p class="small muted">${escText(lang === 'en' ? t.summary_en : t.summary_zh)}</p>` : ''}
+      ${steps && steps.length ? `<ol class="list">${steps.map((s) => `<li>${escText(s)}</li>`).join('')}</ol>` : ''}
+      ${rows.length ? `<dl class="kv">${rows.map((r) => `<div><dt>${esc(r[0])}</dt><dd class="wrap">${escText(r[1])}</dd></div>`).join('')}</dl>` : ''}
       <div class="links-row">${t.url ? ext(t.url, Z('官方购票 / 资讯', 'Official booking / info'), 'ticket') : ''}${t.confidence && t.confidence !== 'verified' ? `<span class="xsmall">${Z('部分资讯待确认', 'Some details unconfirmed')}</span>` : ''}</div>
     </div></details>`;
 }
@@ -308,7 +308,7 @@ function spotsSheet(pk, rest, date) {
 		const q = `${x.name_trad} ${x.address_trad || ''}`;
 		const hrs = dayHours(x, date);
 		const tip = lang === 'en' ? x.tip_en : x.tip_zh;
-		return `<li class="spot"><button type="button" class="spot-main" data-spot="${esc(x.id)}"><span class="spot-n">${esc(drinkName(x))}</span><span class="spot-m">${x.kind ? `<span class="spot-k">${esc(L(REST_KIND[x.kind]))}</span>` : ''}${distLabel(nearOf(x, pk) / 1000)} · ${Z(`走路约${Math.max(1, Math.round((nearOf(x, pk) * 1.3) / 80))}分钟`, `~${Math.max(1, Math.round((nearOf(x, pk) * 1.3) / 80))} min walk`)}${x.rating ? ` · ★${esc(x.rating)}` : ''}</span>${tip && !x.kind ? `<span class="spot-t">${x.brand ? Z('招牌：', 'Try: ') : ''}${esc(tip)}</span>` : ''}${hrs ? `<span class="spot-t">${icon('clock')} ${esc(hrs)}</span>` : ''}</button><span class="spot-a">${extI(gmDir(q, 'walking', undefined, x.gpid), Z('走路去', 'Walk there'), 'route')}</span></li>`;
+		return `<li class="spot"><button type="button" class="spot-main" data-spot="${esc(x.id)}"><span class="spot-n">${esc(drinkName(x))}</span><span class="spot-m">${x.kind ? `<span class="spot-k">${esc(L(REST_KIND[x.kind]))}</span>` : ''}${distLabel(nearOf(x, pk) / 1000)} · ${Z(`走路约${Math.max(1, Math.round((nearOf(x, pk) * 1.3) / 80))}分钟`, `~${Math.max(1, Math.round((nearOf(x, pk) * 1.3) / 80))} min walk`)}${x.rating ? ` · ★${esc(x.rating)}` : ''}</span>${tip && !x.kind ? `<span class="spot-t">${x.brand ? Z('招牌：', 'Try: ') : ''}${esc(tip)}</span>` : ''}${hrs ? `<span class="spot-t">${icon('clock')} ${keepRanges(esc(hrs))}</span>` : ''}</button><span class="spot-a">${extI(gmDir(q, 'walking', undefined, x.gpid), Z('走路去', 'Walk there'), 'route')}</span></li>`;
 	};
 	const h = rest
 		? Z(`${placeTitle(pk)}附近 · 坐下歇脚`, `Sit & rest near ${placeTitle(pk)}`)
@@ -391,7 +391,7 @@ const mrtText = (m) =>
 		: m.walk
 			? Z(`${m.train ? '火车' : METRO[0]}${m.zh}，步行约${m.min}分钟`, `${m.train ? 'Train' : Cap(METRO[1])} ${m.en || m.zh}, ~${m.min} min walk`)
 			: Z(`最近${METRO[0]}${m.zh}（约${m.km}公里，要转车）`, `Nearest ${METRO[1]} ${m.en || m.zh} (~${m.km} km; take a bus or taxi)`);
-const mrtLine = (m) => (m ? `<p class="xsmall">${icon('train')} ${esc(mrtText(m))}</p>` : '');
+const mrtLine = (m) => (m ? `<p class="xsmall">${icon('train')} ${escText(mrtText(m))}</p>` : '');
 function foodRow(f) {
 	const name = lang === 'en' ? f.name_en || f.name_trad : f.name_zh || f.name_trad;
 	const dish = lang === 'en' ? f.dish_en : f.dish_zh;
@@ -404,9 +404,9 @@ const drinkName = (x) => (lang === 'en' ? x.name_en || x.name_zh : x.name_zh);
 function drinkCard(x) {
 	const q = `${x.name_trad} ${x.address_trad || ''}`;
 	return `<article class="hang drink${isRest(x) ? ' is-rest' : ''}" id="${esc(x.id)}">
-      <div class="hang-h"><span class="kind-ic">${icon(isRest(x) ? 'coffee' : 'boba')}</span><div><p class="hang-name">${esc(drinkName(x))}</p>${(lang === 'en' ? x.tip_en : x.tip_zh) ? `<p class="hang-meta">${x.brand ? Z('招牌：', 'Try: ') : ''}${esc(lang === 'en' ? x.tip_en : x.tip_zh)}</p>` : ''}${x.rating ? `<span class="rating">${icon('star', 'star')}<b>${esc(x.rating)}</b> · ${num(x.reviews || 0)} ${Z('则评论', 'reviews')}<span class="xsmall"> · Google · ${Z('查于', 'checked')} ${esc(dateLabel(x.checked))}</span></span>` : ''}</div></div>
+      <div class="hang-h"><span class="kind-ic">${icon(isRest(x) ? 'coffee' : 'boba')}</span><div><p class="hang-name">${esc(drinkName(x))}</p>${(lang === 'en' ? x.tip_en : x.tip_zh) ? `<p class="hang-meta">${x.brand ? Z('招牌：', 'Try: ') : ''}${escText(lang === 'en' ? x.tip_en : x.tip_zh)}</p>` : ''}${x.rating ? `<span class="rating">${icon('star', 'star')}<b>${esc(x.rating)}</b> · ${num(x.reviews || 0)} ${Z('则评论', 'reviews')}<span class="xsmall"> · Google · ${Z('查于', 'checked')} ${esc(dateLabel(x.checked))}</span></span>` : ''}</div></div>
       ${x.address_trad ? `<p class="addr">${icon('pin')}<span>${esc(x.address_trad)}</span></p>` : ''}
-      ${(lang === 'en' ? x.hours_en : x.hours_zh) ? `<p class="xsmall">${icon('clock')} ${esc(lang === 'en' ? x.hours_en : x.hours_zh)}</p>` : ''}
+      ${(lang === 'en' ? x.hours_en : x.hours_zh) ? `<p class="xsmall">${icon('clock')} ${escText(lang === 'en' ? x.hours_en : x.hours_zh)}</p>` : ''}
       ${rrLine(x.gpid, x.lat, x.lng)}
       ${closedNote(x)}
       <div class="links-row">${extI(gmSearch(q, x.gpid), Z('地图', 'Map'), 'pin')}${extI(gmDir(q, 'walking', undefined, x.gpid), Z('路线', 'Directions'), 'route')}${addBtn(drinkName(x), x.lat, x.lng, x.gpid, q, x.address_trad)}</div>
@@ -441,9 +441,9 @@ function foodCard(f) {
 		: '';
 	const q = f.maps_query || f.address_trad || name;
 	return `<article class="hang food" id="${esc(foodId(f))}">
-      <div class="hang-h"><div><p class="hang-name"${altX(name, f.name_zh, f.name_en, f.name_trad)}>${esc(name)}</p><p class="hang-meta">${esc(lang === 'en' ? f.dish_en : f.dish_zh)}${(lang === 'en' ? f.price_hint_en : f.price_hint_zh) ? ` · ${esc(lang === 'en' ? f.price_hint_en : f.price_hint_zh)}` : ''}</p>${rating}</div></div>
+      <div class="hang-h"><div><p class="hang-name"${altX(name, f.name_zh, f.name_en, f.name_trad)}>${esc(name)}</p><p class="hang-meta">${escText(lang === 'en' ? f.dish_en : f.dish_zh)}${(lang === 'en' ? f.price_hint_en : f.price_hint_zh) ? ` · ${escText(lang === 'en' ? f.price_hint_en : f.price_hint_zh)}` : ''}</p>${rating}</div></div>
       ${f.address_trad ? `<p class="addr">${icon('pin')}<span>${esc(f.address_trad)}${f.address_en && lang === 'en' ? `<br><span class="xsmall">${esc(f.address_en)}</span>` : ''}</span></p>` : ''}
-      ${(lang === 'en' ? f.hours_en : f.hours_zh) ? `<p class="xsmall">${icon('clock')} ${esc(lang === 'en' ? f.hours_en : f.hours_zh)}${f.hours_check ? ` <b class="hchk">${Z('与 Google 不同，以 Google 为准', 'Google differs; trust Google')}</b>` : ''}</p>` : ''}
+      ${(lang === 'en' ? f.hours_en : f.hours_zh) ? `<p class="xsmall">${icon('clock')} ${escText(lang === 'en' ? f.hours_en : f.hours_zh)}${f.hours_check ? ` <b class="hchk">${Z('与 Google 不同，以 Google 为准', 'Google differs; trust Google')}</b>` : ''}</p>` : ''}
       ${mrtLine(f.mrt)}
       ${rrLine(f.gpid, f.lat, f.lng)}
       ${closedNote(f)}

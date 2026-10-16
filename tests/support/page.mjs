@@ -97,26 +97,30 @@ export function squeezed(page) {
 	});
 }
 
-/** Words (letters and digits, a number range with its unit) that the browser split across two lines inside `sel`:
- *  "Manageabl" over "e" in an airport tile's cell. */
-export function splitWords(page, sel) {
-	return page.evaluate((sel) => {
-		const out = [];
-		for (const el of document.querySelectorAll(sel)) {
-			const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
-			for (let n; (n = walker.nextNode());) {
-				for (const m of n.textContent.matchAll(/[\p{L}\p{N}][\p{L}\p{N}–]*/gu)) {
-					if (/^\p{Script=Han}/u.test(m[0]) && !/\d/.test(m[0])) continue; // Chinese breaks between characters
-					const range = document.createRange();
-					range.setStart(n, m.index);
-					range.setEnd(n, m.index + m[0].length);
-					const tops = new Set([...range.getClientRects()].filter((r) => r.width > 0).map((r) => Math.round(r.top)));
-					if (tops.size > 1) out.push(m[0]);
+/** Words (letters and digits; a number with its separators, "1,200" or "10:45"; a range of them) that the browser split
+ *  across two lines inside `sel`, leaving out text inside `skip`: "Manageabl" over "e" in an airport tile's cell. */
+export function splitWords(page, sel, skip = null) {
+	return page.evaluate(
+		([sel, skip]) => {
+			const out = [];
+			for (const el of document.querySelectorAll(sel)) {
+				const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+				for (let n; (n = walker.nextNode());) {
+					if (skip && n.parentElement.closest(skip)) continue;
+					for (const m of n.textContent.matchAll(/[\p{L}\p{N}](?:[\p{L}\p{N}–]|[:,.](?=\d))*/gu)) {
+						if (/^\p{Script=Han}/u.test(m[0]) && !/\d/.test(m[0])) continue; // Chinese breaks between characters
+						const range = document.createRange();
+						range.setStart(n, m.index);
+						range.setEnd(n, m.index + m[0].length);
+						const tops = new Set([...range.getClientRects()].filter((r) => r.width > 0).map((r) => Math.round(r.top)));
+						if (tops.size > 1) out.push(m[0]);
+					}
 				}
 			}
-		}
-		return out;
-	}, sel);
+			return out;
+		},
+		[sel, skip],
+	);
 }
 
 /** Opens every closed <details> so build-on-open lists render, then waits for layout. */
