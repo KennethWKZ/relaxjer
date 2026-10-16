@@ -26,8 +26,8 @@ pnpm parity --live <legacy repo> --trip trips/<slug>
 The sync specs are tagged `@demo`, so `--grep-invert @demo` skips them on a real trip. If the trip has group sync, build
 it with `--sync` and do the two-phone check by hand in step 4 (journeys 9 and 10).
 
-A failure is a finding, not noise. WebKit desktop flakes about once in 140 runs under full load; re-run that one test
-alone once, and if it fails again, it's real.
+A failure is a finding, not noise, and a pass when re-run alone doesn't clear it: follow "When a test fails only
+sometimes" in [`testing.md`](../../../memory-bank/standards/patterns/testing.md).
 
 ## 2. Build the page you'll look at
 
