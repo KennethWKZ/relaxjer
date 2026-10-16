@@ -277,7 +277,9 @@ test('Wrap: a number range or a phone number stays on one line', () => {
 	assert.equal(k('runs 09/30–11/14'), 'runs [09/30–11/14]');
 	assert.equal(k('60–75 minutes'), '[60–75] minutes'); // a long word stays free
 	assert.equal(k('Tel 02-2629-6860.'), 'Tel [02-2629-6860].');
-	assert.equal(k('from 2026-09-30, 6-7 min'), 'from [2026-09-30], [6-7] min');
+	assert.equal(k('from 2026-09-30, 6-7 min'), 'from [2026-09-30], [6-7 min]');
+	assert.equal(k('免费收惊（11:20-18:30）'), '免费收惊（[11:20-18:30]）'); // a plain hyphen between times
+	assert.equal(k('105巷4-9號4-8號'), '105巷[4-9]號[4-8號]'); // a unit runs only to the next number
 	assert.equal(k('Tel +886 2 2557 5379.'), 'Tel [+886 2 2557 5379].'); // spaced, after a country code
 	assert.equal(k('WhatsApp +886 981 521 124 or Line'), 'WhatsApp [+886 981 521 124] or Line');
 	assert.equal(k('call (02)2536-4459 or (02) 2883 9684'), 'call [(02)2536-4459] or [(02) 2883 9684]'); // an area code in brackets

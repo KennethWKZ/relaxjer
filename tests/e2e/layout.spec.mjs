@@ -35,8 +35,8 @@ for (const lang of ['en', 'zh']) {
 		await openAllDetails(page);
 		// Chromium leaves sections far off screen undrawn, and their text has no lines to measure
 		await page.evaluate(() => document.querySelectorAll('#app > section').forEach((s) => (s.style.contentVisibility = 'visible')));
-		// a stop's time column stacks its range on purpose ("10:45–" over "14:30")
-		const ranges = (await splitWords(page, '#app', '.stop-t')).filter((w) => /\d[–-]\d/.test(w));
+		// a stop's time column stacks its range on purpose ("10:45–" over "14:30"), and a photo credit's file name may break
+		const ranges = await splitWords(page, '#app', '.stop-t, .credits', true);
 		expect(ranges).toEqual([]);
 	});
 }

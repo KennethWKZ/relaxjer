@@ -7,7 +7,7 @@ function secOverview() {
       <h2 class="sub">${icon('calendar')}${Z('这一周', 'The week')}</h2>
       <ol class="week">${DAYS.map((d) => `<li><a class="wk" href="#${d.id}" style="${colorVars(d.c)}">${lanternMark(d.c)}<span class="wk-date">${+d.date.slice(8)}<small>${esc(Z('周' + d.dow[0], d.dow[1]))}</small></span><span class="wk-title">${esc(L(d.title))}<span class="wk-focus">${esc(L(d.focus))}</span></span>${icon('arrow', 'wk-arrow')}</a></li>`).join('')}</ol>
       <h2 class="sub">${icon('info')}${Z('旅行资料', 'Trip facts')}</h2>
-      <dl class="facts">${FACTS.map((f) => `<div class="fact"><dt>${esc(L(f.k))}</dt><dd>${fmt(f.v)}${f.place ? `<p class="addr">${icon('pin')}<span>${esc(hotelAddr.zh)}${hotelAddr.en ? `<br><span class="xsmall">${esc(hotelAddr.en)}</span>` : ''}</span></p><p class="xsmall">${fmt(PLACES.hotel.note)} · ${Z('电话', 'Tel')} <span class="sel">${esc(PLACES.hotel.tel)}</span></p>${PLACES.hotel.gname ? `<p class="xsmall">${icon('info')} ${Z(`Google 地图仍用旧名「${esc(PLACES.hotel.gname)}」（同地址、电话）。搜新名字会出现别家酒店，请用这里的按钮或地址。`, `Google Maps still lists old name 「${esc(PLACES.hotel.gname)}」 (same address/phone). New-name search finds other hotels; use buttons/address here.`)}</p>` : ''}<div class="links-row">${placeLinks(f.place)}</div>` : ''}</dd></div>`).join('')}</dl>
+      <dl class="facts">${FACTS.map((f) => `<div class="fact"><dt>${esc(L(f.k))}</dt><dd>${fmt(f.v)}${f.place ? `<p class="addr">${icon('pin')}<span>${escText(hotelAddr.zh)}${hotelAddr.en ? `<br><span class="xsmall">${escText(hotelAddr.en)}</span>` : ''}</span></p><p class="xsmall">${fmt(PLACES.hotel.note)} · ${Z('电话', 'Tel')} <span class="sel">${esc(PLACES.hotel.tel)}</span></p>${PLACES.hotel.gname ? `<p class="xsmall">${icon('info')} ${Z(`Google 地图仍用旧名「${esc(PLACES.hotel.gname)}」（同地址、电话）。搜新名字会出现别家酒店，请用这里的按钮或地址。`, `Google Maps still lists old name 「${esc(PLACES.hotel.gname)}」 (same address/phone). New-name search finds other hotels; use buttons/address here.`)}</p>` : ''}<div class="links-row">${placeLinks(f.place)}</div>` : ''}</dd></div>`).join('')}</dl>
       <h2 class="sub">${icon('list')}${Z('机动备选', 'Backups if we have time')}</h2>
       <div class="pills">${BACKUPS.map((b) => `<span class="tag">${fmt(b)}</span>`).join('')}</div>
       <div class="links-row"><a class="mlink" href="#optional">${icon('arrow')}${Z('看备选详情', 'See the optional list')}</a></div>
@@ -1231,7 +1231,7 @@ function optCard(o) {
 	return `<article class="hang" id="${o.id}"><div class="hang-h">${credit[o.photo] ? `<img src="${imgSrc(o.photo, true)}" data-img="${imgKey(o.photo, true)}" alt="" width="64" height="64" loading="lazy">` : ''}<div><p class="hang-name"${alt(other(o.name))}>${esc(L(o.name))}</p><p class="hang-meta">${escText(L(o.meta))}</p></div></div>
         <p class="note"><strong>${esc(L(o.when))}:</strong></p>${list(o.list)}
         <div class="total" style="margin-top:10px"><span>${fmt(o.cost)}</span></div><p class="note">${fmt(o.note)}</p>
-        ${a.zh ? `<p class="addr">${icon('pin')}<span>${esc(a.zh)}${lang === 'en' && a.en ? `<br><span class="xsmall">${esc(a.en)}</span>` : ''}</span></p>` : ''}${hours ? `<p class="xsmall">${icon('clock')} ${esc(hours)}</p>` : ''}${mrtLine(g.mrt)}
+        ${a.zh ? `<p class="addr">${icon('pin')}<span>${escText(a.zh)}${lang === 'en' && a.en ? `<br><span class="xsmall">${escText(a.en)}</span>` : ''}</span></p>` : ''}${hours ? `<p class="xsmall">${icon('clock')} ${esc(hours)}</p>` : ''}${mrtLine(g.mrt)}
         <div class="links-row">${placeLinks(o.place)}</div>${o.ticket ? ticketBlock(o.ticket) : ''}</article>`;
 }
 
@@ -1241,7 +1241,7 @@ function secOptional() {
 		const a = addrFor(s.place);
 		return `<article class="hang" id="shop-${s.place}"><div class="hang-h"><div><p class="hang-name"${alt(other(s.name))}>${esc(L(s.name))}</p><p class="hang-meta">${escText(L(s.area))} · ${escText(L(s.rank))}</p></div></div>
         <p class="note"><strong>${Z('什么时候', 'When')}:</strong> ${fmt(s.when)}</p>${list(s.list)}
-        ${a.zh ? `<p class="addr">${icon('pin')}<span>${esc(a.zh)}${lang === 'en' && a.en ? `<br><span class="xsmall">${esc(a.en)}</span>` : ''}</span></p>` : ''}
+        ${a.zh ? `<p class="addr">${icon('pin')}<span>${escText(a.zh)}${lang === 'en' && a.en ? `<br><span class="xsmall">${escText(a.en)}</span>` : ''}</span></p>` : ''}
         ${p.mrt ? `<p class="xsmall">${icon('train')} ${fmt(p.mrt)}</p>` : ''}${p.hours ? `<p class="xsmall">${icon('clock')} ${fmt(p.hours)}${p.tel ? ` · ${Z('电话', 'Tel')} <span class="sel">${escText(p.tel)}</span>` : ''}</p>` : ''}
         <div class="links-row">${placeLinks(s.place, { noDriver: true })}${dayById[s.day] ? `<a class="mlink" href="#${s.day}">${icon('calendar')}Day ${dayById[s.day].n}</a>` : ''}</div></article>`;
 	};

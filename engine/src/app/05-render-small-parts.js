@@ -405,7 +405,7 @@ function drinkCard(x) {
 	const q = `${x.name_trad} ${x.address_trad || ''}`;
 	return `<article class="hang drink${isRest(x) ? ' is-rest' : ''}" id="${esc(x.id)}">
       <div class="hang-h"><span class="kind-ic">${icon(isRest(x) ? 'coffee' : 'boba')}</span><div><p class="hang-name">${esc(drinkName(x))}</p>${(lang === 'en' ? x.tip_en : x.tip_zh) ? `<p class="hang-meta">${x.brand ? Z('招牌：', 'Try: ') : ''}${escText(lang === 'en' ? x.tip_en : x.tip_zh)}</p>` : ''}${x.rating ? `<span class="rating">${icon('star', 'star')}<b>${esc(x.rating)}</b> · ${num(x.reviews || 0)} ${Z('则评论', 'reviews')}<span class="xsmall"> · Google · ${Z('查于', 'checked')} ${esc(dateLabel(x.checked))}</span></span>` : ''}</div></div>
-      ${x.address_trad ? `<p class="addr">${icon('pin')}<span>${esc(x.address_trad)}</span></p>` : ''}
+      ${x.address_trad ? `<p class="addr">${icon('pin')}<span>${escText(x.address_trad)}</span></p>` : ''}
       ${(lang === 'en' ? x.hours_en : x.hours_zh) ? `<p class="xsmall">${icon('clock')} ${escText(lang === 'en' ? x.hours_en : x.hours_zh)}</p>` : ''}
       ${rrLine(x.gpid, x.lat, x.lng)}
       ${closedNote(x)}
@@ -442,7 +442,7 @@ function foodCard(f) {
 	const q = f.maps_query || f.address_trad || name;
 	return `<article class="hang food" id="${esc(foodId(f))}">
       <div class="hang-h"><div><p class="hang-name"${altX(name, f.name_zh, f.name_en, f.name_trad)}>${esc(name)}</p><p class="hang-meta">${escText(lang === 'en' ? f.dish_en : f.dish_zh)}${(lang === 'en' ? f.price_hint_en : f.price_hint_zh) ? ` · ${escText(lang === 'en' ? f.price_hint_en : f.price_hint_zh)}` : ''}</p>${rating}</div></div>
-      ${f.address_trad ? `<p class="addr">${icon('pin')}<span>${esc(f.address_trad)}${f.address_en && lang === 'en' ? `<br><span class="xsmall">${esc(f.address_en)}</span>` : ''}</span></p>` : ''}
+      ${f.address_trad ? `<p class="addr">${icon('pin')}<span>${escText(f.address_trad)}${f.address_en && lang === 'en' ? `<br><span class="xsmall">${escText(f.address_en)}</span>` : ''}</span></p>` : ''}
       ${(lang === 'en' ? f.hours_en : f.hours_zh) ? `<p class="xsmall">${icon('clock')} ${escText(lang === 'en' ? f.hours_en : f.hours_zh)}${f.hours_check ? ` <b class="hchk">${Z('与 Google 不同，以 Google 为准', 'Google differs; trust Google')}</b>` : ''}</p>` : ''}
       ${mrtLine(f.mrt)}
       ${rrLine(f.gpid, f.lat, f.lng)}
