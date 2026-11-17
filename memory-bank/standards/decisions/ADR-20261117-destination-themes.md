@@ -44,6 +44,10 @@ parity`). Class names stay (`.lantern`, `.stop-knot`); DESIGN.md names a world's
   `leadMotif` picks the mark on the most days among the world's `iconMarks` (ties to the first; a flying day decides
   nothing the world can't draw), and the PNG's `Mark` text chunk names it. Snow Light Path draws only `snowboard` so
   far: another mark is a reviewed change with a picture, not a guess.
+- **Illustrations:** a world may ship `engine/src/themes/<world>-art/<motif>.svg` and `hero.svg`, hand-drawn SVG
+  (no generated or stock art, so the public repo can carry them). The build embeds only the ones the trip's days use,
+  each as a `data:` image so their ids never meet, and refuses one that runs, loads or links anything
+  (`tests/unit/worlds.test.mjs`). A day card opens with its activity's banner; the overview with the scene.
 - **Activity marks:** `DAYS[i].motif` names one of `engine/src/core/motif.mjs` `names` (snowboard, ski, onsen, zoo,
   city, sea, snow, train, plane, shop, food), each a 24 px icon in the page's stroke style and a `[zh, en]` name. The
   trip contract refuses anything else. Nothing is read from a day's text. Any world shows it on the day's card; a

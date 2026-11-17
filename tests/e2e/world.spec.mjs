@@ -9,6 +9,7 @@ import { loadTrip } from '../support/trip-contract.mjs';
 import { STORE_KEY } from '../support/store-key.mjs';
 import { WORLD } from '../support/world-trip.mjs';
 import { MARKS } from '../../engine/src/core/motif.mjs';
+import fs from 'node:fs';
 /* global DAYS */
 
 const tripDir = resolveTrip().dir;
@@ -69,6 +70,7 @@ test("the trip's own page: data-world only when its pack names a theme, and the 
 	await expect(page.locator('.day-mark')).toHaveCount(0);
 	await page.waitForTimeout(400);
 	await expect(page.locator('.world-hello'), 'no greeting outside a world').toHaveCount(0);
+	await expect(page.locator('.day-art, .world-hero'), 'no illustrations outside a world').toHaveCount(0);
 });
 
 test("a pack's world: its name on <html>, its paper in the browser bar, every day's mark and its own icon", async ({ page }) => {
@@ -145,4 +147,24 @@ test.describe('reduced motion in a world', () => {
 		expect(await now.evaluate((el) => getComputedStyle(el.querySelector('.stop-knot'), '::after').animationName)).toBe('none');
 		await expect(now.locator('.flag')).toBeVisible();
 	});
+});
+
+test("a world's illustrations: each day's activity across the top of its card, and the scene above Now/Next", async ({ page }) => {
+	const art = path.join(ROOT, 'engine', 'src', 'themes', `${WORLD.theme}-art`);
+	test.skip(!fs.existsSync(art), 'this world has no illustrations');
+	const drawn = new Set(fs.readdirSync(art).map((f) => f.replace(/\.svg$/, '')));
+	await openWorld(page);
+	const days = await page.evaluate(() => DAYS.map((d) => [d.id, d.motif]));
+	for (const [id, motif] of days) {
+		const pic = page.locator(`#${id} .lantern > .day-art img`);
+		if (drawn.has(motif)) {
+			await expect(pic, `${id} (${motif})`).toHaveAttribute('src', /^data:image\/svg\+xml;base64,/);
+			await expect(page.locator(`#${id} .day-art`)).toHaveAttribute('aria-hidden', 'true');
+		} else await expect(pic, `${id} (${motif}): no picture`).toHaveCount(0);
+	}
+	if (drawn.has('hero')) {
+		await expect(page.locator('#top > .world-hero + .now-card')).toHaveCount(1);
+		const box = await page.locator('.world-hero').boundingBox();
+		expect(box.width / box.height).toBeCloseTo(640 / 300, 1);
+	}
 });

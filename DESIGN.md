@@ -560,6 +560,8 @@ A destination pack may name a world (`export const theme = '<name>'`, in `destin
 
 **Day colours** (`l1`–`l7`, white ink on all seven, the same in both themes): Glacier `#1f6fb8`, Plum Frost `#a5468e`, Spruce `#2e7d4a`, Aurora `#6a55c8`, Frozen Lake `#12808a`, Winter Rose `#b24a5e`, Larch `#93602f` (bark brown: warm, but earth, not light). White text on each reaches 4.6:1 or more; each reaches 4.4:1 or more on the light paper and 3.2:1 or more on the dark paper. They're ordered so no day sits beside its nearest look-alike (Plum Frost and Winter Rose are four days apart). `tests/unit/worlds.test.mjs` checks these numbers.
 
+**Illustrations** (`engine/src/themes/snowlight-art/`, hand-drawn SVG, MIT): one wide banner per activity mark (640 × 260) and a scene for the overview (`hero.svg`, 640 × 300), in the icon's style: a navy snowy night, six-armed crystals, rolling drifts in snow white to pale ice, a red jacket as the accent and the amber glow as the only warm light. A day card opens with its activity's banner, flush with the card's edges (`.day-art`); the overview opens with the scene above Now and Next (`.world-hero`). They're decoration (`aria-hidden`), static, and embedded only for the marks a trip uses.
+
 **Motion** (the `animate` decisions for this world):
 
 - **One first-open snowfall:** the first time a phone opens the trip at its top, 12 flakes fall once through the Now/Next card (CSS keyframes on transform and opacity, linear, 2.4 s, staggered up to 0.6 s), then the layer is removed and never shown on that phone again (`store` key `greeted`). Under reduced motion it's never shown.
@@ -568,7 +570,7 @@ A destination pack may name a world (`export const theme = '<name>'`, in `destin
 
 **Named Rules:**
 
-**The Nothing Hangs Rule.** Candles stand in the snow, on the ground. No hanging, floating or sky ornament in this world, not even as a mark in the week list.
+**The Nothing Hangs Rule.** Candles stand in the snow, on the ground. No hanging, floating or sky ornament in this world, not even as a mark in the week list. The rule is about light and ornament: an illustration may show what really is up there on its day (falling snow, a chairlift, the plane), but never a light that hangs or floats.
 
 **The Small Warm Light Rule.** `candle` is the only bright warm colour, and it stays in the flame and the light it throws. Never a fill, a border, text or a button. The warm day colours (Winter Rose, Larch) are muted earth and berry, never amber, so nothing on a card competes with the flame.
 

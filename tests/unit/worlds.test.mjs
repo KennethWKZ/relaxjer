@@ -148,3 +148,22 @@ test('a destination without a world keeps its own icon: only a pack that names a
 	const themed = packs.filter((f) => /^export const theme\b/m.test(fs.readFileSync(f, 'utf8'))).map((f) => path.relative(ROOT, f));
 	assert.deepEqual(themed, ['destinations/jp/regions/sapporo/pack.mjs'], 'a new world is a reviewed change (ADR-20261117-destination-themes)');
 });
+
+test("a world's illustrations: plain SVG named by an activity mark or 'hero', with ids of their own", () => {
+	for (const w of worlds) {
+		const dir = path.join(THEMES, `${w}-art`);
+		if (!fs.existsSync(dir)) continue;
+		const files = fs.readdirSync(dir).filter((f) => f.endsWith('.svg'));
+		assert.ok(files.length, `${w}-art holds no SVG`);
+		for (const f of files) {
+			const name = f.replace(/\.svg$/, '');
+			assert.ok(name === 'hero' || Motif.names.includes(name), `${w}-art/${f}: a DAYS[i].motif name or hero`);
+			const svg = fs.readFileSync(path.join(dir, f), 'utf8');
+			assert.match(svg, /^<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg" viewBox="0 0 640 (260|300)"/, `${f}: the banner's viewBox`);
+			// the build embeds these in the page: nothing that runs, loads or blurs
+			assert.doesNotMatch(svg, /<script|<foreignObject|<image|<text|<filter|\son[a-z]+=|href="(?!#)|url\((?!#)/i, `${f}: plain SVG only`);
+			for (const [, id] of svg.matchAll(/\sid="([^"]+)"/g)) assert.ok(id.startsWith(`${name}-`), `${f}: id "${id}" starts with "${name}-"`);
+			assert.ok(svg.length <= (name === 'hero' ? 24000 : 16000), `${f}: ${svg.length} bytes`);
+		}
+	}
+});

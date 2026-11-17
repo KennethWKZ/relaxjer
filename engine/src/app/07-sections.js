@@ -3,6 +3,7 @@ function secOverview() {
 	const hotelAddr = addrFor(hotelOf(ROLE.arrive)); // the facts' address line: the first night's hotel
 	return `<section class="sec" id="top" data-sec="top">
       <h1 class="sr-only">${esc(L(TRIP.name))}</h1>
+      ${worldArt('hero', 'world-hero')}
       <div class="now-card" id="now" aria-live="polite"></div>
       <h2 class="sub">${icon('calendar')}${Z('这一周', 'The week')}</h2>
       <ol class="week">${DAYS.map((d) => `<li><a class="wk" href="#${d.id}" style="${colorVars(d.c)}">${dayMark(d)}<span class="wk-date">${+d.date.slice(8)}<small>${esc(Z('周' + d.dow[0], d.dow[1]))}</small></span><span class="wk-title">${esc(L(d.title))}<span class="wk-focus">${esc(L(d.focus))}</span></span>${icon('arrow', 'wk-arrow')}</a></li>`).join('')}</ol>
@@ -1029,6 +1030,7 @@ function secDay(d, today) {
 	return `<section class="day" id="${d.id}" data-sec="${d.id}" style="${colorVars(d.c)}">
       <div class="day-bar"><span class="sw" aria-hidden="true"></span><span class="dt">Day ${d.n} · ${esc(dateLabel(d.date, d.dow))}</span><span class="rt">${esc(L(d.title))}</span></div>
       <div class="lantern">
+        ${worldArt(d.motif, 'day-art')}
         <div class="l-meta"><span>Day ${d.n}</span><span>${esc(dateLabel(d.date, d.dow))}</span>${motifTag(d)}${isToday ? `<span class="flag inv">${Z('今天', 'Today')}</span>` : ''}</div>
         ${wish}
         <div class="l-chips">${chips}</div>

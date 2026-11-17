@@ -5,6 +5,11 @@ const lanternMark = (c) =>
 // activity mark (DAYS[i].motif, else a plain candle) on its colour
 const dayMark = (d) => (Pack.theme ? `<span class="day-mark">${Motif.svg(d.motif) || Motif.candle}</span>` : lanternMark(d.c));
 // the day's activity mark and its name, on the day's panel; nothing for a day without one
+/** a world's picture for a day's activity, or for the overview ('hero'); decorative, so hidden from screen readers */
+const worldArt = (name, cls) =>
+	Object.hasOwn(WORLD_ART, name)
+		? `<div class="${cls}" aria-hidden="true"><img src="${WORLD_ART[name]}" alt="" decoding="async"${cls === 'day-art' ? ' loading="lazy"' : ''}></div>`
+		: '';
 const motifTag = (d) => (Motif.svg(d.motif) ? `<span class="l-motif">${Motif.svg(d.motif)}${esc(L(Motif.MARKS[d.motif].name))}</span>` : '');
 const seal = () => `<span class="seal"><b aria-hidden="true">定</b>${Z('固定时间', 'Fixed time')}</span>`;
 const list = (items, cls = 'list') => `<ul class="${cls}">${items.map((x) => `<li>${fmt(x)}</li>`).join('')}</ul>`;

@@ -15,7 +15,8 @@ const html = fs.readFileSync(path.join(SITE, 'index.html'), 'utf8');
 const BUILT = new Set(['demo/', 'demo/sapporo/']);
 const files = fs
 	.readdirSync(SITE, { recursive: true, withFileTypes: true })
-	.filter((e) => e.isFile())
+	// Finder's .DS_Store is gitignored, so it never reaches Pages (built from a checkout)
+	.filter((e) => e.isFile() && e.name !== '.DS_Store')
 	.map((e) => path.relative(SITE, path.join(e.parentPath, e.name)));
 
 test('every local asset the page links resolves, relative to the page', () => {

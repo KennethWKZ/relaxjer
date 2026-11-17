@@ -3,7 +3,7 @@
 // page's own storage, and captures three views in light and dark. Each image gets a provenance sidecar (<file>.json)
 // that tests/repo/site.test.mjs checks. Needs cwebp (brew install webp).
 //   node scripts/docs-update/site-screens.mjs            # Taipei: now, day and costs (the Lanterns world)
-//   node scripts/docs-update/site-screens.mjs sapporo    # Sapporo: the hero's now-snow (the Snow world)
+//   node scripts/docs-update/site-screens.mjs sapporo    # Sapporo: the hero's now-snow, Day 2's card with its Otaru canal banner (the Snow world)
 import { chromium } from '@playwright/test';
 import { execFileSync, spawn } from 'node:child_process';
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
@@ -13,14 +13,14 @@ const ROOT = path.join(import.meta.dirname, '..', '..');
 const BUILD = path.join(ROOT, '.cache', 'site-screens');
 const OUT = path.join(ROOT, 'site', 'assets', 'screens');
 const PORT = 8179;
-// each demo: day 3, mid-morning, so Now/Next has something to show; KEY is its storage prefix (Plan.storeKey: rj.<start>.)
+// each demo: mid-morning on a trip day, so Now/Next has something to show (Sapporo: Day 2 at the canal, shot on its card); KEY is its storage prefix (Plan.storeKey: rj.<start>.)
 const DEMOS = {
 	taipei: { dir: 'demo-trip', CLOCK: '2027-03-15 10:20', KEY: 'rj.2027-03-13.', TZ: 'Asia/Taipei', prefix: '', shots: ['now', 'day', 'costs'] },
-	sapporo: { dir: 'demo-sapporo', CLOCK: '2027-02-08 10:35', KEY: 'rj.2027-02-06.', TZ: 'Asia/Tokyo', prefix: '-snow', shots: ['now'] },
+	sapporo: { dir: 'demo-sapporo', CLOCK: '2027-02-07 10:50', KEY: 'rj.2027-02-06.', TZ: 'Asia/Tokyo', prefix: '-snow', shots: ['now'], day: 'd2' },
 };
 const which = process.argv[2] || 'taipei';
 if (!DEMOS[which]) throw new Error(`site-screens: taipei or sapporo, got ${which}`);
-const { dir, CLOCK, KEY, TZ, prefix, shots } = DEMOS[which];
+const { dir, CLOCK, KEY, TZ, prefix, shots, day } = DEMOS[which];
 
 execFileSync(
 	process.execPath,
@@ -65,6 +65,11 @@ try {
 			writeFileSync(`${webp}.json`, `${JSON.stringify({ prompt, createdAt: new Date().toISOString() }, null, 2)}\n`);
 			console.log(`wrote ${path.relative(ROOT, webp)}`);
 		};
+		// a world's 'now' shot can open on today's card instead, so its picture leads (the page's own day tab, as below)
+		if (day) {
+			await page.locator(`.tabs a[href="#${day}"]`).tap();
+			await page.waitForTimeout(3000);
+		}
 		await shot('now');
 		if (!shots.includes('day')) {
 			if (errors.length) throw new Error(`the demo page threw: ${errors.join('; ')}`);

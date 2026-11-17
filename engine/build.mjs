@@ -308,6 +308,24 @@ const iconURL = (n) => {
 	return drawnIcon.get(n);
 };
 const APP_ICONS = { 192: iconURL(192), 512: iconURL(512) };
+// the world's illustrations (engine/src/themes/<world>-art/<motif>.svg, and hero.svg for the overview): only the ones this
+// trip's days use go in, each as an image, so their ids never meet on the page. A world without the folder adds nothing.
+const WORLD_ART = (() => {
+	if (!world) return null;
+	const dir = path.join(engine, 'src', 'themes', `${world.name}-art`);
+	if (!fs.existsSync(dir)) return null;
+	const want = new Set(['hero', ...ctx.DAYS.map((d) => d.motif).filter(Boolean)]);
+	const art = {};
+	for (const name of want) {
+		const f = path.join(dir, `${name}.svg`);
+		if (!/^[a-z]+$/.test(name) || !fs.existsSync(f)) continue;
+		const svg = fs.readFileSync(f, 'utf8');
+		if (/<script|<foreignObject|<image|on[a-z]+=|href="(?!#)|url\((?!#)/i.test(svg))
+			throw new Error(`${path.relative(path.join(engine, '..'), f)}: a world's art is plain SVG: no script, image, handler or outside link`);
+		art[name] = `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
+	}
+	return Object.keys(art).length ? art : null;
+})();
 const head = `<title>${htmlEsc(title)}</title>
 <meta name="description" content="${htmlEsc(description)}">
 <meta name="theme-color" content="${world?.paper?.light || '#ffffff'}" media="(prefers-color-scheme: light)">
@@ -321,7 +339,7 @@ const worldCSS = world ? world.css : '';
 const scripts = (
 	imgMap,
 	kmlB64,
-) => `<script>window.CREDITS=${safe(credits)};window.GEO=${safe(geo)};window.EXTRA=${safe(extra)};window.WISH=${safe(wish)};window.SHARE_URL=${safe(shareUrl)};window.APP_ICONS=${safe(APP_ICONS)};window.GMAPS=${safe(gmaps)};window.SYNC=${safe(sync)};window.DEMO_CLOCK=${safe(demoClock)};window.FORECAST=${safe(forecast)};window.DRINKS=${safe(drinks)};window.TOILETS=${safe(toilets)};window.MRT=${safe(mrt)};window.YB=${safe(transit.yb)};window.BUS=${safe(transit.bus)};window.SHOPS=${safe(shops)};window.KML_B64=${safe(kmlB64 || '')};${imgMap ? `window.IMG=${imgMap ? 'null' : 'null'};` : ''}</script>
+) => `<script>window.CREDITS=${safe(credits)};window.GEO=${safe(geo)};window.EXTRA=${safe(extra)};window.WISH=${safe(wish)};window.SHARE_URL=${safe(shareUrl)};window.APP_ICONS=${safe(APP_ICONS)};${WORLD_ART ? `window.WORLD_ART=${safe(WORLD_ART)};` : ''}window.GMAPS=${safe(gmaps)};window.SYNC=${safe(sync)};window.DEMO_CLOCK=${safe(demoClock)};window.FORECAST=${safe(forecast)};window.DRINKS=${safe(drinks)};window.TOILETS=${safe(toilets)};window.MRT=${safe(mrt)};window.YB=${safe(transit.yb)};window.BUS=${safe(transit.bus)};window.SHOPS=${safe(shops)};window.KML_B64=${safe(kmlB64 || '')};${imgMap ? `window.IMG=${imgMap ? 'null' : 'null'};` : ''}</script>
 <script>${data}</script>
 <script>${app}</script>`;
 

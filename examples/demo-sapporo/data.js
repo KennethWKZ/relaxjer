@@ -249,7 +249,7 @@ const DAYS = [
 		date: '2027-02-07',
 		dow: ['日', 'Sun'],
 		c: 2,
-		motif: 'train',
+		motif: 'city',
 		foodSlots: ['d2-lunch', 'd2-dinner'],
 		wish: '慢慢逛',
 		gloss: ['', 'Take it slow'],
