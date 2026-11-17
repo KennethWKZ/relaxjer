@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.8.0](https://github.com/KennethWKZ/relaxjer/compare/v1.7.2...v1.8.0) (2026-11-17)
+
+
+### ✨ Features
+
+* a second destination, Sapporo in Snow Light Path, with a Japan pack and a live demo ([#57](https://github.com/KennethWKZ/relaxjer/issues/57)) ([66d5414](https://github.com/KennethWKZ/relaxjer/commit/66d541438436c38e28159cb58201fd8435168d13))
+* **engine:** redrawn train and sea pictures, and foam that isn't balls ([#59](https://github.com/KennethWKZ/relaxjer/issues/59)) ([ff59017](https://github.com/KennethWKZ/relaxjer/commit/ff590173f8d0a5035657ed456fa906b250cd9cc4))
+
 ## [1.7.2](https://github.com/KennethWKZ/relaxjer/compare/v1.7.1...v1.7.2) (2026-10-16)
 
 
