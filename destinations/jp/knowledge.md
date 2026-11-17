@@ -74,6 +74,11 @@ trip. Lessons that hold for every country live in [`knowledge/`](../../knowledge
 - A place that isn't booked yet (a hotel to choose) gets the station's `gpid`, so the page never shows another
   business's phone number for it.
 - Restaurant ratings from Tabelog run lower than Google's: 3.5 is already very good (the page says so).
+- **No train, subway or bus times from Google's routing:** on the first Japan trip's refresh (November 2026) every
+  transit leg came back with no route (the subway, JR and a city bus, 6 of 6), while walking and driving legs did. The
+  route card shows those legs without a time. Their Directions buttons still open Google or Apple Maps, whose apps do
+  route trains in Japan, so write the train time from the operator's timetable into the stop's note (JR Hokkaido for
+  the line) rather than waiting for the refresh to fill it in.
 
 ## Open (not yet checked)
 

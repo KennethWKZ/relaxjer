@@ -510,7 +510,7 @@ function routeCard(day) {
 	const rows = legs
 		.map(
 			([a, b, m], li) =>
-				`<a class="l-leg" href="${esc(gmDir(PLACES[b].maps, m, PLACES[a].maps))}" target="_blank" rel="noopener" aria-label="${esc(`${nm(a)} → ${nm(b)} · ${Z(MODES[m][0], MODES[m][1])}`)}">${icon(MODES[m][2])}<span class="l-leg-t">${b === 'hotel' ? Z('回酒店', 'back to hotel') : `${Z('去', 'to')} ${esc(nm(b))}`}${legSub(LT[`${day.id}:${li}`], m)}</span><span class="l-leg-m dlbl">${esc(Z(MODES[m][0], MODES[m][1]))}</span></a>`,
+				`<a class="l-leg" href="${esc(gmDir(PLACES[b].maps, m, PLACES[a].maps))}" target="_blank" rel="noopener" aria-label="${esc(`${nm(a)} → ${nm(b)} · ${Z(MODES[m][0], MODES[m][1])}`)}">${icon(MODES[m][2])}<span class="l-leg-t">${b === 'hotel' ? Z('回酒店', 'back to hotel') : `${Z('去', 'to')} ${esc(nm(b))}`}${legSub(Plan.storedLeg(LT, day.id, li, [a, b, m]), m)}</span><span class="l-leg-m dlbl">${esc(Z(MODES[m][0], MODES[m][1]))}</span></a>`,
 		)
 		.join('');
 	const ids = [legs[0][0], ...legs.map((l) => l[1])];

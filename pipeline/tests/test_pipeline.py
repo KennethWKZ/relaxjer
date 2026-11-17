@@ -18,6 +18,10 @@ class Trip(unittest.TestCase):
         self.assertEqual(trip.utc_at('2027-03-15', 10), '2027-03-15T02:00:00Z')  # 10:00 in Taipei
         self.assertEqual(trip.utc_at('2027-03-15', 9, 30), '2027-03-15T01:30:00Z')
 
+    def test_a_stored_leg_knows_which_stops_it_joins(self):
+        legs_def = {'d3': [['station', 'market', 'walking'], ['market', 'canal', 'walking', '12:00']]}
+        self.assertEqual(trip.leg_ends(legs_def, 'd3:1'), ('market', 'canal', 'walking'))  # an 'HH:MM' start isn't an end
+
     def test_a_leg_sets_off_at_its_own_time_or_a_plausible_one(self):
         self.assertEqual(trip.leg_time('2027-03-15', 1, 3, '18:00'), '2027-03-15T10:00:00Z')  # the leg's own 'HH:MM' wins
         self.assertEqual(trip.leg_time('2027-03-15', 0, 3), '2027-03-15T01:30:00Z')  # first leg 09:30

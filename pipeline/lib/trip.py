@@ -43,5 +43,10 @@ def leg_time(date, i, n, at=None):
     else: hh, mm = (9 if i == 0 else 20 if i == n - 1 else 13), 30
     return utc_at(date, hh, mm)
 
+def leg_ends(legs_def, key):
+    """(from, to, mode) of the route leg a stored leg 'd3:1' was asked for, from the day's route at the refresh"""
+    day, i = key.split(':')
+    a, b, m = legs_def[day][int(i)][:3]
+    return a, b, m
 def cfg(key, default):
     return CONFIG.get(key, default)

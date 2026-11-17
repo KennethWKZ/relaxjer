@@ -5,7 +5,7 @@ import json, os, re, sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ['RESYNC_FRESH'] = '0'  # apply reads what fetch just fetched, even in a --fresh run
 import opencc; T2S = opencc.OpenCC('t2s').convert
-from lib.trip import S, PLACES, HOTEL_OF, ROLES, TODAY, cfg
+from lib.trip import S, PLACES, HOTEL_OF, ROLES, TODAY, cfg, leg_ends
 from lib import google as F
 from lib.hours import parse_hours, fmt_hours, closed_on_trip, clean_addr, merge_addr
 o = json.load(open(F.OUT))
@@ -121,6 +121,8 @@ for k, r in o['legs'].items():
                'rides': [{'line': T2S(x['transitLine'].get('name') or x['transitLine'].get('nameShort', '')), 'line_en': x['transitLine'].get('nameShort', ''), 'from': T2S(x['stopDetails']['departureStop']['name']), 'to': T2S(x['stopDetails']['arrivalStop']['name']), 'stops': x.get('stopCount'), 'kind': x['transitLine'].get('vehicle', {}).get('type', '')} for x in rides]}
     if r.get('_asWalk'): legs[k]['asWalk'] = True
     if r.get('_bad'): legs[k]['bad'] = round(int(r['_bad'][:-1]) / 60)  # the same drive in heavy traffic (Google's pessimistic prediction)
+    # which leg this was, so the page drops it once the day's stops are reordered (Plan.storedLeg) instead of showing it on another
+    if o.get('_legs_def'): legs[k].update(zip(('from', 'to', 'mode'), leg_ends(o['_legs_def'], k)))
 geo['legs'] = legs; geo['legs_checked'] = TODAY
 if '--write' in sys.argv:
     F.save()  # lookups made while applying (far-away metro)
