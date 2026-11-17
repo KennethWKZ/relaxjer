@@ -5,13 +5,17 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { plannerCode } from '../../scripts/sync/sync.mjs';
-import { ROOT, resolveEngine, resolveTrip, stagePage } from './stage.mjs';
+import { DEMO_TRIPS, ROOT, resolveEngine, resolveTrip, stagePage } from './stage.mjs';
 import { makeWorldTrip } from './world-trip.mjs';
 
 export const PAGES_DIR = path.join(ROOT, '.cache', 'pages');
 export const SYNC_TEST_FILE = path.join(ROOT, '.cache', 'sync-test.json');
 /** the live demo's clock, read from the workflow that publishes it, so the tests open the page visitors get */
 export const DEMO_CLOCK = (fs.readFileSync(path.join(ROOT, '.github', 'workflows', 'pages.yml'), 'utf8').match(/--demo-clock "([^"]+)"/) || [])[1];
+/** the Sapporo demo's clock, the same way: the workflow line that builds examples/demo-sapporo */
+export const SAPPORO_CLOCK = (fs
+	.readFileSync(path.join(ROOT, '.github', 'workflows', 'pages.yml'), 'utf8')
+	.match(/demo-sapporo[^\n]*--demo-clock "([^"]+)"/) || [])[1];
 /** the sync page's planner code: the phone that gives it becomes a planner */
 export const TEST_PLANNER_CODE = 'demo-planner-2468';
 
@@ -53,4 +57,13 @@ export default async function globalSetup() {
 	if (!trip.demo) return;
 	const demo = stagePage({ engine, trip, outDir: path.join(ROOT, '.cache', 'stage-demo'), args: ['--demo-clock', DEMO_CLOCK] });
 	fs.copyFileSync(demo, path.join(PAGES_DIR, 'trip-demo.html'));
+
+	// the second live demo, Sapporo in Snow Light Path, built the same way (tests/e2e/demo.spec.mjs)
+	const sapporo = stagePage({
+		engine,
+		trip: { dir: DEMO_TRIPS[1] },
+		outDir: path.join(ROOT, '.cache', 'stage-demo-sapporo'),
+		args: ['--demo-clock', SAPPORO_CLOCK],
+	});
+	fs.copyFileSync(sapporo, path.join(PAGES_DIR, 'trip-demo-sapporo.html'));
 }

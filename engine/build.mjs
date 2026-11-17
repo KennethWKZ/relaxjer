@@ -32,9 +32,10 @@ if (demoClock && !/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(demoClock)) {
 	console.error(`--demo-clock: YYYY-MM-DD HH:MM in the trip's time, got ${JSON.stringify(demoClock)}`);
 	process.exit(2);
 }
-// strict on purpose: the repo's own demo folder by path, so a copy or a link of it is refused too
-if (demoClock && trip !== path.resolve(engine, '..', 'examples', 'demo-trip')) {
-	console.error('--demo-clock is for the demo trip (examples/demo-trip) only: a real trip keeps the real time');
+// strict on purpose: the repo's own demo folders by path, so a copy or a link of one is refused too
+const DEMOS = ['demo-trip', 'demo-sapporo'].map((d) => path.resolve(engine, '..', 'examples', d));
+if (demoClock && !DEMOS.includes(trip)) {
+	console.error('--demo-clock is for the demo trips (examples/demo-trip, examples/demo-sapporo) only: a real trip keeps the real time');
 	process.exit(2);
 }
 if (!arg('trip') || !fs.existsSync(path.join(trip, 'data.js'))) {
@@ -144,7 +145,8 @@ const geo = geoFull && { bbox: geoFull.bbox, attribution: geoFull.attribution, p
 const extra = readJSON('src/extra.json', { food: [], tickets: [], sites: {} });
 const forecast = readJSON('src/forecast.json', null);
 const drinks = readJSON('src/drinks.json', []);
-const toilets = readJSON('src/toilets.json', { wc: [], near: {}, gp: {}, borrow: {} });
+// a file with only some of the parts (no Google step ran, so no gp) still gives the page every part it reads
+const toilets = { wc: [], near: {}, gp: {}, borrow: {}, ...readJSON('src/toilets.json', {}) };
 const shops = readJSON('src/shops.json', []);
 const mrt = readJSON('src/mrt.json', null);
 const transit = readJSON('src/transit.json', { yb: [], bus: [] }); // scripts/mrt.py, scripts/gtransit.py

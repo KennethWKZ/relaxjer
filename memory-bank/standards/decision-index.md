@@ -1,5 +1,5 @@
 ---
-total_decisions: 25
+total_decisions: 26
 last_updated: 2026-11-17
 ---
 
@@ -32,7 +32,7 @@ merged id never changes; a new ADR that collides takes a fresh slug.
 | [ADR-20261002-embed-brush-font](decisions/ADR-20261002-embed-brush-font.md)                       | 2026-10-02 | Nothing From the Network Holds the Trip Page's First Paint: the Brush Face Travels in the Page                                   | layout   | accepted |
 | [ADR-20261002-feature-docs-planner-skills](decisions/ADR-20261002-feature-docs-planner-skills.md) | 2026-10-02 | Every Feature Is Written Down Where Planners Look, a Tier-0 Test Keeps It So, and Agents Get Setup, Customize and a Travel Agent | agents   | accepted |
 | [ADR-20261002-landing-postcards](decisions/ADR-20261002-landing-postcards.md)                     | 2026-10-02 | The Landing Page Is a Set of Postcards, Each With a Drawn Demo That Loops, and Carries Its Own Policy                            | layout   | accepted |
-| [ADR-20261002-live-demo-on-pages](decisions/ADR-20261002-live-demo-on-pages.md)                   | 2026-10-02 | The Demo Trip Goes Live on GitHub Pages, Built by CI With No Key and Its Clock Set to a Day Under Way                            | hosting  | accepted |
+| [ADR-20261002-live-demo-on-pages](decisions/ADR-20261002-live-demo-on-pages.md)                   | 2026-10-02 | The Demo Trip Goes Live on GitHub Pages, Built by CI With No Key and Its Clock Set to a Day Under Way                            | hosting  | amended  |
 | [ADR-20261002-required-ci](decisions/ADR-20261002-required-ci.md)                                 | 2026-10-02 | A Red CI Blocks the Merge: main Requires One ci-ok Check, and the Maintainer Can Still Push                                      | tooling  | accepted |
 | [ADR-20261002-sync-planners](decisions/ADR-20261002-sync-planners.md)                             | 2026-10-02 | Group Sync Gets Planners, Own-Stop Edits, Undo and a Recently Removed List                                                       | data     | accepted |
 | [ADR-20261007-split-follows-pushback](decisions/ADR-20261007-split-follows-pushback.md)           | 2026-10-07 | A Push-Back Moves a Split Day’s Fork and Rejoin; Each Plan Keeps Its Own Times                                                   | engine   | accepted |
@@ -41,3 +41,4 @@ merged id never changes; a new ADR that collides takes a fresh slug.
 | [ADR-20261008-release-age-exceptions](decisions/ADR-20261008-release-age-exceptions.md)           | 2026-10-08 | A Release Comes In Before Its Three Days Only by Exact Version, Until It Turns Three Days Old                                    | tooling  | accepted |
 | [ADR-20261117-destination-themes](decisions/ADR-20261117-destination-themes.md)                   | 2026-11-17 | A Destination Pack May Dress the Page in Its Own World; Days May Carry an Activity Mark                                          | engine   | accepted |
 | [ADR-20261117-native-layer](decisions/ADR-20261117-native-layer.md)                               | 2026-11-17 | The Native Layer Shows the Local Words Under Each Stop and Place, One Tap to Copy, When the Pack Names the Language              | engine   | accepted |
+| [ADR-20261117-second-demo-and-site-worlds](decisions/ADR-20261117-second-demo-and-site-worlds.md) | 2026-11-17 | A Second Live Demo in Sapporo, and the Landing Page Picks Its World by the Visitor and the Season, Never by a Trip               | hosting  | accepted |

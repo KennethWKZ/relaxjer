@@ -1,0 +1,16 @@
+{
+  "checked": "2027-01-30",
+  "wc": [
+    { "n_trad": "札幌站公廁（示範）", "n_zh": "札幌站公厕（示范）", "n_en": "Sapporo Station toilets (demo)", "lat": 43.0689, "lng": 141.3510 },
+    { "n_trad": "大通站公廁（示範）", "n_zh": "大通站公厕（示范）", "n_en": "Odori Station toilets (demo)", "lat": 43.0609, "lng": 141.3539 },
+    { "n_trad": "小樽站公廁（示範）", "n_zh": "小樽站公厕（示范）", "n_en": "Otaru Station toilets (demo)", "lat": 43.1960, "lng": 141.0020 },
+    { "n_trad": "手稻雪場公廁（示範）", "n_zh": "手稻雪场公厕（示范）", "n_en": "Teine ski area toilets (demo)", "lat": 43.0691, "lng": 141.1790 }
+  ],
+  "near": {
+    "hotel": [[1, 60]],
+    "sapStn": [[0, 30]],
+    "odori": [[1, 80]],
+    "otaruStn": [[2, 30]],
+    "teine": [[3, 40]]
+  }
+}

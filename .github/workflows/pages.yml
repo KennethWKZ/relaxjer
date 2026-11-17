@@ -1,17 +1,19 @@
-# The landing page and the live demo on GitHub Pages. site/ goes up as it is (static HTML, no build); the demo is the
-# synthetic demo trip (examples/demo-trip), built here with no Google key and no sync file, its clock set to a day under
-# way, at /relaxjer/demo/ (ADR-20261002-live-demo-on-pages). Never a real trip: only examples/demo-trip is built, and
+# The landing page and the live demos on GitHub Pages. site/ goes up as it is (static HTML, no build); the demos are the
+# synthetic demo trips, Taipei (examples/demo-trip) at /relaxjer/demo/ and Sapporo (examples/demo-sapporo) at
+# /relaxjer/demo/sapporo/, built here with no Google key and no sync file, each clock set to a day under way
+# (ADR-20261002-live-demo-on-pages). Never a real trip: only the two demo folders are built, and
 # tests/repo/site.test.mjs holds this file to that. Enable once in the repo: Settings → Pages → Source: GitHub Actions.
 # Actions are pinned to commit SHAs (story index, "CI supply chain"); the comment names the release.
 name: pages
 on:
   push:
     branches: [main]
-    # the demo's inputs: build.mjs reads engine/ and the trip (with its country pack); add a path if it reads more
+    # the demos' inputs: build.mjs reads engine/ and the trip (with its country pack); add a path if it reads more
     paths:
       - 'site/**'
       - 'engine/**'
       - 'examples/demo-trip/**'
+      - 'examples/demo-sapporo/**'
       - 'destinations/**'
       - 'package.json'
       - 'pnpm-lock.yaml'
@@ -50,11 +52,15 @@ jobs:
           mkdir -p .cache/demo
           node engine/build.mjs --trip examples/demo-trip --out .cache/demo --demo-clock "2027-03-15 10:05" | tee .cache/demo/build.log
           grep -q 'google key no · group sync no · demo clock 2027-03-15 10:05' .cache/demo/build.log
+          mkdir -p .cache/demo-sapporo
+          node engine/build.mjs --trip examples/demo-sapporo --out .cache/demo-sapporo --demo-clock "2027-02-08 10:35" | tee .cache/demo-sapporo/build.log
+          grep -q 'google key no · group sync no · demo clock 2027-02-08 10:35' .cache/demo-sapporo/build.log
       - name: stage the landing page with the demo at demo/
         run: |
-          mkdir -p _site/demo
+          mkdir -p _site/demo/sapporo
           cp -R site/. _site/
           cp .cache/demo/trip-standalone.html _site/demo/index.html
+          cp .cache/demo-sapporo/trip-standalone.html _site/demo/sapporo/index.html
       - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:

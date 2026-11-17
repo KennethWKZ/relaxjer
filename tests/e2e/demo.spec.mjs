@@ -76,3 +76,19 @@ test("a page without a Google key offers no Google search in the map's place sea
 	await expect(page.locator('#mapres')).toContainText('Nothing found');
 	await expect(page.locator('#mapres [data-gsearch]')).toHaveCount(0);
 });
+
+test.describe('the Sapporo live demo', { tag: '@demo' }, () => {
+	test.skip(!!(process.env.TRIP_DIR || process.env.LEGACY_ENGINE_DIR), 'the live demo is the demo trip, on this engine');
+	test.use({ tripNow: null }); // its own demo clock, from pages.yml
+
+	test('opens on Day 3 in Snow Light Path, a booked lesson under way, every name also in Japanese', async ({ page }) => {
+		await page.goto('/trip-demo-sapporo.html');
+		await expect(page.locator('#app [data-sec]').first()).toBeAttached();
+		await expect(page.locator('html')).toHaveAttribute('data-world', 'snowlight');
+		await expect(page.locator('.now-day')).toHaveText('Day 3');
+		await expect(page.locator('#d3 .stop.now')).toContainText('Ski lesson');
+		await expect(page.locator('.now-num'), 'no countdown on a day under way').toHaveCount(0);
+		await expect(page.locator('#d3 [data-native] .nat-t').first()).toHaveAttribute('lang', 'ja');
+		await expect(page.locator('#d3 .l-motif')).toBeVisible();
+	});
+});

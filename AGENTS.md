@@ -10,8 +10,8 @@ the pipeline; the agent tooling, with skills from a fresh clone to a published p
 and the landing page (6b) deploys from `site/`. Group sync, on the planner's own Firebase database, and the page's
 security policy are live on the first trip; a day can split for part of the group, a stop can suggest optional plans,
 and the add sheet checks a stop's time against getting there. Every feature is written down for planners in
-[`guides/trip-page.md`](guides/trip-page.md), and a tier-0 test keeps the docs in step with the code. Next: i18n (step
-4), a second destination (7). See [`memory-bank/story-index.md`](memory-bank/story-index.md).
+[`guides/trip-page.md`](guides/trip-page.md), and a tier-0 test keeps the docs in step with the code. Under way: a second destination (7): the
+Japan pack and a synthetic Sapporo demo in Snow Light Path beside Taipei's. Next: i18n (step 4). See [`memory-bank/story-index.md`](memory-bank/story-index.md).
 
 ## Read first
 

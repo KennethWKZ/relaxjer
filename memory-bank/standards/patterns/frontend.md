@@ -127,3 +127,11 @@ contract are in `.impeccable/surfaces/site-index-html.md`.
   motion), every Pause a 44 px disc off its screen that pauses and plays, and the theme button switching day and night, remembered
   across a reload. The eye check is 390 px and desktop, light and dark, in Chromium and WebKit, with reduced
   motion (the still frames) and without (the loops).
+
+**Two worlds.** The page has Lanterns (the default, no `data-world` attribute) and Snow (`data-world="snow"`, Snow Light
+Path). `theme.js` picks Snow from December to February by the visitor's own clock when nothing is stored; the bar's
+world button (`.nav-world`) switches and remembers a choice, and the season's own world forgets it. Snow's rules live in
+the `:root[data-world='snow']` block and the `.world-*` classes at the end of `site.css`; Lanterns rules stay untouched.
+Snow has no lanterns, birds or moon: candles stand in snow in the footer and on the postcard front, and the only motion
+is the snowfall, which falls as the page scrolls and is gone under reduced motion. `tests/e2e/site.spec.mjs` checks both
+worlds, and `tests/repo/site.test.mjs` checks the season rule for all twelve months.

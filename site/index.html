@@ -13,8 +13,8 @@
 		<link rel="canonical" href="https://kennethwkz.github.io/relaxjer/" />
 		<!-- Google Search Console ownership, one tag per verified owner; removing one un-verifies that owner -->
 		<meta name="google-site-verification" content="jG5Sgz_FqNAG2_q00NKBrxOBFRKCgOWtgdeRVKhUR_g" />
-		<meta name="theme-color" content="#d3e6f9" media="(prefers-color-scheme: light)" data-scheme="light" />
-		<meta name="theme-color" content="#0c1424" media="(prefers-color-scheme: dark)" data-scheme="dark" />
+		<meta name="theme-color" content="#d3e6f9" media="(prefers-color-scheme: light)" data-scheme="light" data-snow="#f6fafe" />
+		<meta name="theme-color" content="#0c1424" media="(prefers-color-scheme: dark)" data-scheme="dark" data-snow="#0a1424" />
 		<meta property="og:type" content="website" />
 		<meta property="og:site_name" content="RelaxJer" />
 		<meta property="og:locale" content="en_GB" />
@@ -127,6 +127,21 @@
 			<img class="lit r by-night" src="assets/lantern.svg" alt="" width="24" height="24" style="--y: 48%; --j: 0.2; --w: 24px" />
 			<img class="lit by-night" src="assets/lantern.svg" alt="" width="18" height="18" style="--y: 57%; --j: 0.36; --w: 18px" />
 			<img class="lit r by-night" src="assets/lantern.svg" alt="" width="22" height="22" style="--y: 68%; --j: 0.52; --w: 22px" />
+			<!-- Snow's falling snow, scroll-linked like the birds it replaces (snow world, site.css) -->
+			<span class="flake world-snow" style="--x: 5%; --y: 4%; --s: 5px"></span>
+			<span class="flake world-snow" style="--x: 13%; --y: 11%; --s: 4px"></span>
+			<span class="flake world-snow" style="--x: 22%; --y: 3%; --s: 6px"></span>
+			<span class="flake world-snow" style="--x: 31%; --y: 17%; --s: 4px"></span>
+			<span class="flake world-snow" style="--x: 40%; --y: 8%; --s: 5px"></span>
+			<span class="flake world-snow" style="--x: 49%; --y: 24%; --s: 4px"></span>
+			<span class="flake world-snow" style="--x: 58%; --y: 13%; --s: 6px"></span>
+			<span class="flake world-snow" style="--x: 66%; --y: 30%; --s: 4px"></span>
+			<span class="flake world-snow" style="--x: 74%; --y: 6%; --s: 5px"></span>
+			<span class="flake world-snow" style="--x: 83%; --y: 36%; --s: 4px"></span>
+			<span class="flake world-snow" style="--x: 91%; --y: 19%; --s: 6px"></span>
+			<span class="flake world-snow" style="--x: 9%; --y: 52%; --s: 4px"></span>
+			<span class="flake world-snow" style="--x: 61%; --y: 58%; --s: 5px"></span>
+			<span class="flake world-snow" style="--x: 36%; --y: 66%; --s: 4px"></span>
 		</div>
 		<header class="bar">
 			<div class="bar-row">
@@ -140,6 +155,9 @@
 				<nav class="nav" aria-label="On this page">
 					<a class="nav-wide" href="#features">Features</a>
 					<a class="nav-wide" href="#plan">How it works</a>
+					<button class="nav-world" type="button" aria-label="Switch to Snow" title="Switch to Snow" hidden>
+						<svg class="i" aria-hidden="true"><use href="#i-snow" /></svg>
+					</button>
 					<button class="nav-theme" type="button" aria-label="Switch to night" title="Switch to night" hidden>
 						<svg class="i" aria-hidden="true"><use href="#i-moon" /></svg>
 					</button>
@@ -163,23 +181,78 @@
 							Plan your trip
 							<svg class="i" aria-hidden="true"><use href="#i-down" /></svg>
 						</a>
-						<a class="go go-paper" href="demo/">
+						<a class="go go-paper world-snow" href="demo/sapporo/">
+							Try the Sapporo demo
+							<svg class="i" aria-hidden="true"><use href="#i-arrow" /></svg>
+						</a>
+						<a class="go go-paper world-lanterns" href="demo/">
 							Try the demo trip
 							<svg class="i" aria-hidden="true"><use href="#i-arrow" /></svg>
 						</a>
 					</div>
+					<p class="other-demo">
+						<a class="world-lanterns" href="demo/sapporo/">or the Sapporo demo</a>
+						<a class="world-snow" href="demo/">or the Taipei demo</a>
+					</p>
 				</div>
 
 				<div class="desk" aria-label="A postcard from the demo trip, with the trip page on a phone lying across it" role="group">
 					<div class="pc pc-front" aria-hidden="true">
 						<div class="sky">
-							<span class="caption" lang="zh-Hans">台北</span>
-							<img class="flier" src="assets/lantern.svg" alt="" width="22" height="22" style="--x: 18%; --y: 30%; --d: -2s" />
-							<img class="flier" src="assets/lantern.svg" alt="" width="22" height="22" style="--x: 40%; --y: 22%; --d: -7s" />
-							<img class="flier" src="assets/lantern.svg" alt="" width="22" height="22" style="--x: 62%; --y: 34%; --d: -4.5s" />
-							<img class="flier" src="assets/lantern.svg" alt="" width="22" height="22" style="--x: 78%; --y: 20%; --d: -10s" />
-							<img class="flier" src="assets/lantern.svg" alt="" width="22" height="22" style="--x: 30%; --y: 12%; --d: -12.5s" />
-							<svg class="hills" viewBox="0 0 400 120" preserveAspectRatio="none">
+							<svg class="snow-art world-snow" viewBox="0 0 300 200" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+								<defs>
+									<radialGradient id="snow-glow">
+										<stop offset="0" stop-color="#ffc56b" stop-opacity=".55" />
+										<stop offset="1" stop-color="#ffc56b" stop-opacity="0" />
+									</radialGradient>
+								</defs>
+								<path d="M0 150 C60 128 120 136 180 146 C230 154 265 138 300 128 V200 H0Z" fill="#dbe7f5" opacity=".7" />
+								<path d="M0 176 C80 164 170 170 300 160 V200 H0Z" fill="#f4f8fd" />
+								<g>
+									<circle cx="46" cy="168" r="16" fill="url(#snow-glow)" />
+									<circle cx="84" cy="162" r="16" fill="url(#snow-glow)" />
+									<circle cx="122" cy="166" r="16" fill="url(#snow-glow)" />
+									<circle cx="160" cy="158" r="16" fill="url(#snow-glow)" />
+									<circle cx="198" cy="164" r="16" fill="url(#snow-glow)" />
+									<circle cx="236" cy="154" r="16" fill="url(#snow-glow)" />
+									<circle cx="270" cy="160" r="16" fill="url(#snow-glow)" />
+								</g>
+								<g fill="#ffffff">
+									<ellipse cx="46" cy="172" rx="8" ry="2.6" />
+									<ellipse cx="84" cy="166" rx="8" ry="2.6" />
+									<ellipse cx="122" cy="170" rx="8" ry="2.6" />
+									<ellipse cx="160" cy="162" rx="8" ry="2.6" />
+									<ellipse cx="198" cy="168" rx="8" ry="2.6" />
+									<ellipse cx="236" cy="158" rx="8" ry="2.6" />
+									<ellipse cx="270" cy="164" rx="8" ry="2.6" />
+								</g>
+								<g fill="#fff3cf">
+									<rect x="43.5" y="158" width="5" height="10" rx="1" />
+									<rect x="81.5" y="152" width="5" height="10" rx="1" />
+									<rect x="119.5" y="156" width="5" height="10" rx="1" />
+									<rect x="157.5" y="148" width="5" height="10" rx="1" />
+									<rect x="195.5" y="154" width="5" height="10" rx="1" />
+									<rect x="233.5" y="144" width="5" height="10" rx="1" />
+									<rect x="267.5" y="150" width="5" height="10" rx="1" />
+								</g>
+								<g fill="#ffb43c">
+									<path d="M46 136c3 4 3.4 7.6 0 10-3.4-2.4-3-6 0-10z" />
+									<path d="M84 130c3 4 3.4 7.6 0 10-3.4-2.4-3-6 0-10z" />
+									<path d="M122 134c3 4 3.4 7.6 0 10-3.4-2.4-3-6 0-10z" />
+									<path d="M160 126c3 4 3.4 7.6 0 10-3.4-2.4-3-6 0-10z" />
+									<path d="M198 132c3 4 3.4 7.6 0 10-3.4-2.4-3-6 0-10z" />
+									<path d="M236 122c3 4 3.4 7.6 0 10-3.4-2.4-3-6 0-10z" />
+									<path d="M270 128c3 4 3.4 7.6 0 10-3.4-2.4-3-6 0-10z" />
+								</g>
+							</svg>
+							<span class="caption world-lanterns" lang="zh-Hans">台北</span>
+							<span class="caption world-snow" lang="ja">札幌</span>
+							<img class="flier world-lanterns" src="assets/lantern.svg" alt="" width="22" height="22" style="--x: 18%; --y: 30%; --d: -2s" />
+							<img class="flier world-lanterns" src="assets/lantern.svg" alt="" width="22" height="22" style="--x: 40%; --y: 22%; --d: -7s" />
+							<img class="flier world-lanterns" src="assets/lantern.svg" alt="" width="22" height="22" style="--x: 62%; --y: 34%; --d: -4.5s" />
+							<img class="flier world-lanterns" src="assets/lantern.svg" alt="" width="22" height="22" style="--x: 78%; --y: 20%; --d: -10s" />
+							<img class="flier world-lanterns" src="assets/lantern.svg" alt="" width="22" height="22" style="--x: 30%; --y: 12%; --d: -12.5s" />
+							<svg class="hills world-lanterns" viewBox="0 0 400 120" preserveAspectRatio="none">
 								<path d="M0 70 C60 40 110 52 160 64 C210 76 250 30 300 38 C340 44 370 60 400 52 V120 H0Z" fill="#1d1733" opacity=".75" />
 								<path d="M0 92 C70 74 120 86 190 90 C260 94 310 70 400 80 V120 H0Z" fill="#0f1022" />
 							</svg>
@@ -189,25 +262,33 @@
 						<span class="airmail airmail-frame" aria-hidden="true"></span>
 						<div class="pc-msg">
 							<p class="note-brush" lang="zh-Hans" aria-hidden="true">放轻松，都在这页</p>
-							<p>Relax, it’s all on this page. Day 3 is the hot springs; lunch is near the museum.</p>
+							<p class="world-lanterns">Relax, it’s all on this page. Day 3 is the hot springs; lunch is near the museum.</p>
+							<p class="world-snow">Relax, it’s all on this page. Day 3 is the ski lesson; two of us take the onsen bus.</p>
 							<p class="sign" aria-hidden="true">Ana</p>
 						</div>
 						<span class="pc-div" aria-hidden="true"></span>
 						<div class="pc-addr">
 							<span class="stamp" aria-hidden="true">
-								<span class="stamp-face" style="--c: var(--l1); --ci: var(--l1-ink)">
+								<span class="stamp-face world-lanterns" style="--c: var(--l1); --ci: var(--l1-ink)">
 									<span class="den">0</span>
 									<svg viewBox="0 0 34 40"><use href="#lantern-art" /></svg>
 									<b>Free</b>
 								</span>
+								<span class="stamp-face world-snow" style="--c: #1b3460; --ci: #ffffff">
+									<span class="den">0</span>
+									<svg viewBox="0 0 34 40"><use href="#candle-art" /></svg>
+									<b>Free</b>
+								</span>
 							</span>
-							<svg class="postmark" viewBox="0 0 132 92" aria-hidden="true"><use href="#postmark-art" /></svg>
+							<svg class="postmark world-lanterns" viewBox="0 0 132 92" aria-hidden="true"><use href="#postmark-art" /></svg>
+							<svg class="postmark world-snow" viewBox="0 0 132 92" aria-hidden="true"><use href="#postmark-art-snow" /></svg>
 							<p>To: everyone in the group chat</p>
-							<p>Taipei demo trip, Day 3</p>
+							<p class="world-lanterns">Taipei demo trip, Day 3</p>
+							<p class="world-snow">Sapporo demo trip, Day 3</p>
 						</div>
 					</div>
 					<figure class="phone">
-						<picture>
+						<picture class="world-lanterns">
 							<source data-dark media="(prefers-color-scheme: dark)" srcset="assets/screens/now-dark.webp" />
 							<img
 								src="assets/screens/now-light.webp"
@@ -215,6 +296,15 @@
 								height="844"
 								fetchpriority="high"
 								alt="The demo trip's Now and Next card on a phone: Day 3, now the MRT to Xinbeitou, next the Beitou Hot Spring Museum." />
+						</picture>
+						<picture class="world-snow">
+							<source data-dark media="(prefers-color-scheme: dark)" srcset="assets/screens/now-snow-dark.webp" />
+							<img
+								src="assets/screens/now-snow-light.webp"
+								width="390"
+								height="844"
+								loading="lazy"
+								alt="The Sapporo demo trip's Now and Next card on a phone: Day 3, now the ski lesson, next lunch at the lodge." />
 						</picture>
 					</figure>
 				</div>
@@ -1951,14 +2041,26 @@
 		<footer class="foot">
 			<!-- lantern night: the day ends where the group lets its wishes go -->
 			<div class="night" aria-hidden="true">
-				<span class="moon"></span>
-				<img class="lit" src="assets/lantern.svg" alt="" width="30" height="30" style="--x: 9%; --y: 58%; --d: 0.4" />
-				<img class="lit" src="assets/lantern.svg" alt="" width="22" height="22" style="--x: 22%; --y: 26%; --d: 0.8" />
-				<img class="lit" src="assets/lantern.svg" alt="" width="36" height="36" style="--x: 36%; --y: 64%; --d: 0.1" />
-				<img class="lit" src="assets/lantern.svg" alt="" width="26" height="26" style="--x: 52%; --y: 34%; --d: 0.6" />
-				<img class="lit" src="assets/lantern.svg" alt="" width="32" height="32" style="--x: 66%; --y: 70%; --d: 0.3" />
-				<img class="lit" src="assets/lantern.svg" alt="" width="24" height="24" style="--x: 80%; --y: 40%; --d: 0.9" />
-				<img class="lit" src="assets/lantern.svg" alt="" width="28" height="28" style="--x: 92%; --y: 62%; --d: 0.5" />
+				<span class="moon world-lanterns"></span>
+				<img class="lit world-lanterns" src="assets/lantern.svg" alt="" width="30" height="30" style="--x: 9%; --y: 58%; --d: 0.4" />
+				<img class="lit world-lanterns" src="assets/lantern.svg" alt="" width="22" height="22" style="--x: 22%; --y: 26%; --d: 0.8" />
+				<img class="lit world-lanterns" src="assets/lantern.svg" alt="" width="36" height="36" style="--x: 36%; --y: 64%; --d: 0.1" />
+				<img class="lit world-lanterns" src="assets/lantern.svg" alt="" width="26" height="26" style="--x: 52%; --y: 34%; --d: 0.6" />
+				<img class="lit world-lanterns" src="assets/lantern.svg" alt="" width="32" height="32" style="--x: 66%; --y: 70%; --d: 0.3" />
+				<img class="lit world-lanterns" src="assets/lantern.svg" alt="" width="24" height="24" style="--x: 80%; --y: 40%; --d: 0.9" />
+				<img class="lit world-lanterns" src="assets/lantern.svg" alt="" width="28" height="28" style="--x: 92%; --y: 62%; --d: 0.5" />
+				<!-- Snow's night: candles set in the snow along the path, each standing on the ground (never hanging) -->
+				<div class="snow-path world-snow">
+					<span class="candle" style="--x: 7%; --y: 90%"><i></i></span>
+					<span class="candle" style="--x: 17%; --y: 86%"><i></i></span>
+					<span class="candle" style="--x: 28%; --y: 83%"><i></i></span>
+					<span class="candle" style="--x: 39%; --y: 81%"><i></i></span>
+					<span class="candle" style="--x: 50%; --y: 80%"><i></i></span>
+					<span class="candle" style="--x: 61%; --y: 81%"><i></i></span>
+					<span class="candle" style="--x: 72%; --y: 83%"><i></i></span>
+					<span class="candle" style="--x: 83%; --y: 86%"><i></i></span>
+					<span class="candle" style="--x: 93%; --y: 90%"><i></i></span>
+				</div>
 				<svg class="ridge" viewBox="0 0 1200 140" preserveAspectRatio="none">
 					<path d="M0 78 C120 40 220 60 330 70 C450 82 540 26 680 34 C800 42 900 74 1010 64 C1090 56 1150 50 1200 56 V140 H0Z" fill="#251c46" />
 					<path d="M0 108 C150 86 280 98 420 102 C560 106 690 78 840 86 C960 92 1080 100 1200 96 V140 H0Z" fill="#120f26" />
@@ -1986,6 +2088,13 @@
 			<defs>
 				<path id="pm-ring" d="M46 46 m-31 0 a31 31 0 1 1 62 0 a31 31 0 1 1 -62 0" />
 			</defs>
+			<symbol id="i-snow" viewBox="0 0 24 24">
+				<path d="M12 2.5v19M3.6 7.25l16.8 9.5M3.6 16.75l16.8-9.5M9.5 4.2L12 6l2.5-2.2M9.5 19.8L12 18l2.5 2.2" />
+			</symbol>
+			<symbol id="i-lantern" viewBox="0 0 24 24">
+				<rect x="7.5" y="8.5" width="9" height="10.5" rx="3" />
+				<path d="M12 2.5v3M9 5.5h6M7.5 13.5h9M9.5 19v3M14.5 19v3" />
+			</symbol>
 			<symbol id="i-ext" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" /></symbol>
 			<symbol id="i-down" viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6" /></symbol>
 			<symbol id="i-search" viewBox="0 0 24 24">
@@ -2093,6 +2202,26 @@
 					fill="none"
 					stroke="currentColor"
 					stroke-width="2" />
+			</symbol>
+			<symbol id="postmark-art-snow" viewBox="0 0 132 92">
+				<circle cx="46" cy="46" r="40" fill="none" stroke="currentColor" stroke-width="2" />
+				<circle cx="46" cy="46" r="22" fill="none" stroke="currentColor" stroke-width="1.4" />
+				<text><textPath href="#pm-ring" startOffset="2">DEMO TRIP · SAPPORO · RELAXJER ·</textPath></text>
+				<text x="46" y="44" text-anchor="middle" style="font-size: 10px">DAY</text>
+				<text x="46" y="57" text-anchor="middle" style="font-size: 12px">3</text>
+				<path
+					d="M90 28c5-5 9 5 14 0s9 5 14 0 9 5 14 0M90 40c5-5 9 5 14 0s9 5 14 0 9 5 14 0M90 52c5-5 9 5 14 0s9 5 14 0 9 5 14 0M90 64c5-5 9 5 14 0s9 5 14 0 9 5 14 0"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2" />
+			</symbol>
+			<!-- a candle set in snow, for the Snow world's stamp -->
+			<symbol id="candle-art" viewBox="0 0 34 40">
+				<path d="M17 9c-3.2-2.7-1.4-6.6 0-9 1.4 2.4 3.2 6.3 0 9z" fill="#ffb43c" />
+				<path d="M17 7.6c-1.3-1.1-.6-2.8 0-3.9.6 1.1 1.3 2.8 0 3.9z" fill="#fff6dc" />
+				<path d="M9.5 13h15l-2 13h-11z" fill="currentColor" opacity=".9" />
+				<ellipse cx="17" cy="13" rx="7.5" ry="1.8" fill="#ffb43c" />
+				<path d="M2 32c5-4 10-4 15-2s10 2 15-1v11H2z" fill="currentColor" />
 			</symbol>
 			<!-- an airmail letter, for the sync route -->
 			<symbol id="letter-art" viewBox="-17 -12 34 24" overflow="visible">

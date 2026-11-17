@@ -54,6 +54,8 @@ test('the framework files stay tracked', () => {
 		'engine/src/app/99-close.js',
 		'examples/demo-trip/data.js',
 		'examples/demo-trip/geo.json',
+		'examples/demo-sapporo/data.js',
+		'examples/demo-sapporo/geo.json',
 		'tests/e2e/boot.spec.mjs',
 		'.env.example',
 		'memory-bank/standards/decisions/ADR-20260930-repo-layout.md',
