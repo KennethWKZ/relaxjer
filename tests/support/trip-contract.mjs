@@ -3,6 +3,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
+import { names as MOTIFS } from '../../engine/src/core/motif.mjs';
 
 // read when present: the themed shop lists (SNOW is the older single-list form)
 export const OPTIONAL_GLOBALS = ['SHOPLISTS', 'SNOW'];
@@ -101,6 +102,8 @@ export function checkTrip(trip) {
 		if (d.n !== i + 1) bad(`${d.id}: n is ${d.n}, expected ${i + 1}`);
 		// the day's lantern colour: the page has seven (--l1…--l7), and the My Maps export one per colour
 		if (!(Number.isInteger(d.c) && d.c >= 1 && d.c <= 7)) bad(`${d.id}: c (its lantern colour) must be 1–7, got ${JSON.stringify(d.c)}`);
+		// the day's activity mark: one the engine draws (engine/src/core/motif.mjs), named by the planner, never free text
+		if (d.motif != null && !MOTIFS.includes(d.motif)) bad(`${d.id}: motif ${JSON.stringify(d.motif)} must be one of ${MOTIFS.join('|')}`);
 		if (i && Date.parse(d.date) - Date.parse(DAYS[i - 1].date) !== 864e5) bad(`${d.id}: ${d.date} does not follow ${DAYS[i - 1].date}`);
 		// planned (non-flight-tied) times never run backwards
 		let last = -1;

@@ -6,6 +6,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { plannerCode } from '../../scripts/sync/sync.mjs';
 import { ROOT, resolveEngine, resolveTrip, stagePage } from './stage.mjs';
+import { makeWorldTrip } from './world-trip.mjs';
 
 export const PAGES_DIR = path.join(ROOT, '.cache', 'pages');
 export const SYNC_TEST_FILE = path.join(ROOT, '.cache', 'sync-test.json');
@@ -29,6 +30,7 @@ export default async function globalSetup() {
 	fs.cpSync(path.join(ROOT, 'site'), path.join(PAGES_DIR, 'site'), { recursive: true });
 
 	fs.rmSync(path.join(PAGES_DIR, 'trip-sync.html'), { force: true });
+	fs.rmSync(path.join(PAGES_DIR, 'trip-world.html'), { force: true });
 	if (engine.kind !== 'engine') return; // the legacy engine has no group sync
 	const port = Number(process.env.RELAXJER_TEST_PORT || 8124);
 	const sync = {
@@ -41,6 +43,10 @@ export default async function globalSetup() {
 	fs.writeFileSync(SYNC_TEST_FILE, JSON.stringify(sync), { mode: 0o600 });
 	const page = stagePage({ engine, trip, outDir: path.join(ROOT, '.cache', 'stage-sync'), args: ['--sync', SYNC_TEST_FILE] });
 	fs.copyFileSync(page, path.join(PAGES_DIR, 'trip-sync.html'));
+
+	// the same trip in a destination world, with a mark on every day (tests/e2e/world.spec.mjs)
+	const world = stagePage({ engine, trip: { dir: makeWorldTrip(trip.dir) }, outDir: path.join(ROOT, '.cache', 'stage-world') });
+	fs.copyFileSync(world, path.join(PAGES_DIR, 'trip-world.html'));
 
 	// the live demo, built as pages.yml builds it, with the workflow's own clock (tests/e2e/demo.spec.mjs)
 	fs.rmSync(path.join(PAGES_DIR, 'trip-demo.html'), { force: true });

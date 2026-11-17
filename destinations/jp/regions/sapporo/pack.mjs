@@ -2,6 +2,11 @@
 // the country pack (destinations/jp/pack.mjs) when TRIP.region is 'sapporo'. Facts and sources: ../../knowledge.md.
 
 export const city = ['札幌', 'Sapporo'];
+/**
+ * the page's world (ADR-20261117-destination-themes): Snow Light Path, after the winter festival of candles set in snow
+ * along Otaru's canal and old rail line (engine/src/themes/snowlight.css)
+ */
+export const theme = 'snowlight';
 export const metro = ['地铁', 'Subway'];
 /** the stored-value card: the city's own, or a nationwide one (Kitaca, Suica) on the subway, tram and JR */
 export const transitCard = ['IC卡（SAPICA / Kitaca / Suica）', 'IC card (SAPICA / Kitaca / Suica)'];

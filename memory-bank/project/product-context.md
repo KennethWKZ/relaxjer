@@ -85,6 +85,10 @@ planners, is in [`guides/trip-page.md`](../../guides/trip-page.md).
   - live bike-share counts where the city has them.
 - **The native layer:** where the group doesn't read the local language, every stop and place also shows its local
   name and romanization under the page's language, one tap to copy, and the driver card shows it in the local script.
+- **The destination's own look:** a pack may dress the page in its world (Sapporo: Snow Light Path), with its own
+  colours, drawings, browser-bar colour and home-screen icon, while everything the group operates stays the same; each
+  day can show an activity mark the planner picks. Day colours stay at 4.5:1 for their text and 3:1 on the page in both
+  themes, and motion never runs behind what people read (ADR-20261117-destination-themes).
 - **Destination info:** a checklist (groups marked shared tick for everyone with group sync), weather, tax refund with
   minimum spend, airport transfer options decided on the day, a shopping box, a free-day time budget worked back from
   the flight.

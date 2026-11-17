@@ -867,6 +867,30 @@ ul.list li::marker {
 .lantern-mark .flame {
 	fill: #ffd76a;
 }
+/* a destination world's week list (Pack.theme): the day's activity mark on its colour, where this world hangs a lantern */
+.day-mark {
+	display: grid;
+	place-items: center;
+	width: 34px;
+	height: 34px;
+	border-radius: 10px;
+	background: var(--c);
+	color: var(--ci);
+}
+.day-mark svg.i {
+	width: 20px;
+	height: 20px;
+}
+/* the day's activity mark (DAYS[i].motif) and its name, beside the date on the day's panel */
+.l-motif {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+}
+.l-motif svg.i {
+	width: 1.15em;
+	height: 1.15em;
+}
 
 /* ───────── Day: lantern panel ───────── */
 .day {

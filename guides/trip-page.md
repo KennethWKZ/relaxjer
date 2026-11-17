@@ -57,13 +57,16 @@ two of them seniors.
   stop" with Google directions, "Open today", and "Check progress from my location". While a day's split is on, an
   "Apart" row says who went where and when the group meets again, linking to the split.
 - **After the trip:** "Trip done. Welcome home."
-- **The week:** one lantern row per day with its date, title and focus.
+- **The week:** one lantern row per day with its date, title and focus (in a destination's own look, the day's activity
+  mark on its colour instead; see below).
 - **Trip facts:** the dates, the group, the hotel with its address in both languages, phone and links. If Google still
   lists the hotel under an old name, a note says so.
 - **Backups if we have time:** the rain or tired-day options and optional sights, as chips.
 
 ## Each day
 
+- **The day's mark:** a small icon and its name beside the date for what the group does that day (snowboarding, a hot
+  spring, the zoo, a city day, the seaside, a flight…), when the planner gives the day one.
 - **The heading:** Day N and the date (with Today), the day's brushed wish (and its gloss in English), the title, and
   chips for the forecast (temperature, rain chance), the focus, the day's spend (each person's share, the group total
   and the home currency, linking to the day's budget) and what to wear.
@@ -85,6 +88,20 @@ two of them seniors.
 - **Where to eat:** researched places for the day's meals (the dish, closed dates, the rating), each opening its card,
   and **Also nearby:** wishlist places that fit the day, must-dos first.
 - **Photos** with their caption and credit.
+
+## The destination's own look
+
+Some destinations dress the page in a look of their own, so it feels like the place. Everything works and reads the
+same; only the colours and the drawings change. Without one, the page is the sky lanterns shown in the demo.
+
+- **Snow Light Path** (Sapporo and Otaru): snow-white pages that turn into a navy snowy night in dark mode. Each day is
+  a frosted snow card with a drift along its foot, in one of seven winter colours. The timeline is a footpath in the
+  snow with a small candle at each stop; a fixed time is an ice crystal. The stop the group is on now has its candle lit
+  (it flickers gently, unless the phone asks for less motion). The first time a phone opens the trip, a little snow
+  falls once over the countdown.
+- **Its own icon:** the browser tab, the bar's colour and the home-screen icon (a candle in the snow under a night sky)
+  follow the look, unless the trip has its own `img/icon/`. When most of the days carry an activity the look can draw
+  (Snow Light Path draws a snowboarder carving through powder), it takes the middle and the candle stands small beside it.
 
 ## Fixed times and running late
 
@@ -326,6 +343,8 @@ Everything above that isn't listed here is on every page. The fields are in
 | Lucky draw, drink guide                                      | the country pack, and `ENTRY.lucky` for the draw                                                                                                             |
 | Metro name, transit card, taxi meter, bike share, toilet tip | the city pack (`TRIP.region`); the transit card also `AIRPORT.transitCard` / `MONEY.transitCard`                                                             |
 | The local words, one tap to copy                             | the country pack's `native`, with each place's `trad` and `roma` (a stop's own `native`, `roma`; a food, drink or wishlist entry's `name_trad`, `name_roma`) |
+| The destination's own look, its icon and bar colour          | the city pack's `theme` (Sapporo: Snow Light Path), from `TRIP.destination` and `TRIP.region`; the icon only when the trip has no `img/icon/`                |
+| The day's activity mark, and the icon's                      | `DAYS[i].motif` (one of the names in `trip-format.md`); the icon shows the one on the most days, when the look draws it                                      |
 | The offline transit planner, station pins                    | the city's metro data (`mrt.json`, from the data refresh)                                                                                                    |
 | Fixed times, flight-tied times                               | `fixed: true`, `rel` on a stop                                                                                                                               |
 | A day that splits                                            | `DAYS[i].split`                                                                                                                                              |

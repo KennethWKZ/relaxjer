@@ -25,6 +25,19 @@ test('every pack is a pure module: no imports, only named exports', () => {
 	}
 });
 
+test("a pack's theme names a world the engine has: its look and its build half", () => {
+	for (const f of packFiles()) {
+		const m = /^export const theme = '([^']*)'/m.exec(fs.readFileSync(f, 'utf8'));
+		if (!m) continue;
+		assert.match(m[1], /^[a-z][a-z0-9-]*$/, `${path.relative(ROOT, f)}: theme`);
+		for (const ext of ['css', 'mjs'])
+			assert.ok(fs.existsSync(path.join(ROOT, 'engine', 'src', 'themes', `${m[1]}.${ext}`)), `no engine/src/themes/${m[1]}.${ext}`);
+	}
+	assert.equal(sapporo.theme, 'snowlight'); // Sapporo and Otaru: Snow Light Path
+	assert.equal(jp.theme, undefined); // the country has no world of its own: a Tokyo summer isn't snow
+	assert.equal(tw.theme ?? taipei.theme, undefined); // Taiwan keeps the default world, its sky lanterns
+});
+
 test('the native layer: a pack that names its language gives a BCP 47 tag and a [zh, en] name', () => {
 	assert.deepEqual(jp.native, { lang: 'ja', name: ['日文', 'Japanese'], ask: 'この場所までお願いします。' });
 	assert.equal(tw.native, undefined); // the group reads Taiwan's own script: no layer, the page as before

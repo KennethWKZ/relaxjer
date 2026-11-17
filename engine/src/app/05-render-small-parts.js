@@ -1,6 +1,11 @@
 /* ───────── render: small parts ───────── */
 const lanternMark = (c) =>
 	`<svg class="lantern-mark" viewBox="0 0 34 40" aria-hidden="true" style="${colorVars(c)}"><rect x="13" y="1" width="8" height="4" rx="1.5" fill="currentColor" opacity=".3"/><path class="paper" d="M4 6Q17 2 30 6L26.5 34Q17 37.5 7.5 34Z"/><path class="rib" d="M5.5 13Q17 9.5 28.5 13M6.7 26Q17 29.5 27.3 26M17 4.5V35.5"/><ellipse class="flame" cx="17" cy="33" rx="3" ry="1.6" opacity=".9"/></svg>`;
+// the week list's mark for a day: the default world's sky lantern, or in a destination world (Pack.theme) the day's
+// activity mark (DAYS[i].motif, else a plain candle) on its colour
+const dayMark = (d) => (Pack.theme ? `<span class="day-mark">${Motif.svg(d.motif) || Motif.candle}</span>` : lanternMark(d.c));
+// the day's activity mark and its name, on the day's panel; nothing for a day without one
+const motifTag = (d) => (Motif.svg(d.motif) ? `<span class="l-motif">${Motif.svg(d.motif)}${esc(L(Motif.MARKS[d.motif].name))}</span>` : '');
 const seal = () => `<span class="seal"><b aria-hidden="true">定</b>${Z('固定时间', 'Fixed time')}</span>`;
 const list = (items, cls = 'list') => `<ul class="${cls}">${items.map((x) => `<li>${fmt(x)}</li>`).join('')}</ul>`;
 const totalBox = (amt, per, min, max, extra = '') =>

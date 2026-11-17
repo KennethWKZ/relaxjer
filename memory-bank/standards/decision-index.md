@@ -1,5 +1,5 @@
 ---
-total_decisions: 24
+total_decisions: 25
 last_updated: 2026-11-17
 ---
 
@@ -39,4 +39,5 @@ merged id never changes; a new ADR that collides takes a fresh slug.
 | [ADR-20261007-squash-merges](decisions/ADR-20261007-squash-merges.md)                             | 2026-10-07 | Pull Requests Merge by Squash, So the Changelog Lists Each Change Once                                                           | tooling  | accepted |
 | [ADR-20261007-traffic-aware-drives](decisions/ADR-20261007-traffic-aware-drives.md)               | 2026-10-07 | A Drive Still Ahead Gets Google’s Typical and Heavy-Traffic Times, at the Hour the Leg Sets Off                                  | data     | accepted |
 | [ADR-20261008-release-age-exceptions](decisions/ADR-20261008-release-age-exceptions.md)           | 2026-10-08 | A Release Comes In Before Its Three Days Only by Exact Version, Until It Turns Three Days Old                                    | tooling  | accepted |
+| [ADR-20261117-destination-themes](decisions/ADR-20261117-destination-themes.md)                   | 2026-11-17 | A Destination Pack May Dress the Page in Its Own World; Days May Carry an Activity Mark                                          | engine   | accepted |
 | [ADR-20261117-native-layer](decisions/ADR-20261117-native-layer.md)                               | 2026-11-17 | The Native Layer Shows the Local Words Under Each Stop and Place, One Tap to Copy, When the Pack Names the Language              | engine   | accepted |

@@ -32,6 +32,7 @@ test('the contract catches a broken trip', () => {
 	trip.BUDGET.totalMax = 1;
 	trip.FACTS[0].v = ['日期', ''];
 	trip.DAYS[1].route = [['hotel', 'atlantis', 'teleport']];
+	trip.DAYS[3].motif = 'skiing in the morning'; // free text: the mark is a name from the list
 	delete trip.TRIP.pax;
 	const problems = checkTrip(trip).join('\n');
 	for (const want of [
@@ -40,6 +41,7 @@ test('the contract catches a broken trip', () => {
 		'totalMin',
 		'both languages needed',
 		'route leg 0',
+		'd4: motif "skiing in the morning" must be one of snowboard\\|',
 		'TRIP.pax missing',
 	])
 		assert.match(problems, new RegExp(want));

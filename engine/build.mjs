@@ -9,8 +9,11 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import vm from 'node:vm';
+import { pathToFileURL } from 'node:url';
+import { renderPNG } from './icons.mjs';
 import { rangeLabel } from './src/core/time.mjs';
 import { dayRoles, hotelsByDay, storeKey } from './src/core/plan.mjs';
+import { leadMotif } from './src/core/motif.mjs';
 
 const argv = process.argv.slice(2);
 const arg = (name, fallback) => {
@@ -71,7 +74,7 @@ const pureModule = (file, label) => {
 	const src = fs.readFileSync(file, 'utf8');
 	if (/^\s*import\s/m.test(src)) throw new Error(`${label}: pure modules can't import (the build inlines them)`);
 	const names = [...src.matchAll(/^export (?:const|let|function) (\w+)/gm)].map((m) => m[1]);
-	return { body: src.replace(/^export /gm, ''), names };
+	return { body: src.replace(/^export /gm, ''), names, file };
 };
 // engine/src/core/<name>.mjs go in right after 00-open, each as a namespace: time.mjs → Time
 const coreDir = path.join(engine, 'src', 'core');
@@ -175,6 +178,18 @@ if (ctx.TRIP.destination) {
 		packParts.push(pureModule(f, path.relative(path.join(engine, '..'), f)));
 	}
 }
+// the destination's world (ADR-20261117-destination-themes): a pack's `theme` names engine/src/themes/<theme>.css (its
+// look, scoped to <html data-world="<theme>">) and <theme>.mjs (its paper colours and home-screen icon). The city's
+// pack overrides the country's. No theme: none of this goes in, and the page is the default world, unchanged.
+const packTheme = (await Promise.all(packParts.map((p) => import(pathToFileURL(p.file).href)))).reduce((t, m) => m.theme ?? t, undefined);
+const world = packTheme ? await loadWorld(packTheme) : null;
+async function loadWorld(name) {
+	const base = path.join(engine, 'src', 'themes', String(name));
+	if (!/^[a-z][a-z0-9-]*$/.test(String(name)) || !fs.existsSync(`${base}.css`) || !fs.existsSync(`${base}.mjs`))
+		throw new Error(`pack theme ${JSON.stringify(name)}: no engine/src/themes/${name}.css and .mjs`);
+	const mod = await import(pathToFileURL(`${base}.mjs`).href);
+	return { name, css: fs.readFileSync(`${base}.css`, 'utf8'), paper: mod.paper, iconPaint: mod.iconPaint, iconMarks: mod.iconMarks || [] };
+}
 // each part in its own scope (the country and the city may both define helpers); later parts override earlier ones
 const pack = `  const Pack = Object.freeze(Object.assign({}, ${packParts.map((p) => `(() => {\n${p.body}\n  return { ${p.names.join(', ')} };\n  })()`).join(', ')}));`;
 // the outside hosts a pack's code calls (its bike share's live counts…): the page may connect to them, nothing else of theirs
@@ -270,16 +285,36 @@ const fontCSS = await brushFace(fontHref);
 // the brush face goes first in the lettering's font stack (style.css keeps system Kaiti faces as the fallback)
 const brushCSS = brushFont === 'Ma Shan Zheng' ? '' : `:root{--font-brush:'${brushFont}','STKaiti','KaiTi','Kaiti SC','BiauKai',serif}`;
 const safe = (o) => JSON.stringify(o).replace(/</g, '\\u003c');
-// home-screen icons (scripts: /tmp render of the brand lettering → img/icon/); the host serves one file, so they go in as data: URLs
+// home-screen icons (scripts: /tmp render of the brand lettering → img/icon/); the host serves one file, so they go in as
+// data: URLs. A trip with no img/icon/ in a world that draws one gets the world's icon, drawn here (engine/icons.mjs).
+const tripIcons = fs.existsSync(path.join(trip, 'img', 'icon'));
+const drawnIcon = new Map();
+// the trip's leading activity, drawn beside the world's emblem when the world can draw it (core/motif.mjs leadMotif)
+const iconMark = world?.iconPaint && !tripIcons ? leadMotif(ctx.DAYS, world.iconMarks) : null;
 const iconURL = (n) => {
 	const f = path.join(trip, 'img', 'icon', `icon-${n}.png`);
-	return fs.existsSync(f) ? `data:image/png;base64,${fs.readFileSync(f).toString('base64')}` : '';
+	if (fs.existsSync(f)) return `data:image/png;base64,${fs.readFileSync(f).toString('base64')}`;
+	if (tripIcons || !world?.iconPaint) return '';
+	if (!drawnIcon.has(n)) {
+		const png = renderPNG(n, (u, v) => world.iconPaint(u, v, iconMark), {
+			Software: 'RelaxJer engine/icons.mjs',
+			Source: `drawn by code from the ${world.name} world (engine/src/themes/${world.name}.mjs iconPaint); no photo, stock or image model`,
+			...(iconMark ? { Mark: `${iconMark}, the mark on the most days (DAYS[i].motif)` } : {}),
+		});
+		drawnIcon.set(n, `data:image/png;base64,${png.toString('base64')}`);
+	}
+	return drawnIcon.get(n);
 };
 const APP_ICONS = { 192: iconURL(192), 512: iconURL(512) };
 const head = `<title>${htmlEsc(title)}</title>
 <meta name="description" content="${htmlEsc(description)}">
-<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0c1017" media="(prefers-color-scheme: dark)">`;
+<meta name="theme-color" content="${world?.paper?.light || '#ffffff'}" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="${world?.paper?.dark || '#0c1017'}" media="(prefers-color-scheme: dark)">`;
+// the world on <html> before first paint: the standalone page's own tag carries it, the artifact (whose host writes the
+// <html>) sets it from a one-line script
+const worldAttr = world ? ` data-world="${world.name}"` : '';
+const worldScript = world ? `<script>document.documentElement.dataset.world=${JSON.stringify(world.name)}</script>\n` : '';
+const worldCSS = world ? world.css : '';
 
 const scripts = (
 	imgMap,
@@ -291,7 +326,7 @@ const scripts = (
 // pages are written by writePages(); the final call happens after the KML exists
 const writePages = (kmlB64) => {
 	// 1) artifact body (the host adds doctype/head/body)
-	const artifact = `${head}\n<style>${fontCSS}${css}${brushCSS}</style>\n${shell}\n${scripts(null, kmlB64)}\n`;
+	const artifact = `${worldScript}${head}\n<style>${fontCSS}${css}${worldCSS}${brushCSS}</style>\n${shell}\n${scripts(null, kmlB64)}\n`;
 	fs.writeFileSync(path.join(out, `${fileBase}.html`), artifact);
 
 	// 2) standalone single file
@@ -303,7 +338,7 @@ const writePages = (kmlB64) => {
 			if (fs.existsSync(f)) imgMap[k] = `data:image/webp;base64,${fs.readFileSync(f).toString('base64')}`;
 		}
 	const draft = `<!doctype html>
-<html lang="zh-Hans">
+<html lang="zh-Hans"${worldAttr}>
 <head>
 <meta charset="utf-8">
 <meta name="relaxjer-build" content="{{build}}">
@@ -315,7 +350,7 @@ const writePages = (kmlB64) => {
 <meta name="mobile-web-app-capable" content="yes">
 ${iconURL(180) ? `<link rel="apple-touch-icon" href="${iconURL(180)}">` : ''}${iconURL(32) ? `\n<link rel="icon" type="image/png" sizes="32x32" href="${iconURL(32)}">` : ''}
 ${head}
-<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}${fontCSS}${css}${brushCSS}</style>
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}${fontCSS}${css}${worldCSS}${brushCSS}</style>
 </head>
 <body data-img-late="1">
 ${shell}
@@ -336,7 +371,7 @@ ${scripts(imgMap, kmlB64)}
 };
 const { artifact, standalone, kb } = writePages('');
 console.log(
-	`google key ${gmaps ? 'yes' : 'no'} · group sync ${sync ? `yes (planner code ${sync.planner ? 'set' : 'not set'})` : 'no'}${demoClock ? ` · demo clock ${demoClock}` : ''} · artifact ${kb(artifact)} · standalone ${kb(standalone)} · photos ${credits.length} · geo ${geo ? 'yes' : 'no'} · food ${extra.food?.length || 0} · tickets ${extra.tickets?.length || 0} · wish ${wish.length} · brush glyphs ${brush.size} (${fontCSS ? 'font in the page' : 'system Kaiti'})`,
+	`google key ${gmaps ? 'yes' : 'no'} · group sync ${sync ? `yes (planner code ${sync.planner ? 'set' : 'not set'})` : 'no'}${demoClock ? ` · demo clock ${demoClock}` : ''} · artifact ${kb(artifact)} · standalone ${kb(standalone)} · photos ${credits.length} · geo ${geo ? 'yes' : 'no'} · food ${extra.food?.length || 0} · tickets ${extra.tickets?.length || 0} · wish ${wish.length} · brush glyphs ${brush.size} (${fontCSS ? 'font in the page' : 'system Kaiti'})${drawnIcon.size ? ` · icon drawn (${world.name}${iconMark ? ` + ${iconMark}` : ''})` : ''}`,
 );
 
 // 3) Google My Maps export (KML): one combined file + one file per layer
