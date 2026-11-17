@@ -118,8 +118,11 @@ test("the commit-msg hook stops a real trip's details in the staged changes or t
 	assert.ok(scanAt >= 0 && scanAt < lintAt, 'the scan runs first, before the message is linted');
 	// a throwaway repo with a synthetic trip: its date stands for today, one of a running trip's dates
 	const dir = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'scan-staged-'));
+	// run inside a commit hook, git hands its own GIT_DIR / GIT_INDEX_FILE down: without them the throwaway repo's
+	// `git add` stays in the throwaway repo instead of landing in the commit being made (seen in a linked worktree)
+	const env = Object.fromEntries(Object.entries(process.env).filter(([k]) => !k.startsWith('GIT_')));
 	try {
-		const run = (...a) => execFileSync('git', a, { cwd: dir, encoding: 'utf8' });
+		const run = (...a) => execFileSync('git', a, { cwd: dir, encoding: 'utf8', env });
 		run('init', '-q');
 		fs.mkdirSync(path.join(dir, 'trips', 't'), { recursive: true });
 		fs.writeFileSync(
@@ -132,7 +135,7 @@ test("the commit-msg hook stops a real trip's details in the staged changes or t
 			fs.writeFileSync(path.join(dir, 'notes.md'), staged);
 			run('add', 'notes.md');
 			try {
-				execFileSync('node', [path.join(ROOT, 'tests/release/scan-staged.mjs'), msg], { cwd: dir, encoding: 'utf8', stdio: 'pipe' });
+				execFileSync('node', [path.join(ROOT, 'tests/release/scan-staged.mjs'), msg], { cwd: dir, encoding: 'utf8', stdio: 'pipe', env });
 				return { code: 0, err: '' };
 			} catch (e) {
 				return { code: e.status, err: String(e.stderr) };
