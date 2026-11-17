@@ -6,6 +6,8 @@ import path from 'node:path';
 import { ROOT } from '../support/stage.mjs';
 import * as tw from '../../destinations/tw/pack.mjs';
 import * as taipei from '../../destinations/tw/regions/taipei/pack.mjs';
+import * as jp from '../../destinations/jp/pack.mjs';
+import * as sapporo from '../../destinations/jp/regions/sapporo/pack.mjs';
 
 const packFiles = (dir = path.join(ROOT, 'destinations')) =>
 	fs
@@ -21,6 +23,11 @@ test('every pack is a pure module: no imports, only named exports', () => {
 		assert.doesNotMatch(src, /^export default/m, `${path.relative(ROOT, f)}: the build inlines named exports only`);
 		assert.doesNotMatch(src, /\b(document|window|localStorage|fetch)\b/, `${path.relative(ROOT, f)} touches the page`);
 	}
+});
+
+test('the native layer: a pack that names its language gives a BCP 47 tag and a [zh, en] name', () => {
+	assert.deepEqual(jp.native, { lang: 'ja', name: ['日文', 'Japanese'], ask: 'この場所までお願いします。' });
+	assert.equal(tw.native, undefined); // the group reads Taiwan's own script: no layer, the page as before
 });
 
 test('Taiwan: tax refund and lucky draw', () => {
@@ -44,4 +51,22 @@ test('Taipei: YouBike request and answer', () => {
 	const got = taipei.bikeShare.parse({ retVal: { data: [{ station_no: 500101001, available_spaces: 4, empty_spaces: 9, status: 1 }] } });
 	assert.deepEqual(got, [{ no: '500101001', bikes: 4, docks: 9, on: true }]);
 	assert.deepEqual(taipei.bikeShare.parse({}), []);
+});
+
+test('Japan: tax-free minimum', () => {
+	assert.equal(jp.taxRefund.min, 5000); // before tax, one shop, one day (the refund method, since 2026-11-01)
+});
+
+test('Sapporo: taxi meter, with the winter and night surcharges that never stack', () => {
+	// 1 km straight = 1.3 km road: ¥600 + 1 × ¥100; winter all day ×1.2 = 840, low 10% under
+	assert.deepEqual(sapporo.taxiFare(1, 600, '2027-02-20'), [760, 840]);
+	// 5 km = 6.5 km road: ¥600 + 21 × ¥100 = 2,700; winter at 23:00 is still ×1.2 once
+	assert.deepEqual(sapporo.taxiFare(5, 1380, '2027-02-20'), [2920, 3240]);
+	// the same ride in October: day rate, then the night rate alone
+	assert.deepEqual(sapporo.taxiFare(5, 720, '2026-10-05'), [2430, 2700]);
+	assert.deepEqual(sapporo.taxiFare(5, 1380, '2026-10-05'), [2920, 3240]);
+	// the edges of winter, and no date at all (day rate)
+	assert.deepEqual(sapporo.taxiFare(0.5, 720, '2026-12-10'), [650, 720]);
+	assert.deepEqual(sapporo.taxiFare(0.5, 720, '2027-03-27'), [540, 600]);
+	assert.deepEqual(sapporo.taxiFare(0.5, 720), [540, 600]);
 });

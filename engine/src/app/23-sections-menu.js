@@ -44,11 +44,14 @@ function renderToc() {
       <div class="toc-near-row"><button type="button" class="toc-sec toc-near" data-near aria-label="${Z('附近吃什么（用我的位置）', 'Food near me (uses my location)')}">${icon('food')}<span>${Z('附近吃什么', 'Food nearby')}</span>${icon('pin', 'loc')}</button><button type="button" class="toc-sec toc-near wc" data-near="wc" aria-label="${Z('附近厕所（用我的位置）', 'Toilets near me (uses my location)')}">${icon('wc')}<span>${Z('附近厕所', 'Toilets nearby')}</span>${icon('pin', 'loc')}</button></div>
       <p class="toc-lab">${Z('每天行程', 'Each day')}</p><div class="toc-grid">${days}</div>
       <p class="toc-lab">${Z('其他', 'Everything else')}</p><div class="toc-grid">${secs}</div>
-      <a class="toc-sec toc-top" href="#top">${icon('arrow')}${Z('回到顶部 · 总览', 'Back to top · Overview')}</a>${themeRow()}${syncRow()}${resetBtn()}${homeBtn()}`;
+      <a class="toc-sec toc-top" href="#top">${icon('arrow')}${Z('回到顶部 · 总览', 'Back to top · Overview')}</a>${themeRow()}${mapsRow()}${syncRow()}${resetBtn()}${homeBtn()}`;
 }
 // on phones the header has no room for a labelled theme switch, so it lives here with its name
 const themeRow = () =>
 	`<button type="button" class="toc-sec toc-theme" data-theme-cycle>${icon(themePref === 'light' ? 'sun' : themePref === 'dark' ? 'moon' : 'auto')}<span>${Z('主题', 'Theme')}：${themeName(themePref)}</span></button>`;
+// which app the Map and Directions links open: Google Maps or Apple Maps, kept on this phone
+const mapsRow = () =>
+	`<button type="button" class="toc-sec toc-maps" data-maps-cycle>${icon('pin')}<span>${Z('打开地图用', 'Open maps in')}：${mapsName(mapsApp)}</span></button>`;
 const fabSync = () => {
 	const fab = $('#tocBtn');
 	if (!fab) return;

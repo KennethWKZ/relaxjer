@@ -203,10 +203,18 @@ itself is the planner's: it's in the trip's data, and nobody makes one on the pa
 - **The nearest station** to each place, with the walk.
 - **Bike share:** live bikes and free docks on each dock, where the city publishes them (Taipei's YouBike).
 - **Show the driver:** a full-screen card with the place's local name, Google's name, the local address, the English
-  one, the phone, "please take us here" (in Chinese; other languages come with story step 4), Copy address and Google
+  one, the phone, "please take us here" (in the local language where the country pack has one, Chinese otherwise), Copy address and Google
   Maps. On a trip day it's one tap from the current and the next stop in the plan; every place also has it in its
   place sheet.
 - **Directions** links open the phone's maps app in the right mode (walk, transit, drive, bike).
+- **Google Maps or Apple Maps:** "Open maps in" in the Sections menu switches every Map and Directions link on this
+  phone to Apple Maps (at the place's pin, with transit, drive or walk), and back. The whole-day route stays on Google
+  Maps and says so: an Apple Maps link can't carry the stops in between.
+- **The local words, one tap to copy:** where the group doesn't read the local language (Japanese in Japan), every
+  stop, place, restaurant and wishlist entry also shows its name in that language, with its romanization, under the Chinese or English one. Tap
+  it to copy the local words, then paste them into a map search, a taxi app or a translator, or hold the phone next to
+  a sign to check it's the same place. "Copy for chat" adds them to each stop too, and the driver card shows them in
+  the local script.
 
 ## Money
 
@@ -303,28 +311,29 @@ the same spot.
 Everything above that isn't listed here is on every page. The fields are in
 [`trip-format.md`](../memory-bank/standards/trip-format.md); ask your agent, with the `trip-customize` skill.
 
-| Part                                                         | Turned on by                                                                                     |
-| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
-| Google's map, ratings, photos, hours, Google search          | building with your own key (`pnpm build … --keys`, [the guide](google-maps.md))                  |
-| Group sync, names, planners, Recently removed                | `sync-setup`, then building with `--sync`                                                        |
-| Positions, hours, route legs, food, drinks, toilets          | the data refresh (`data-sync`)                                                                   |
-| The map and its pins                                         | `geo.json` (from the data refresh)                                                               |
-| The forecast                                                 | the data refresh, for trip days within 16 days (`forecast_spots`, `forecastSpot`)                |
-| Today's route                                                | `DAYS[i].route`, with the legs from the data refresh                                             |
-| Tickets and how to book                                      | `DAYS[i].tickets`, and `extra.json` `tickets`                                                    |
-| Where to eat, meal chips                                     | `DAYS[i].foodSlots` and `mealAt`, and `extra.json` `food`                                        |
-| Day cards (decide, rain, budget, wear…)                      | `DAYS[i].blocks`                                                                                 |
-| Tax refund tag and rules                                     | the country pack (`TRIP.destination`), `shops.json`, and `TAX`                                   |
-| Lucky draw, drink guide                                      | the country pack, and `ENTRY.lucky` for the draw                                                 |
-| Metro name, transit card, taxi meter, bike share, toilet tip | the city pack (`TRIP.region`); the transit card also `AIRPORT.transitCard` / `MONEY.transitCard` |
-| The offline transit planner, station pins                    | the city's metro data (`mrt.json`, from the data refresh)                                        |
-| Fixed times, flight-tied times                               | `fixed: true`, `rel` on a stop                                                                   |
-| A day that splits                                            | `DAYS[i].split`                                                                                  |
-| Optional plans, and their chips at stops                     | `OPTIONAL` (and `near`)                                                                          |
-| Shop lists                                                   | `SHOPLISTS`                                                                                      |
-| The wishlist, and its suggestions                            | `wish-a.json` / `wish-b.json`, and `freeEvening` / `freeFrom` on a day                           |
-| The shop box                                                 | `shops: true` on a stop, and `shops.json`                                                        |
-| Shared checklist groups                                      | `shared: true` on a `CHECKLIST` group, with group sync                                           |
-| A hotel per night                                            | `DAYS[i].hotel`                                                                                  |
-| Photos, the home-screen icon                                 | `img/` with `img/credits.json`, and `img/icon/` (by hand, `pipeline/README.md`)                  |
-| Copy link and share links pointing at the live page          | the `SHARE_URL` environment variable at build                                                    |
+| Part                                                         | Turned on by                                                                                                                                                 |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Google's map, ratings, photos, hours, Google search          | building with your own key (`pnpm build … --keys`, [the guide](google-maps.md))                                                                              |
+| Group sync, names, planners, Recently removed                | `sync-setup`, then building with `--sync`                                                                                                                    |
+| Positions, hours, route legs, food, drinks, toilets          | the data refresh (`data-sync`)                                                                                                                               |
+| The map and its pins                                         | `geo.json` (from the data refresh)                                                                                                                           |
+| The forecast                                                 | the data refresh, for trip days within 16 days (`forecast_spots`, `forecastSpot`)                                                                            |
+| Today's route                                                | `DAYS[i].route`, with the legs from the data refresh                                                                                                         |
+| Tickets and how to book                                      | `DAYS[i].tickets`, and `extra.json` `tickets`                                                                                                                |
+| Where to eat, meal chips                                     | `DAYS[i].foodSlots` and `mealAt`, and `extra.json` `food`                                                                                                    |
+| Day cards (decide, rain, budget, wear…)                      | `DAYS[i].blocks`                                                                                                                                             |
+| Tax refund tag and rules                                     | the country pack (`TRIP.destination`), `shops.json`, and `TAX`                                                                                               |
+| Lucky draw, drink guide                                      | the country pack, and `ENTRY.lucky` for the draw                                                                                                             |
+| Metro name, transit card, taxi meter, bike share, toilet tip | the city pack (`TRIP.region`); the transit card also `AIRPORT.transitCard` / `MONEY.transitCard`                                                             |
+| The local words, one tap to copy                             | the country pack's `native`, with each place's `trad` and `roma` (a stop's own `native`, `roma`; a food, drink or wishlist entry's `name_trad`, `name_roma`) |
+| The offline transit planner, station pins                    | the city's metro data (`mrt.json`, from the data refresh)                                                                                                    |
+| Fixed times, flight-tied times                               | `fixed: true`, `rel` on a stop                                                                                                                               |
+| A day that splits                                            | `DAYS[i].split`                                                                                                                                              |
+| Optional plans, and their chips at stops                     | `OPTIONAL` (and `near`)                                                                                                                                      |
+| Shop lists                                                   | `SHOPLISTS`                                                                                                                                                  |
+| The wishlist, and its suggestions                            | `wish-a.json` / `wish-b.json`, and `freeEvening` / `freeFrom` on a day                                                                                       |
+| The shop box                                                 | `shops: true` on a stop, and `shops.json`                                                                                                                    |
+| Shared checklist groups                                      | `shared: true` on a `CHECKLIST` group, with group sync                                                                                                       |
+| A hotel per night                                            | `DAYS[i].hotel`                                                                                                                                              |
+| Photos, the home-screen icon                                 | `img/` with `img/credits.json`, and `img/icon/` (by hand, `pipeline/README.md`)                                                                              |
+| Copy link and share links pointing at the live page          | the `SHARE_URL` environment variable at build                                                                                                                |

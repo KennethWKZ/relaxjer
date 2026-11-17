@@ -43,7 +43,7 @@ function dayText(d) {
 	const out = [`【Day ${d.n} · ${dateLabel(d.date, d.dow)}】${L(d.title)}`];
 	d.schedule.forEach((it) => {
 		out.push(
-			`${it.step ? it.step + '.' : L(it.t || '')} ${L(it.what)}${it.note ? `（${L(it.note).replace(/\*\*/g, '')}）` : ''}`
+			`${it.step ? it.step + '.' : L(it.t || '')} ${L(it.what)}${nativeText(it) ? ` ｜ ${nativeText(it)}` : ''}${it.note ? `（${L(it.note).replace(/\*\*/g, '')}）` : ''}`
 				.replace('（', lang === 'en' ? ' (' : '（')
 				.replace('）', lang === 'en' ? ')' : '）'),
 		);

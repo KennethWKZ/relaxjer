@@ -78,10 +78,13 @@ planners, is in [`guides/trip-page.md`](../../guides/trip-page.md).
   link, today's route as one navigation link per leg, decide-on-the-day options, and the rain plan.
 - **Map:**
   - Google first, MapLibre as fallback;
+  - Map and Directions links in Google Maps or Apple Maps, chosen per phone;
   - categories, search, a list and sorting;
   - a live location dot, asked for only from a card that says why;
   - an offline transit planner that needs no routing API;
   - live bike-share counts where the city has them.
+- **The native layer:** where the group doesn't read the local language, every stop and place also shows its local
+  name and romanization under the page's language, one tap to copy, and the driver card shows it in the local script.
 - **Destination info:** a checklist (groups marked shared tick for everyone with group sync), weather, tax refund with
   minimum spend, airport transfer options decided on the day, a shopping box, a free-day time budget worked back from
   the flight.

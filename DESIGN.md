@@ -356,6 +356,7 @@ White paper and near-black ink carry the operated layer; seven saturated lantern
 
 **Display Font:** the trip's brush face, `TRIP.brushFont` (default Ma Shan Zheng), with STKaiti / KaiTi / Kaiti SC / BiauKai as fallbacks. The build subsets it through Google Fonts to only the glyphs the page letters (the brand, each day's wish, the principle's wish and the seal glyph) and puts that subset in the page, so the lettering never waits on the network ([ADR-20261002-embed-brush-font](memory-bank/standards/decisions/ADR-20261002-embed-brush-font.md)).
 **Body Font:** the phone's system sans (`-apple-system`, PingFang SC, Noto Sans SC, Segoe UI, Roboto…), with tabular numerals on by default.
+**Native Font:** text marked `lang="ja"` (the native layer's Japanese, the driver card in Japan) takes the system Japanese sans (`-apple-system`, Hiragino Sans, Hiragino Kaku Gothic ProN, Noto Sans JP, Yu Gothic, Meiryo), so kanji shared with Chinese draw the Japanese way. Same size and weight as the text around it.
 
 **Character:** a hand-inked calligraphic voice for names and wishes, set against a heavy, plain system sans that reads at arm's length in sunlight. Weights sit high (650–800) for anything a person has to act on.
 
@@ -376,6 +377,8 @@ White paper and near-black ink carry the operated layer; seven saturated lantern
 ### Named Rules
 
 **The Brush Is For Names Rule.** The brush face letters the brand, the day's wish and the seal glyph. Never a time, price, instruction or button.
+
+**The Local Words Wear Their Own Script Rule.** Words in the destination's language carry their `lang`, never the page's, so the phone picks the local glyphs (ADR-20261117-native-layer).
 
 **The Phone Decides The Size Rule.** Type is set in rem on a root that takes `-apple-system-body` where supported (never smaller than 1rem), so the phone's text-size setting scales the whole page. Don't pin text in px.
 

@@ -43,6 +43,14 @@ class Hours(unittest.TestCase):
         fridays_off = ['x', 'x', 'x', 'x', 'closed', 'x', 'x']  # 19 Mar is the flight-only day
         self.assertEqual(hours.closed_on_trip(fridays_off), [])
 
+    def test_google_week_in_japanese(self):
+        week = ['月曜日: 定休日', '火曜日: 7時00分～17時00分', '水曜日: 7時00分～17時00分', '木曜日: 7時00分～17時00分',
+                '金曜日: 11時30分～14時00分, 17時30分～20時00分', '土曜日: 24 時間営業', '日曜日: 7時00分～17時00分']
+        self.assertEqual(hours.parse_hours(week), ['closed', '7:00–17:00', '7:00–17:00', '7:00–17:00', '11:30–14:00,17:30–20:00', '24h', '7:00–17:00'])
+
+    def test_japanese_addresses_lose_country_and_postcode(self):
+        self.assertEqual(hours.clean_addr('日本、〒060-0808 北海道札幌市北区北８条西４丁目１１−１'), '北海道札幌市北区北８条西４丁目１１−１')
+
     def test_addresses(self):
         self.assertEqual(hours.clean_addr('103台灣臺北市大同區光能里民生西路425號'), '臺北市大同區民生西路425號')
         self.assertEqual(hours.merge_addr('臺北市大同區民生西路425號（2樓）', '103台灣臺北市大同區民生西路425號'), '臺北市大同區民生西路425號（2樓）')

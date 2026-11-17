@@ -1001,11 +1001,12 @@ function secDay(d, today) {
 		const cls = ['stop', it.fixed && 'fixed', it.key && 'key'].filter(Boolean).join(' ');
 		return `<li class="${cls}${it._sh ? ' shifted' : ''}" id="${d.id}-s${i}" ${pt.s != null ? `data-s="${pt.s}"` : ''}><div class="stop-t">${esc(t)}${it._sh ? `<span class="t-was">${esc(Z(`原 ${L(it._base)}`, `was ${L(it._base)}`))}</span>` : ''}</div><div class="stop-knot">${closes[i] ? '' : gapBtn(d, `${i}`)}</div><div class="stop-b">
         <p class="stop-name"${alt(other(it.what))}>${fmt(it.what)}${it.fixed ? seal() : ''}<span class="flag-slot"></span></p>
+        ${stopNative(it)}
         ${it.note ? `<p class="stop-note">${fmt(it.note)}</p>` : ''}
         ${splitBack(d, it)}
         ${it.shops ? shopBoxHTML() : ''}
         ${it._clash ? `<p class="warn">${icon('alert')}${esc(Z(`推迟后会撞到 ${L(it._clash.t)}「${stopName(it._clash)}」：这一项缩短或跳过`, `Now runs into the fixed ${L(it._clash.t)} ${stopName(it._clash)}: shorten or skip this`))}</p>` : ''}
-        ${it.place || it.link ? `<div class="stop-links">${it.place ? placeLinks(it.place, { noSite: false }) : ''}${it.link ? `<a class="mlink" href="${SITES[it.link] ? SITES[it.link].url : it.link}">${icon('arrow')}${Z('看详情', 'Details')}</a>` : ''}</div>` : ''}
+        ${it.place || it.link ? `<div class="stop-links">${it.place ? placeLinks(it.place, { noSite: false, noNative: true }) : ''}${it.link ? `<a class="mlink" href="${SITES[it.link] ? SITES[it.link].url : it.link}">${icon('arrow')}${Z('看详情', 'Details')}</a>` : ''}</div>` : ''}
         ${mealEats(d, it)}
         ${nearOpts(d, it)}
         ${nearWish(d, it)}
@@ -1106,7 +1107,7 @@ function secMap() {
       </div></details>`
 					: ''
 			}
-      <p class="xsmall" style="margin-top:8px">${Z('地图资料', 'Map data')}: OpenFreeMap · © OpenStreetMap contributors · ${Z('导航以Google地图为准', 'Use Google Maps for turn-by-turn directions')}</p>
+      <p class="xsmall" style="margin-top:8px">${Z('地图资料', 'Map data')}: OpenFreeMap · © OpenStreetMap contributors · ${Z(`导航以${mapsName(mapsApp)}为准`, `Use ${mapsName(mapsApp)} for turn-by-turn directions`)}</p>
     </section>`;
 }
 

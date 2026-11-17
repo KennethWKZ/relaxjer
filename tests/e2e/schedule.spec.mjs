@@ -68,13 +68,14 @@ test('the Weather section says where the forecast comes from and when it was che
 		// a trip whose days are still beyond the forecast: give it one, as the refresh would
 		const first = await page.evaluate(() => DAYS[0].date);
 		await page.addInitScript((d) => {
-			// the page sets window.FORECAST = null when it has none: keep this one unless it brings a real forecast
+			// the page sets window.FORECAST = null when it has none, or a forecast with no trip days yet: keep this one
+			// unless the page brings a real forecast
 			let fc = { checked: d, days: { [d]: { x: { tmin: 20, tmax: 26, rain: 30, mm: 1, code: 3 } } } };
 			Object.defineProperty(window, 'FORECAST', {
 				configurable: true,
 				get: () => fc,
 				set: (v) => {
-					if (v) fc = v;
+					if (v && v.days && Object.keys(v.days).length) fc = v;
 				},
 			});
 		}, first);

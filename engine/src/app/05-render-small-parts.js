@@ -280,7 +280,10 @@ function wcSheet(pk) {
 	);
 	const mrt =
 		g.mrt && g.mrt.walk
-			? Z(`${METRO[0]}${g.mrt.zh}站也有厕所（约${g.mrt.min}分钟）`, `${Cap(METRO[1])} ${g.mrt.en || g.mrt.zh} also has toilets (~${g.mrt.min} min)`)
+			? Z(
+					`${METRO[0]}${g.mrt.zh}${/[站駅]$/.test(g.mrt.zh) ? '' : '站'}也有厕所（约${g.mrt.min}分钟）`,
+					`${Cap(METRO[1])} ${g.mrt.en || g.mrt.zh} also has toilets (~${g.mrt.min} min)`,
+				)
 			: '';
 	return `<h3 class="spots-h">${icon('wc')}${esc(Z(`${nm} · 厕所`, `Toilets · ${nm}`))}</h3>
       ${r === 1 ? `<p class="callout ok">${icon('check')}<span>${esc(Z(`${nm}里面有厕所`, `${nm} has its own toilets`))}${a === 1 ? esc(Z('，有无障碍厕所', ', incl. accessible')) : ''}</span></p>` : ''}
@@ -412,7 +415,7 @@ function drinkCard(x) {
       ${(lang === 'en' ? x.hours_en : x.hours_zh) ? `<p class="xsmall">${icon('clock')} ${escText(lang === 'en' ? x.hours_en : x.hours_zh)}</p>` : ''}
       ${rrLine(x.gpid, x.lat, x.lng)}
       ${closedNote(x)}
-      <div class="links-row">${extI(gmSearch(q, x.gpid), Z('地图', 'Map'), 'pin')}${extI(gmDir(q, 'walking', undefined, x.gpid), Z('路线', 'Directions'), 'route')}${addBtn(drinkName(x), x.lat, x.lng, x.gpid, q, x.address_trad)}</div>
+      <div class="links-row">${nativeChip(x.name_trad, x.name_roma)}${extI(gmSearch(q, x.gpid), Z('地图', 'Map'), 'pin')}${extI(gmDir(q, 'walking', undefined, x.gpid), Z('路线', 'Directions'), 'route')}${addBtn(drinkName(x), x.lat, x.lng, x.gpid, q, x.address_trad)}</div>
     </article>`;
 }
 function placeCardHTML(id) {
@@ -452,7 +455,7 @@ function foodCard(f) {
       ${closedNote(f)}
       ${(lang === 'en' ? f.note_en : f.note_zh) ? `<p class="note">${esc(lang === 'en' ? f.note_en : f.note_zh)}</p>` : ''}
       ${gBox(f.gpid)}
-      <div class="links-row">${gBtn(f.gpid)}${extI(gmSearch(q, f.gpid), Z('地图', 'Map'), 'pin')}${extI(gmDir(q, 'transit', undefined, f.gpid), Z('路线', 'Directions'), 'route')}${f.site ? extI(f.site, Z('官网', 'Website'), 'ext') : ''}${addBtn(name, f.lat, f.lng, f.gpid, q, f.address_trad)}</div>
+      <div class="links-row">${nativeChip(f.name_trad, f.name_roma)}${gBtn(f.gpid)}${extI(gmSearch(q, f.gpid), Z('地图', 'Map'), 'pin')}${extI(gmDir(q, 'transit', undefined, f.gpid), Z('路线', 'Directions'), 'route')}${f.site ? extI(f.site, Z('官网', 'Website'), 'ext') : ''}${addBtn(name, f.lat, f.lng, f.gpid, q, f.address_trad)}</div>
     </article>`;
 }
 const srcShort = (s = '') =>
@@ -466,7 +469,10 @@ const srcShort = (s = '') =>
 					? 'Tripadvisor'
 					: /klook/i.test(s)
 						? 'Klook'
-						: Z('网络评分', 'web rating');
+						: /tabelog/i.test(s)
+							? // Tabelog scores sit lower than Google's: 3.5 is already a very good restaurant
+								Z('Tabelog（3.5以上就很好）', 'Tabelog (3.5+ is very good)')
+							: Z('网络评分', 'web rating');
 const slug = (s) =>
 	String(s)
 		.toLowerCase()
@@ -519,8 +525,8 @@ function routeCard(day) {
 						c.map((p) => PLACES[p].maps),
 						'driving',
 					),
-				)}" target="_blank" rel="noopener">${icon('map')}<span class="l-leg-t">${chunks.length > 1 ? `${Z('全程路线', 'Whole route')} ${i + 1}/${chunks.length}<span class="l-leg-sub"> · ${esc(end(c[0]))} → ${esc(end(c[c.length - 1]))}</span>` : Z('全程路线', 'Whole route')}</span><span class="l-leg-m">${Z('开车', 'drive')}</span></a>`,
+				)}" target="_blank" rel="noopener">${icon('map')}<span class="l-leg-t">${chunks.length > 1 ? `${Z('全程路线', 'Whole route')} ${i + 1}/${chunks.length}<span class="l-leg-sub"> · ${esc(end(c[0]))} → ${esc(end(c[c.length - 1]))}</span>` : Z('全程路线', 'Whole route')}</span><span class="l-leg-m">${Z('开车', 'drive')}${mapsApp === 'apple' ? ' · Google' : ''}</span></a>`,
 		)
 		.join('');
-	return `<div class="l-route" id="${day.id}-route"><p class="l-route-h">${icon('route')}${Z('今天路线', "Today's route")}<span>${Z('点一下用 Google 地图导航', 'Tap to navigate in Google Maps')}</span></p><div class="l-legs">${rows}${multi}</div></div>`;
+	return `<div class="l-route" id="${day.id}-route"><p class="l-route-h">${icon('route')}${Z('今天路线', "Today's route")}<span>${Z(`点一下用 ${mapsName(mapsApp)}导航`, `Tap to navigate in ${mapsName(mapsApp)}`)}</span></p><div class="l-legs">${rows}${multi}</div></div>`;
 }

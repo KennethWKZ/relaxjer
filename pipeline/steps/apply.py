@@ -10,7 +10,10 @@ from lib import google as F
 from lib.hours import parse_hours, fmt_hours, closed_on_trip, clean_addr, merge_addr
 o = json.load(open(F.OUT))
 e = json.load(open(S + 'extra.json')); wa = json.load(open(S + 'wish-a.json')); wb = json.load(open(S + 'wish-b.json')); geo = json.load(open(S + 'geo.json'))
-def st_name(n, kind): n = T2S(n); return n if n.endswith('站') else n + '站'
+KANA = re.compile(r'[\u3040-\u30ff]')
+def st_name(n, kind):
+    if n.endswith(('駅', '站')) or KANA.search(n): return n  # a Japanese name stays as it is signed (さっぽろ駅, not さっぽろ駅站)
+    n = T2S(n); return n if n.endswith('站') else n + '站'
 def mrt_obj(key, lat, lng):
     m = o['mrt'].get(key)
     if not m:  # nothing walkable: name the nearest MRT anyway, marked as not walkable

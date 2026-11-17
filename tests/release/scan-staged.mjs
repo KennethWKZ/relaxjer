@@ -4,17 +4,14 @@
 // Usage: node tests/release/scan-staged.mjs <commit message file>
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
-import { findRealTrip, realTripTokens } from './real-trip-patterns.mjs';
+import { addedByFile, findRealTrip, isProse, realTripTokens } from './real-trip-patterns.mjs';
 
 const git = (...a) => execFileSync('git', a, { encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 }).trim();
 const tokens = realTripTokens(git('rev-parse', '--show-toplevel'));
 if (!tokens.length) process.exit(0); // no real trips on this machine (CI, a fresh clone): nothing to look for
 
-// only what the commit adds: the "+" lines of the staged diff
-const added = git('diff', '--cached', '--unified=0', '--no-color')
-	.split('\n')
-	.filter((l) => l.startsWith('+') && !l.startsWith('+++'))
-	.join('\n');
+// only what the commit adds: the "+" lines of the staged diff, per file (code or prose)
+const added = addedByFile(git('diff', '--cached', '--unified=0', '--no-color'));
 // the message as git will keep it: no comment lines, nothing below the scissors line of `commit -v`
 const msgFile = process.argv[2];
 const message = msgFile
@@ -27,7 +24,7 @@ const message = msgFile
 	: '';
 
 const hits = [
-	...findRealTrip(added, tokens).map((h) => `the staged changes: ${h}`),
+	...added.flatMap(({ file, text }) => findRealTrip(text, tokens, { prose: isProse(file) }).map((h) => `the staged changes: ${h} (in ${file})`)),
 	...findRealTrip(message, tokens).map((h) => `the commit message: ${h}`),
 ];
 if (hits.length) {

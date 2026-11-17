@@ -6,7 +6,8 @@ const NAV = [
 	{ id: 'airport', label: ['机场', 'Airport'] },
 	{ id: 'entry', label: ['入境', 'Entry'] },
 	{ id: 'optional', label: ['备选', 'Optional'] },
-	{ id: 'wish', label: ['想去', 'Wishlist'] },
+	// a trip with no wishlist has no section (08-wishlist.js), so no tab or menu row pointing at nothing either
+	...(WISH.length ? [{ id: 'wish', label: ['想去', 'Wishlist'] }] : []),
 	{ id: 'eat', label: ['附近吃', 'Food'] },
 	{ id: 'budget', label: ['预算', 'Budget'] },
 	{ id: 'weather', label: ['天气', 'Weather'] },

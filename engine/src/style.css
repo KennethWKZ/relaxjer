@@ -1172,6 +1172,43 @@ ul.list li::marker {
 	object-fit: cover;
 	background: var(--paper-3);
 }
+/* the native layer (Pack.native): the destination's own words under a stop or beside a place, one tap copies them.
+   The words wrap inside the button, so a long name or address never pushes the row off a phone screen. */
+.stop-native {
+	grid-column: 1;
+}
+/* two columns: the copy icon, then the words over their romanization, so a wrapped line never slides under the icon */
+.mlink.native {
+	display: inline-grid;
+	grid-template-columns: auto minmax(0, 1fr);
+	align-items: center;
+	column-gap: 8px;
+	row-gap: 0;
+	padding-block: 6px;
+	white-space: normal;
+	text-align: start;
+	max-width: 100%;
+	color: var(--ink);
+}
+.mlink.native svg.i {
+	grid-row: 1 / span 2;
+	color: var(--link);
+}
+.mlink.native .nat-t {
+	grid-column: 2;
+	font-size: var(--fs-sm);
+	overflow-wrap: anywhere;
+}
+.mlink.native .nat-r {
+	grid-column: 2;
+	font-weight: 500;
+	color: var(--ink-3);
+	overflow-wrap: anywhere;
+}
+/* Japanese in Japanese glyphs: the UI stack leads with Chinese fonts, which draw shared kanji (直, 海, 骨) the Chinese way */
+:lang(ja) {
+	font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Yu Gothic', Meiryo, sans-serif;
+}
 .stop-links {
 	grid-column: 1;
 	display: flex;

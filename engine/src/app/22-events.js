@@ -90,6 +90,16 @@ document.addEventListener('click', (e) => {
 		toast(`${Z('主题', 'Theme')}：${themeName(themePref)}`);
 		return;
 	}
+	if (t.matches('[data-maps-cycle]')) {
+		mapsApp = mapsApp === 'apple' ? 'google' : 'apple';
+		store.set('maps', mapsApp);
+		const sp = spotNow();
+		render(); // every Map and Directions link is drawn again for the chosen app
+		spotRestore(sp);
+		if (t.isConnected) t.outerHTML = mapsRow();
+		toast(`${Z('打开地图用', 'Open maps in')}：${mapsName(mapsApp)}`);
+		return;
+	}
 	if (t.matches('[data-lang]')) {
 		if (t.dataset.lang !== lang) {
 			const sp = spotNow();
@@ -112,6 +122,7 @@ document.addEventListener('click', (e) => {
 	if (t.matches('[data-copy-day]')) return copy(dayText(dayById[t.dataset.copyDay]), Z('已复制，可以贴到群组', 'Copied; paste it into the chat'));
 	if (t.matches('[data-copy-link]')) return copy(linkFor(t.dataset.copyLink), Z('链接已复制', 'Link copied'));
 	if (t.matches('[data-driver]')) return openDriver(t.dataset.driver);
+	if (t.matches('[data-native]')) return copy(t.dataset.native, Z(`已复制：${t.dataset.native}`, `Copied: ${t.dataset.native}`));
 	if (t.id === 'drv-copy') return copy(t.dataset.text, Z('地址已复制', 'Address copied'));
 	if (t.matches('[data-close]')) {
 		closeDialog(t.closest('dialog'));

@@ -1,10 +1,10 @@
 // Pre-push history scan: every commit about to be published is checked for the first trip's details, in every file
-// it adds or changes (trips/ is ignored by git, so this covers the engine, docs and tests).
+// it adds or changes and in its message (trips/ is ignored by git, so this covers the engine, docs and tests).
 // Reads git's pre-push lines on stdin: "<local ref> <local sha> <remote ref> <remote sha>".
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { findRealTrip, realTripTokens } from './real-trip-patterns.mjs';
+import { addedByFile, findRealTrip, isProse, realTripTokens } from './real-trip-patterns.mjs';
 
 const tokens = realTripTokens(path.resolve(path.dirname(new URL(import.meta.url).pathname), '../..'));
 
@@ -23,12 +23,12 @@ for (const line of lines) {
 }
 const hits = [];
 for (const c of commits) {
-	// only what this commit adds: the "+" lines of its diff
-	const added = git('show', '--format=', '--unified=0', '--no-color', c)
-		.split('\n')
-		.filter((l) => l.startsWith('+') && !l.startsWith('+++'))
-		.join('\n');
-	const found = findRealTrip(added, tokens);
+	// only what this commit adds (the "+" lines of its diff, per file: code or prose), and its message (prose)
+	const added = addedByFile(git('show', '--format=', '--unified=0', '--no-color', c));
+	const found = [
+		...added.flatMap(({ file, text }) => findRealTrip(text, tokens, { prose: isProse(file) })),
+		...findRealTrip(git('log', '-1', '--format=%B', c), tokens),
+	];
 	if (found.length) hits.push(`${c.slice(0, 7)} ${git('log', '-1', '--format=%s', c).trim()}: ${found.join(', ')}`);
 }
 if (hits.length) {

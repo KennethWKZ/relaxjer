@@ -98,17 +98,19 @@ A plan (`options[]`): `id`, `name: [zh, en]`, and `join: 'HH:MM'`, the start tim
 
 ### A stop (`DAYS[i].schedule[]`)
 
-| Field   | What it is                                                                                                                                                                                                                                                                 |
-| ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `t`     | `'HH:MM'`, `'~HH:MM–HH:MM'` (`~` reads "about"), or a `[zh, en]` label with no clock time ("Evening"). Planned times never run backwards (the contract checks it)                                                                                                          |
-| `what`  | `[zh, en]`: the stop                                                                                                                                                                                                                                                       |
-| `place` | a `PLACES` key: its map and directions links, and the food, drinks, rest spots and toilets near it                                                                                                                                                                         |
-| `link`  | a `SITES` key, an in-page anchor (`'#airport'`) or a URL                                                                                                                                                                                                                   |
-| `note`  | `[zh, en]`: the line under the stop                                                                                                                                                                                                                                        |
-| `fixed` | `true`: booked or timed. It carries the red seal, a push-back stops at it, and the running-late check treats it as a deadline                                                                                                                                              |
-| `rel`   | follows a flight: `arr` (minutes after landing) or `dep` (minutes from take-off, negative before: `[-425, -350]`) as `[start, end]`; `about: 1` writes "~"; `min` is the earliest start (minutes after midnight); `next: 1` adds "next day"; `from` labels a missing start |
-| `shops` | `true`: the trip's shop box (`shops.json`) hangs under this stop                                                                                                                                                                                                           |
-| `step`  | a step number shown instead of a clock time (with the day's `stepsTitle`), for a free day's ideas; a step is never pushed back                                                                                                                                             |
+| Field    | What it is                                                                                                                                                                                                                                                                 |
+| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `t`      | `'HH:MM'`, `'~HH:MM–HH:MM'` (`~` reads "about"), or a `[zh, en]` label with no clock time ("Evening"). Planned times never run backwards (the contract checks it)                                                                                                          |
+| `what`   | `[zh, en]`: the stop                                                                                                                                                                                                                                                       |
+| `place`  | a `PLACES` key: its map and directions links, and the food, drinks, rest spots and toilets near it                                                                                                                                                                         |
+| `link`   | a `SITES` key, an in-page anchor (`'#airport'`) or a URL                                                                                                                                                                                                                   |
+| `note`   | `[zh, en]`: the line under the stop                                                                                                                                                                                                                                        |
+| `native` | the stop in the local language when it isn't its place's name (a dish, a sign, a ticket counter): the native layer shows it instead of the place's `trad` (pack `native`)                                                                                                  |
+| `roma`   | the romanization of `native`                                                                                                                                                                                                                                               |
+| `fixed`  | `true`: booked or timed. It carries the red seal, a push-back stops at it, and the running-late check treats it as a deadline                                                                                                                                              |
+| `rel`    | follows a flight: `arr` (minutes after landing) or `dep` (minutes from take-off, negative before: `[-425, -350]`) as `[start, end]`; `about: 1` writes "~"; `min` is the earliest start (minutes after midnight); `next: 1` adds "next day"; `from` labels a missing start |
+| `shops`  | `true`: the trip's shop box (`shops.json`) hangs under this stop                                                                                                                                                                                                           |
+| `step`   | a step number shown instead of a clock time (with the day's `stepsTitle`), for a free day's ideas; a step is never pushed back                                                                                                                                             |
 
 ### Day cards (`DAYS[i].blocks[]`)
 
@@ -155,16 +157,17 @@ other place or site is named by the data that uses it, and the contract checks t
 
 ### A place (`PLACES[key]`)
 
-| Field            | What it drives                                                                                                        |
-| ---------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `name`           | `[zh, en]`                                                                                                            |
-| `maps`           | the text a map or directions link searches for                                                                        |
-| `trad`           | the destination's own spelling (Traditional Chinese in Taiwan): search, and the "show the driver" card                |
-| `addr`, `addrEn` | the address in the local language and in English (the driver card, the hotel fact)                                    |
-| `tel`, `note`    | the phone number (the driver card), and a note (`[zh, en]`)                                                           |
-| `site`           | the place's own website                                                                                               |
-| `gpid`           | a hand-checked Google place id, pinned so the data refresh can't swap it for a neighbour                              |
-| `gname`          | the name Google Maps still lists, when the place renamed: the hotel fact warns that a search for the new one misleads |
+| Field            | What it drives                                                                                                                              |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`           | `[zh, en]`                                                                                                                                  |
+| `maps`           | the text a map or directions link searches for                                                                                              |
+| `trad`           | the destination's own spelling (Traditional Chinese in Taiwan, Japanese in Japan): search, the "show the driver" card, and the native layer |
+| `roma`           | its romanization (Hepburn in Japan): shown beside `trad` in the native layer and on the driver card (pack `native`)                         |
+| `addr`, `addrEn` | the address in the local language and in English (the driver card, the hotel fact)                                                          |
+| `tel`, `note`    | the phone number (the driver card), and a note (`[zh, en]`)                                                                                 |
+| `site`           | the place's own website                                                                                                                     |
+| `gpid`           | a hand-checked Google place id, pinned so the data refresh can't swap it for a neighbour                                                    |
+| `gname`          | the name Google Maps still lists, when the place renamed: the hotel fact warns that a search for the new one misleads                       |
 
 Positions and hours aren't written here: the data refresh puts them in `geo.json` (`data-sync`).
 
@@ -199,7 +202,7 @@ also read the `SHARE_URL` environment variable: the live page's address, for Cop
 | File                          | Holds                                                                                                                                                                                                             | Written by                                                                          |
 | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
 | `geo.json`                    | each place's Google id, position, hours, closed dates and nearest station; route legs (walking and transit times; a drive still ahead: `min` in typical traffic, `bad` in heavy traffic); the map's bbox          | `data-sync`                                                                         |
-| `extra.json`                  | `food[]` (researched food slots: `slot`, name, position, hours), `tickets[]` (booking cards), `sites`                                                                                                             | by hand or `data-sync`                                                              |
+| `extra.json`                  | `food[]` (researched food slots: `slot`, name, position, hours; `name_roma` for the native layer), `tickets[]` (booking cards), `sites`                                                                           | by hand or `data-sync`                                                              |
 | `drinks.json`, `toilets.json` | drinks and rest spots near each stop; toilets, and places that let you borrow one                                                                                                                                 | `data-sync`                                                                         |
 | `shops.json`                  | the shop box (supermarkets, pharmacies) with the tax-refund tag                                                                                                                                                   | `data-sync`                                                                         |
 | `transit.json`, `mrt.json`    | bike-share stations and bus stops; the metro network for the offline transit planner                                                                                                                              | the region's steps                                                                  |
