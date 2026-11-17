@@ -137,7 +137,7 @@ function mapMsg(kind, why) {
 			"Browser can't draw map (graphics acceleration off). Try Chrome or Safari.",
 		),
 	};
-	const list = Z('用下面「所有地点」列表，每个都能开 Google 地图。', 'Use "All places" below; each opens in Google Maps.');
+	const list = Z(`用下面「所有地点」列表，每个都能开 ${mapsName(mapsApp)}。`, `Use "All places" below; each opens in ${mapsName(mapsApp)}.`);
 	el.innerHTML =
 		kind === 'loading'
 			? `<p>${Z('地图载入中…', 'Loading the map…')}</p>`

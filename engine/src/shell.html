@@ -78,7 +78,7 @@
 
 <dialog class="sheet" id="driver" aria-labelledby="drv-name">
   <div class="sheet-in">
-    <p class="xsmall" lang="zh-Hant">請載我們到這裡，謝謝！ · Please take us here, thank you.</p>
+    <p class="xsmall" id="drv-ask" lang="zh-Hant">請載我們到這裡，謝謝！ · Please take us here, thank you.</p>
     <p class="driver-name" id="drv-name" lang="zh-Hant"></p>
     <p class="driver-say" id="drv-alt" lang="zh-Hant"></p>
     <p class="driver-addr" id="drv-addr" lang="zh-Hant"></p>
@@ -86,7 +86,7 @@
     <p class="small" id="drv-tel"></p>
     <div class="links-row">
       <button type="button" class="go-btn" id="drv-copy" data-text=""><svg class="i" aria-hidden="true"><use href="#i-copy"/></svg>复制地址 Copy</button>
-      <a class="go-btn ghost" id="drv-map" href="#" target="_blank" rel="noopener"><svg class="i" aria-hidden="true"><use href="#i-pin"/></svg>Google Maps</a>
+      <a class="go-btn ghost" id="drv-map" href="#" target="_blank" rel="noopener"><svg class="i" aria-hidden="true"><use href="#i-pin"/></svg><span id="drv-map-l">Google Maps</span></a>
       <button type="button" class="go-btn ghost" data-close>关闭 Close</button>
     </div>
   </div>

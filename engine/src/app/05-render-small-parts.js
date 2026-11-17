@@ -1,6 +1,16 @@
 /* ───────── render: small parts ───────── */
 const lanternMark = (c) =>
 	`<svg class="lantern-mark" viewBox="0 0 34 40" aria-hidden="true" style="${colorVars(c)}"><rect x="13" y="1" width="8" height="4" rx="1.5" fill="currentColor" opacity=".3"/><path class="paper" d="M4 6Q17 2 30 6L26.5 34Q17 37.5 7.5 34Z"/><path class="rib" d="M5.5 13Q17 9.5 28.5 13M6.7 26Q17 29.5 27.3 26M17 4.5V35.5"/><ellipse class="flame" cx="17" cy="33" rx="3" ry="1.6" opacity=".9"/></svg>`;
+// the week list's mark for a day: the default world's sky lantern, or in a destination world (Pack.theme) the day's
+// activity mark (DAYS[i].motif, else a plain candle) on its colour
+const dayMark = (d) => (Pack.theme ? `<span class="day-mark">${Motif.svg(d.motif) || Motif.candle}</span>` : lanternMark(d.c));
+// the day's activity mark and its name, on the day's panel; nothing for a day without one
+/** a world's picture for a day's activity, or for the overview ('hero'); decorative, so hidden from screen readers */
+const worldArt = (name, cls) =>
+	Object.hasOwn(WORLD_ART, name)
+		? `<div class="${cls}" aria-hidden="true"><img src="${WORLD_ART[name]}" alt="" decoding="async"${cls === 'day-art' ? ' loading="lazy"' : ''}></div>`
+		: '';
+const motifTag = (d) => (Motif.svg(d.motif) ? `<span class="l-motif">${Motif.svg(d.motif)}${esc(L(Motif.MARKS[d.motif].name))}</span>` : '');
 const seal = () => `<span class="seal"><b aria-hidden="true">定</b>${Z('固定时间', 'Fixed time')}</span>`;
 const list = (items, cls = 'list') => `<ul class="${cls}">${items.map((x) => `<li>${fmt(x)}</li>`).join('')}</ul>`;
 const totalBox = (amt, per, min, max, extra = '') =>
@@ -280,7 +290,10 @@ function wcSheet(pk) {
 	);
 	const mrt =
 		g.mrt && g.mrt.walk
-			? Z(`${METRO[0]}${g.mrt.zh}站也有厕所（约${g.mrt.min}分钟）`, `${Cap(METRO[1])} ${g.mrt.en || g.mrt.zh} also has toilets (~${g.mrt.min} min)`)
+			? Z(
+					`${METRO[0]}${g.mrt.zh}${/[站駅]$/.test(g.mrt.zh) ? '' : '站'}也有厕所（约${g.mrt.min}分钟）`,
+					`${Cap(METRO[1])} ${g.mrt.en || g.mrt.zh} also has toilets (~${g.mrt.min} min)`,
+				)
 			: '';
 	return `<h3 class="spots-h">${icon('wc')}${esc(Z(`${nm} · 厕所`, `Toilets · ${nm}`))}</h3>
       ${r === 1 ? `<p class="callout ok">${icon('check')}<span>${esc(Z(`${nm}里面有厕所`, `${nm} has its own toilets`))}${a === 1 ? esc(Z('，有无障碍厕所', ', incl. accessible')) : ''}</span></p>` : ''}
@@ -412,7 +425,7 @@ function drinkCard(x) {
       ${(lang === 'en' ? x.hours_en : x.hours_zh) ? `<p class="xsmall">${icon('clock')} ${escText(lang === 'en' ? x.hours_en : x.hours_zh)}</p>` : ''}
       ${rrLine(x.gpid, x.lat, x.lng)}
       ${closedNote(x)}
-      <div class="links-row">${extI(gmSearch(q, x.gpid), Z('地图', 'Map'), 'pin')}${extI(gmDir(q, 'walking', undefined, x.gpid), Z('路线', 'Directions'), 'route')}${addBtn(drinkName(x), x.lat, x.lng, x.gpid, q, x.address_trad)}</div>
+      <div class="links-row">${nativeChip(x.name_trad, x.name_roma)}${extI(gmSearch(q, x.gpid), Z('地图', 'Map'), 'pin')}${extI(gmDir(q, 'walking', undefined, x.gpid), Z('路线', 'Directions'), 'route')}${addBtn(drinkName(x), x.lat, x.lng, x.gpid, q, x.address_trad)}</div>
     </article>`;
 }
 function placeCardHTML(id) {
@@ -452,7 +465,7 @@ function foodCard(f) {
       ${closedNote(f)}
       ${(lang === 'en' ? f.note_en : f.note_zh) ? `<p class="note">${esc(lang === 'en' ? f.note_en : f.note_zh)}</p>` : ''}
       ${gBox(f.gpid)}
-      <div class="links-row">${gBtn(f.gpid)}${extI(gmSearch(q, f.gpid), Z('地图', 'Map'), 'pin')}${extI(gmDir(q, 'transit', undefined, f.gpid), Z('路线', 'Directions'), 'route')}${f.site ? extI(f.site, Z('官网', 'Website'), 'ext') : ''}${addBtn(name, f.lat, f.lng, f.gpid, q, f.address_trad)}</div>
+      <div class="links-row">${nativeChip(f.name_trad, f.name_roma)}${gBtn(f.gpid)}${extI(gmSearch(q, f.gpid), Z('地图', 'Map'), 'pin')}${extI(gmDir(q, 'transit', undefined, f.gpid), Z('路线', 'Directions'), 'route')}${f.site ? extI(f.site, Z('官网', 'Website'), 'ext') : ''}${addBtn(name, f.lat, f.lng, f.gpid, q, f.address_trad)}</div>
     </article>`;
 }
 const srcShort = (s = '') =>
@@ -466,7 +479,10 @@ const srcShort = (s = '') =>
 					? 'Tripadvisor'
 					: /klook/i.test(s)
 						? 'Klook'
-						: Z('网络评分', 'web rating');
+						: /tabelog/i.test(s)
+							? // Tabelog scores sit lower than Google's: 3.5 is already a very good restaurant
+								Z('Tabelog（3.5以上就很好）', 'Tabelog (3.5+ is very good)')
+							: Z('网络评分', 'web rating');
 const slug = (s) =>
 	String(s)
 		.toLowerCase()
@@ -504,7 +520,7 @@ function routeCard(day) {
 	const rows = legs
 		.map(
 			([a, b, m], li) =>
-				`<a class="l-leg" href="${esc(gmDir(PLACES[b].maps, m, PLACES[a].maps))}" target="_blank" rel="noopener" aria-label="${esc(`${nm(a)} → ${nm(b)} · ${Z(MODES[m][0], MODES[m][1])}`)}">${icon(MODES[m][2])}<span class="l-leg-t">${b === 'hotel' ? Z('回酒店', 'back to hotel') : `${Z('去', 'to')} ${esc(nm(b))}`}${legSub(LT[`${day.id}:${li}`], m)}</span><span class="l-leg-m dlbl">${esc(Z(MODES[m][0], MODES[m][1]))}</span></a>`,
+				`<a class="l-leg" href="${esc(gmDir(PLACES[b].maps, m, PLACES[a].maps))}" target="_blank" rel="noopener" aria-label="${esc(`${nm(a)} → ${nm(b)} · ${Z(MODES[m][0], MODES[m][1])}`)}">${icon(MODES[m][2])}<span class="l-leg-t">${b === 'hotel' ? Z('回酒店', 'back to hotel') : `${Z('去', 'to')} ${esc(nm(b))}`}${legSub(Plan.storedLeg(LT, day.id, li, [a, b, m]), m)}</span><span class="l-leg-m dlbl">${esc(Z(MODES[m][0], MODES[m][1]))}</span></a>`,
 		)
 		.join('');
 	const ids = [legs[0][0], ...legs.map((l) => l[1])];
@@ -519,8 +535,8 @@ function routeCard(day) {
 						c.map((p) => PLACES[p].maps),
 						'driving',
 					),
-				)}" target="_blank" rel="noopener">${icon('map')}<span class="l-leg-t">${chunks.length > 1 ? `${Z('全程路线', 'Whole route')} ${i + 1}/${chunks.length}<span class="l-leg-sub"> · ${esc(end(c[0]))} → ${esc(end(c[c.length - 1]))}</span>` : Z('全程路线', 'Whole route')}</span><span class="l-leg-m">${Z('开车', 'drive')}</span></a>`,
+				)}" target="_blank" rel="noopener">${icon('map')}<span class="l-leg-t">${chunks.length > 1 ? `${Z('全程路线', 'Whole route')} ${i + 1}/${chunks.length}<span class="l-leg-sub"> · ${esc(end(c[0]))} → ${esc(end(c[c.length - 1]))}</span>` : Z('全程路线', 'Whole route')}</span><span class="l-leg-m">${Z('开车', 'drive')}${mapsApp === 'apple' ? ' · Google' : ''}</span></a>`,
 		)
 		.join('');
-	return `<div class="l-route" id="${day.id}-route"><p class="l-route-h">${icon('route')}${Z('今天路线', "Today's route")}<span>${Z('点一下用 Google 地图导航', 'Tap to navigate in Google Maps')}</span></p><div class="l-legs">${rows}${multi}</div></div>`;
+	return `<div class="l-route" id="${day.id}-route"><p class="l-route-h">${icon('route')}${Z('今天路线', "Today's route")}<span>${Z(`点一下用 ${mapsName(mapsApp)}导航`, `Tap to navigate in ${mapsName(mapsApp)}`)}</span></p><div class="l-legs">${rows}${multi}</div></div>`;
 }

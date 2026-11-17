@@ -169,3 +169,16 @@ export function legCheck({ at, from, go, next, onward }) {
 	const leaveBy = onBest && next != null ? next - onBest.min : null;
 	return { best, earliest, short, onBest, leaveBy, tight: leaveBy != null && leaveBy < Math.max(at, earliest ?? at) };
 }
+
+/**
+ * A route leg's stored times (geo.json legs["<day>:<i>"], written by the data refresh) for the leg the day has now, only
+ * while the stored one still joins the same two places the same way. A day whose stops were reordered or changed since
+ * the refresh shows no time for that leg until the next refresh, never another leg's. A leg stored before the refresh
+ * recorded its ends (no `from`) is taken as it is.
+ */
+export function storedLeg(legs, day, i, [from, to, mode]) {
+	const t = legs && legs[`${day}:${i}`];
+	if (!t) return null;
+	if (t.from == null) return t;
+	return t.from === from && t.to === to && t.mode === mode ? t : null;
+}

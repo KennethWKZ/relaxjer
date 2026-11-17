@@ -110,8 +110,13 @@ function mrtPlan(from, to) {
 	return { walk: direct, total: best, w0: a, w1: z, rides }; // all at the group's pace
 }
 const CARS = Math.ceil(PAX / 4); // taxis the group needs, 4 seats each
-// the city's taxi meter (Pack.taxiFare: [low, high] per car), or null where the pack has none
-const taxiFare = (dk) => (Pack.taxiFare ? Pack.taxiFare(dk, tpNow().mins) : null);
+// the city's taxi meter (Pack.taxiFare: [low, high] per car), or null where the pack has none. The date is for meters
+// with a season (Sapporo's winter surcharge); a meter that doesn't need it ignores it
+const taxiFare = (dk) => {
+	if (!Pack.taxiFare) return null;
+	const now = tpNow();
+	return Pack.taxiFare(dk, now.mins, now.date);
+};
 const mline = (l) => `<span class="mline" style="--lc:${esc(l.c)}"><b>${esc(l.ref)}</b>${esc(lang === 'en' ? l.en : l.zh)}</span>`;
 // "from where you are": walking when that is as quick, else the MRT legs; compact = one line for the map popup
 function planHTML(to, compact) {
@@ -131,11 +136,11 @@ function planHTML(to, compact) {
 				: Z(`计程车约${taxi}分钟（${PAX}人要${CARS}辆）`, `Taxi ~${taxi} min (${PAX} people = ${CARS} car${CARS > 1 ? 's' : ''})`)
 		}</span></p>`;
 	if (pl.none && wk > 25)
-		return `<div class="plan-box">${taxiP(true)}<p class="xsmall muted">${Z(`离你约${dk.toFixed(1)} km，附近没有${METRO[0]}；公车看 Google 地图`, `${dk.toFixed(1)} km away, no ${METRO[1]} near; buses: Google Maps`)}</p></div>`;
+		return `<div class="plan-box">${taxiP(true)}<p class="xsmall muted">${Z(`离你约${dk.toFixed(1)} km，附近没有${METRO[0]}；公车看 ${mapsName(mapsApp)}`, `${dk.toFixed(1)} km away, no ${METRO[1]} near; buses: ${mapsName(mapsApp)}`)}</p></div>`;
 	const longLeg = !pl.none && (pl.w0 > 20 || pl.w1 > 20);
 	const walkOnly = pl.none || wk <= Math.min(15, pl.total + 3);
 	if (walkOnly)
-		return `<p class="plan">${icon('walk')}<span>${Z(`从你这里走路约${wk}分钟`, `~${wk} min walk from you`)} · ${distLabel(km(meLL, to))}${pl.none && wk > 25 ? Z(`。附近没有${METRO[0]}：看 Google 地图（公车/计程车）`, `. No ${METRO[1]} nearby: check Google Maps (bus/taxi)`) : ''}</span></p>`;
+		return `<p class="plan">${icon('walk')}<span>${Z(`从你这里走路约${wk}分钟`, `~${wk} min walk from you`)} · ${distLabel(km(meLL, to))}${pl.none && wk > 25 ? Z(`。附近没有${METRO[0]}：看 ${mapsName(mapsApp)}（公车/计程车）`, `. No ${METRO[1]} nearby: check ${mapsName(mapsApp)} (bus/taxi)`) : ''}</span></p>`;
 	const tot = Math.round(pl.total);
 	if (compact)
 		return `<p class="plan">${icon('train')}<span>${Z(`${METRO[0]}约${tot}分钟`, `${Cap(METRO[1])} ~${tot} min`)}: ${pl.rides.map((r) => mline(MRT.ln[r.li])).join(' → ')}${Z('（估）', ' (est.)')}</span></p>`;

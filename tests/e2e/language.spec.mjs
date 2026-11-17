@@ -7,6 +7,7 @@ import { readingSpot, scrollBy, settle, switchLang } from '../support/page.mjs';
 for (const tab of ['d3', 'airport', 'wish', 'budget']) {
 	test(`language switch keeps the reader in #${tab}`, async ({ page }) => {
 		await openTrip(page);
+		test.skip((await page.locator(`.tab[href="#${tab}"]`).count()) === 0, `this trip has no #${tab} section`);
 		await page.locator(`.tab[href="#${tab}"]`).first().click();
 		await settle(page);
 		await scrollBy(page, 400);

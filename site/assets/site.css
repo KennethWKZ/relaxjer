@@ -5295,3 +5295,504 @@ thead th.rec {
 		scale: 1;
 	}
 }
+
+/* the two phases of the fall, so neighbouring flakes don't drop in step; each jump happens off the screen */
+@keyframes snow-a {
+	0% {
+		translate: 0 -10vh;
+	}
+	10% {
+		translate: 0 110vh;
+	}
+	10% {
+		translate: 0 -10vh;
+	}
+	20% {
+		translate: 0 110vh;
+	}
+	20% {
+		translate: 0 -10vh;
+	}
+	30% {
+		translate: 0 110vh;
+	}
+	30% {
+		translate: 0 -10vh;
+	}
+	40% {
+		translate: 0 110vh;
+	}
+	40% {
+		translate: 0 -10vh;
+	}
+	50% {
+		translate: 0 110vh;
+	}
+	50% {
+		translate: 0 -10vh;
+	}
+	60% {
+		translate: 0 110vh;
+	}
+	60% {
+		translate: 0 -10vh;
+	}
+	70% {
+		translate: 0 110vh;
+	}
+	70% {
+		translate: 0 -10vh;
+	}
+	80% {
+		translate: 0 110vh;
+	}
+	80% {
+		translate: 0 -10vh;
+	}
+	90% {
+		translate: 0 110vh;
+	}
+	90% {
+		translate: 0 -10vh;
+	}
+	100% {
+		translate: 0 110vh;
+	}
+}
+@keyframes snow-b {
+	0% {
+		translate: 0 50vh;
+	}
+	5% {
+		translate: 0 110vh;
+	}
+	5% {
+		translate: 0 -10vh;
+	}
+	15% {
+		translate: 0 110vh;
+	}
+	15% {
+		translate: 0 -10vh;
+	}
+	25% {
+		translate: 0 110vh;
+	}
+	25% {
+		translate: 0 -10vh;
+	}
+	35% {
+		translate: 0 110vh;
+	}
+	35% {
+		translate: 0 -10vh;
+	}
+	45% {
+		translate: 0 110vh;
+	}
+	45% {
+		translate: 0 -10vh;
+	}
+	55% {
+		translate: 0 110vh;
+	}
+	55% {
+		translate: 0 -10vh;
+	}
+	65% {
+		translate: 0 110vh;
+	}
+	65% {
+		translate: 0 -10vh;
+	}
+	75% {
+		translate: 0 110vh;
+	}
+	75% {
+		translate: 0 -10vh;
+	}
+	85% {
+		translate: 0 110vh;
+	}
+	85% {
+		translate: 0 -10vh;
+	}
+	95% {
+		translate: 0 110vh;
+	}
+	95% {
+		translate: 0 -10vh;
+	}
+	100% {
+		translate: 0 50vh;
+	}
+}
+
+/* ───────── the Snow world: Snow Light Path (DESIGN.md, "Surface: the landing page") ─────────
+   Keyed to :root[data-world='snow'] and the .world-* classes, so the Lanterns world (no attribute) is the rules above,
+   unchanged. The day tokens and both night blocks define the same keys, so a night value can't leak into the day. The
+   snowfall is the only motion here, and it stops under reduced motion. */
+
+/* each world's parts are hidden in the other world */
+:root:not([data-world='snow']) .world-snow,
+:root[data-world='snow'] .world-lanterns,
+:root[data-world='snow'] .scene .lit,
+:root[data-world='snow'] .birds {
+	display: none;
+}
+
+/* the sky by day: a pale winter morning, a blue afternoon with a cool lilac turn, and a cold dusk, never gold */
+:root[data-world='snow'] {
+	--table: #eaf2fb;
+	--sky-1: #f6fafe;
+	--sky-2: #edf4fb;
+	--sky-3: #e2edf8;
+	--sky-35: #dbe5f5;
+	--sky-4: #d6dff1;
+	--sky-5: #d0daee;
+	--sky-6: #cad5ea;
+	--sun: #ffefc4; /* the low winter sun */
+	--sun-low: #ffc9a0;
+	--sun-travel: 1;
+	--cloud-o: 1;
+	--birds-o: 0;
+	--stars-o: 0;
+	--moon-o: 0;
+	--table-2: #dbe7f5;
+	--flake: #7f9fc8; /* a snowflake against the pale sky */
+}
+
+/* the night: navy, lit only by the candles, so no stars, no sun and no moon. Same keys as the day block above. */
+@media (prefers-color-scheme: dark) {
+	:root[data-world='snow']:not([data-theme='light']) {
+		--table: #0a1424;
+		--sky-1: #0a1424;
+		--sky-2: #0b1628;
+		--sky-3: #0d1a31;
+		--sky-35: #0f1e39;
+		--sky-4: #112141;
+		--sky-5: #13264a;
+		--sky-6: #152b52;
+		--sun: #e6eefb;
+		--sun-low: #e6eefb;
+		--sun-travel: 0.35;
+		--cloud-o: 0.07;
+		--birds-o: 0;
+		--stars-o: 0;
+		--moon-o: 0;
+		--table-2: #111d33;
+		--flake: #eaf2fb;
+	}
+	:root[data-world='snow']:not([data-theme='light']) .sun {
+		display: none;
+	}
+}
+:root[data-world='snow'][data-theme='dark'] {
+	--table: #0a1424;
+	--sky-1: #0a1424;
+	--sky-2: #0b1628;
+	--sky-3: #0d1a31;
+	--sky-35: #0f1e39;
+	--sky-4: #112141;
+	--sky-5: #13264a;
+	--sky-6: #152b52;
+	--sun: #e6eefb;
+	--sun-low: #e6eefb;
+	--sun-travel: 0.35;
+	--cloud-o: 0.07;
+	--birds-o: 0;
+	--stars-o: 0;
+	--moon-o: 0;
+	--table-2: #111d33;
+	--flake: #eaf2fb;
+}
+:root[data-world='snow'][data-theme='dark'] .sun {
+	display: none;
+}
+
+/* the bar's world button: a 44 px target that shows the other world's glyph; in Snow it sits on a filled, ringed tile */
+.nav-world {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 44px;
+	min-height: 44px;
+	padding: 0;
+	border: 0;
+	border-radius: 10px;
+	background: none;
+	color: var(--ink);
+	cursor: pointer;
+	transition:
+		background-color 160ms ease,
+		transform 160ms var(--ease-out);
+}
+.nav-world[hidden] {
+	display: none;
+}
+.nav-world svg {
+	width: 20px;
+	height: 20px;
+}
+.nav-world:active {
+	background: var(--table-2);
+	transform: scale(0.97);
+	transition-duration: 0ms;
+}
+@media (hover: hover) and (pointer: fine) {
+	.nav-world:hover {
+		background: var(--table-2);
+	}
+}
+:root[data-world='snow'] .nav-world {
+	background: var(--stock);
+	box-shadow: inset 0 0 0 1.5px var(--ink);
+}
+
+/* the hero's second demo link, under the pair of buttons */
+.other-demo {
+	margin-top: 8px;
+	font-size: 0.9375rem;
+	color: var(--ink-2);
+}
+.other-demo a {
+	display: inline-flex;
+	align-items: center;
+	min-height: 44px;
+	font-weight: 650;
+}
+
+/* the postcard's front in Snow: a snowy night with candles in the snow, and its caption 札幌 */
+:root[data-world='snow'] .pc-front .sky {
+	background: radial-gradient(120% 90% at 50% 120%, #2c4f7e 0%, #18305a 38%, #0e1d38 70%, #08111f 100%);
+}
+.snow-art {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	display: block;
+}
+
+/* the footer's night: a snowy navy ground, candles standing in the snow, no stars */
+:root[data-world='snow'] .foot {
+	background: linear-gradient(to bottom, transparent 0, #1a2f52 22%, #0f1f3a 46%, #0a1528 70%);
+}
+:root[data-world='snow'] .night {
+	background: none;
+}
+:root[data-world='snow'] .night .ridge path:first-child {
+	fill: #213a62; /* the snow behind the candles */
+}
+:root[data-world='snow'] .night .ridge path:last-child {
+	fill: #e6eff9; /* the snow the candles stand in */
+}
+.snow-path {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+}
+/* a candle: its foot is a cup of snow, its wax stands in it, and the flame is the one warm light */
+.candle {
+	position: absolute;
+	left: var(--x);
+	top: var(--y);
+	width: 12px;
+	height: 22px;
+	translate: -50% -100%;
+	scale: 1.8;
+	transform-origin: 50% 100%; /* grows up from its snow, never down into it */
+}
+.candle::before {
+	content: '';
+	position: absolute;
+	left: -4px;
+	right: -4px;
+	bottom: -3px;
+	height: 6px;
+	border-radius: 50%;
+	background: #f7fbff;
+}
+.candle::after {
+	content: '';
+	position: absolute;
+	left: 50%;
+	bottom: 0;
+	width: 5px;
+	height: 9px;
+	translate: -50% 0;
+	border-radius: 1px;
+	background: #fff3cf;
+}
+.candle i {
+	position: absolute;
+	left: 50%;
+	bottom: 10px;
+	width: 5px;
+	height: 9px;
+	translate: -50% 0;
+	border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+	background: #ffb43c;
+	box-shadow: 0 0 8px 3px rgba(255, 176, 60, 0.42);
+}
+
+/* the falling snow: flakes held in the viewport, each falling once for every tenth of the page the visitor scrolls, so
+   they fall as the page moves and hang still when it doesn't. Where scroll timelines are missing they stay as still dots. */
+.flake {
+	position: fixed;
+	top: var(--y);
+	left: var(--x);
+	width: var(--s);
+	height: var(--s);
+	border-radius: 50%;
+	background: var(--flake);
+	opacity: 0.8;
+}
+@supports (animation-timeline: scroll()) {
+	@media (prefers-reduced-motion: no-preference) {
+		:root[data-world='snow'] .flake {
+			animation: snow-a linear both;
+			animation-timeline: scroll(root);
+		}
+		:root[data-world='snow'] .flake:nth-child(2n) {
+			animation-name: snow-b;
+		}
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	:root[data-world='snow'] .flake {
+		display: none;
+	}
+}
+
+/* the two phases of the fall, so neighbouring flakes don't drop in step; each jump happens off the screen */
+@keyframes snow-a {
+	0% {
+		translate: 0 -10vh;
+	}
+	10% {
+		translate: 0 110vh;
+	}
+	10% {
+		translate: 0 -10vh;
+	}
+	20% {
+		translate: 0 110vh;
+	}
+	20% {
+		translate: 0 -10vh;
+	}
+	30% {
+		translate: 0 110vh;
+	}
+	30% {
+		translate: 0 -10vh;
+	}
+	40% {
+		translate: 0 110vh;
+	}
+	40% {
+		translate: 0 -10vh;
+	}
+	50% {
+		translate: 0 110vh;
+	}
+	50% {
+		translate: 0 -10vh;
+	}
+	60% {
+		translate: 0 110vh;
+	}
+	60% {
+		translate: 0 -10vh;
+	}
+	70% {
+		translate: 0 110vh;
+	}
+	70% {
+		translate: 0 -10vh;
+	}
+	80% {
+		translate: 0 110vh;
+	}
+	80% {
+		translate: 0 -10vh;
+	}
+	90% {
+		translate: 0 110vh;
+	}
+	90% {
+		translate: 0 -10vh;
+	}
+	100% {
+		translate: 0 110vh;
+	}
+}
+@keyframes snow-b {
+	0% {
+		translate: 0 50vh;
+	}
+	5% {
+		translate: 0 110vh;
+	}
+	5% {
+		translate: 0 -10vh;
+	}
+	15% {
+		translate: 0 110vh;
+	}
+	15% {
+		translate: 0 -10vh;
+	}
+	25% {
+		translate: 0 110vh;
+	}
+	25% {
+		translate: 0 -10vh;
+	}
+	35% {
+		translate: 0 110vh;
+	}
+	35% {
+		translate: 0 -10vh;
+	}
+	45% {
+		translate: 0 110vh;
+	}
+	45% {
+		translate: 0 -10vh;
+	}
+	55% {
+		translate: 0 110vh;
+	}
+	55% {
+		translate: 0 -10vh;
+	}
+	65% {
+		translate: 0 110vh;
+	}
+	65% {
+		translate: 0 -10vh;
+	}
+	75% {
+		translate: 0 110vh;
+	}
+	75% {
+		translate: 0 -10vh;
+	}
+	85% {
+		translate: 0 110vh;
+	}
+	85% {
+		translate: 0 -10vh;
+	}
+	95% {
+		translate: 0 110vh;
+	}
+	95% {
+		translate: 0 -10vh;
+	}
+	100% {
+		translate: 0 50vh;
+	}
+}

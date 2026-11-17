@@ -83,17 +83,42 @@ function imgLoad() {
 const dayById = Object.fromEntries(DAYS.map((d) => [d.id, d]));
 const colorVars = (c) => `--c:var(--l${c});--ci:var(--l${c}-ink);--cf:var(--l${c}-fill);--cm:var(--l${c}-mute);--cg:var(--l${c}-glow)`;
 
-/* Google Maps links */
+/* Map and directions links: Google Maps, or Apple Maps when the phone chose it (mapsApp). The whole-day route
+   (gmMulti) stays on Google: an Apple Maps link can't carry the stops in between. */
 const gpidOf = (q) => {
 	for (const k in PLACES) if (PLACES[k].maps === q) return PLACES[k].gpid || (GEO && GEO.places && GEO.places[k] && GEO.places[k].gpid) || '';
 	return '';
 };
+// a search text's position: a trip place's pin, or the "lat,lng" some lists put at the end of the text
+const llOf = (q) => {
+	const m = /\s(-?\d{1,3}\.\d+),\s*(-?\d{1,3}\.\d+)\s*$/.exec(` ${q}`);
+	if (m) return { q: q.slice(0, q.length - m[0].length + 1).trim(), ll: `${m[1]},${m[2]}` };
+	for (const k in PLACES) {
+		const g = PLACES[k].maps === q && GEO && GEO.places && GEO.places[k];
+		if (g && g.lat) return { q, ll: `${g.lat},${g.lng}` };
+	}
+	return { q, ll: '' };
+};
+const mapsName = (a) => (a === 'apple' ? Z('Apple 地图', 'Apple Maps') : Z('Google 地图', 'Google Maps'));
+const APPLE_MODE = { transit: 'r', driving: 'd', walking: 'w', bicycling: 'w' };
+// Apple Maps: a pin labelled with the name at the place's position (or a search for the name when there is none)
+const appleSearch = (q) => {
+	const p = llOf(q);
+	return `https://maps.apple.com/?q=${encodeURIComponent(p.q)}${p.ll ? `&ll=${p.ll}` : ''}`;
+};
+const appleDir = (dest, mode, origin) => {
+	const at = (x) => llOf(x).ll || x;
+	return `https://maps.apple.com/?${origin ? `saddr=${encodeURIComponent(at(origin))}&` : ''}daddr=${encodeURIComponent(at(dest))}&dirflg=${APPLE_MODE[mode] || 'r'}`;
+};
 const gmSearch = (q, pid) => {
+	if (mapsApp === 'apple') return appleSearch(q);
 	const id = pid || gpidOf(q);
 	return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}${id ? `&query_place_id=${id}` : ''}`;
 };
 const gmDir = (dest, mode = 'transit', origin, destId) =>
-	`https://www.google.com/maps/dir/?api=1${origin ? `&origin=${encodeURIComponent(origin)}${gpidOf(origin) ? `&origin_place_id=${gpidOf(origin)}` : ''}` : ''}&destination=${encodeURIComponent(dest)}${destId || gpidOf(dest) ? `&destination_place_id=${destId || gpidOf(dest)}` : ''}&travelmode=${mode}`;
+	mapsApp === 'apple'
+		? appleDir(dest, mode, origin)
+		: `https://www.google.com/maps/dir/?api=1${origin ? `&origin=${encodeURIComponent(origin)}${gpidOf(origin) ? `&origin_place_id=${gpidOf(origin)}` : ''}` : ''}&destination=${encodeURIComponent(dest)}${destId || gpidOf(dest) ? `&destination_place_id=${destId || gpidOf(dest)}` : ''}&travelmode=${mode}`;
 const gmMulti = (stops, mode = 'driving') => {
 	const [o, ...rest] = stops;
 	const d = rest.pop();
@@ -129,9 +154,36 @@ const MODES = {
 function placeLinks(pid, opts = {}) {
 	const p = PLACES[pid];
 	if (!p) return '';
-	const out = [extI(gmSearch(p.maps), Z('地图', 'Map'), 'pin'), extI(gmDir(p.maps, opts.mode || 'transit'), Z('路线', 'Directions'), 'route')];
+	const out = [
+		opts.noNative ? '' : nativeChip(p.trad, p.roma),
+		extI(gmSearch(p.maps), Z('地图', 'Map'), 'pin'),
+		extI(gmDir(p.maps, opts.mode || 'transit'), Z('路线', 'Directions'), 'route'),
+	];
 	const s = siteFor(pid);
 	if (s && !opts.noSite) out.push(extI(s, Z('官网', 'Website'), 'ext'));
 	if (!opts.noDriver) out.push(`<button type="button" class="mlink" data-driver="${pid}">${icon('car')}${Z('给司机看', 'Show driver')}</button>`);
 	return out.join('');
+}
+/* the native layer: the destination's own words (Japanese in Japan) beside the page's two languages, one tap to copy
+   them, so the group can match a sign, a menu or a map search to what the page says. On only when the pack names the
+   language (Pack.native); a pack without it (Taiwan, whose names the group already reads) shows nothing new. */
+const nativeLang = () => (Pack.native && Pack.native.lang) || '';
+function nativeChip(text, roma) {
+	const lg = nativeLang();
+	if (!lg || !text) return '';
+	const name = L(Pack.native.name) || lg;
+	return `<button type="button" class="mlink native" data-native="${esc(text)}" aria-label="${esc(Z(`复制${name}：${text}`, `Copy ${name}: ${text}`))}">${icon('copy')}<span class="nat-t" lang="${esc(lg)}">${esc(text)}</span>${roma ? `<span class="nat-r">${esc(roma)}</span>` : ''}</button>`;
+}
+// a stop's native line: its own words (`native`, `roma`) or its place's
+function stopNative(it) {
+	if (!nativeLang()) return '';
+	const p = (it.place && PLACES[it.place]) || {};
+	const chip = it.native ? nativeChip(it.native, it.roma) : nativeChip(p.trad, p.roma);
+	return chip ? `<div class="stop-native">${chip}</div>` : '';
+}
+// the same words as plain text, for what the group copies into the chat
+function nativeText(it) {
+	if (!nativeLang()) return '';
+	const p = (it.place && PLACES[it.place]) || {};
+	return it.native || p.trad || '';
 }

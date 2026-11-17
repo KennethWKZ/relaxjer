@@ -33,6 +33,7 @@ __pycache__/
 # Agent tooling: local-only state
 /.claude/.write-flag*
 /.claude/settings.local.json
+/.claude/worktrees/
 /.impeccable/hook.cache.json
 /.impeccable/review/
 /.impeccable/live/

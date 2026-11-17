@@ -10,6 +10,8 @@ export default [
 			'dist/**',
 			'.cache/**',
 			'node_modules/**',
+			// an agent's git worktree is a second copy of the repo: its own checks run inside it
+			'.claude/worktrees/**',
 			'test-results/**',
 			'playwright-report/**',
 			'**/dist/**',

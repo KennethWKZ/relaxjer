@@ -22,6 +22,33 @@ function applyTheme() {
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
 	if (themePref === 'system') restyleLive();
 });
+/* a destination world's one greeting (ADR-20261117-destination-themes): the first time this phone opens the trip, a
+   short moment inside the now card that the world's stylesheet draws (Snow Light Path: a little snowfall), then it's
+   removed and never comes back on this phone. Pure movement, so never under reduced motion. A world that draws none
+   doesn't set --world-hello, and nothing is added. */
+function worldHello() {
+	const root = document.documentElement;
+	if (!root.dataset.world || !getComputedStyle(root).getPropertyValue('--world-hello').trim() || store.get('greeted', false)) return;
+	const card = $('#now');
+	if (!card || !card.offsetHeight) return;
+	const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+	const box = card.getBoundingClientRect();
+	if (!still && (box.bottom <= 0 || box.top >= innerHeight)) return; // opened at a day: kept for an open that starts at the top
+	store.set('greeted', true);
+	if (still) return;
+	// laid over the card, not inside it: the card redraws itself (location, ticks) while the snow falls
+	const fx = document.createElement('span');
+	fx.className = 'world-hello';
+	fx.setAttribute('aria-hidden', 'true');
+	fx.style.cssText = `top:${card.offsetTop}px;left:${card.offsetLeft}px;width:${card.offsetWidth}px;height:${card.offsetHeight}px`;
+	fx.style.setProperty('--fall', `${card.offsetHeight + 16}px`);
+	fx.innerHTML = Array.from(
+		{ length: 12 },
+		(_, i) => `<i style="left:${4 + i * 8}%;--s:${3 + (i % 3)}px;--dx:${(i % 2 ? 1 : -1) * (6 + (i % 4) * 4)}px;--d:${(i * 290) % 700}ms"></i>`,
+	).join('');
+	card.after(fx);
+	setTimeout(() => fx.remove(), 3300);
+}
 
 /* live refresh of now/next each minute */
 setInterval(() => {
@@ -42,6 +69,7 @@ if (backTo) {
 	setTimeout(() => (history.scrollRestoration = 'auto'), 2500); // after the 2 s hold: Back and Forward work as before
 }
 const idle = window.requestIdleCallback || ((f) => setTimeout(f, 200));
+idle(worldHello, { timeout: 600 }); // once the first screen has settled
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => idle(imgLoad, { timeout: 1500 }));
 else idle(imgLoad, { timeout: 1500 });
 if (/^#add=/.test(location.hash))

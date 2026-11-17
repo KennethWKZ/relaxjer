@@ -4,6 +4,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
+import vm from 'node:vm';
 import fs from 'node:fs';
 import path from 'node:path';
 import { ROOT } from '../support/stage.mjs';
@@ -11,10 +12,11 @@ import { ROOT } from '../support/stage.mjs';
 const SITE = path.join(ROOT, 'site');
 const html = fs.readFileSync(path.join(SITE, 'index.html'), 'utf8');
 // pages built at deploy time, beside site/ (pages.yml): the live demo
-const BUILT = new Set(['demo/']);
+const BUILT = new Set(['demo/', 'demo/sapporo/']);
 const files = fs
 	.readdirSync(SITE, { recursive: true, withFileTypes: true })
-	.filter((e) => e.isFile())
+	// Finder's .DS_Store is gitignored, so it never reaches Pages (built from a checkout)
+	.filter((e) => e.isFile() && e.name !== '.DS_Store')
 	.map((e) => path.relative(SITE, path.join(e.parentPath, e.name)));
 
 test('every local asset the page links resolves, relative to the page', () => {
@@ -119,15 +121,20 @@ test('every animated demo can be paused, and says in words what it shows', () =>
 	}
 });
 
-test('the Pages workflow publishes site/ and the demo trip, never a real trip, with actions pinned to commit SHAs', () => {
+test('the Pages workflow publishes site/ and the two demo trips, never a real trip, with actions pinned to commit SHAs', () => {
 	const wf = fs.readFileSync(path.join(ROOT, '.github', 'workflows', 'pages.yml'), 'utf8');
 	assert.match(wf, /upload-pages-artifact@[0-9a-f]{40}[\s\S]*?path: _site\b/);
-	// what goes up: site/ as it is, and the demo trip's single file at demo/
+	// what goes up: site/ as it is, the Taipei demo's single file at demo/ and the Sapporo demo's at demo/sapporo/
 	const copies = [...wf.matchAll(/^\s*cp\s+(.+)$/gm)].map((m) => m[1].trim());
-	assert.deepEqual(copies, ['-R site/. _site/', '.cache/demo/trip-standalone.html _site/demo/index.html']);
-	// the only trip it ever builds is the synthetic demo, with no key, no sync file and no secret anywhere
+	assert.deepEqual(copies, [
+		'-R site/. _site/',
+		'.cache/demo/trip-standalone.html _site/demo/index.html',
+		'.cache/demo-sapporo/trip-standalone.html _site/demo/sapporo/index.html',
+	]);
+	// the only trips it ever builds are the synthetic demos, with no key, no sync file and no secret anywhere
 	const trips = [...wf.matchAll(/--trip\s+(\S+)/g)].map((m) => m[1]);
-	assert.deepEqual(trips, ['examples/demo-trip']);
+	assert.deepEqual(trips, ['examples/demo-trip', 'examples/demo-sapporo']);
+	assert.equal([...wf.matchAll(/grep -q 'google key no · group sync no · demo clock /g)].length, 2, 'each demo build reports no key and no sync');
 	assert.doesNotMatch(wf, /--keys|--sync|secrets\.|GOOGLE_|FIREBASE_/);
 	assert.match(wf, /grep -q 'google key no · group sync no · demo clock /, 'the build itself must report no key and no sync');
 	assert.match(wf, /set -o pipefail[\s\S]*engine\/build\.mjs[^\n]*\| tee/, 'a failing build must fail the step, not hide behind tee');
@@ -137,14 +144,14 @@ test('the Pages workflow publishes site/ and the demo trip, never a real trip, w
 	assert.match(wf, /id-token: write/);
 });
 
-test("the demo clock is the demo trip's only: the build refuses it for any other trip", () => {
+test("the demo clock is the demo trips' only: the build refuses it for any other trip", () => {
 	const r = spawnSync(
 		process.execPath,
 		[path.join(ROOT, 'engine', 'build.mjs'), '--trip', path.join(ROOT, 'tests'), '--demo-clock', '2027-03-15 10:05'],
 		{ encoding: 'utf8' },
 	);
 	assert.equal(r.status, 2);
-	assert.match(r.stderr, /for the demo trip \(examples\/demo-trip\) only/);
+	assert.match(r.stderr, /for the demo trips \(examples\/demo-trip, examples\/demo-sapporo\) only/);
 	const bad = spawnSync(
 		process.execPath,
 		[path.join(ROOT, 'engine', 'build.mjs'), '--trip', path.join(ROOT, 'examples', 'demo-trip'), '--demo-clock', 'tomorrow'],
@@ -152,4 +159,38 @@ test("the demo clock is the demo trip's only: the build refuses it for any other
 	);
 	assert.equal(bad.status, 2);
 	assert.match(bad.stderr, /YYYY-MM-DD HH:MM/);
+});
+
+// The world follows the visitor's season when nothing is stored (December to February opens Snow), and a stored choice
+// wins. theme.js runs in a sandbox with a stub clock, so every month is checked without the browser.
+test("the world follows the season by the visitor's clock, and a remembered choice wins", () => {
+	const src = fs.readFileSync(path.join(SITE, 'assets', 'theme.js'), 'utf8');
+	const worldAt = ({ month, stored = null }) => {
+		const root = { dataset: {} };
+		const doc = { documentElement: root, querySelectorAll: () => [], querySelector: () => null, addEventListener() {} };
+		const storage = { getItem: () => stored, setItem() {}, removeItem() {} };
+		const FakeDate = function () {
+			return { getMonth: () => month };
+		};
+		vm.runInNewContext(src, {
+			document: doc,
+			localStorage: storage,
+			matchMedia: () => ({ matches: false, addEventListener() {} }),
+			Date: FakeDate,
+		});
+		return root.dataset.world ?? 'lanterns';
+	};
+	for (let month = 0; month < 12; month++) {
+		const winter = [11, 0, 1].includes(month);
+		assert.equal(worldAt({ month }), winter ? 'snow' : 'lanterns', `month ${month}`);
+	}
+	assert.equal(worldAt({ month: 0, stored: 'lanterns' }), 'lanterns', 'a stored Lanterns wins in winter');
+	assert.equal(worldAt({ month: 6, stored: 'snow' }), 'snow', 'a stored Snow wins in summer');
+	assert.equal(worldAt({ month: 6, stored: 'bogus' }), 'lanterns', 'an unknown stored value is ignored');
+});
+
+test('the world button starts hidden, so a page without the script shows no switch that does nothing', () => {
+	assert.match(html, /<button class="nav-world"[^>]*\shidden>/);
+	assert.match(html, /<a class="world-lanterns" href="demo\/sapporo\/">/);
+	assert.match(html, /<a class="world-snow" href="demo\/">/);
 });

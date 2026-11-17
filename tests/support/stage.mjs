@@ -10,6 +10,8 @@ import { execFileSync } from 'node:child_process';
 
 export const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../..');
 export const DEMO_TRIP = path.join(ROOT, 'examples', 'demo-trip');
+/** every published demo: Taipei (the live demo the @demo tests know) and Sapporo, in the Snow Light Path world */
+export const DEMO_TRIPS = [DEMO_TRIP, path.join(ROOT, 'examples', 'demo-sapporo')];
 export const ENGINE = path.join(ROOT, 'engine');
 
 const LEGACY_ENGINE_FILES = ['build.mjs', 'src/app.js', 'src/style.css', 'src/shell.html'];

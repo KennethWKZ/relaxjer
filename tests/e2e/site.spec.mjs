@@ -6,6 +6,20 @@ import { test, expect } from '../support/fixtures.mjs';
 import { SITE } from '../support/page.mjs';
 
 // every scroll in this file is instant: the page scrolls smoothly, and a smooth scroll would be measured part-way
+// the stored world choice (site/assets/theme.js); a test pins a world by writing it before the page loads
+const WORLD_KEY = 'relaxjer-site-world';
+const pinWorld = (page, world) =>
+	page.addInitScript(
+		({ k, w }) => {
+			try {
+				localStorage.setItem(k, w);
+			} catch {
+				/* storage blocked: the season's world opens */
+			}
+		},
+		{ k: WORLD_KEY, w: world },
+	);
+
 const frame = (page) => page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
 
 // the landing page depends on neither the trip nor the engine, so a run on another trip or the legacy engine would
@@ -220,6 +234,105 @@ for (const colorScheme of ['light', 'dark']) {
 			expect((await look()).sky).toBe(start.sky);
 			await page.reload();
 			await expect(page.locator('html')).not.toHaveAttribute('data-theme', /./);
+		});
+	});
+}
+
+// The Snow world: the season picks it (December to February) when nothing is stored, the bar's button switches it, and a
+// choice is remembered. The season check uses this browser's own month, the same clock the page reads; the month rule
+// itself is covered for all twelve months in tests/repo/site.test.mjs.
+const seasonal = () => ([11, 0, 1].includes(new Date().getMonth()) ? 'snow' : 'lanterns');
+
+for (const colorScheme of ['light', 'dark']) {
+	test.describe(`landing page worlds, ${colorScheme}`, () => {
+		test.use({ colorScheme, reducedMotion: 'no-preference' });
+
+		test('the world button switches Lanterns and Snow, remembers the choice, and picking the season again forgets it', async ({ page }) => {
+			await page.goto('/site/index.html');
+			const button = page.locator('.nav-world');
+			const world = () => page.evaluate(() => document.documentElement.dataset.world || 'lanterns');
+			const stored = () => page.evaluate((k) => localStorage.getItem(k), WORLD_KEY);
+			const season = seasonal();
+			const other = season === 'snow' ? 'lanterns' : 'snow';
+			await expect(button).toBeVisible();
+			await expect.poll(world, "opens in the season's world").toBe(season);
+			await expect(button).toHaveAccessibleName(other === 'snow' ? 'Switch to Snow' : 'Switch to Lanterns');
+			const box = await button.boundingBox();
+			expect(Math.min(box.width, box.height), 'a 44 px tap').toBeGreaterThanOrEqual(44);
+
+			await button.click();
+			await expect.poll(world).toBe(other);
+			expect(await stored(), 'a choice other than the season is kept').toBe(other);
+			await page.reload();
+			await expect.poll(world, 'the choice is remembered').toBe(other);
+
+			await button.click();
+			await expect.poll(world).toBe(season);
+			expect(await stored(), "the season's own world forgets the choice").toBeNull();
+		});
+
+		test('Snow draws no lantern, and its postcard and footer carry 札幌 and the candles', async ({ page }) => {
+			await pinWorld(page, 'snow');
+			await page.goto('/site/index.html');
+			await expect.poll(() => page.evaluate(() => document.documentElement.dataset.world)).toBe('snow');
+			const drawn = await page.evaluate(
+				() => [...document.querySelectorAll('img[src$="lantern.svg"]')].filter((i) => i.getClientRects().length > 0).length,
+			);
+			expect(drawn, 'no lantern is drawn in Snow').toBe(0);
+			await expect(page.locator('.pc-front .caption:visible')).toHaveText('札幌');
+			const candles = await page.locator('.candle').evaluateAll((els) => els.filter((e) => e.getClientRects().length > 0).length);
+			expect(candles, 'candles stand in the snow along the path').toBeGreaterThanOrEqual(7);
+		});
+
+		test('the hero demo button and its second link follow the world', async ({ page }) => {
+			await pinWorld(page, 'lanterns');
+			await page.goto('/site/index.html');
+			await expect(page.locator('.actions a.go-paper:visible')).toHaveAttribute('href', 'demo/');
+			await expect(page.locator('.other-demo a:visible')).toHaveAttribute('href', 'demo/sapporo/');
+			await pinWorld(page, 'snow');
+			await page.goto('/site/index.html');
+			await expect(page.locator('.actions a.go-paper:visible')).toHaveAttribute('href', 'demo/sapporo/');
+			await expect(page.locator('.other-demo a:visible')).toHaveAttribute('href', 'demo/');
+			await expect(page.locator('.other-demo a:visible')).toHaveText('or the Taipei demo');
+		});
+
+		test('the snowfall moves only as the page scrolls, and stops under reduced motion', async ({ page }) => {
+			await pinWorld(page, 'snow');
+			await page.goto('/site/index.html');
+			const flakes = page.locator('.flake');
+			await expect
+				.poll(() => flakes.evaluateAll((els) => els.filter((e) => getComputedStyle(e).display !== 'none').length))
+				.toBeGreaterThanOrEqual(10);
+			if (await page.evaluate(() => CSS.supports('animation-timeline: scroll()'))) {
+				const at = (y) =>
+					page.evaluate(async (top) => {
+						scrollTo({ top, behavior: 'instant' });
+						await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+						return getComputedStyle(document.querySelector('.flake')).translate;
+					}, y);
+				const rest = await at(400);
+				expect(await at(400), 'still while the page is still').toBe(rest);
+				expect(await at(900), 'falls as the page scrolls').not.toBe(rest);
+			}
+			await page.emulateMedia({ reducedMotion: 'reduce' });
+			await expect.poll(() => flakes.evaluateAll((els) => els.every((e) => getComputedStyle(e).display === 'none'))).toBe(true);
+		});
+
+		test('Snow never runs wider than a 390 px screen, top to bottom', async ({ page }) => {
+			test.skip(test.info().project.name.includes('1280'), 'a phone-width check');
+			await page.setViewportSize({ width: 390, height: 844 });
+			await pinWorld(page, 'snow');
+			await page.goto('/site/index.html');
+			await page.addStyleTag({ content: 'html { scroll-behavior: auto !important; }' });
+			const height = await page.evaluate(() => document.documentElement.scrollHeight);
+			const wider = [];
+			for (let y = 0; y < height; y += 600) {
+				await page.evaluate((top) => scrollTo({ top, behavior: 'instant' }), y);
+				await frame(page);
+				const by = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+				if (by > 0) wider.push(`${by}px at ${y}`);
+			}
+			expect(wider).toEqual([]);
 		});
 	});
 }

@@ -146,6 +146,7 @@ window.addEventListener('online', () => {
 	const ic = window.APP_ICONS;
 	if (!ic || !ic[512] || !/^https?:$/.test(location.protocol)) return;
 	const here = location.origin + location.pathname;
+	const paper = ($('meta[name="theme-color"]') || {}).content || '#ffffff'; // the light paper: the world's, if it has one
 	const m = {
 		name: `${BRAND} ${TRIP.start.slice(0, 4)}`,
 		short_name: BRAND,
@@ -153,8 +154,8 @@ window.addEventListener('online', () => {
 		start_url: here,
 		scope: here.replace(/[^/]*$/, ''),
 		display: 'standalone',
-		background_color: '#ffffff',
-		theme_color: '#ffffff',
+		background_color: paper,
+		theme_color: paper,
 		icons: [
 			{ src: ic[192], sizes: '192x192', type: 'image/png', purpose: 'any' },
 			{ src: ic[512], sizes: '512x512', type: 'image/png', purpose: 'any' },

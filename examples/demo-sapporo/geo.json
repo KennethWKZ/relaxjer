@@ -1,0 +1,24 @@
+{
+  "attribution": "Demo coordinates, hand-placed near public landmarks",
+  "bbox": [140.9, 42.7, 141.75, 43.25],
+  "places": {
+    "hotel": { "lat": 43.0610, "lng": 141.3540, "q": "Odori Park Sapporo", "addr": "札幌市中央区大通西（示范地址）", "addr_en": "Odori-nishi, Chuo-ku, Sapporo (demo address)" },
+    "cts": { "lat": 42.7752, "lng": 141.6923, "q": "New Chitose Airport" },
+    "airportStn": { "lat": 42.7741, "lng": 141.6916, "q": "JR New Chitose Airport Station" },
+    "sapStn": { "lat": 43.0687, "lng": 141.3508, "q": "Sapporo Station" },
+    "odori": { "lat": 43.0603, "lng": 141.3541, "q": "Odori Park" },
+    "tvTower": { "lat": 43.0606, "lng": 141.3564, "q": "Sapporo TV Tower" },
+    "susukino": { "lat": 43.0553, "lng": 141.3541, "q": "Susukino Sapporo" },
+    "tanuki": { "lat": 43.0556, "lng": 141.3524, "q": "Tanukikoji Shopping Street Sapporo" },
+    "nijo": { "lat": 43.0585, "lng": 141.3520, "q": "Nijo Market Sapporo" },
+    "shiroi": { "lat": 43.0740, "lng": 141.3040, "q": "Shiroi Koibito Park" },
+    "otaruStn": { "lat": 43.1961, "lng": 141.0018, "q": "Otaru Station" },
+    "otaruCanal": { "lat": 43.1975, "lng": 140.9960, "q": "Otaru Canal" },
+    "sakaimachi": { "lat": 43.1966, "lng": 140.9950, "q": "Sakaimachi Street Otaru" },
+    "music": { "lat": 43.1964, "lng": 140.9955, "q": "Otaru Music Box Museum" },
+    "teine": { "lat": 43.0689, "lng": 141.1793, "q": "Sapporo Teine ski resort" },
+    "jozankei": { "lat": 42.9756, "lng": 141.1264, "q": "Jozankei Onsen" },
+    "moiwa": { "lat": 43.0436, "lng": 141.3170, "q": "Mount Moiwa Ropeway" }
+  },
+  "legs": {}
+}

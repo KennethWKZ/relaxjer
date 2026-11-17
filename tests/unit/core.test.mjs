@@ -287,3 +287,18 @@ test('Wrap: a number range or a phone number stays on one line', () => {
 	assert.equal(k('D3 at 19:00, A1 B1'), 'D3 at 19:00, A1 B1'); // a lone time or code: nothing to keep together
 	assert.equal(k('a &amp; b, &#39;x&#39;'), 'a &amp; b, &#39;x&#39;'); // escaped entities are left alone
 });
+
+test("Plan: a stored route leg's times only while it still joins the same stops", () => {
+	const legs = {
+		'd3:1': { min: 14, from: 'canal', to: 'street', mode: 'walking' },
+		'd3:2': { min: 20, from: 'street', to: 'museum', mode: 'walking' },
+		'd2:0': { min: 9 }, // stored before the refresh recorded the ends
+	};
+	assert.equal(Plan.storedLeg(legs, 'd3', 1, ['canal', 'street', 'walking']).min, 14);
+	// the day was reordered: position 2 now joins other stops, so no time rather than another leg's
+	assert.equal(Plan.storedLeg(legs, 'd3', 2, ['station', 'market', 'walking']), null);
+	assert.equal(Plan.storedLeg(legs, 'd3', 1, ['canal', 'street', 'driving']), null); // same stops, another way
+	assert.equal(Plan.storedLeg(legs, 'd2', 0, ['a', 'b', 'transit']).min, 9);
+	assert.equal(Plan.storedLeg(legs, 'd4', 0, ['a', 'b', 'transit']), null);
+	assert.equal(Plan.storedLeg(undefined, 'd1', 0, ['a', 'b', 'walking']), null);
+});

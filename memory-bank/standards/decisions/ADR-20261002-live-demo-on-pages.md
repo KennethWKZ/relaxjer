@@ -3,12 +3,15 @@ id: ADR-20261002-live-demo-on-pages
 date: 2026-10-02
 title: 'The Demo Trip Goes Live on GitHub Pages, Built by CI With No Key and Its Clock Set to a Day Under Way'
 domain: hosting
-status: accepted
+status: amended
 ---
 
 # The Demo Trip Goes Live on GitHub Pages, Built by CI With No Key and Its Clock Set to a Day Under Way
 
 ## Summary
+
+> Amended by [ADR-20261117-second-demo-and-site-worlds](./ADR-20261117-second-demo-and-site-worlds.md): Pages now
+> carries a second synthetic demo, Sapporo, at `/relaxjer/demo/sapporo/`.
 
 The landing page links to a live copy of the synthetic demo trip, so a planner can open the page their group would
 get, on their own phone, before cloning anything. `pages.yml` builds `examples/demo-trip` on every push to `main`

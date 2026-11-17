@@ -7,18 +7,23 @@ import { openAllDetails } from '../support/page.mjs';
 // NT$3,000 for 5"), never both
 const groupFigures = (page) =>
 	page.evaluate(() => {
+		/* global TRIP */
 		const out = [];
+		// the trip's own currency symbol and group size ("NT$… for 5", "¥… for 4")
+		const sym = TRIP.currency.sym.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+		const pax = TRIP.pax;
 		// a range's no-wrap span ("1,200–1,800", fmt's keepRanges) is layout only: read the figure as one run of text
 		for (const s of document.querySelectorAll('#app .rng')) s.replaceWith(...s.childNodes);
 		document.getElementById('app').normalize();
 		const walk = document.createTreeWalker(document.getElementById('app'), NodeFilter.SHOW_TEXT);
 		const num = (s) => +s.replace(/,/g, '');
 		for (let n; (n = walk.nextNode());) {
-			for (const m of n.textContent.matchAll(/NT\$([\d,]+)(?:–([\d,]+))? for 5(?! \(NT\$)/g)) {
+			for (const m of n.textContent.matchAll(new RegExp(`${sym}([\\d,]+)(?:–([\\d,]+))? for ${pax}(?! \\(${sym})`, 'g'))) {
 				const next = n.nextSibling;
 				const [lo, hi] = [num(m[1]), num(m[2] || m[1])];
-				const per = (v) => (v / 5).toLocaleString('en-US');
-				const stated = lo % 5 === 0 && hi % 5 === 0 && n.textContent.includes(`NT$${per(lo)}${hi > lo ? `–${per(hi)}` : ''} each`);
+				const per = (v) => (v / pax).toLocaleString('en-US');
+				const stated =
+					lo % pax === 0 && hi % pax === 0 && n.textContent.includes(`${TRIP.currency.sym}${per(lo)}${hi > lo ? `–${per(hi)}` : ''} each`);
 				out.push({
 					text: m[0],
 					idea: !!n.parentElement.closest('.idea'),
@@ -30,11 +35,11 @@ const groupFigures = (page) =>
 		return out;
 	});
 
-test('each "for 5" group figure shows a per-person share once', async ({ page }) => {
+test('each group figure ("… for N") shows a per-person share once', async ({ page }) => {
 	await openTrip(page);
 	await openAllDetails(page);
 	const figures = await groupFigures(page);
-	expect(figures.length, 'demo trip has group figures').toBeGreaterThan(5);
+	expect(figures.length, 'the trip has group figures').toBeGreaterThan(0);
 	expect(figures.filter((f) => f.shared === f.stated)).toEqual([]);
 });
 

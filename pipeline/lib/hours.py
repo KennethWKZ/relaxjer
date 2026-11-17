@@ -1,20 +1,21 @@
-"""Opening hours and addresses as Google returns them in zh-TW: weekly hours → the page's day list and text, the trip
-days a place is shut, and Taiwan addresses without postcode, country or village (里)."""
+"""Opening hours and addresses as Google returns them in zh-TW or ja: weekly hours → the page's day list and text, the
+trip days a place is shut, and addresses without postcode, country or (Taiwan) village (里)."""
 import re
 from lib.trip import WEEKDAY, FLIGHT_DATE
 
 DZH = ['一', '二', '三', '四', '五', '六', '日']; DEN = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 WK = {'星期' + d: i for i, d in enumerate(DZH)}
+WK.update({d + '曜日': i for i, d in enumerate('月火水木金土日')})  # Google in Japanese: 月曜日 … 日曜日
 def parse_hours(desc):
     days = [None] * 7
     for line in desc or []:
         k, _, v = line.partition(': ')
         if k not in WK: continue
-        v = v.strip()
-        if '休息' in v: days[WK[k]] = 'closed'
-        elif '24 小時' in v: days[WK[k]] = '24h'
+        v = re.sub(r'(\d{1,2})時(\d{2})分', r'\1:\2', v.strip())  # ja: 7時00分 → 7:00
+        if '休息' in v or '定休日' in v or '休業' in v: days[WK[k]] = 'closed'
+        elif '24 小時' in v or '24 時間' in v: days[WK[k]] = '24h'
         else:
-            spans = re.findall(r'(\d{1,2}:\d{2})\s*[–-]\s*(\d{1,2}:\d{2})', v)
+            spans = re.findall(r'(\d{1,2}:\d{2})\s*[–\-～〜]\s*(\d{1,2}:\d{2})', v)
             days[WK[k]] = ','.join(f'{a}–{b}' for a, b in spans) if spans else v
     return days if all(days) else None
 def day_groups(days):
@@ -40,7 +41,8 @@ def fmt_hours(days):
     return '；'.join(zh), '; '.join(en)
 def closed_on_trip(days): return sorted(d for d, i in WEEKDAY.items() if days[i] == 'closed' and d != FLIGHT_DATE)  # trip dates it is shut (not the flight-only day)
 def clean_addr(a):
-    a = re.sub(r'^\d{3,6}', '', a or ''); a = a.replace('台灣', '', 1)
+    a = re.sub(r'^日本、\s*', '', a or ''); a = re.sub(r'^〒\d{3}-\d{4}\s*', '', a)  # ja: country, then 〒postcode
+    a = re.sub(r'^\d{3,6}', '', a); a = a.replace('台灣', '', 1)
     return re.sub(r'(?<=[區鄉鎮市])[一-鿿]{1,3}里(?=[一-鿿])', '', a)
 def nums(a): return set(re.findall(r'\d+(?:[之-]\d+)?號', a or ''))
 def merge_addr(ours, g):

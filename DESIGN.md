@@ -356,6 +356,7 @@ White paper and near-black ink carry the operated layer; seven saturated lantern
 
 **Display Font:** the trip's brush face, `TRIP.brushFont` (default Ma Shan Zheng), with STKaiti / KaiTi / Kaiti SC / BiauKai as fallbacks. The build subsets it through Google Fonts to only the glyphs the page letters (the brand, each day's wish, the principle's wish and the seal glyph) and puts that subset in the page, so the lettering never waits on the network ([ADR-20261002-embed-brush-font](memory-bank/standards/decisions/ADR-20261002-embed-brush-font.md)).
 **Body Font:** the phone's system sans (`-apple-system`, PingFang SC, Noto Sans SC, Segoe UI, Roboto…), with tabular numerals on by default.
+**Native Font:** text marked `lang="ja"` (the native layer's Japanese, the driver card in Japan) takes the system Japanese sans (`-apple-system`, Hiragino Sans, Hiragino Kaku Gothic ProN, Noto Sans JP, Yu Gothic, Meiryo), so kanji shared with Chinese draw the Japanese way. Same size and weight as the text around it.
 
 **Character:** a hand-inked calligraphic voice for names and wishes, set against a heavy, plain system sans that reads at arm's length in sunlight. Weights sit high (650–800) for anything a person has to act on.
 
@@ -376,6 +377,8 @@ White paper and near-black ink carry the operated layer; seven saturated lantern
 ### Named Rules
 
 **The Brush Is For Names Rule.** The brush face letters the brand, the day's wish and the seal glyph. Never a time, price, instruction or button.
+
+**The Local Words Wear Their Own Script Rule.** Words in the destination's language carry their `lang`, never the page's, so the phone picks the local glyphs (ADR-20261117-native-layer).
 
 **The Phone Decides The Size Rule.** Type is set in rem on a root that takes `-apple-system-body` where supported (never smaller than 1rem), so the phone's text-size setting scales the whole page. Don't pin text in px.
 
@@ -487,7 +490,7 @@ A Fog Grey 18 px card. It leads with the countdown at display scale and a unit i
 
 ### Motion
 
-Easing is `--ease-out` for anything that moves; the landing ring is the exception, holding and then fading linearly. Presses take effect at once on touch-down and ease back over 160 ms on release. Tab colours, toasts, the Back pill, the sections button and the day bar take 200 ms. The now stripe takes 240 ms and dialogs 220 ms. The landing flash fades out over 900 ms, and the landing ring (3 px, the day colour mixed 55 % with ink, so a gold day still reaches 3:1) holds for 1.5 s, then fades over 0.8 s. A tab jump lands instantly, and the ring marks the target's heading or lantern so the reader sees where they arrived. Reduced motion drops all transitions to 1 ms, keeps only opacity fades on the toast, results and dialogs, keeps the landing ring as a static outline for the same 2.4 s, removes the full-screen map entrance, and freezes the location pulse.
+Easing is `--ease-out` for anything that moves (`--ease-in-out` only for a loop that swings both ways, such as a destination world's candle); the landing ring is the exception, holding and then fading linearly. Presses take effect at once on touch-down and ease back over 160 ms on release. Tab colours, toasts, the Back pill, the sections button and the day bar take 200 ms. The now stripe takes 240 ms and dialogs 220 ms. The landing flash fades out over 900 ms, and the landing ring (3 px, the day colour mixed 55 % with ink, so a gold day still reaches 3:1) holds for 1.5 s, then fades over 0.8 s. A tab jump lands instantly, and the ring marks the target's heading or lantern so the reader sees where they arrived. Reduced motion drops all transitions to 1 ms, keeps only opacity fades on the toast, results and dialogs, keeps the landing ring as a static outline for the same 2.4 s, removes the full-screen map entrance, and freezes the location pulse.
 
 ## Do's and Don'ts
 
@@ -513,7 +516,65 @@ Easing is `--ease-out` for anything that moves; the landing ring is the exceptio
 - **Don't** add glows to anything but the lanterns at night.
 - **Don't** add a second content column for reading; wide screens get margin.
 - **Don't** describe people on the page by family relationship; use "the group" or names.
-- _(open question)_ **Don't** assume the lantern world is permanent: a future destination pack may be allowed to re-theme the own world (paper colours, brush face, lantern ornament) while the operated layer (type scale, tap targets, fixed-time seals, states) stays unchanged. This is undecided.
+- **Don't** assume the lantern world is the only one: a destination pack may dress the page in its own world (paper, day colours, ornament, icon) while the operated layer (type scale, tap targets, fixed-time meaning, states, layout) stays exactly as above. Everything in this file so far is the default world; each destination world below says only what it changes ([ADR-20261117-destination-themes](memory-bank/standards/decisions/ADR-20261117-destination-themes.md)).
+
+## Destination worlds
+
+A destination pack may name a world (`export const theme = '<name>'`, in `destinations/<cc>/regions/<city>/pack.mjs` or the country's pack). The build then adds `engine/src/themes/<name>.css` after the stylesheet and sets `data-world="<name>"` on `<html>`; a trip whose pack names none carries none of it, and its page is the default world above, unchanged. A world:
+
+- re-tints tokens and re-draws ornament only, every rule under `:root[data-world='<name>']`;
+- keeps the operated layer: the type scale, 44 px targets, layout, the Now/Next card's rows, the seal's meaning (fixed, nothing else), focus rings and states;
+- keeps the engine's class names (`.lantern`, `.lantern-mark`, `.stop-knot`): they are the default world's names, kept so its page stays byte-for-byte the same. A world's documentation names things by what they show in that world, never by those class names;
+- gives each day an activity mark (`DAYS[i].motif`, chosen by the planner, never read from a day's text) in the week list and on the day's card;
+- draws the home-screen and tab icons when the trip has no `img/icon/` (`<name>.mjs` `iconPaint`, rendered at build by `engine/icons.mjs`, each PNG carrying its provenance), with the trip's leading activity drawn beside the emblem when the world can draw it (`iconMarks`; Snow Light Path draws a rider in a red jacket carving through powder, the spray fanning up behind, lit from behind by the candle's glow, with the candle small in the drift ahead; the sky carries six-armed snow crystals either way), and sets the browser bar's colour to its own paper.
+
+### World: Snow Light Path (`snowlight`)
+
+**North Star: "Candles Set in the Snow."** After the winter festival in Otaru, when candles in snow holders line the canal and the old rail path. Picked by the Sapporo pack. The day is a footpath through snow, lit at each stop by a small candle standing in the ground. Nothing hangs and nothing floats: no sky ornament of any kind.
+
+**What changes:**
+
+- **The day's card** is frosted snow: a frost of the day colour at 10 % along the top, clearing to white by 160 px and to ice at the foot, a 1 px border of the day colour at 30 % over `rule`, still snow caught in the frost (two sparse dot layers in the day colour, fading out down the card), and a snowdrift along the foot (a 30 px wavy mask in the day colour at 18 % over `snowbank`). No band or stripe along an edge: the day shows in the frost, the wish, the mark and the drift. Its text is `ink`; the day's wish is in the day colour; chips and route tiles take an 11 % day-colour tint; the "whole route" tile and the Today flag fill with the day colour and white text; buttons keep their 1.5 px border, in the day colour.
+- **The schedule** is a footpath: footprints (2.2 px dots, alternating left and right every 5.5 px) in the day colour run between the stops. Each stop is a candle: a 12 × 9.5 px snow cup in the day colour with a pale rim, and an 8 × 12 px flame (`candle` with a `candle-core` heart). The path stops short of each cup.
+- **A fixed time** is an 18 px six-armed ice crystal in `seal` (winter crimson). No cup, no flame. The seal stamp and its "fixed time" label stay as they are, in the new `seal`.
+- **The stop under way** throws light: a static radial glow of `candle-glow-now` around its cup, plus its Now flag. Past stops' flames burn low (40 %). A stop the group added stands in a cup of the "added by us" pink; a split's cup is pale (it can move).
+- **The week list** shows each day's mark (white, 20 px) on a 34 px tile of its colour under a cap of snow; a day without a mark shows a candle.
+- **The Now/Next card** is frosted like the days (white to `paper-2`, 1 px `rule`) with a drift of its own along its foot (28 px, Glacier at 14 % over `snowbank`), so the world shows on the first screen.
+- **Dark** is a navy snowy night lit only by the candles: every candle throws a small static glow (`candle-glow`), the now stop a stronger one. Nothing else glows; the cards stay flat navy with a faint drift.
+
+**Tokens** (light / dark):
+
+| Token                             | Light                             | Dark                              | Use                                                                                                              |
+| --------------------------------- | --------------------------------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `paper`                           | `#f7fafd`                         | `#0a1424`                         | page; the browser bar (`theme-color`) and the installed app's background                                         |
+| `paper-2` / `paper-3`             | `#ebf1f8` / `#e2e9f2`             | `#111e33` / `#1a2a44`             | containers / pressed                                                                                             |
+| `ink` / `ink-2` / `ink-3`         | `#0f1b2d` / `#3a485c` / `#4a586c` | `#eaf1fa` / `#b9c6d8` / `#97a6bb` | text, all at 4.5:1 or more on `paper` and `paper-2`                                                              |
+| `rule`                            | `#d4deea`                         | `#22324b`                         | hairlines                                                                                                        |
+| `seal` / `seal-ink`               | `#b3203a` / `#ffffff`             | `#ff8fa0` / `#2a0610`             | fixed times only                                                                                                 |
+| `candle` / `candle-core`          | `#e8900c` / `#fff3cf`             | `#ffb43c` / `#fff6dc`             | the flame; the one warm colour                                                                                   |
+| `candle-glow` / `candle-glow-now` | none / `rgb(232 144 12 / .34)`    | `rgb(255 176 60 / .24)` / `.46`   | the light a candle throws                                                                                        |
+| `snow-card-top` / `snow-card-low` | `#ffffff` / `#f1f6fb`             | `#14243e` / `#0f1c31`             | the day's card                                                                                                   |
+| `snowbank`                        | `rgb(222 233 246 / .9)`           | `rgb(214 228 246 / .1)`           | the drift along a card's foot                                                                                    |
+| `flake`                           | `#b8cfe8`                         | `#eaf2fb`                         | the first-open snowfall                                                                                          |
+| `lift`                            | 0 %                               | 30 %                              | how far day colours lighten toward white where they draw on the page at night (wish, footprints, button borders) |
+
+**Day colours** (`l1`–`l7`, white ink on all seven, the same in both themes): Glacier `#1f6fb8`, Plum Frost `#a5468e`, Spruce `#2e7d4a`, Aurora `#6a55c8`, Frozen Lake `#12808a`, Winter Rose `#b24a5e`, Larch `#93602f` (bark brown: warm, but earth, not light). White text on each reaches 4.6:1 or more; each reaches 4.4:1 or more on the light paper and 3.2:1 or more on the dark paper. They're ordered so no day sits beside its nearest look-alike (Plum Frost and Winter Rose are four days apart). `tests/unit/worlds.test.mjs` checks these numbers.
+
+**Illustrations** (`engine/src/themes/snowlight-art/`, hand-drawn SVG, MIT): one wide banner per activity mark (640 × 260) and a scene for the overview (`hero.svg`, 640 × 300), in the icon's style: a navy snowy night, six-armed crystals, rolling drifts in snow white to pale ice, a red jacket as the accent and the amber glow as the only warm light. A day card opens with its activity's banner, flush with the card's edges (`.day-art`); the overview opens with the scene above Now and Next (`.world-hero`). They're decoration (`aria-hidden`), static, and embedded only for the marks a trip uses.
+
+**Motion** (the `animate` decisions for this world):
+
+- **One first-open snowfall:** the first time a phone opens the trip at its top, 12 flakes fall once through the Now/Next card (CSS keyframes on transform and opacity, linear, 2.4 s, staggered up to 0.6 s), then the layer is removed and never shown on that phone again (`store` key `greeted`). Under reduced motion it's never shown.
+- **The candle under way flickers:** only the current stop's flame, opacity 1 ↔ 0.82 over 1.9 s and height 0.96 ↔ 1.04 from its base over 3.1 s, both alternating with `--ease-in-out`, so it never repeats on a beat. Every other candle is still. Under reduced motion it's still, and the stop keeps its glow and its Now flag.
+- **Never:** snow falling behind the page, an animated glow, a filter or blur on the day cards. The press scale and every default-world timing stay as they are.
+
+**Named Rules:**
+
+**The Nothing Hangs Rule.** Candles stand in the snow, on the ground. No hanging, floating or sky ornament in this world, not even as a mark in the week list. The rule is about light and ornament: an illustration may show what really is up there on its day (falling snow, a chairlift, the plane), but never a light that hangs or floats.
+
+**The Small Warm Light Rule.** `candle` is the only bright warm colour, and it stays in the flame and the light it throws. Never a fill, a border, text or a button. The warm day colours (Winter Rose, Larch) are muted earth and berry, never amber, so nothing on a card competes with the flame.
+
+**The Crystal Means Fixed Rule.** The ice crystal marks a fixed time and nothing else, in `seal`, the colour that means fixed in every world.
 
 ## Surface: the landing page (site/)
 

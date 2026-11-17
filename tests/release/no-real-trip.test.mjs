@@ -9,7 +9,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { ROOT } from '../support/stage.mjs';
-import { findRealTrip, realTripTokens } from './real-trip-patterns.mjs';
+import { findRealTrip, isProse, realTripTokens } from './real-trip-patterns.mjs';
 
 test("no committable file carries a real trip's details", () => {
 	const tokens = realTripTokens(ROOT);
@@ -22,7 +22,7 @@ test("no committable file carries a real trip's details", () => {
 		// a skill link (.claude/skills/<name>) is listed as a file; its target is scanned under .agents/skills/
 		const st = fs.existsSync(abs) && fs.lstatSync(abs);
 		if (!st || !st.isFile() || st.size > 5e6) continue;
-		for (const h of findRealTrip(fs.readFileSync(abs, 'utf8'), tokens)) hits.push(`${f}: ${h}`);
+		for (const h of findRealTrip(fs.readFileSync(abs, 'utf8'), tokens, { prose: isProse(f) })) hits.push(`${f}: ${h}`);
 	}
 	assert.deepEqual(hits, [], 'push blocked: move these into trip data or reword them');
 });

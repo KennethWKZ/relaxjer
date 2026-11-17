@@ -30,6 +30,8 @@ try {
 // the live demo (build --demo-clock) greets its visitors, who come from an English landing page, in English
 let lang = store.get('lang', window.DEMO_CLOCK ? 'en' : 'zh') === 'en' ? 'en' : 'zh';
 let themePref = ['dark', 'system'].includes(store.get('theme', 'light')) ? store.get('theme') : 'light';
+// which app a Map or Directions link opens, chosen per phone in the Sections menu (Google unless the phone picked Apple)
+let mapsApp = store.get('maps', 'google') === 'apple' ? 'apple' : 'google';
 let checks = store.get('checks', {}) || {};
 // group sync (ADR-20261001-group-sync): on when the build put the trip's database in (pnpm build --sync). Then added
 // stops, pushed-back times, flight changes and the ticks of checklist groups marked `shared` reach everyone's phone
@@ -80,6 +82,7 @@ let rate = Number(store.get('rate', CUR.rate)) || CUR.rate;
 const GEO = window.GEO || null;
 const EXTRA = window.EXTRA || { food: [], tickets: [], sites: {} };
 const CREDITS = window.CREDITS || [];
+const WORLD_ART = window.WORLD_ART || {}; // a destination world's illustrations, by DAYS[i].motif and 'hero' (build.mjs)
 const WISH = (window.WISH || []).filter((w) => w && w.branches && w.branches.length);
 let IMG = window.IMG || null; // standalone: photos sit in #img-data at the very end, read after the plan is on screen
 const IMG_LATE = document.body.dataset.imgLate === '1';

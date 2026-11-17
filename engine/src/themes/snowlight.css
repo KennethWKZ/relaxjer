@@ -1,0 +1,364 @@
+/* ───────── World: Snow Light Path (ADR-20261117-destination-themes) ─────────
+   A pack's `theme: 'snowlight'` puts this file after style.css and sets data-world="snowlight" on <html>; a trip without
+   it never carries a byte of it. The day is a footpath through snow lit by small candles set in the ground: frosted snow
+   cards with a drift along the foot, footprints between the stops, a candle in a snow cup at each, an ice crystal where
+   a time is fixed, and a navy snowy night in dark mode lit only by those candles. The engine's class names (.lantern,
+   .stop-knot…) stay as they are so the default world's page is unchanged; nothing here draws a lantern.
+   Every rule hangs under :root[data-world='snowlight'], which also lets it outrank the default world's dark rules. */
+
+:root[data-world='snowlight'] {
+	--paper: #f7fafd;
+	--paper-2: #ebf1f8;
+	--paper-3: #e2e9f2;
+	--ink: #0f1b2d;
+	--ink-2: #3a485c;
+	--ink-3: #4a586c;
+	--rule: #d4deea;
+	--seal: #b3203a; /* winter crimson: still the colour of "fixed" */
+	--seal-ink: #ffffff;
+	--glass: rgba(247, 250, 253, 0.84);
+	--glass-edge: rgba(15, 27, 45, 0.08);
+	--scrim: rgba(8, 16, 30, 0.5);
+
+	/* the candles: the one warm colour, kept to the flame and the light it throws */
+	--candle: #e8900c;
+	--candle-core: #fff3cf;
+	--candle-glow: transparent; /* by day only the current stop's candle throws light */
+	--candle-glow-now: rgb(232 144 12 / 0.34);
+	--snow-card-top: #ffffff;
+	--snow-card-low: #f1f6fb;
+	--snowbank: rgb(222 233 246 / 0.9);
+	--card-shadow: 0 12px 26px -18px rgb(20 48 92 / 0.45);
+	--flake: #b8cfe8;
+	--lift: 0%; /* how far a day colour is lifted toward white where it draws on the page (more at night) */
+	--world-hello: 1; /* this world draws a first-open greeting (25-theme.js worldHello) */
+
+	/* seven winter day colours: white text on each at 4.5:1 or more, and each at 3:1 or more on the light and the dark
+	   paper; neighbouring days never sit next to their closest look-alike */
+	--l1: #1f6fb8; /* glacier */
+	--l2: #a5468e; /* plum frost */
+	--l3: #2e7d4a; /* spruce */
+	--l4: #6a55c8; /* aurora */
+	--l5: #12808a; /* frozen lake */
+	--l6: #b24a5e; /* winter rose */
+	--l7: #93602f; /* larch: bark brown, warm without glowing (the flame keeps the only bright warm) */
+	--l1-ink: #ffffff;
+	--l2-ink: #ffffff;
+	--l3-ink: #ffffff;
+	--l4-ink: #ffffff;
+	--l5-ink: #ffffff;
+	--l6-ink: #ffffff;
+	--l7-ink: #ffffff;
+}
+@media (prefers-color-scheme: dark) {
+	:root[data-world='snowlight']:not([data-theme='light']) {
+		--paper: #0a1424;
+		--paper-2: #111e33;
+		--paper-3: #1a2a44;
+		--ink: #eaf1fa;
+		--ink-2: #b9c6d8;
+		--ink-3: #97a6bb;
+		--rule: #22324b;
+		--seal: #ff8fa0;
+		--seal-ink: #2a0610;
+		--glass: rgba(10, 20, 36, 0.82);
+		--glass-edge: rgba(234, 241, 250, 0.08);
+		--candle: #ffb43c;
+		--candle-core: #fff6dc;
+		--candle-glow: rgb(255 176 60 / 0.24);
+		--candle-glow-now: rgb(255 176 60 / 0.46);
+		--snow-card-top: #14243e;
+		--snow-card-low: #0f1c31;
+		--snowbank: rgb(214 228 246 / 0.1);
+		--card-shadow: 0 16px 30px -20px rgb(0 0 0 / 0.7);
+		--flake: #eaf2fb;
+		--lift: 30%;
+	}
+}
+:root[data-world='snowlight'][data-theme='dark'] {
+	--paper: #0a1424;
+	--paper-2: #111e33;
+	--paper-3: #1a2a44;
+	--ink: #eaf1fa;
+	--ink-2: #b9c6d8;
+	--ink-3: #97a6bb;
+	--rule: #22324b;
+	--seal: #ff8fa0;
+	--seal-ink: #2a0610;
+	--glass: rgba(10, 20, 36, 0.82);
+	--glass-edge: rgba(234, 241, 250, 0.08);
+	--candle: #ffb43c;
+	--candle-core: #fff6dc;
+	--candle-glow: rgb(255 176 60 / 0.24);
+	--candle-glow-now: rgb(255 176 60 / 0.46);
+	--snow-card-top: #14243e;
+	--snow-card-low: #0f1c31;
+	--snowbank: rgb(214 228 246 / 0.1);
+	--card-shadow: 0 16px 30px -20px rgb(0 0 0 / 0.7);
+	--flake: #eaf2fb;
+	--lift: 30%;
+}
+
+/* ── the week list: each day's mark on its colour, under a cap of snow ── */
+:root[data-world='snowlight'] .day-mark {
+	position: relative;
+	overflow: hidden;
+}
+:root[data-world='snowlight'] .day-mark::before {
+	content: '';
+	position: absolute;
+	inset: 0 0 auto;
+	height: 9px;
+	background: rgb(255 255 255 / 0.88);
+	-webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 34 9' preserveAspectRatio='none'%3E%3Cpath d='M0 0h34v5c-3 2-6 3.5-9 2.4S20 4 16 5.6 9 9 5 7.6 1 5.4 0 6z'/%3E%3C/svg%3E")
+		0 0 / 100% 100% no-repeat;
+	mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 34 9' preserveAspectRatio='none'%3E%3Cpath d='M0 0h34v5c-3 2-6 3.5-9 2.4S20 4 16 5.6 9 9 5 7.6 1 5.4 0 6z'/%3E%3C/svg%3E")
+		0 0 / 100% 100% no-repeat;
+}
+:root[data-world='snowlight'] .day-mark svg.i {
+	position: relative;
+	margin-top: 4px;
+}
+
+/* ── the day's card: frosted snow, tinted with the day's colour at the top, a drift along the foot ── */
+:root[data-world='snowlight'] .lantern {
+	--ci: var(--ink);
+	--cf: color-mix(in srgb, var(--c) 11%, transparent);
+	--cm: 1;
+	background: linear-gradient(180deg, color-mix(in srgb, var(--c) 10%, var(--snow-card-top)), var(--snow-card-top) 160px, var(--snow-card-low));
+	border: 1px solid color-mix(in srgb, var(--c) 30%, var(--rule));
+	box-shadow: var(--card-shadow);
+	padding-bottom: 38px;
+}
+/* still snow caught in the frost, fading down the card (static: nothing moves behind what people read) */
+:root[data-world='snowlight'] .lantern::before {
+	opacity: 1;
+	mix-blend-mode: normal;
+	background-image:
+		radial-gradient(circle, color-mix(in srgb, var(--c) 24%, transparent) 0 1.1px, transparent 1.7px),
+		radial-gradient(circle, color-mix(in srgb, var(--c) 16%, transparent) 0 0.9px, transparent 1.5px);
+	background-size:
+		53px 41px,
+		37px 59px;
+	background-position:
+		11px 7px,
+		29px 23px;
+	-webkit-mask: linear-gradient(#000, transparent 72%);
+	mask: linear-gradient(#000, transparent 72%);
+}
+:root[data-world='snowlight'] .lantern::after {
+	top: auto;
+	bottom: 0;
+	height: 30px;
+	border: 0;
+	background: linear-gradient(180deg, color-mix(in srgb, var(--c) 18%, var(--snowbank)), var(--snowbank));
+	-webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 30' preserveAspectRatio='none'%3E%3Cpath d='M0 30V17C38 9 72 6 112 12S186 25 236 17 326 4 400 13V30Z'/%3E%3C/svg%3E")
+		0 100% / 100% 100% no-repeat;
+	mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 30' preserveAspectRatio='none'%3E%3Cpath d='M0 30V17C38 9 72 6 112 12S186 25 236 17 326 4 400 13V30Z'/%3E%3C/svg%3E")
+		0 100% / 100% 100% no-repeat;
+}
+:root[data-world='snowlight'] .wish {
+	color: color-mix(in srgb, var(--c), #fff var(--lift));
+}
+:root[data-world='snowlight'] .lantern .l-btn {
+	border-color: color-mix(in srgb, var(--c), #fff var(--lift));
+}
+:root[data-world='snowlight'] .lantern .flag.inv,
+:root[data-world='snowlight'] .l-leg.all {
+	background: var(--c);
+	color: #ffffff;
+}
+:root[data-world='snowlight'] .l-motif svg.i {
+	color: color-mix(in srgb, var(--c), #fff var(--lift));
+}
+
+/* ── the path: footprints in snow between the stops, a candle in a snow cup at each ── */
+:root[data-world='snowlight'] .stop-knot {
+	--cup: var(--c);
+	background:
+		radial-gradient(circle at 9px 16px, var(--candle-glow) 0, transparent 9px) no-repeat,
+		linear-gradient(color-mix(in srgb, var(--cup) 38%, var(--paper)) 0 0) 3px 19px / 12px 2px no-repeat,
+		radial-gradient(ellipse 6px 3.5px at 9px 25px, var(--cup) 0 94%, transparent 100%) no-repeat,
+		linear-gradient(var(--cup) 0 0) 3px 19px / 12px 6px no-repeat;
+}
+:root[data-world='snowlight'] .stop-knot::before {
+	--step: color-mix(in srgb, var(--c), #fff var(--lift));
+	left: 6px;
+	width: 6px;
+	background:
+		radial-gradient(circle at 1.5px 2.5px, var(--step) 0 1.1px, transparent 1.6px) 0 0 / 6px 11px repeat-y,
+		radial-gradient(circle at 4.5px 8px, var(--step) 0 1.1px, transparent 1.6px) 0 0 / 6px 11px repeat-y;
+	/* the path stops short of the cup and starts again under it */
+	-webkit-mask: linear-gradient(#000 0 5px, transparent 5px 31px, #000 31px);
+	mask: linear-gradient(#000 0 5px, transparent 5px 31px, #000 31px);
+}
+:root[data-world='snowlight'] .stop:first-child .stop-knot::before {
+	top: 31px;
+	-webkit-mask: none;
+	mask: none;
+}
+:root[data-world='snowlight'] .stop:last-child .stop-knot::before {
+	bottom: calc(100% - 5px);
+	-webkit-mask: none;
+	mask: none;
+}
+/* the flame (its glow is the knot's static background above, never an animated shadow) */
+:root[data-world='snowlight'] .stop-knot::after {
+	top: 8px;
+	left: 5px;
+	width: 8px;
+	height: 12px;
+	border: 0;
+	border-radius: 50% 50% 46% 46% / 64% 64% 36% 36%;
+	background: radial-gradient(ellipse 50% 42% at 50% 66%, var(--candle-core) 0 35%, var(--candle) 82%);
+	box-shadow: none;
+	transform-origin: 50% 100%;
+}
+/* my own stops: a cup in the "added by us" pink; a split: a pale cup, since it can move */
+:root[data-world='snowlight'] .stop.mine .stop-knot {
+	--cup: #d14d72;
+}
+:root[data-world='snowlight'] .stop.split .stop-knot {
+	--cup: color-mix(in srgb, var(--c) 55%, var(--paper));
+}
+/* past stops: the candle has burned low */
+:root[data-world='snowlight'] .stop.done .stop-knot::after {
+	opacity: 0.4;
+}
+/* the stop under way: its candle lights the snow around it, and (with motion allowed) flickers; the Now flag is its other cue */
+:root[data-world='snowlight'] .stop.now .stop-knot {
+	--candle-glow: var(--candle-glow-now);
+}
+@media (prefers-reduced-motion: no-preference) {
+	:root[data-world='snowlight'] .stop.now:not(.fixed) .stop-knot::after {
+		animation:
+			snowlight-flame 1.9s var(--ease-in-out) infinite alternate,
+			snowlight-sway 3.1s var(--ease-in-out) infinite alternate;
+	}
+}
+@keyframes snowlight-flame {
+	from {
+		opacity: 1;
+	}
+	to {
+		opacity: 0.82;
+	}
+}
+@keyframes snowlight-sway {
+	from {
+		transform: scaleY(0.96);
+	}
+	to {
+		transform: scaleY(1.04);
+	}
+}
+/* a fixed time: an ice crystal in the seal's colour, no cup, no flame */
+:root[data-world='snowlight'] .stop.fixed .stop-knot {
+	background: none;
+}
+:root[data-world='snowlight'] .stop.fixed .stop-knot::after {
+	top: 11px;
+	left: 0;
+	width: 18px;
+	height: 18px;
+	border-radius: 0;
+	transform: none;
+	opacity: 1;
+	background: var(--seal);
+	-webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 2v20M3.34 7l17.32 10M3.34 17L20.66 7'/%3E%3Cpath d='M9.5 3.7L12 6l2.5-2.3M9.5 20.3L12 18l2.5 2.3M17.94 5.69L17.2 9l3.24 1.02M6.06 18.32L6.8 15l-3.24-1.01M20.44 13.99L17.2 15l.74 3.32M3.56 10.02L6.8 9l-.74-3.31'/%3E%3C/svg%3E")
+		center / contain no-repeat;
+	mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 2v20M3.34 7l17.32 10M3.34 17L20.66 7'/%3E%3Cpath d='M9.5 3.7L12 6l2.5-2.3M9.5 20.3L12 18l2.5 2.3M17.94 5.69L17.2 9l3.24 1.02M6.06 18.32L6.8 15l-3.24-1.01M20.44 13.99L17.2 15l.74 3.32M3.56 10.02L6.8 9l-.74-3.31'/%3E%3C/svg%3E")
+		center / contain no-repeat;
+}
+
+/* ── the now card: frosted like the days; the first open of the trip on a phone gets a little snowfall here ── */
+:root[data-world='snowlight'] .now-card {
+	position: relative;
+	isolation: isolate;
+	background: linear-gradient(180deg, var(--snow-card-top), var(--paper-2));
+	border: 1px solid var(--rule);
+	padding-bottom: 34px;
+}
+/* the same drift along its foot as the days': the world is there from the first screen */
+:root[data-world='snowlight'] .now-card::after {
+	content: '';
+	position: absolute;
+	inset: auto 0 0;
+	z-index: -1;
+	height: 28px;
+	border-radius: 0 0 var(--r-lg) var(--r-lg);
+	background: linear-gradient(180deg, color-mix(in srgb, var(--l1) 14%, var(--snowbank)), var(--snowbank));
+	-webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 30' preserveAspectRatio='none'%3E%3Cpath d='M0 30V15C46 5 96 7 140 13S218 26 268 18 352 6 400 11V30Z'/%3E%3C/svg%3E")
+		0 100% / 100% 100% no-repeat;
+	mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 30' preserveAspectRatio='none'%3E%3Cpath d='M0 30V15C46 5 96 7 140 13S218 26 268 18 352 6 400 11V30Z'/%3E%3C/svg%3E")
+		0 100% / 100% 100% no-repeat;
+}
+/* laid over the card by 25-theme.js (its box in inline style), inside the card's section */
+:root[data-world='snowlight'] .sec:has(> .now-card) {
+	position: relative;
+}
+:root[data-world='snowlight'] .world-hello {
+	position: absolute;
+	z-index: 1;
+	overflow: hidden;
+	border-radius: var(--r-lg);
+	pointer-events: none;
+}
+:root[data-world='snowlight'] .world-hello i {
+	position: absolute;
+	top: -10px;
+	width: var(--s, 4px);
+	height: var(--s, 4px);
+	border-radius: 50%;
+	background: var(--flake);
+	opacity: 0;
+	animation: snowlight-hello 2.4s linear var(--d, 0ms) forwards;
+}
+@keyframes snowlight-hello {
+	0% {
+		opacity: 0;
+		transform: translate3d(0, 0, 0);
+	}
+	12% {
+		opacity: 0.95;
+	}
+	80% {
+		opacity: 0.9;
+	}
+	100% {
+		opacity: 0;
+		transform: translate3d(var(--dx, 0), var(--fall, 240px), 0);
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	:root[data-world='snowlight'] .world-hello {
+		display: none;
+	}
+}
+
+/* the world's illustrations (engine/src/themes/snowlight-art/, embedded by build.mjs): the day's activity as a banner
+   across the top of its card, flush with the card's edges, and the overview's scene above the Now/Next card */
+:root[data-world='snowlight'] .day-art {
+	margin: -22px -18px 16px;
+	aspect-ratio: 640 / 260;
+	overflow: hidden;
+	background: var(--paper-3);
+}
+:root[data-world='snowlight'] .day-art img,
+:root[data-world='snowlight'] .world-hero img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+:root[data-world='snowlight'] .world-hero {
+	margin-top: 16px;
+	aspect-ratio: 640 / 300;
+	overflow: hidden;
+	border-radius: var(--r-lg);
+	box-shadow: var(--card-shadow);
+	background: var(--paper-3);
+}
+:root[data-world='snowlight'] .world-hero + .now-card {
+	margin-top: 14px;
+}

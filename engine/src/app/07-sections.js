@@ -3,9 +3,10 @@ function secOverview() {
 	const hotelAddr = addrFor(hotelOf(ROLE.arrive)); // the facts' address line: the first night's hotel
 	return `<section class="sec" id="top" data-sec="top">
       <h1 class="sr-only">${esc(L(TRIP.name))}</h1>
+      ${worldArt('hero', 'world-hero')}
       <div class="now-card" id="now" aria-live="polite"></div>
       <h2 class="sub">${icon('calendar')}${Z('这一周', 'The week')}</h2>
-      <ol class="week">${DAYS.map((d) => `<li><a class="wk" href="#${d.id}" style="${colorVars(d.c)}">${lanternMark(d.c)}<span class="wk-date">${+d.date.slice(8)}<small>${esc(Z('周' + d.dow[0], d.dow[1]))}</small></span><span class="wk-title">${esc(L(d.title))}<span class="wk-focus">${esc(L(d.focus))}</span></span>${icon('arrow', 'wk-arrow')}</a></li>`).join('')}</ol>
+      <ol class="week">${DAYS.map((d) => `<li><a class="wk" href="#${d.id}" style="${colorVars(d.c)}">${dayMark(d)}<span class="wk-date">${+d.date.slice(8)}<small>${esc(Z('周' + d.dow[0], d.dow[1]))}</small></span><span class="wk-title">${esc(L(d.title))}<span class="wk-focus">${esc(L(d.focus))}</span></span>${icon('arrow', 'wk-arrow')}</a></li>`).join('')}</ol>
       <h2 class="sub">${icon('info')}${Z('旅行资料', 'Trip facts')}</h2>
       <dl class="facts">${FACTS.map((f) => `<div class="fact"><dt>${esc(L(f.k))}</dt><dd>${fmt(f.v)}${f.place ? `<p class="addr">${icon('pin')}<span>${escText(hotelAddr.zh)}${hotelAddr.en ? `<br><span class="xsmall">${escText(hotelAddr.en)}</span>` : ''}</span></p><p class="xsmall">${fmt(PLACES.hotel.note)} · ${Z('电话', 'Tel')} <span class="sel">${esc(PLACES.hotel.tel)}</span></p>${PLACES.hotel.gname ? `<p class="xsmall">${icon('info')} ${Z(`Google 地图仍用旧名「${esc(PLACES.hotel.gname)}」（同地址、电话）。搜新名字会出现别家酒店，请用这里的按钮或地址。`, `Google Maps still lists old name 「${esc(PLACES.hotel.gname)}」 (same address/phone). New-name search finds other hotels; use buttons/address here.`)}</p>` : ''}<div class="links-row">${placeLinks(f.place)}</div>` : ''}</dd></div>`).join('')}</dl>
       <h2 class="sub">${icon('list')}${Z('机动备选', 'Backups if we have time')}</h2>
@@ -1001,11 +1002,12 @@ function secDay(d, today) {
 		const cls = ['stop', it.fixed && 'fixed', it.key && 'key'].filter(Boolean).join(' ');
 		return `<li class="${cls}${it._sh ? ' shifted' : ''}" id="${d.id}-s${i}" ${pt.s != null ? `data-s="${pt.s}"` : ''}><div class="stop-t">${esc(t)}${it._sh ? `<span class="t-was">${esc(Z(`原 ${L(it._base)}`, `was ${L(it._base)}`))}</span>` : ''}</div><div class="stop-knot">${closes[i] ? '' : gapBtn(d, `${i}`)}</div><div class="stop-b">
         <p class="stop-name"${alt(other(it.what))}>${fmt(it.what)}${it.fixed ? seal() : ''}<span class="flag-slot"></span></p>
+        ${stopNative(it)}
         ${it.note ? `<p class="stop-note">${fmt(it.note)}</p>` : ''}
         ${splitBack(d, it)}
         ${it.shops ? shopBoxHTML() : ''}
         ${it._clash ? `<p class="warn">${icon('alert')}${esc(Z(`推迟后会撞到 ${L(it._clash.t)}「${stopName(it._clash)}」：这一项缩短或跳过`, `Now runs into the fixed ${L(it._clash.t)} ${stopName(it._clash)}: shorten or skip this`))}</p>` : ''}
-        ${it.place || it.link ? `<div class="stop-links">${it.place ? placeLinks(it.place, { noSite: false }) : ''}${it.link ? `<a class="mlink" href="${SITES[it.link] ? SITES[it.link].url : it.link}">${icon('arrow')}${Z('看详情', 'Details')}</a>` : ''}</div>` : ''}
+        ${it.place || it.link ? `<div class="stop-links">${it.place ? placeLinks(it.place, { noSite: false, noNative: true }) : ''}${it.link ? `<a class="mlink" href="${SITES[it.link] ? SITES[it.link].url : it.link}">${icon('arrow')}${Z('看详情', 'Details')}</a>` : ''}</div>` : ''}
         ${mealEats(d, it)}
         ${nearOpts(d, it)}
         ${nearWish(d, it)}
@@ -1028,7 +1030,8 @@ function secDay(d, today) {
 	return `<section class="day" id="${d.id}" data-sec="${d.id}" style="${colorVars(d.c)}">
       <div class="day-bar"><span class="sw" aria-hidden="true"></span><span class="dt">Day ${d.n} · ${esc(dateLabel(d.date, d.dow))}</span><span class="rt">${esc(L(d.title))}</span></div>
       <div class="lantern">
-        <div class="l-meta"><span>Day ${d.n}</span><span>${esc(dateLabel(d.date, d.dow))}</span>${isToday ? `<span class="flag inv">${Z('今天', 'Today')}</span>` : ''}</div>
+        ${worldArt(d.motif, 'day-art')}
+        <div class="l-meta"><span>Day ${d.n}</span><span>${esc(dateLabel(d.date, d.dow))}</span>${motifTag(d)}${isToday ? `<span class="flag inv">${Z('今天', 'Today')}</span>` : ''}</div>
         ${wish}
         <div class="l-chips">${chips}</div>
         ${routeCard(d)}
@@ -1106,7 +1109,7 @@ function secMap() {
       </div></details>`
 					: ''
 			}
-      <p class="xsmall" style="margin-top:8px">${Z('地图资料', 'Map data')}: OpenFreeMap · © OpenStreetMap contributors · ${Z('导航以Google地图为准', 'Use Google Maps for turn-by-turn directions')}</p>
+      <p class="xsmall" style="margin-top:8px">${Z('地图资料', 'Map data')}: OpenFreeMap · © OpenStreetMap contributors · ${Z(`导航以${mapsName(mapsApp)}为准`, `Use ${mapsName(mapsApp)} for turn-by-turn directions`)}</p>
     </section>`;
 }
 
