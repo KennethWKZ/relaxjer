@@ -27,6 +27,10 @@ It prints the URL, a generated viewer password and a secret update key, **each s
   every read (they type it; never echo it):
   `security add-generic-password -s relaxjer-publish -a <slug> -T "" -w '<the key>'`. Without a Mac, it goes alone in
   `~/.config/relaxjer/publish/<slug>.update-key`, mode 600.
+- **The planner's choice: no macOS dialog.** A planner who publishes away from the Mac (over SSH from a phone, where
+  the dialog can't be seen or answered) can trust `security` instead: `-T /usr/bin/security` in the command above, or
+  **Always Allow** the next time the dialog shows. Claude Code's prompt on `pnpm publish:trip` is then the only gate,
+  and any program on the Mac that runs `security` can read the key without asking. Offer it; never pick it for them.
 - The viewer password goes alone in `~/.config/relaxjer/publish/<slug>.viewer`, and the site id and URL in
   `<slug>.site`. One value per file means nothing has to be cut out of a labelled line later. **Never echo the update
   key into the chat, a repo file, a test or a commit.**

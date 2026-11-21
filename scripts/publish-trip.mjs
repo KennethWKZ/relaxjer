@@ -11,7 +11,7 @@
 //       address on an iPhone and an Android phone, served in place of the live copy: what its Content-Security-Policy
 //       refused, what failed to load, page errors, and whether the map came up
 // The update key comes from the macOS Keychain when it's there (service relaxjer-publish, account <slug>; macOS asks the
-// planner before each read), and is read only right before the share. The rest live in ~/.config/relaxjer/publish/
+// planner before each read, unless they chose to trust `security`), and is read only right before the share. The rest live in ~/.config/relaxjer/publish/
 // (never in the repo), either one value per file (<slug>.viewer, <slug>.site, and <slug>.update-key if the key isn't in
 // the Keychain) or the first trip's labelled files (<slug>.txt as lavish-axi printed it, <slug>-viewer.txt).
 // Before publishing it saves the live copy there as <slug>-rollback-<build id>.html, so a bad publish can be undone by
@@ -41,7 +41,8 @@ export const KEYCHAIN_SERVICE = 'relaxjer-publish';
 
 /**
  * The update key from the macOS Keychain (service relaxjer-publish, account = the trip's slug). The planner stores it
- * with no trusted apps (`-T ""`), so macOS asks them before every read. Returns null when there's no such item (then
+ * with no trusted apps (`-T ""`), so macOS asks them before every read, or trusts `/usr/bin/security` to publish without
+ * the dialog (their choice, publish-htmlapp skill). Returns null when there's no such item (then
  * the key comes from a file), and throws when there is one but the read was refused: a "Deny" must stop the publish,
  * never fall back to a copy on disk.
  */

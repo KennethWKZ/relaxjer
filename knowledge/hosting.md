@@ -31,6 +31,9 @@ id> --update-key <key>` with the key read from outside the repo. Without `--pass
   `npm run …` and a context-mode shell through. So the hook `guard-publish.mjs` denies every route but the one that asks
   (a hook "deny" holds in every mode; a hook "ask" isn't documented for bypass mode), and the key sits in the macOS
   Keychain with no trusted apps, so the OS itself asks before a publish, even one started by a script nobody reviewed.
+- **The macOS dialog shows only on the Mac's own screen.** A planner publishing over SSH from a phone can't answer it,
+  and the read times out. Such a planner may trust `/usr/bin/security` on the item (publish-htmlapp skill), which leaves
+  Claude Code's prompt as the only gate and lets any program on the Mac read the key. The default stays `-T ""`.
 - **Pick a password the group can type.** The gate keeps it in a cookie for 24 h, so seniors re-enter it daily. A
   generated password was too hard; the first group got a simple one.
 - **The CDN can keep serving the old copy for minutes** after a republish, even when the host says `updated: true`,
