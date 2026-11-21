@@ -12,6 +12,8 @@ Everything above applies. This part covers only what Claude Code adds on top.
     agrees.
   - The reviewers are `destination-researcher`, `data-curator`, `ux-verifier` and `release-checker`. Verify their
     findings before acting.
+  - Design work handed to a subagent (a world, its palette, motion, illustrations) runs on the strongest model at
+    `xhigh` effort or above, as a fresh agent: a fork keeps the session's own effort.
 - **Rules** in `.claude/rules/` load when you open a matching file (engine, frontend, tests, trip data, pipeline, packs,
   group sync, publishing, planner docs, agent config, memory-bank). Each points at its source of truth.
 - **Hooks and permissions** (`.claude/settings.json`):

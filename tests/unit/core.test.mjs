@@ -298,6 +298,10 @@ test("Plan: a stored route leg's times only while it still joins the same stops"
 	// the day was reordered: position 2 now joins other stops, so no time rather than another leg's
 	assert.equal(Plan.storedLeg(legs, 'd3', 2, ['station', 'market', 'walking']), null);
 	assert.equal(Plan.storedLeg(legs, 'd3', 1, ['canal', 'street', 'driving']), null); // same stops, another way
+	// a stop before it was removed or added: the same two stops, the same way, at another position of the day keep their time
+	assert.equal(Plan.storedLeg(legs, 'd3', 0, ['street', 'museum', 'walking']).min, 20);
+	assert.equal(Plan.storedLeg(legs, 'd3', 3, ['canal', 'street', 'walking']).min, 14);
+	assert.equal(Plan.storedLeg(legs, 'd4', 1, ['street', 'museum', 'walking']), null); // never another day's
 	assert.equal(Plan.storedLeg(legs, 'd2', 0, ['a', 'b', 'transit']).min, 9);
 	assert.equal(Plan.storedLeg(legs, 'd4', 0, ['a', 'b', 'transit']), null);
 	assert.equal(Plan.storedLeg(undefined, 'd1', 0, ['a', 'b', 'walking']), null);

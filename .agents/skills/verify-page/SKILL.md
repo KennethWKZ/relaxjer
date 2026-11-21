@@ -61,7 +61,10 @@ WebKit for iPhone behaviour.
 
 At 390 px, one-handed, as a senior would (`knowledge/group-ux.md`):
 
-1. What's next: the Now/Next card, on a trip day (pin the clock with `localStorage <storageKey>now = "YYYY-MM-DD HH:MM"`).
+1. What's next: the Now/Next card, on a trip day (pin the clock with `localStorage <storageKey>now = "YYYY-MM-DD HH:MM"`:
+   the value is JSON, so keep the quotes, e.g. `localStorage.setItem('rj.2030-05-01.now', JSON.stringify('2030-05-03
+10:20'))`; without `TRIP.storageKey` the key is `rj.<start>.`). To reach a day in a script, click its tab
+   (`a[href="#d5"]`): `scrollIntoView` lands short, because the days above it finish drawing while it scrolls.
 2. Getting to the next stop: the route, the map, the "show the driver" card.
 3. Where to eat nearby, and a toilet.
 4. The rain plan.

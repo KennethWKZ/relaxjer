@@ -173,7 +173,12 @@ function secBudget() {
 		.map(({ d, b }) => {
 			const l = (b.min / maxv) * 100,
 				w = ((b.max - b.min) / maxv) * 100;
-			return `<a class="bar-row2 barlink" href="#${d.id}-budget" style="${colorVars(d.c)}"><span class="bar-lab">${+d.date.slice(8)} ${esc(L(d.dow))}<small>Day ${d.n}${b.est ? Z(' · 估', ' · est.') : ''}</small></span><div class="bar-track"><div class="bar-grid"></div><div class="bar-range ${b.est ? 'est' : ''}" style="left:${l}%;width:${w}%"></div><span class="bar-val${l + w > 70 ? ' lft' : ''}" style="${l + w > 70 ? `right:calc(${100 - l}% + 6px)` : `left:calc(${l + w}% + 6px)`}">${num(b.min)}–${num(b.max)}<span class="bar-each">${Z('每人', '')}${num(each(b.min))}–${num(each(b.max))}${Z('', ' each')}</span></span></div></a>`;
+			// the figure sits after the bar's end unless it would run past the track: the longer of its two lines (the
+			// range, and each person's share; a CJK character counts twice) flips it sooner, ~2.8% of a phone's track a character
+			const wide = (t) => [...t].reduce((n, ch) => n + (ch > '\u2e7f' ? 2 : 1), 0);
+			const chars = Math.max(wide(`${num(b.min)}–${num(b.max)}`), wide(`${Z('每人', '')}${num(each(b.min))}–${num(each(b.max))}${Z('', ' each')}`));
+			const lft = l + w > Math.min(70, 100 - chars * 2.8);
+			return `<a class="bar-row2 barlink" href="#${d.id}-budget" style="${colorVars(d.c)}"><span class="bar-lab">${+d.date.slice(8)} ${esc(L(d.dow))}<small>Day ${d.n}${b.est ? Z(' · 估', ' · est.') : ''}</small></span><div class="bar-track"><div class="bar-grid"></div><div class="bar-range ${b.est ? 'est' : ''}" style="left:${l}%;width:${w}%"></div><span class="bar-val${lft ? ' lft' : ''}" style="${lft ? `right:calc(${100 - l}% + 6px)` : `left:calc(${l + w}% + 6px)`}">${num(b.min)}–${num(b.max)}<span class="bar-each">${Z('每人', '')}${num(each(b.min))}–${num(each(b.max))}${Z('', ' each')}</span></span></div></a>`;
 		})
 		.join('');
 	return `<section class="sec" id="budget" data-sec="budget">

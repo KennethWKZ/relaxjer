@@ -67,15 +67,16 @@ the phone being online at the same moment as the others.
 
 ## Alternatives
 
-| Option                                    | Why not                                                                                                   |
-| ----------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| A better share link only (query or `#`)   | Still a hand-off someone taps, per change; on iPhone it likely lands outside the home-screen copy         |
-| WebRTC phone to phone                     | Both phones must be online at once, carrier NAT needs a relay server anyway, iPhone drops it when locked  |
-| ntfy.sh as the relay                      | Free and zero-setup, but keeps messages 12 hours, rate-limits per IP, no guarantees from one operator     |
-| Momento Topics                            | Messages are dropped once delivered; its cache keeps items 24 hours at most; needs an API key in the page |
-| FCM web to web                            | Sending needs a service-account server (the legacy API ended June 2024); receiving needs a service worker |
-| The Firebase JavaScript SDK               | 287 KB more code with access to the keys, and its offline cache isn't available in web pages              |
-| A shared relay RelaxJer runs for everyone | Makes the project an operator of strangers' data: abuse, uptime, terms                                    |
+| Option                                      | Why not                                                                                                                                                                           |
+| ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A better share link only (query or `#`)     | Still a hand-off someone taps, per change; on iPhone it likely lands outside the home-screen copy                                                                                 |
+| WebRTC phone to phone                       | Both phones must be online at once, carrier NAT needs a relay server anyway, iPhone drops it when locked                                                                          |
+| ntfy.sh as the relay                        | Free and zero-setup, but keeps messages 12 hours, rate-limits per IP, no guarantees from one operator                                                                             |
+| Momento Topics                              | Messages are dropped once delivered; its cache keeps items 24 hours at most; needs an API key in the page                                                                         |
+| FCM web to web                              | Sending needs a service-account server (the legacy API ended June 2024); receiving needs a service worker                                                                         |
+| The Firebase JavaScript SDK                 | 287 KB more code with access to the keys, and its offline cache isn't available in web pages                                                                                      |
+| A shared relay RelaxJer runs for everyone   | Makes the project an operator of strangers' data: abuse, uptime, terms                                                                                                            |
+| The whole plan in the database (2026-11-21) | Saves only the republish, one command; a new place still needs the data refresh, a pushed plan skips the trip contract, and anyone with the page password could rewrite every day |
 
 ## Consequences
 

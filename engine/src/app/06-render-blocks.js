@@ -8,7 +8,7 @@ function renderBlock(b, day) {
 		case 'text':
 			return `<div class="block">${blockH(b.icon, b.h)}<div class="stack">${b.p.map((p) => `<p>${fmt(p)}</p>`).join('')}</div>${b.total ? `<div style="margin-top:10px">${totalBox(b.total.amt, b.total.per, b.total.min, b.total.max, eachLine(b.total.min, b.total.max))}</div>` : ''}${b.link ? `<div class="links-row"><a class="mlink" href="${b.link[0]}">${icon('arrow')}${fmt(b.link[1])}</a></div>` : ''}${places}${sites}</div>`;
 		case 'list':
-			return `<div class="block">${blockH(b.icon, b.h)}${list(b.list)}${b.note ? `<p class="note">${fmt(b.note)}</p>` : ''}${places}</div>`;
+			return `<div class="block">${blockH(b.icon, b.h)}${list(b.list)}${b.note ? `<p class="note">${fmt(b.note)}</p>` : ''}${places}${sites}</div>`;
 		case 'costs':
 			return `<div class="block">${blockH(b.icon, b.h)}<dl class="kv">${b.rows.map((r) => `<div><dt>${fmt(r[0])}</dt><dd>${fmt(r[1])}</dd></div>`).join('')}</dl></div>`;
 		case 'kv':
@@ -19,7 +19,7 @@ function renderBlock(b, day) {
 			return `<div class="block">${blockH(b.icon, b.h)}<div class="route">${b.stops.map((s, i) => `${i ? icon('arrow', 'arr') : ''}${s.line && !b.plain ? `<span class="line-tag ${s.line}" style="background:var(--mrt-${s.line})">${s.code ? esc(s.code) : esc(L(s.name))}</span>` : ''}${!s.isLine ? `<span>${esc(L(s.name))}</span>` : ''}`).join('')}</div>
           ${b.note ? `<p class="note">${fmt(b.note)}</p>` : ''}${b.total ? `<div style="margin-top:10px">${totalBox(b.total.amt, b.total.per, b.total.min, b.total.max, eachLine(b.total.min, b.total.max))}</div>` : ''}${b.note2 ? `<p class="note">${fmt(b.note2)}</p>` : ''}${places}${sites}</div>`;
 		case 'decide':
-			return `<div class="block">${blockH(b.icon, b.h)}<div class="decide">${b.opts.map((o) => `<div class="opt ${o.k}"><span class="opt-mark" aria-hidden="true">${esc(o.mark)}</span><p class="opt-name">${fmt(o.name)}<span class="opt-cost">${fmt(o.cost)}</span></p><p class="opt-body">${fmt(o.when)}</p>${o.list ? list(o.list) : ''}${o.place ? `<div class="links-row opt-body">${placeLinks(o.place, { noDriver: true })}</div>` : ''}</div>`).join('')}</div></div>`;
+			return `<div class="block">${blockH(b.icon, b.h)}<div class="decide">${b.opts.map((o) => `<div class="opt ${o.k}"><span class="opt-mark" aria-hidden="true">${esc(o.mark)}</span><p class="opt-name">${fmt(o.name)}<span class="opt-cost">${fmt(o.cost)}</span></p><p class="opt-body">${fmt(o.when)}</p>${o.list ? list(o.list) : ''}${o.place || o.site ? `<div class="links-row opt-body">${o.place ? placeLinks(o.place, { noDriver: true }) : ''}${o.site ? ext(SITES[o.site].url, L(SITES[o.site].name), 'ext') : ''}</div>` : ''}</div>`).join('')}</div>${places}${sites}</div>`;
 		case 'weather':
 			return `<div class="block" id="${day.id}-ride">${blockH(b.icon, b.h)}${b.flow ? rideFlow() : ''}<div class="decide">${b.opts.map(optRow).join('')}</div></div>`;
 		case 'wear':
@@ -29,7 +29,7 @@ function renderBlock(b, day) {
 				.map((r) => {
 					let v = L(r[1]);
 					if (r[2] === 'airportMrt' && AIRPORT.mrtFare) v = AIRPORT.mrtFare; // the trip's airport-rail fare for the group
-					return `<div><dt>${fmt(r[0])}</dt><dd>${esc(v).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')}${ddEach(v)}</dd></div>`;
+					return `<div><dt>${fmt(r[0])}</dt><dd>${escText(v).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')}${ddEach(v)}</dd></div>`;
 				})
 				.join('');
 			return `<div class="block" id="${day.id}-budget">${blockH('money', b.h)}<dl class="kv kv-each">${rows}</dl><div style="margin-top:10px">${totalBox(

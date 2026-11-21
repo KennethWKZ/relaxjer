@@ -23,7 +23,9 @@ You need these before writing data. Ask for any that are missing, all in one mes
 - the hotel for each night;
 - everything booked or at a fixed time (shows, tours, charters, restaurants);
 - the budget the planner has, the home currency, and the two UI languages;
-- must-dos, nice-to-haves, and what the group dislikes;
+- must-dos, nice-to-haves, and what the group dislikes. A must-do named loosely ("the lone tree", "that famous
+  bridge") gets its exact name, in the local script and in English, written into `requirements.md` once the planner
+  confirms which one it is. Many places have look-alikes nearby; don't add one as an extra stop without asking;
 - whether the group should share its changes across phones (group sync, `sync-setup`, which needs the planner's own
   Firebase), and which checklist groups to mark `shared: true` if so.
 
@@ -53,6 +55,9 @@ requirements. No demo content may survive: its hotel, stalls and prices are inve
 - `trips/<slug>/pipeline.json`: what `data-sync` should search for. Every key and a synthetic example are in
   [`pipeline/README.md`](../../../pipeline/README.md#pipelinejson). A trip outside Taiwan names its own `steps`. Create
   empty `wish-a.json` and `wish-b.json` (`{ "items": [] }`) if the group has no wishlist yet: the refresh expects them.
+- Photos: two to four a day of the day's main places (`DAYS[i].photos`), sourced with their credits as
+  [`pipeline/README.md`](../../../pipeline/README.md#photos-and-icons-by-hand) says. A page without them works, but it
+  reads as a list instead of a trip, and the build says `photos 0`.
 - `trips/<slug>/never-publish.txt`: one literal per line, for anything private the release gate can't derive (a
   nickname, a booking code).
 
@@ -85,4 +90,5 @@ page, so you can show the planner what they'll get.
 - `TRIP_DIR=trips/<slug> pnpm test` passes.
 - Every fixed time in the requirements is `fixed: true`, and every number in the data comes from the requirements or is
   marked as an estimate.
+- Every must-do in `requirements.md` names one exact place, and every day has photos (or the planner knows it has none).
 - `git status` shows nothing under `trips/` except its README.

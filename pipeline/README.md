@@ -97,5 +97,11 @@ building).
   trip's photos into `img/lite/`, which the build prefers. It needs `cwebp` (`brew install webp`).
 - Photos are `img/<id>.webp` (and a square `img/<id>-sq.webp`), each listed in `img/credits.json` with its credit; the
   build drops a credit whose file is missing.
+- Where they come from: Wikimedia Commons, through its API, licensed CC0, public domain, CC BY or CC BY-SA. Never
+  Google, never a generated image, never a photo whose subject is a stranger's face. Prefer the season of the trip
+  (snow for a winter trip). Crop to 960 × 640 and a 320 × 320 square. Each `credits.json` entry has `id`,
+  `subject_en`, `subject_zh`, `commons_title`, `source_url`, `author`, `license`, `license_url`, `original_width` and
+  `original_height`, copied from the file's own page. Check the file's title and description name the place you meant:
+  look-alike landmarks are common. Then run `images.py` above, and list the ids in each day's `photos`.
 - The home-screen icon is `img/icon/icon-192.png` and `icon-512.png` (`icon-32` and `icon-180` for browsers and
   iPhones). No step makes them yet: render the trip's brand lettering at those sizes.

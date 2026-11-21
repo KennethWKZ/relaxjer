@@ -79,8 +79,8 @@ two of them seniors.
   time** (a flight, a show, a booked table) carries a red 定 seal. On a trip day the stops on now and next are tagged,
   past ones dim, and two or more done stops fold into "N done" (Hide done folds them again). A free day can number its
   steps instead of giving times.
-- **Cards under the timeline**, as the plan needs them: option A or B to decide on the day (each with its cost and when
-  to pick it), go / wait / stop rules for a weather-dependent plan (with a "should we ride?" flowchart), a route of
+- **Cards under the timeline**, as the plan needs them: option A, B or more to decide on the day (each with its cost, when
+  to pick it, and its own map or website link, such as a hotel or a van to book), and any card's website links under it, go / wait / stop rules for a weather-dependent plan (with a "should we ride?" flowchart), a route of
   stations in their line colours, tables and lists, the day's budget with each person's share, what to wear, the rain
   plan, ticks for the day, and two-column lists.
 - **Tickets and how to book:** folded cards with the steps, the price, the hours and the official link, marked when
