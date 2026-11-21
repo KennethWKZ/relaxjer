@@ -57,7 +57,11 @@ code that makes the first one.
 What every trip page keeps. It came from the first trip, and the tests characterise it. Every part of the page, for
 planners, is in [`guides/trip-page.md`](../../guides/trip-page.md).
 
-- **Costs:** per-person costs next to group totals, both converted to the home currency (the rate is editable).
+- **Costs:** per-person costs next to group totals, both converted to the home currency (the rate is editable, in the
+  budget and the Sections menu, and resets to the trip's). A currency switch beside the language switch shows every
+  figure in the trip's currency, including amounts inside notes, in the home currency first, never losing the
+  original (beside it or on the line under it), rounded to what a rate can claim; other currencies, times and
+  distances stay as written. The choice and the rate stay on each phone; group sync never carries them.
 - **Timeline:**
   - each day's timeline with fixed times that never move;
   - times tied to the flights, and a flight-delay editor;
@@ -101,7 +105,8 @@ planners, is in [`guides/trip-page.md`](../../guides/trip-page.md).
   - with group sync, a phone's first open asks once for a name in a welcome sheet (Not now is fine), and until it has
     one a bar under the header asks again (Add name, or Later, which hides it for a day). Group sync itself stays a row
     in the Sections menu;
-  - a language switch that keeps your place, and a theme switch (light, dark, follow the phone);
+  - a language switch that keeps your place, a currency switch beside it that does the same, and a theme switch
+    (light, dark, follow the phone);
   - search in both languages (a Traditional character finds its Simplified form), with highlights and previous / next;
   - location asked for only from a card that explains a refusal, a forgotten answer or an approximate position.
 - **Speed and build:**

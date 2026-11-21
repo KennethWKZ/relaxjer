@@ -100,6 +100,39 @@ document.addEventListener('click', (e) => {
 		toast(`${Z('打开地图用', 'Open maps in')}：${mapsName(mapsApp)}`);
 		return;
 	}
+	// which currency the figures lead with: the header's button (it names the other one) or the Sections menu's choice
+	if (t.matches('[data-amounts]')) {
+		const home = t.dataset.amounts === 'home';
+		if (CUR_SWITCH && home !== homeFirst) {
+			const sp = spotNow();
+			const inSheet = !!t.closest('.toc');
+			homeFirst = home;
+			store.set('amounts', home ? 'home' : 'trip');
+			render();
+			spotRestore(sp);
+			const box = $('.toc-cur');
+			if (box) {
+				box.outerHTML = curRow(); // redrawn, so focus moves to the side now pressed
+				if (inSheet) $(`.toc-cur [data-amounts="${home ? 'home' : 'trip'}"]`).focus();
+			}
+			toast(
+				home
+					? Z(`金额改用 ${CUR.home} 显示（1 ${CUR.home} = ${CUR.sym}${rate}）`, `Amounts in ${CUR.home} now (1 ${CUR.home} = ${CUR.sym}${rate})`)
+					: Z(`金额改回 ${CUR.sym} 显示`, `Amounts in ${CUR.sym} again`),
+			);
+		}
+		return;
+	}
+	if (t.matches('[data-rate-reset]')) {
+		store.del('rate'); // forgotten, not copied: the phone follows the trip's rate again, a republished one too
+		rateSet(CUR.rate);
+		$$('input[data-rate]').forEach((i) => {
+			i.value = rate;
+			i.setAttribute('aria-invalid', 'false');
+		});
+		toast(Z(`汇率改回行程的 1 ${CUR.home} = ${CUR.sym}${rate}`, `Back to the trip's rate: 1 ${CUR.home} = ${CUR.sym}${rate}`));
+		return;
+	}
 	if (t.matches('[data-lang]')) {
 		if (t.dataset.lang !== lang) {
 			const sp = spotNow();
@@ -702,19 +735,53 @@ document.addEventListener('input', (e) => {
 		const v = e.target.value;
 		requestAnimationFrame(() => runSearch(v));
 	}
-	if (e.target.id === 'rate') {
+	// the rate, in the budget or the Sections menu (one value, kept on this phone): a usable one takes effect as it's typed
+	if (e.target.matches && e.target.matches('input[data-rate]')) {
 		const v = parseFloat(e.target.value);
-		if (v > 0 && v < 1e5) {
-			rate = v;
+		const ok = v > 0 && v < 1e5;
+		e.target.setAttribute('aria-invalid', ok ? 'false' : 'true');
+		if (ok) {
 			store.set('rate', v);
-			$$('[data-rm]').forEach((el) => {
-				const [a, b] = el.dataset.rm.split(',').map(Number);
-				el.textContent = rmText(a, b);
-			});
-			calcLucky();
+			rateSet(v);
 		}
 	}
 });
+// a rate field left with an unusable entry shows the rate in use again
+document.addEventListener('change', (e) => {
+	if (e.target.matches && e.target.matches('input[data-rate]')) {
+		e.target.value = rate;
+		e.target.setAttribute('aria-invalid', 'false');
+	}
+});
+// every figure that follows the rate, re-texted in place (no redraw, so the field keeps its focus): the home-currency
+// lines, converted figures and labels, the budget chart when it's in the home currency, both rate fields, the reset
+function rateSet(v) {
+	rate = v;
+	if (!homeFirst)
+		$$('[data-rm]').forEach((el) => {
+			const [a, b] = el.dataset.rm.split(',').map(Number);
+			el.textContent = rmText(a, b);
+		});
+	$$('[data-cv]').forEach((el) => {
+		const [a, b] = el.dataset.cv.split(',').map(Number);
+		el.textContent = Money.homeAmount(a, b, rate, CUR.home);
+	});
+	$$('[data-cvt]').forEach((el) => {
+		el.textContent = cvPlain(el.dataset.cvt);
+	});
+	if (homeFirst) {
+		const bars = $('#budget-bars'),
+			air = $('#airport-bars');
+		if (bars) bars.innerHTML = budgetBars();
+		if (air) air.innerHTML = airportBars();
+	}
+	$$('input[data-rate]').forEach((i) => {
+		if (i !== document.activeElement) i.value = rate;
+	});
+	const reset = $('[data-rate-reset]');
+	if (reset) reset.hidden = store.get('rate') == null; // only while this phone has a rate of its own
+	calcLucky();
+}
 document.addEventListener('keydown', (e) => {
 	if (e.target.id === 'q' && e.key === 'Enter') {
 		e.preventDefault();

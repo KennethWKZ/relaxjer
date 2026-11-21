@@ -2,6 +2,8 @@
 import { expect } from '@playwright/test';
 import { STORE_KEY } from './store-key.mjs';
 
+/* global TRIP -- the trip data, read inside the page */
+
 /** Waits until scrollY has not moved for 5 frames' worth of polls (legacy SETTLE). */
 export async function settle(page) {
 	await page.evaluate(
@@ -123,6 +125,37 @@ export function splitWords(page, sel, skip = null, numbers = false) {
 		},
 		[sel, skip, numbers],
 	);
+}
+
+/**
+ * Figures in the trip's currency (TRIP.currency.sym and a digit) in the page's text, other than the originals a
+ * converted figure keeps beside it (.cv-o) or under it ([data-rm]): [{ where, text }]. With `all`, the originals too.
+ */
+export function tripAmounts(page, all = false) {
+	return page.evaluate((all) => {
+		const sym = TRIP.currency.sym.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+		const re = new RegExp(`(?<![A-Za-z0-9])${sym}[ \\u00a0\\u202f]?\\d`);
+		const out = [];
+		const walk = document.createTreeWalker(document.querySelector('#app'), NodeFilter.SHOW_TEXT);
+		for (let n = walk.nextNode(); n; n = walk.nextNode()) {
+			const el = n.parentElement;
+			if (!re.test(n.textContent) || el.closest('script, template')) continue;
+			if (!all && el.closest('.cv-o, [data-rm]')) continue;
+			out.push({ where: el.closest('[id]')?.id ?? '?', text: n.textContent.trim().slice(0, 80) });
+		}
+		return out;
+	}, all);
+}
+
+/** The header's currency button: it names the currency the figures would switch to. */
+export const curBtn = (page) => page.locator('#bar #curBtn');
+
+/** Opens the Sections menu the way a reader does: past the first screen, then its round button. */
+export async function openSections(page) {
+	await scrollBy(page, 1200); // the Sections button shows once you're past the first screen
+	await expect(page.locator('#tocBtn')).toHaveAttribute('data-show', '1');
+	await page.locator('#tocBtn').click();
+	await expect(page.locator('#toc')).toBeVisible();
 }
 
 /** Opens every closed <details> so build-on-open lists render, then waits for layout. */

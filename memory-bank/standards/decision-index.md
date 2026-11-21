@@ -1,6 +1,6 @@
 ---
-total_decisions: 26
-last_updated: 2026-11-17
+total_decisions: 27
+last_updated: 2026-11-22
 ---
 
 # Decision Index
@@ -42,3 +42,4 @@ merged id never changes; a new ADR that collides takes a fresh slug.
 | [ADR-20261117-destination-themes](decisions/ADR-20261117-destination-themes.md)                   | 2026-11-17 | A Destination Pack May Dress the Page in Its Own World; Days May Carry an Activity Mark                                          | engine   | accepted |
 | [ADR-20261117-native-layer](decisions/ADR-20261117-native-layer.md)                               | 2026-11-17 | The Native Layer Shows the Local Words Under Each Stop and Place, One Tap to Copy, When the Pack Names the Language              | engine   | accepted |
 | [ADR-20261117-second-demo-and-site-worlds](decisions/ADR-20261117-second-demo-and-site-worlds.md) | 2026-11-17 | A Second Live Demo in Sapporo, and the Landing Page Picks Its World by the Visitor and the Season, Never by a Trip               | hosting  | accepted |
+| [ADR-20261122-currency-switch](decisions/ADR-20261122-currency-switch.md)                         | 2026-11-22 | A Phone Can Read Every Figure in the Home Currency, Notes Included, Converted as the Page Draws                                  | engine   | accepted |

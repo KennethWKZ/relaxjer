@@ -14,7 +14,7 @@ const motifTag = (d) => (Motif.svg(d.motif) ? `<span class="l-motif">${Motif.svg
 const seal = () => `<span class="seal"><b aria-hidden="true">定</b>${Z('固定时间', 'Fixed time')}</span>`;
 const list = (items, cls = 'list') => `<ul class="${cls}">${items.map((x) => `<li>${fmt(x)}</li>`).join('')}</ul>`;
 const totalBox = (amt, per, min, max, extra = '') =>
-	`<div class="total"><span class="amt">${esc(amt)}</span><span class="per">${fmt(per)}</span>${min != null ? `<span class="rm" data-rm="${min},${max}">${rmText(min, max)}</span>` : ''}${extra}</div>`;
+	`<div class="total"><span class="amt">${cvHtml(esc(amt), min == null)}</span><span class="per">${fmt(per)}</span>${min != null ? `<span class="rm" data-rm="${min},${max}">${rmText(min, max)}</span>` : ''}${extra}</div>`;
 function figure(id) {
 	const c = credit[id];
 	if (!c) return '';

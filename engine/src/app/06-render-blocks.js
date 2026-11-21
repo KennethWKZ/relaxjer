@@ -29,7 +29,7 @@ function renderBlock(b, day) {
 				.map((r) => {
 					let v = L(r[1]);
 					if (r[2] === 'airportMrt' && AIRPORT.mrtFare) v = AIRPORT.mrtFare; // the trip's airport-rail fare for the group
-					return `<div><dt>${fmt(r[0])}</dt><dd>${esc(v).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')}${ddEach(v)}</dd></div>`;
+					return `<div><dt>${fmt(r[0])}</dt><dd>${cvHtml(esc(v)).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')}${ddEach(v)}</dd></div>`;
 				})
 				.join('');
 			return `<div class="block" id="${day.id}-budget">${blockH('money', b.h)}<dl class="kv kv-each">${rows}</dl><div style="margin-top:10px">${totalBox(
@@ -113,8 +113,14 @@ function airportStrip() {
 			lines.push(
 				`<path d="M${X} ${y}V${y + h}" stroke="${r.walk ? 'var(--ink-3)' : col(r.line)}" stroke-width="${r.walk ? 2 : 6}" ${r.walk ? 'stroke-dasharray="3 5" stroke-linecap="round"' : ''} fill="none"/>`,
 			);
-			parts.push(`<text x="${X + 22}" y="${y + 26}" class="dg-muted" font-size="13" font-weight="600">${esc(L(r.seg))}</text>`);
-			altLines.forEach((t, i) => parts.push(`<text x="${X + 22}" y="${y + 46 + i * 17}" class="dg-soft" font-size="12">${esc(t)}</text>`));
+			parts.push(
+				`<text x="${X + 22}" y="${y + 26}" class="dg-muted" font-size="13" font-weight="600"${homeFirst ? ` data-cvt="${esc(L(r.seg))}"` : ''}>${esc(cvPlain(L(r.seg)))}</text>`,
+			);
+			altLines.forEach((t, i) =>
+				parts.push(
+					`<text x="${X + 22}" y="${y + 46 + i * 17}" class="dg-soft" font-size="12"${homeFirst ? ` data-cvt="${esc(t)}"` : ''}>${esc(cvPlain(t))}</text>`,
+				),
+			);
 			y += h;
 		} else {
 			const isHotel = r.line === 'hotel';
@@ -130,9 +136,11 @@ function airportStrip() {
 	});
 	const H = y + 18;
 	return `<figure class="diagram strip"><svg viewBox="0 0 360 ${H}" role="img" aria-labelledby="ap-title ap-desc"><title id="ap-title">${esc(L(AIRPORT.routeAlt || ['机场到酒店：搭车路线', 'Airport to hotel by rail']))}</title><desc id="ap-desc">${esc(
-		rows
-			.map((r) => L(r.name || r.seg))
-			.join(' → ')
-			.replace(/\|/g, ' '),
+		cvPlain(
+			rows
+				.map((r) => L(r.name || r.seg))
+				.join(' → ')
+				.replace(/\|/g, ' '),
+		),
 	)}</desc>${lines.join('')}${parts.join('')}</svg></figure>`;
 }

@@ -73,6 +73,18 @@ function render() {
 	lb.textContent = other === 'en' ? 'EN' : '中';
 	lb.setAttribute('aria-label', other === 'en' ? 'English · 改用英文' : '中文 · Switch to Chinese');
 	lb.title = lb.getAttribute('aria-label');
+	// the currency button beside it, the same way: it names the currency the figures would switch to (RM while they're
+	// in ¥, ¥ while they're in RM). A trip without a home currency of its own has none
+	const cb = $('#curBtn');
+	cb.hidden = !CUR_SWITCH;
+	if (CUR_SWITCH) {
+		const to = homeFirst ? CUR.sym : CUR.home;
+		cb.dataset.amounts = homeFirst ? 'trip' : 'home';
+		cb.textContent = to;
+		cb.classList.toggle('long', to.length > 2);
+		cb.setAttribute('aria-label', Z(`以 ${to} 显示金额 · Show amounts in ${to}`, `Show amounts in ${to} · 以 ${to} 显示金额`));
+		cb.title = cb.getAttribute('aria-label');
+	}
 	$('#brand-dates').textContent = Time.rangeLabel(TRIP.start, TRIP.end, lang);
 	// the tab's title in the reader's language: the brand lettering in Chinese, the trip's English name in English. The
 	// header keeps the brand as the trip's mark (it's the home-screen name too) and names it in the reader's language.

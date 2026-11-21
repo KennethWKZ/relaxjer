@@ -44,7 +44,7 @@ function renderToc() {
       <div class="toc-near-row"><button type="button" class="toc-sec toc-near" data-near aria-label="${Z('附近吃什么（用我的位置）', 'Food near me (uses my location)')}">${icon('food')}<span>${Z('附近吃什么', 'Food nearby')}</span>${icon('pin', 'loc')}</button><button type="button" class="toc-sec toc-near wc" data-near="wc" aria-label="${Z('附近厕所（用我的位置）', 'Toilets near me (uses my location)')}">${icon('wc')}<span>${Z('附近厕所', 'Toilets nearby')}</span>${icon('pin', 'loc')}</button></div>
       <p class="toc-lab">${Z('每天行程', 'Each day')}</p><div class="toc-grid">${days}</div>
       <p class="toc-lab">${Z('其他', 'Everything else')}</p><div class="toc-grid">${secs}</div>
-      <a class="toc-sec toc-top" href="#top">${icon('arrow')}${Z('回到顶部 · 总览', 'Back to top · Overview')}</a>${themeRow()}${mapsRow()}${syncRow()}${resetBtn()}${homeBtn()}`;
+      <a class="toc-sec toc-top" href="#top">${icon('arrow')}${Z('回到顶部 · 总览', 'Back to top · Overview')}</a>${themeRow()}${mapsRow()}${curRow()}${syncRow()}${resetBtn()}${homeBtn()}`;
 }
 // on phones the header has no room for a labelled theme switch, so it lives here with its name
 const themeRow = () =>
@@ -52,6 +52,24 @@ const themeRow = () =>
 // which app the Map and Directions links open: Google Maps or Apple Maps, kept on this phone
 const mapsRow = () =>
 	`<button type="button" class="toc-sec toc-maps" data-maps-cycle>${icon('pin')}<span>${Z('打开地图用', 'Open maps in')}：${mapsName(mapsApp)}</span></button>`;
+// which currency the figures lead with (the header's currency button makes the same choice) and the rate (the budget's
+// field is the same value): both kept on this phone, never synced. Only for a trip with a home currency of its own
+const curRow = () => {
+	if (!CUR_SWITCH) return '';
+	const opt = (k, label, sub) => {
+		const on = (k === 'home') === homeFirst;
+		return `<button type="button" data-amounts="${k}" aria-pressed="${on}">${on ? icon('check') : ''}<b>${esc(label)}</b><span>${sub}</span></button>`;
+	};
+	return `<div class="toc-cur">
+        <p class="toc-lab" id="toc-cur-h">${Z('金额和汇率', 'Amounts and rate')}</p>
+        <div class="toc-cur-in">
+          <div class="seg toc-cur-seg" role="group" aria-label="${Z('金额显示用', 'Show amounts in')}">${opt('trip', CUR.sym, Z('当地货币', 'local'))}${opt('home', CUR.home, Z('本国货币', 'home'))}</div>
+          <div class="fx toc-rate"><label for="toc-rate">${Z('汇率', 'Rate')}: 1 ${esc(CUR.home)} =</label><input id="toc-rate" data-rate type="number" inputmode="decimal" step="any" min="0" value="${rate}"><span>${esc(CUR.sym)}</span></div>
+          <p class="xsmall muted">${Z(`行程的汇率：1 ${esc(CUR.home)} = ${esc(CUR.sym)}${CUR.rate}`, `The trip's rate: 1 ${esc(CUR.home)} = ${esc(CUR.sym)}${CUR.rate}`)}${CUR.rateNote ? ` · ${esc(L(CUR.rateNote))}` : ''}</p>
+          <button type="button" class="mlink toc-rate-reset" data-rate-reset${store.get('rate') == null ? ' hidden' : ''}>${icon('sync')}${Z('改回行程的汇率', "Use the trip's rate")}</button>
+        </div>
+      </div>`;
+};
 const fabSync = () => {
 	const fab = $('#tocBtn');
 	if (!fab) return;
