@@ -10,6 +10,7 @@ import { makeWorldTrip } from './world-trip.mjs';
 
 export const PAGES_DIR = path.join(ROOT, '.cache', 'pages');
 export const SYNC_TEST_FILE = path.join(ROOT, '.cache', 'sync-test.json');
+export const GKEY_TEST_FILE = path.join(ROOT, '.cache', 'gkey-test.json');
 /** the live demo's clock, read from the workflow that publishes it, so the tests open the page visitors get */
 export const DEMO_CLOCK = (fs.readFileSync(path.join(ROOT, '.github', 'workflows', 'pages.yml'), 'utf8').match(/--demo-clock "([^"]+)"/) || [])[1];
 /** the Sapporo demo's clock, the same way: the workflow line that builds examples/demo-sapporo */
@@ -35,6 +36,7 @@ export default async function globalSetup() {
 
 	fs.rmSync(path.join(PAGES_DIR, 'trip-sync.html'), { force: true });
 	fs.rmSync(path.join(PAGES_DIR, 'trip-world.html'), { force: true });
+	fs.rmSync(path.join(PAGES_DIR, 'trip-gkey.html'), { force: true });
 	if (engine.kind !== 'engine') return; // the legacy engine has no group sync
 	const port = Number(process.env.RELAXJER_TEST_PORT || 8124);
 	const sync = {
@@ -47,6 +49,13 @@ export default async function globalSetup() {
 	fs.writeFileSync(SYNC_TEST_FILE, JSON.stringify(sync), { mode: 0o600 });
 	const page = stagePage({ engine, trip, outDir: path.join(ROOT, '.cache', 'stage-sync'), args: ['--sync', SYNC_TEST_FILE] });
 	fs.copyFileSync(page, path.join(PAGES_DIR, 'trip-sync.html'));
+
+	// the same trip as a planner's key builds it, so the Google parts are drawn (tests/e2e/place-finder.spec.mjs). The key
+	// is a stand-in no Google service takes, made here, never in the repo; the spec stubs Google's library in the page,
+	// and the network guard still refuses every Google host
+	fs.writeFileSync(GKEY_TEST_FILE, JSON.stringify({ browserKey: `stand-in-${b64u(9)}`, mapId: 'stand-in-map' }), { mode: 0o600 });
+	const gkey = stagePage({ engine, trip, outDir: path.join(ROOT, '.cache', 'stage-gkey'), keys: GKEY_TEST_FILE });
+	fs.copyFileSync(gkey, path.join(PAGES_DIR, 'trip-gkey.html'));
 
 	// the same trip in a destination world, with a mark on every day (tests/e2e/world.spec.mjs)
 	const world = stagePage({ engine, trip: { dir: makeWorldTrip(trip.dir) }, outDir: path.join(ROOT, '.cache', 'stage-world') });

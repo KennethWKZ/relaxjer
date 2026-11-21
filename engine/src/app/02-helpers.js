@@ -56,6 +56,10 @@ const ddEach = (v) => {
 };
 const icon = (n, cls = '') => `<svg class="i ${cls}" aria-hidden="true"><use href="#i-${n}"/></svg>`;
 const num = (n) => Math.round(n).toLocaleString('en-US');
+// what Google's search and map answer in, and the country they lean to: English, or the pack's own Chinese (`googleZh`,
+// plain 'zh' without one); the trip's country code (TRIP.destination), none without one. Never a fixed country
+const gLang = () => (lang === 'en' ? 'en' : Pack.googleZh || 'zh');
+const gRegion = () => (TRIP.destination ? String(TRIP.destination).toLowerCase() : '');
 const rmText = (min, max) => Money.homeText(min, max, rate, CUR.home); // the group's home currency
 const BLANK = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
 const imgSrc = (id, sq) => {
@@ -156,6 +160,8 @@ function placeLinks(pid, opts = {}) {
 	if (!p) return '';
 	const out = [
 		opts.noNative ? '' : nativeChip(p.trad, p.roma),
+		// Google's rating and photos (with the key): by the place's Google id, or looked up near its pin
+		GEO && GEO.places && GEO.places[pid] ? gBtn(GEO.places[pid].gpid || p.gpid, `p:${pid}`) : '',
 		extI(gmSearch(p.maps), Z('地图', 'Map'), 'pin'),
 		extI(gmDir(p.maps, opts.mode || 'transit'), Z('路线', 'Directions'), 'route'),
 	];

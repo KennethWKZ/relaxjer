@@ -6,6 +6,13 @@ let meHd = null;
 let meResume = false;
 let meCardAt = null;
 let mapSel = null;
+/* what the map's results box shows: the page's own places ('list') or a Google search ('google'). A location fix or a
+   filter the page applies itself refreshes distances and counts in it, never swaps it: only a new query, Back, or a
+   category or day the person picks does (the Google results once vanished under the next location fix) */
+let mapView = 'list';
+let gQuery = '';
+let mapPinsOff = null; // the pins to search before the live map has made its own (offline, or not scrolled to yet)
+let shopFinds = null; // the shop box's shops (shops.json), which have no pin: found by a search, for the finder
 const meOnce = [];
 function meGot(pos) {
 	geoState = 'granted';
@@ -307,8 +314,9 @@ const PIN_KIND = {
 	bike: [BIKES[0], Cap(BIKES[1])],
 	bus: ['公车站', 'Bus stop'],
 	mine: ['我加的', 'Added by me'],
+	buy: ['购物', 'Shopping'],
 };
-const PIN_RANK = { mine: 0, hotel: 0, place: 1, shop: 2, food: 3, wish: 4, rest: 5, drink: 6, wc: 7, mrt: 8, bike: 9, bus: 10 };
+const PIN_RANK = { mine: 0, hotel: 0, place: 1, shop: 2, buy: 2, food: 3, wish: 4, rest: 5, drink: 6, wc: 7, mrt: 8, bike: 9, bus: 10 };
 // category: 'all' leaves out drinks / rest / toilets (too many pins); a day keeps only that day's pins (+ hotel, + MRT by the hotel)
 const catOK = (p, c) =>
 	c === 'all'
@@ -359,11 +367,30 @@ const farAway = () =>
 	HOTELS.map(placeLL)
 		.filter(Boolean)
 		.every((h) => km(meLL, h) > 60); // still at home: distances in the thousands of km help no one
+// every place the map's search knows: the map's pins, built from the trip's data even while the live map can't load
+const mapPool = () => (mapPins.length ? mapPins : (mapPinsOff = mapPinsOff || buildPins()));
+// and, for a search, the shop box's shops (supermarkets, pharmacies), which the map draws no pin for
+const shopPool = () =>
+	shopFinds ||
+	(shopFinds = SHOPS.filter((x) => x.lat != null && x.lng != null).map((x) => ({
+		pid: `buy-${x.id}`,
+		sid: x.id,
+		type: 'buy',
+		lat: +x.lat,
+		lng: +x.lng,
+		days: [],
+		name: lang === 'en' ? x.name_en || x.name_trad : x.name_zh || x.name_trad,
+		q: `${x.name_trad} ${x.addr || ''}`,
+		hay: [x.name_trad, x.name_zh, x.name_en, '购物 shopping shop'].filter(Boolean).join(' ').toLowerCase(),
+	})));
+const findPool = () => mapPool().concat(shopPool());
 function mapMatches() {
 	const q = ($('#mapq') || {}).value ? $('#mapq').value.trim().toLowerCase() : '';
 	const words = q.split(/\s+/).filter(Boolean);
 	// typing with category 全部 also finds drinks / rest / toilets (hidden on the map until picked)
-	let list = mapPins.filter((p) => (q && mapCat === 'all' ? true : catOK(p, mapCat)) && dayOK(p, mapDay) && words.every((w) => hayOf(p).includes(w)));
+	let list = (q ? findPool() : mapPool()).filter(
+		(p) => (q && mapCat === 'all' ? true : catOK(p, mapCat)) && dayOK(p, mapDay) && words.every((w) => hayOf(p).includes(w)),
+	);
 	const byDist = mapNear && meLL && !farAway();
 	list = list.map((p) => ({ p, k: meLL && !farAway() ? km(meLL, p) : null }));
 	list.sort((a, b) => (byDist ? a.k - b.k : PIN_RANK[a.p.type] - PIN_RANK[b.p.type] || a.p.name.localeCompare(b.p.name, 'zh')));
@@ -376,6 +403,9 @@ function mapListSync() {
 	const { q, list } = mapMatches();
 	if (n) n.textContent = String(list.length);
 	if (box.hidden) return;
+	// Google's results stay until the person moves on: only their distances follow the phone
+	if (mapView === 'google') return gDistSync(box);
+	const y = box.scrollTop;
 	const row = ({ p, k }) =>
 		`<li><button type="button" class="mres" data-mres="${esc(p.pid)}"><span class="mres-ic" aria-hidden="true">${pinSVG(p)}</span><span class="mres-b"><span class="mres-n">${esc(p.name)}</span><span class="mres-m">${esc(L(p.kind || PIN_KIND[p.type] || ['', '']))}${p.days
 			.slice(0, 2)
@@ -401,38 +431,47 @@ function mapListSync() {
 					)}</ul>${list.length > 80 ? `<p class="xsmall muted">${Z('只列前80个，输入名字缩小范围', 'First 80 shown; type to narrow')}</p>` : ''}`
 			: '') +
 		gq; // the page's own places first, Google as the fallback
+	box.scrollTop = y;
 	ybFill(box);
 }
 async function gSearch(q) {
 	const box = $('#mapres');
 	if (!box) return;
-	box.innerHTML = `<div class="mres-h"><span>${esc(Z(`Google：「${q}」`, `Google: "${q}"`))}</span><button type="button" class="mlink" data-gback>${icon('arrow', 'flip')}${Z('回到页面结果', 'Back to page results')}</button></div><p class="xsmall muted" style="padding:10px 12px">${Z('搜索中…', 'Searching…')}</p>`;
+	mapView = 'google';
+	gQuery = q;
+	box.innerHTML = `<div class="mres-h"><span>${esc(Z(`Google：「${q}」`, `Google: "${q}"`))}</span><button type="button" class="mlink" data-gback>${icon('arrow', 'flip')}${Z('回到页面结果', 'Back to page results')}</button></div><p class="xsmall muted mres-wait">${Z('搜索中…', 'Searching…')}</p>`;
+	box.scrollTop = 0;
+	let found;
 	try {
-		const { Place } = await google.maps.importLibrary('places');
-		const { places } = await Place.searchByText({
-			textQuery: q,
-			fields: ['id', 'displayName', 'formattedAddress', 'location'],
-			locationBias: { center: meLL && !farAway() ? meLL : placeLL(hotelNow()), radius: 30000 },
-			maxResultCount: 8,
-			language: lang === 'en' ? 'en' : 'zh-TW',
-			region: 'tw',
-		});
-		const rows = (places || [])
-			.filter((p) => p.location)
-			.map((p) => {
-				const ll = { lat: p.location.lat(), lng: p.location.lng() };
-				const k = meLL && !farAway() ? km(meLL, ll) : null;
-				const n = p.displayName || '';
-				const a = (p.formattedAddress || '').replace(/^\d{3,6}/, '');
-				return `<li class="gres"><div class="gres-b"><span class="mres-n">${esc(n)}</span><span class="mres-m">${esc(a)}${k != null ? ` · ${distLabel(k)}` : ''}</span></div><div class="links-row">${extI(gmSearch(n, p.id), Z('地图', 'Map'), 'pin')}${extI(gmDir(n, 'transit', undefined, p.id), Z('路线', 'Directions'), 'route')}${addBtn(n, ll.lat, ll.lng, p.id, n, a)}</div></li>`;
-			});
-		box.querySelector('p').outerHTML = rows.length
-			? `<ul class="mres-list">${rows.join('')}</ul>`
-			: `<p class="xsmall muted" style="padding:10px 12px">${Z('Google 也没找到：换个名字试试', 'Nothing on Google either: try another name')}</p>`;
+		found = await gTextSearch(q);
 	} catch {
-		const p = box.querySelector('p');
-		if (p) p.textContent = Z('现在连不上 Google（网络？）', "Can't reach Google right now (network?)");
+		found = null;
 	}
+	if (mapView !== 'google' || gQuery !== q || !box.isConnected) return; // the person moved on meanwhile
+	const p = box.querySelector('.mres-wait');
+	if (!p) return;
+	if (!found) {
+		p.textContent = Z('现在连不上 Google（网络？）', "Can't reach Google right now (network?)");
+		return;
+	}
+	p.outerHTML = found.length
+		? `<ul class="mres-list">${found
+				.map(
+					(g) =>
+						`<li><button type="button" class="mres" data-gfind="${esc(g.gpid)}" data-gll="${g.lat},${g.lng}"><span class="mres-ic" aria-hidden="true">${icon('search')}</span><span class="mres-b"><span class="mres-n">${esc(g.n)}</span><span class="mres-m">${esc(g.addr)}</span></span><span class="mres-d" data-gdist></span></button></li>`,
+				)
+				.join('')}</ul>`
+		: `<p class="xsmall muted mres-wait">${Z('Google 也没找到：换个名字试试', 'Nothing on Google either: try another name')}</p>`;
+	gDistSync(box);
+}
+// a Google result's distance from the phone, kept up to date in place
+function gDistSync(box) {
+	const here = meLL && !farAway() ? meLL : null;
+	box.querySelectorAll('[data-gll]').forEach((b) => {
+		const [lat, lng] = b.dataset.gll.split(',').map(Number);
+		const d = b.querySelector('[data-gdist]');
+		if (d) d.textContent = here ? distLabel(km(here, { lat, lng })) : '';
+	});
 }
 function mapListOpenYb() {
 	const box = $('#mapres');
@@ -442,6 +481,7 @@ function mapListOpen(on) {
 	const box = $('#mapres');
 	const b = $('[data-maplist]');
 	if (!box) return;
+	if (on && finderAt) finderReset(); // the list the person asked for takes the finder's place
 	box.hidden = !on;
 	if (b) b.setAttribute('aria-expanded', String(on));
 	if (on) {
@@ -544,6 +584,7 @@ function mountLive(url) {
 		'bottom-right',
 	);
 	let meMk = null;
+	let spotMk = null; // the finder's place without a pin
 	m.addControl(new maplibregl.ScaleControl({ unit: 'metric', maxWidth: 90 }), 'bottom-left');
 	let swapped = false;
 	let loadedOnce = false;
@@ -660,6 +701,19 @@ function mountLive(url) {
 			},
 			refit() {
 				m.resize();
+			},
+			// a place with no pin of its own (a Google result in the finder): one marker of its own, and the map on it
+			spot(p) {
+				if (spotMk) spotMk.remove();
+				spotMk = null;
+				if (!p) return;
+				if (popup) popup.remove();
+				const el = document.createElement('div');
+				el.className = 'lpin sel spot';
+				el.title = p.n;
+				el.innerHTML = pinSVG({ type: 'mine', days: [] });
+				spotMk = new maplibregl.Marker({ element: el, anchor: 'center' }).setLngLat([p.lng, p.lat]).addTo(m);
+				m.easeTo({ center: [p.lng, p.lat], zoom: Math.max(m.getZoom(), 16), duration: reduce ? 0 : 500 });
 			},
 			me(ll, acc, hd) {
 				if (!meMk) meMk = new maplibregl.Marker({ element: meDot() }).setLngLat([ll.lng, ll.lat]).addTo(m);

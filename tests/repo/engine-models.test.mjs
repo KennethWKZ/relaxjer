@@ -17,6 +17,14 @@ test('taxi minutes come from one model (taxiMin)', () => {
 	assert.deepEqual(copies, ['05-render-small-parts.js'], 'only taxiMin computes a taxi time');
 });
 
+// the place finder ranks days by the same distance the cards print (engine/src/core/fit.mjs distKm, the page's `km`)
+test('straight-line distance comes from one model (Fit.distKm)', () => {
+	const core = path.join(ROOT, 'engine', 'src', 'core');
+	const all = [...src, ...fs.readdirSync(core).map((f) => [f, fs.readFileSync(path.join(core, f), 'utf8')])];
+	const copies = all.flatMap(([f, s]) => [...s.matchAll(/\b6371\b/g)].map(() => f));
+	assert.deepEqual(copies, ['fit.mjs'], 'only Fit.distKm measures a distance on the globe');
+});
+
 // Walking counted ×1.4 for seniors only in the add sheet: stop cards, the metro planner and the nearby lists showed a fit
 // adult's pace, from three formulas (75 m and 80 m a minute), until one model took over (first trip).
 test('walking minutes come from one model, at the group pace (walkMinM, GROUP_WALK)', () => {

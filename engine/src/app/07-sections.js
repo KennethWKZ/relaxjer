@@ -519,10 +519,11 @@ function splitBack(d, it) {
 }
 // "add to my plan": pick a day and a time
 let addItem = null;
-const addBtn = (n, lat, lng, gpid, q, addr) =>
+// ref: the place's ref (21-place-finder.js placeInfo), so the add sheet can show what the page knows about it
+const addBtn = (n, lat, lng, gpid, q, addr, ref) =>
 	lat == null
 		? ''
-		: `<button type="button" class="mlink add-btn" data-add="${esc(JSON.stringify({ n, lat: +lat, lng: +lng, gpid: gpid || null, q: q || n, addr: addr || '' }))}">${icon('plus')}${Z('加入行程', 'Add to plan')}</button>`;
+		: `<button type="button" class="mlink add-btn" data-add="${esc(JSON.stringify({ n, lat: +lat, lng: +lng, gpid: gpid || null, q: q || n, addr: addr || '', ...(ref ? { ref } : {}) }))}">${icon('plus')}${Z('加入行程', 'Add to plan')}</button>`;
 // the suggested time in a new stop's sheet may still move to when the group can get there; one typed in may not
 let addAutoT = false;
 function addSheet(item) {
@@ -537,7 +538,13 @@ function addSheet(item) {
 			: day === ROLE.free && dayById[day].freeFrom
 				? hm(tMin(dayById[day].freeFrom) + 60)
 				: '12:00');
-	return `<h3 class="spots-h">${icon('plus')}${esc(item.id ? Z('改时间', 'Change the time') : Z('加入行程', 'Add to my plan'))}</h3><p class="add-name">${esc(item.n)}</p>${item.addr ? `<p class="xsmall muted">${esc(item.addr)}</p>` : ''}
+	// a new stop shows what the page knows of the place (our photo, the rating, the day's hours, the address) and, with
+	// the key, Google's rating and photos: at once when it was tapped in the list for a closer look, else on a tap
+	const info = !item.id && item.ref ? placeInfo(item.ref) : null;
+	const place = info
+		? `<article class="hang add-place">${placeHead(info)}${addrLine(info)}<div data-add-hours></div>${gCan(info) ? (item.peek ? '<div class="gplace" data-gauto></div>' : `<div class="links-row">${gBtn(info.gpid, info.ref)}</div>`) : ''}</article>`
+		: `<p class="add-name" tabindex="-1">${esc(item.n)}</p>${item.addr ? `<p class="xsmall muted">${esc(item.addr)}</p>` : ''}`;
+	return `${item.peek ? `<button type="button" class="mlink spots-back" data-add-back>${icon('arrow', 'flip')}${Z('回到列表', 'Back to the list')}</button>` : ''}<h3 class="spots-h">${icon('plus')}${esc(item.id ? Z('改时间', 'Change the time') : Z('加入行程', 'Add to my plan'))}</h3>${place}
       <p class="sub-h">${Z('哪一天', 'Which day')}</p><div class="add-days" role="group">${DAYS.filter((d) => d.id !== ROLE.flight)
 				.map(
 					(d) =>
@@ -548,7 +555,7 @@ function addSheet(item) {
       <p class="add-clash" data-add-clash></p>
       <div class="add-leg" data-add-leg aria-live="polite"></div>
       ${SYNC ? syncAddNote() : `<p class="xsmall muted">${esc(L(TRIP.addStopNote || ['只存在这支手机；用「分享」把链接发给大家。', 'Saved on this phone; use Share to send it to the others.']))}</p>`}
-      <div class="links-row"><button type="button" class="go-btn" data-add-save>${icon('check')}${item.id ? Z('保存', 'Save') : Z('加入', 'Add')}</button>${item.id ? `<button type="button" class="go-btn ghost" data-mine-del="${esc(item.id)}">${icon('x')}${Z('删除', 'Remove')}</button>` : ''}</div>`;
+      <div class="links-row add-act"><button type="button" class="go-btn" data-add-save>${icon('check')}${item.id ? Z('保存', 'Save') : Z('加入', 'Add')}</button>${item.id ? `<button type="button" class="go-btn ghost" data-mine-del="${esc(item.id)}">${icon('x')}${Z('删除', 'Remove')}</button>` : ''}</div>`;
 }
 // with group sync the stop goes on everyone's page, under this phone's name; no name yet: ask for it right here
 function syncAddNote() {
@@ -613,11 +620,12 @@ function addFindSheet(dayId, ctx = {}) {
 	addSort = ctx.ll ? 'near' : 'rate';
 	const d = dayById[dayId];
 	const where = ctx.prev ? Z(`在「${ctx.prev}」之后${ctx.t ? `，约 ${ctx.t}` : ''}`, `after "${ctx.prev}"${ctx.t ? `, about ${ctx.t}` : ''}`) : '';
-	return `<h3 class="spots-h">${icon('plus')}${esc(Z(`加一站到 Day ${d.n}（${dateLabel(d.date, d.dow)}）`, `Add a stop to Day ${d.n} (${dateLabel(d.date, d.dow)})`))}</h3>${where ? `<p class="xsmall muted">${esc(where)}</p>` : ''}
+	// the list and a place's preview share the sheet: the preview hides the list, so Back finds it as it was
+	return `<div data-addfind><h3 class="spots-h">${icon('plus')}${esc(Z(`加一站到 Day ${d.n}（${dateLabel(d.date, d.dow)}）`, `Add a stop to Day ${d.n} (${dateLabel(d.date, d.dow)})`))}</h3>${where ? `<p class="xsmall muted">${esc(where)}</p>` : ''}
       <label class="map-q add-q">${icon('search')}<input type="search" data-addq enterkeyhint="search" autocomplete="off" placeholder="${Z('店名、景点、地址…', 'Shop, sight, address…')}" aria-label="${Z('搜地点', 'Search places')}"></label>
       <div class="add-cats" role="group" aria-label="${Z('分类', 'Category')}">${ADD_CATS.map(([k, l]) => `<button type="button" class="seg-btn" data-addcat="${k}" aria-pressed="${k === 'all'}">${esc(L(l))}</button>`).join('')}</div>
       <div class="add-sort" role="group" aria-label="${Z('排序', 'Sort')}">${ctx.ll ? `<button type="button" class="seg-btn" data-addsort="near" aria-pressed="${addSort === 'near'}">${icon('pin')}${Z('离上一站近', 'Nearest to the stop before')}</button>` : ''}<button type="button" class="seg-btn" data-addsort="rate" aria-pressed="${addSort === 'rate'}">${icon('star')}${Z('评分高', 'Top rated')}</button></div>
-      <div class="add-res" data-add-res></div>${dayId === ROLE.free ? `<p class="xsmall"><a class="mlink" href="#free-ideas" data-close>${icon('star')}${Z('看「自由时间去哪」清单', 'See the free-time ideas')}</a></p>` : ''}`;
+      <div class="add-res" data-add-res></div>${dayId === ROLE.free ? `<p class="xsmall"><a class="mlink" href="#free-ideas" data-close>${icon('star')}${Z('看「自由时间去哪」清单', 'See the free-time ideas')}</a></p>` : ''}</div><div data-addprev hidden></div>`;
 }
 // everything addable, with a category, a rating and "closed that day" when we know it
 function addPool() {
@@ -674,8 +682,9 @@ function addFindRender(q) {
 		off: !!date && (x.closed.includes(date) || (x.week && x.week[Time.weekdayIndex(date)] === 'closed')),
 	}));
 	hits.sort((a, b) => a.off - b.off || (addSort === 'near' && from ? a.k - b.k : (b.rating || 0) - (a.rating || 0)));
+	// the whole row opens the place's preview (the same as its "Add to plan"), so a name is never a dead tap
 	const row = (x) =>
-		`<li class="idea"><div class="idea-b"><span class="idea-n">${esc(x.p.name)}</span><span class="idea-m">${esc(L(ADD_KIND[x.cat] || ['', '']))}${x.rating ? ` · ★${x.rating}` : ''}${x.k != null ? ` · ${Z('离上一站', 'from the stop before')} ${distLabel(x.k)}` : ''}${x.trs === 'yes' && TRS_MIN ? Z(` · 可退税（满${TRS_MIN}）`, ` · tax refund (${TRS_MIN}+)`) : ''}${x.off ? `<b class="idea-off"> · ${Z('当天休息', 'closed that day')}</b>` : ''}</span></div>${addBtn(x.p.name, x.p.lat, x.p.lng, x.gpid, x.p.q || x.p.name, '')}</li>`;
+		`<li class="idea"><button type="button" class="idea-b idea-go" data-add-peek><span class="idea-n">${esc(x.p.name)}</span><span class="idea-m">${esc(L(ADD_KIND[x.cat] || ['', '']))}${x.rating ? ` · ★${x.rating}` : ''}${x.k != null ? ` · ${Z('离上一站', 'from the stop before')} ${distLabel(x.k)}` : ''}${x.trs === 'yes' && TRS_MIN ? Z(` · 可退税（满${TRS_MIN}）`, ` · tax refund (${TRS_MIN}+)`) : ''}${x.off ? `<b class="idea-off"> · ${Z('当天休息', 'closed that day')}</b>` : ''}</span></button>${addBtn(x.p.name, x.p.lat, x.p.lng, x.gpid, x.p.q || x.p.name, '', pinRef(x.p))}</li>`;
 	box.innerHTML =
 		(hits.length
 			? `<p class="xsmall muted">${Z(`${hits.length} 个`, `${hits.length} places`)}${hits.length > 25 ? Z('，只列前25个', ', first 25 shown') : ''}</p><ul class="ideas">${hits.slice(0, 25).map(row).join('')}</ul>`
@@ -690,25 +699,10 @@ async function addFindGoogle(q) {
 	if (!box) return;
 	box.innerHTML = `<p class="xsmall muted">${Z('Google 搜索中…', 'Searching Google…')}</p>`;
 	try {
-		if (!(window.google && google.maps && google.maps.importLibrary)) {
-			if (typeof loadGoogle === 'function') await loadGoogle();
-		}
-		const { Place } = await google.maps.importLibrary('places');
-		const { places } = await Place.searchByText({
-			textQuery: q,
-			fields: ['id', 'displayName', 'formattedAddress', 'location'],
-			locationBias: { center: meLL && !farAway() ? meLL : placeLL(hotelNow()), radius: 30000 },
-			maxResultCount: 8,
-			language: lang === 'en' ? 'en' : 'zh-TW',
-			region: 'tw',
-		});
-		const rows = (places || [])
-			.filter((p) => p.location)
-			.map((p) => {
-				const n = p.displayName || '';
-				const a = (p.formattedAddress || '').replace(/^\d{3,6}/, '');
-				return `<li class="idea"><div class="idea-b"><span class="idea-n">${esc(n)}</span><span class="idea-m">${esc(a)}</span></div>${addBtn(n, p.location.lat(), p.location.lng(), p.id, n, a)}</li>`;
-			});
+		const rows = (await gTextSearch(q)).map(
+			(g) =>
+				`<li class="idea"><button type="button" class="idea-b idea-go" data-add-peek><span class="idea-n">${esc(g.n)}</span><span class="idea-m">${esc(g.addr)}</span></button>${addBtn(g.n, g.lat, g.lng, g.gpid, g.q, g.addr, g.ref)}</li>`,
+		);
 		box.innerHTML = rows.length
 			? `<ul class="ideas">${rows.join('')}</ul>`
 			: `<p class="xsmall muted">${Z('Google 也没找到：换个名字试试', 'Nothing on Google either: try another name')}</p>`;
@@ -721,6 +715,7 @@ const CROWDED = 4;
 function addClashNote() {
 	const el = $('[data-add-clash]');
 	if (!el) return;
+	addHoursNote();
 	addClashMain(el);
 	const day = ($('[data-add-day][aria-pressed="true"]') || {}).dataset?.addDay;
 	const n = day ? mineAll().filter((x) => x.day === day && (!addItem || x.id !== addItem.id)).length : 0;
@@ -1078,6 +1073,7 @@ function secMap() {
 				.join('')}</div>
       <div class="map-find" role="search"><label class="map-q">${icon('search')}<input id="mapq" type="search" enterkeyhint="search" autocomplete="off" placeholder="${Z('搜地图：店名、景点、厕所、饮料…', 'Search the map: name, sight, toilet, drinks…')}" aria-label="${Z('搜地图', 'Search the map')}"></label><button type="button" class="mlink map-listbtn" data-maplist aria-expanded="false" aria-controls="mapres">${icon('list')}<span class="dlbl">${Z('列表', 'List')}</span><b id="mapn"></b></button></div>
       <div class="map-results" id="mapres" hidden></div>
+      <div class="map-results pfind" id="mapfind" role="region" aria-label="${Z('这个地方和行程', 'This place and the plan')}" hidden></div>
       <div class="map-wrap" role="region" aria-label="${Z('行程地图', 'Trip map')}"><div class="map-msg" id="mapmsg"><p>${Z('地图载入中…', 'Loading the map…')}</p></div><button type="button" class="map-full" data-mapfull="1" aria-label="${Z('全屏看地图', 'Full-screen map')}">${icon('expand')}<span class="dlbl">${Z('全屏', 'Full screen')}</span></button></div>
       </div>
       <div class="map-legend">
