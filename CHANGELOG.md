@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.8.1](https://github.com/KennethWKZ/relaxjer/compare/v1.8.0...v1.8.1) (2026-11-21)
+
+
+### 📝 Documentation
+
+* **publish:** let the planner skip the macOS Keychain dialog ([a385d63](https://github.com/KennethWKZ/relaxjer/commit/a385d63e60fe476463576f887e3cd36ab1aa69b6))
+
 ## [1.8.0](https://github.com/KennethWKZ/relaxjer/compare/v1.7.2...v1.8.0) (2026-11-17)
 
 
