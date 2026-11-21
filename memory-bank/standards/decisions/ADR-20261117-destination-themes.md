@@ -3,7 +3,7 @@ id: ADR-20261117-destination-themes
 date: 2026-11-17
 title: 'A Destination Pack May Dress the Page in Its Own World; Days May Carry an Activity Mark'
 domain: engine
-status: accepted
+status: amended
 ---
 
 # A Destination Pack May Dress the Page in Its Own World; Days May Carry an Activity Mark
@@ -54,7 +54,9 @@ parity`). Class names stay (`.lantern`, `.stop-knot`); DESIGN.md names a world's
   destination world also shows it in the week list where the default world draws a lantern.
 - **Motion in a world:** one first-open moment a world may draw (`--world-hello`; Snow Light Path: a 2.4 s snowfall
   over the now card, once per phone, never under reduced motion), and its own ornament motion only on state (the
-  current stop's candle). No background motion.
+  current stop's candle). No background motion. _Amended by
+  [ADR-20261121-world-motion](ADR-20261121-world-motion.md): a world's pictures may move, only inside the picture,
+  only while it's on screen, never under reduced motion; the activity marks also gain `drive`._
 
 ## Alternatives
 

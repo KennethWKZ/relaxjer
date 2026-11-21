@@ -8,6 +8,7 @@ import zlib from 'node:zlib';
 import { ROOT } from '../support/stage.mjs';
 import { renderPNG } from '../../engine/icons.mjs';
 import * as Motif from '../../engine/src/core/motif.mjs';
+import { splitArt } from '../../engine/world-art.mjs';
 
 const THEMES = path.join(ROOT, 'engine', 'src', 'themes');
 const worlds = fs
@@ -65,6 +66,75 @@ test('a world day colours: white or their ink at 4.5:1, and 3:1 on the light and
 					assert.ok(contrast(set[t], set[bg]) >= 4.5, `${w} ${name}: ${t} on ${bg} ${contrast(set[t], set[bg]).toFixed(2)}`);
 			assert.ok(contrast(set['--seal'], set['--seal-ink']) >= 4.5, `${w} ${name}: the seal's glyph`);
 		}
+	}
+});
+
+// the page's own colours, under a world's: what a word on the page paper may be drawn in, light and dark
+const BASE_CSS = fs.readFileSync(path.join(ROOT, 'engine', 'src', 'style.css'), 'utf8');
+const baseLight = props(/^:root \{([^}]*)\}/m.exec(BASE_CSS)[1]);
+const baseDark = props(/^:root\[data-theme='dark'\] \{([^}]*)\}/m.exec(BASE_CSS)[1]);
+const TEXT = ['--ink', '--ink-2', '--ink-3', '--seal', '--link', '--mine-ink', '--good', '--warn', '--bad'];
+const mixHex = (a, b, t) =>
+	`#${[1, 3, 5]
+		.map((i) => Math.round(parseInt(a.slice(i, i + 2), 16) * (1 - t) + parseInt(b.slice(i, i + 2), 16) * t))
+		.map((x) => x.toString(16).padStart(2, '0'))
+		.join('')}`;
+
+test("a world's sky behind the page: every word on the paper keeps 4.5:1 over it, light and dark, stars and flakes too", async () => {
+	for (const w of worlds) {
+		const { backdrop } = await import(path.join(THEMES, `${w}.mjs`));
+		if (!backdrop) continue;
+		const css = fs.readFileSync(path.join(THEMES, `${w}.css`), 'utf8');
+		const light = { ...baseLight, ...props(css.slice(0, css.indexOf('@media'))) };
+		const dark = { ...baseDark, ...props(/\[data-theme='dark'\]\s*\{([^}]*)\}/.exec(css)[1]) };
+		const inColumn = (block) => Number((/--sky-in-column:\s*([\d.]+)/.exec(block) || [])[1]);
+		const lightAlpha = inColumn(css.slice(0, css.indexOf('@media')));
+		const darkAlpha = inColumn(/\[data-theme='dark'\]\s*\{([^}]*)\}/.exec(css)[1]);
+		for (const [name, set, alpha] of [
+			['light', light, lightAlpha],
+			['dark', dark, darkAlpha],
+		]) {
+			const sky = Object.entries(set).filter(([k]) => k.startsWith('--sky-') && k !== '--sky-star');
+			assert.ok(sky.length >= 6, `${w} ${name}: read its sky`);
+			assert.ok(alpha > 0 && alpha <= 1, `${w} ${name}: --sky-in-column`);
+			// a star or a flake over the text column shows at --sky-in-column over the night
+			const star = mixHex(set['--sky-night'], set['--sky-star'], alpha);
+			for (const [k, bg] of [...sky, ['a star over the column', star]])
+				for (const t of TEXT) assert.ok(contrast(set[t], bg) >= 4.5, `${w} ${name}: ${t} over ${k} ${contrast(set[t], bg).toFixed(2)}`);
+		}
+		// every layer the build lays has its look, and the sky moves only with the scroll: its animations sit under
+		// @supports (animation-timeline) and no-preference, on scroll or view timelines, with no time of their own
+		for (const l of backdrop.layers) assert.match(css, new RegExp(`\\.sky-${l}\\b`), `${w}.css draws .sky-${l}`);
+		const at = css.indexOf('@supports (animation-timeline: scroll())');
+		assert.ok(at > 0, `${w}.css: the sky's motion waits for scroll timelines`);
+		let depth = 0;
+		let end = at;
+		for (let i = css.indexOf('{', at); i < css.length; i++) {
+			if (css[i] === '{') depth++;
+			else if (css[i] === '}' && !--depth) {
+				end = i;
+				break;
+			}
+		}
+		const block = css.slice(at, end);
+		assert.match(block, /@media \(prefers-reduced-motion: no-preference\)/);
+		assert.doesNotMatch(block, /animation:|animation-duration:(?!\s*auto)/, 'no time-based animation in the sky');
+		assert.match(block, /animation-timeline: scroll\(root\)/);
+		for (const [, name] of css.matchAll(/animation-name:\s*([\w-]+)/g))
+			assert.ok(css.indexOf(name) > 0 && block.includes(name), `${name} runs on the scroll`);
+		for (const sel of ['.world-sky', '.sky-', '.world-end']) {
+			const outside = css.slice(0, at) + css.slice(end);
+			assert.doesNotMatch(outside, new RegExp(`${sel.replace('.', '\\.')}[^{]*\\{[^}]*animation`), `${sel}: no motion outside the scroll`);
+		}
+	}
+});
+
+test("a world's banners: every activity's picture has its own moving part", () => {
+	for (const w of worlds) {
+		const dir = path.join(THEMES, `${w}-art`);
+		if (!fs.existsSync(dir)) continue;
+		for (const f of fs.readdirSync(dir).filter((f) => f.endsWith('.svg') && f !== 'hero.svg'))
+			assert.ok(splitArt(fs.readFileSync(path.join(dir, f), 'utf8')).actors.length > 0, `${w}-art/${f}: something in it moves`);
 	}
 });
 
@@ -164,6 +234,84 @@ test("a world's illustrations: plain SVG named by an activity mark or 'hero', wi
 			assert.doesNotMatch(svg, /<script|<foreignObject|<image|<text|<filter|\son[a-z]+=|href="(?!#)|url\((?!#)/i, `${f}: plain SVG only`);
 			for (const [, id] of svg.matchAll(/\sid="([^"]+)"/g)) assert.ok(id.startsWith(`${name}-`), `${f}: id "${id}" starts with "${name}-"`);
 			assert.ok(svg.length <= (name === 'hero' ? 24000 : 16000), `${f}: ${svg.length} bytes`);
+		}
+	}
+});
+
+test('a drawing splits into its still part and its moving parts, each with only the defs it uses', () => {
+	const svg =
+		'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 260"><defs><linearGradient id="t-a"><stop/></linearGradient>' +
+		'<symbol id="t-s" viewBox="0 0 10 10"><path id="t-p" d="M0 0"/><use href="#t-p"/></symbol><radialGradient id="t-g"/></defs>' +
+		'<rect fill="url(#t-a)"/><g data-actor="van" data-box="64 26 128 52" transform="translate(1 2)"><g><use href="#t-s"/></g></g>' +
+		'<path d="M1 1"/><g data-actor="puff" data-box="-64 0 768 26"><circle fill="url(#t-g)"/></g></svg>';
+	const { base, actors } = splitArt(svg);
+	assert.equal(
+		base,
+		'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 260">' +
+			svg.slice(svg.indexOf('<defs>'), svg.indexOf('<g data-actor')) +
+			'<path d="M1 1"/></svg>',
+	);
+	assert.deepEqual(
+		actors.map((a) => [a.part, a.box]),
+		[
+			['van', [10, 10, 20, 20]],
+			['puff', [-10, 0, 120, 10]],
+		],
+	);
+	// framed by its box, keeping its own attributes, and carrying the symbol it uses (with the symbol's insides), nothing else
+	assert.match(actors[0].svg, /^<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg" viewBox="64 26 128 52"[^>]*><defs><symbol id="t-s"/);
+	assert.match(actors[0].svg, /<g transform="translate\(1 2\)"><g><use href="#t-s"\/><\/g><\/g><\/svg>$/);
+	assert.doesNotMatch(actors[0].svg, /t-a|t-g/);
+	assert.match(actors[1].svg, /<defs><radialGradient id="t-g"\/><\/defs>/);
+	// a drawing with nothing that moves comes back whole
+	const still = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 300"><rect/></svg>';
+	assert.deepEqual(splitArt(still), { base: still, actors: [] });
+	for (const bad of [
+		'<svg viewBox="0 0 640 260"><g data-actor="a" data-box="0 0 0 10"></g></svg>',
+		'<svg viewBox="0 0 640 260"><g data-actor="a" data-box="0 0 10 10"></g><g data-actor="a" data-box="0 0 10 10"></g></svg>',
+		'<svg viewBox="0 0 640 260"><g data-actor="a" data-box="0 0 10 10"><g data-actor="b" data-box="0 0 10 10"></g></g></svg>',
+		'<svg viewBox="0 0 640 260"><g data-actor="a" data-box="0 0 10 10"><g></g></svg>',
+	])
+		assert.throws(() => splitArt(bad), undefined, bad);
+});
+
+test("a world's moving parts: each one moves in its stylesheet, every motion rule has its part, and the overview scene holds still", () => {
+	for (const w of worlds) {
+		const dir = path.join(THEMES, `${w}-art`);
+		if (!fs.existsSync(dir)) continue;
+		const css = fs.readFileSync(path.join(THEMES, `${w}.css`), 'utf8');
+		const drawn = new Set();
+		for (const f of fs.readdirSync(dir).filter((f) => f.endsWith('.svg'))) {
+			const name = f.replace(/\.svg$/, '');
+			const { base, actors } = splitArt(fs.readFileSync(path.join(dir, f), 'utf8'));
+			assert.ok(base.length > 1000, `${f}: a picture is left under its moving parts`);
+			// the overview's scene crops to a strip on a phone, and a crop would cut a moving part off where it's drawn
+			if (name === 'hero') assert.equal(actors.length, 0, `${f}: the overview scene has no moving parts`);
+			for (const a of actors) {
+				drawn.add(`${name}-${a.part}`);
+				assert.match(css, new RegExp(`\\[data-actor(='${name}-${a.part}'|\\^='${name}-')\\]`), `${w}.css moves ${name}-${a.part}`);
+			}
+		}
+		for (const [, actor] of css.matchAll(/\[data-actor\^?='([a-z]+(?:-[a-z]+)?)'\]/g))
+			assert.ok(actor.endsWith('-') ? [...drawn].some((d) => d.startsWith(actor)) : drawn.has(actor), `${w}.css: no part "${actor}" in its art`);
+		// motion only where reduced motion isn't asked for, and only while the picture is on screen
+		const anims = [...css.matchAll(/([^{}]+)\{[^{}]*\banimation:\s*snowlight-(?!flame|sway|hello)[^{}]*\}/g)].map((m) => m[1].trim());
+		assert.ok(anims.length > 8, `${w}.css: read its picture motion`);
+		for (const sel of anims) assert.match(sel, /\.is-live/, `${w}.css: "${sel}" moves only while on screen`);
+		const spans = [...css.matchAll(/@media \(prefers-reduced-motion: no-preference\) \{/g)].map((m) => {
+			let depth = 0;
+			for (let i = m.index; i < css.length; i++) {
+				if (css[i] === '{') depth++;
+				else if (css[i] === '}' && !--depth) return [m.index, i];
+			}
+			return [m.index, css.length];
+		});
+		for (const sel of anims) {
+			const at = css.indexOf(sel);
+			assert.ok(
+				spans.some(([a, b]) => at > a && at < b),
+				`${w}.css: "${sel}" sits under prefers-reduced-motion: no-preference`,
+			);
 		}
 	}
 });

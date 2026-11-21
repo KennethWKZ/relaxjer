@@ -83,6 +83,7 @@ const GEO = window.GEO || null;
 const EXTRA = window.EXTRA || { food: [], tickets: [], sites: {} };
 const CREDITS = window.CREDITS || [];
 const WORLD_ART = window.WORLD_ART || {}; // a destination world's illustrations, by DAYS[i].motif and 'hero' (build.mjs)
+const WORLD_ACTORS = window.WORLD_ACTORS || {}; // their moving parts, each { part, src, box: [left, top, width, height] % }
 const WISH = (window.WISH || []).filter((w) => w && w.branches && w.branches.length);
 let IMG = window.IMG || null; // standalone: photos sit in #img-data at the very end, read after the plan is on screen
 const IMG_LATE = document.body.dataset.imgLate === '1';

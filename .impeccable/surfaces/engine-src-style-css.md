@@ -11,9 +11,9 @@ The trip page's destination world `snowlight` (data-world="snowlight" on the roo
 
 ## Direction contract
 
-THESIS: The day is a footpath through snow lit by small candles set in the ground. It refuses the hung sky lantern (Taiwan's mark) and the generic "winter theme" of blue gradients and falling-snow wallpaper.
+THESIS: The day is a footpath through snow lit by small candles set in the ground. It refuses the hung sky lantern (Taiwan's mark) and the generic "winter theme" of blue gradients and falling-snow wallpaper that moves by itself: its sky behind the page is the trip's own night passing, and moves only with the scroll.
 
-OWN-WORLD: Snow-white frosted paper with a faint cold blue cast; day panels are frosted snow cards whose lower edge is a soft snowbank; seven ice-family day colours that stay apart; candle amber only in the flame of a candle mark and the "now" stop; fixed anchors are a six-armed ice crystal; the seal is a deep winter crimson. Dark: navy snowy night lit only by the ground candles.
+OWN-WORLD: Snow-white frosted paper with a faint cold blue cast; day panels are frosted snow cards whose lower edge is a soft snowbank; seven candy day colours (as saturated as white text allows) that stay apart; a sticker book: die-cut stickers drawn for the world (white edge, soft shadow, a tilt), washi tape on the pictures, rounder corners, never a pill; candle amber only in the flame of a candle mark and the "now" stop; fixed anchors are a six-armed ice crystal; the seal is a deep winter crimson. Dark: navy snowy night lit only by the ground candles.
 
 STORY: The group sees at a glance which day they are in (its colour and activity mark), walks the path stop by stop, and knows what cannot move (the crystal).
 
@@ -25,7 +25,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 
 ## Motion
 
-One first-open snowfall inside the now card (once per phone, none under reduced motion); flicker only on the current stop's candle; everything else static. No page-wide snowfall, no backdrop-filter on day cards.
+One first-open snowfall inside the now card (once per phone, none under reduced motion); flicker only on the current stop's candle; the week stickers press flat with their row. The pictures (day banners, the overview's scene) come alive while on screen, each activity its own way: steam and spreading rings on the onsen, curling steam off the bowl, the road trip's van and verge poles, waddling penguins, the rider and the skier leaning through their turn, the wave's spray, a train that runs in, waits and pulls away, the plane flying on past clouds, a stroller walking off down the town's canal path, the shopper's hop, and in snow country a lone spruce swaying in a windy snowfall; transform and opacity only, inside the picture, still under reduced motion (ADR-20261121-world-motion). The sky behind the page (dusk, night with stars and an aurora, falling snow, dawn, candles along the edges, a sunrise after the footer) follows the scroll only, never moves by itself, and is a still night under reduced motion or without scroll timelines. No backdrop-filter on day cards.
 
 ## Open
 

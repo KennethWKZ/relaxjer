@@ -71,6 +71,7 @@ test("the trip's own page: data-world only when its pack names a theme, and the 
 	await page.waitForTimeout(400);
 	await expect(page.locator('.world-hello'), 'no greeting outside a world').toHaveCount(0);
 	await expect(page.locator('.day-art, .world-hero'), 'no illustrations outside a world').toHaveCount(0);
+	await expect(page.locator('.world-sky, .world-end'), 'no sky behind the page outside a world').toHaveCount(0);
 });
 
 test("a pack's world: its name on <html>, its paper in the browser bar, every day's mark and its own icon", async ({ page }) => {
@@ -126,6 +127,57 @@ test.describe('motion in a world', () => {
 		await expect(page.locator('.world-hello')).toHaveCount(0);
 	});
 
+	test("a day's picture moves only while it's on screen, its parts inside the picture's own box", async ({ page }) => {
+		await openWorld(page);
+		const day = await page.evaluate(() => DAYS.find((d) => Object.hasOwn(window.WORLD_ACTORS || {}, d.motif))?.id);
+		test.skip(!day, 'no day here has a picture with moving parts');
+		await page.goto(`/trip-world.html#${day}`);
+		const art = page.locator(`#${day} .day-art`);
+		await expect(art).toHaveClass(/\bis-live\b/);
+		const parts = art.locator('.art-actor');
+		await expect(parts.first()).toBeAttached();
+		await expect.poll(() => parts.first().evaluate((el) => getComputedStyle(el).animationName)).not.toBe('none');
+		// decoration inside a picture that clips it: nothing moves over the card's words
+		expect(await art.evaluate((el) => [el.getAttribute('aria-hidden'), getComputedStyle(el).overflow])).toEqual(['true', 'hidden']);
+		for (const p of await parts.all()) expect(await p.evaluate((el) => el.closest('.lantern > .day-art') !== null)).toBe(true);
+		// scrolled away (after the jump's landing hold), it stops and costs nothing
+		await page.waitForTimeout(1600);
+		await page.evaluate(() => scrollTo(0, 0));
+		await expect(art).not.toHaveClass(/\bis-live\b/);
+		for (const p of await parts.all()) expect(await p.evaluate((el) => getComputedStyle(el).animationName)).toBe('none');
+	});
+
+	test('the sky behind the page: behind everything, never wider than the screen, and moving only with the scroll', async ({ page }) => {
+		await openWorld(page);
+		const sky = page.locator('body > .world-sky');
+		test.skip(!(await sky.count()), 'this world draws no sky');
+		const box = await sky.evaluate((el) => {
+			const cs = getComputedStyle(el);
+			return [el.getAttribute('aria-hidden'), cs.position, cs.zIndex, cs.pointerEvents];
+		});
+		expect(box).toEqual(['true', 'fixed', '-1', 'none']);
+		await expect(page.locator('#foot + .world-end')).toHaveAttribute('aria-hidden', 'true');
+		const layers = page.locator('.world-sky > i, .world-end > i');
+		expect(await layers.count()).toBeGreaterThan(3);
+		// nothing in it runs on the clock (WCAG 2.2.2): every animation it has follows the scroll, or there are none
+		const clocks = await layers.evaluateAll((els) =>
+			els.flatMap((el) =>
+				el
+					.getAnimations()
+					.filter((a) => typeof ScrollTimeline === 'undefined' || !(a.timeline instanceof ScrollTimeline || a.timeline instanceof ViewTimeline))
+					.map((a) => `${el.className || 'end'}: ${a.animationName}`),
+			),
+		);
+		expect(clocks, 'sky animations on a clock').toEqual([]);
+		const state = () => layers.evaluateAll((els) => els.map((el) => `${getComputedStyle(el).opacity} ${getComputedStyle(el).transform}`));
+		const top = await state();
+		await page.evaluate(() => scrollTo({ top: document.documentElement.scrollHeight * 0.55, behavior: 'instant' }));
+		await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(0);
+		if (await page.evaluate(() => CSS.supports('animation-timeline: scroll()')))
+			await expect.poll(state, { message: 'scrolled down the trip, the sky has moved on' }).not.toEqual(top);
+		expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), 'no sideways scroll').toBeLessThanOrEqual(0);
+	});
+
 	test('the stop under way: only its candle flickers', async ({ page }) => {
 		await openWorld(page);
 		const now = await clockOnAStop(page);
@@ -147,6 +199,23 @@ test.describe('reduced motion in a world', () => {
 		expect(await now.evaluate((el) => getComputedStyle(el.querySelector('.stop-knot'), '::after').animationName)).toBe('none');
 		await expect(now.locator('.flag')).toBeVisible();
 	});
+
+	test('the pictures hold still: every part at rest where it is drawn, and no snow falls', async ({ page }) => {
+		await openWorld(page);
+		const pics = page.locator('.day-art, .world-hero');
+		test.skip(!(await pics.count()), 'this world has no pictures');
+		for (const pic of await pics.all()) {
+			expect(await pic.evaluate((el) => [getComputedStyle(el, '::before').animationName, getComputedStyle(el, '::after').animationName])).toEqual([
+				'none',
+				'none',
+			]);
+			for (const p of await pic.locator('.art-actor').all())
+				expect(await p.evaluate((el) => [getComputedStyle(el).animationName, getComputedStyle(el).opacity])).toEqual(['none', '1']);
+		}
+		// the sky behind the page is a calm, still night: nothing in it follows even the scroll
+		for (const layer of await page.locator('.world-sky > i, .world-end > i').all())
+			expect(await layer.evaluate((el) => [getComputedStyle(el).animationName, el.getAnimations().length])).toEqual(['none', 0]);
+	});
 });
 
 test("a world's illustrations: each day's activity across the top of its card, and the scene above Now/Next", async ({ page }) => {
@@ -156,7 +225,7 @@ test("a world's illustrations: each day's activity across the top of its card, a
 	await openWorld(page);
 	const days = await page.evaluate(() => DAYS.map((d) => [d.id, d.motif]));
 	for (const [id, motif] of days) {
-		const pic = page.locator(`#${id} .lantern > .day-art img`);
+		const pic = page.locator(`#${id} .lantern > .day-art > img:not(.art-actor)`);
 		if (drawn.has(motif)) {
 			await expect(pic, `${id} (${motif})`).toHaveAttribute('src', /^data:image\/svg\+xml;base64,/);
 			await expect(page.locator(`#${id} .day-art`)).toHaveAttribute('aria-hidden', 'true');
@@ -165,6 +234,10 @@ test("a world's illustrations: each day's activity across the top of its card, a
 	if (drawn.has('hero')) {
 		await expect(page.locator('#top > .world-hero + .now-card')).toHaveCount(1);
 		const box = await page.locator('.world-hero').boundingBox();
-		expect(box.width / box.height).toBeCloseTo(640 / 300, 1);
+		// the whole scene from 600 px; on a phone a strip of it, and a ribbon on a trip day, so Now and Next keep the first screen
+		const tripDay = (await page.locator('#now .now-day').count()) > 0;
+		const tall = box.width >= 560 ? 300 : tripDay ? 88 : 150;
+		expect(box.width / box.height).toBeCloseTo(640 / tall, 1);
+		await expect(page.locator('.world-hero .art-actor'), 'the scene crops on a phone, so nothing in it moves on its own').toHaveCount(0);
 	}
 });

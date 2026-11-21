@@ -32,16 +32,40 @@
 	--flake: #b8cfe8;
 	--lift: 0%; /* how far a day colour is lifted toward white where it draws on the page (more at night) */
 	--world-hello: 1; /* this world draws a first-open greeting (25-theme.js worldHello) */
+	/* three candy tints for the frost on the cards (decoration only: never text, a border or a button) */
+	--blush: rgb(236 72 150 / 0.2);
+	--mint: rgb(30 180 120 / 0.18);
+	--sky: rgb(60 130 240 / 0.2);
+	--card-tint: 50%; /* how much of the day's colour tints its card's shadow (none at night: only candles give light) */
+	/* a die-cut sticker: a white edge cut round it and a soft shadow under it, the same on every sticker */
+	--sticker-edge: #ffffff;
+	--sticker-shadow: 0 3px 7px -2px rgb(20 40 80 / 0.34);
+	--r-card: 24px; /* the world's rounder corners: the day's card, the Now card and the scene */
+	--r-chip: 12px;
+	--r-btn: 14px;
 
-	/* seven winter day colours: white text on each at 4.5:1 or more, and each at 3:1 or more on the light and the dark
-	   paper; neighbouring days never sit next to their closest look-alike */
-	--l1: #1f6fb8; /* glacier */
-	--l2: #a5468e; /* plum frost */
-	--l3: #2e7d4a; /* spruce */
-	--l4: #6a55c8; /* aurora */
-	--l5: #12808a; /* frozen lake */
-	--l6: #b24a5e; /* winter rose */
-	--l7: #93602f; /* larch: bark brown, warm without glowing (the flame keeps the only bright warm) */
+	/* the sky behind the page (.world-sky): pastel, and never darker than L 0.8, so every word on the page paper (warn
+	   is the palest) keeps 4.5:1 over it; tests/unit/worlds.test.mjs checks it */
+	--sky-dusk: #f1e8fc;
+	--sky-dusk-low: #fde6f1;
+	--sky-night: #e4ecfd;
+	--sky-night-low: #eef3fe;
+	--sky-aurora: #d9f5ea;
+	--sky-aurora-2: #ece4fd;
+	--sky-dawn: #fde7f0;
+	--sky-dawn-low: #fff3dc;
+	--sky-star: #ffffff;
+	--sky-in-column: 1; /* how much of a star, a flake or a candle shows over the text column (by day, all: they're paler than the paper) */
+
+	/* seven candy winter day colours, as bright as white text allows: white on each at 4.7:1 or more, and each at 3.8:1
+	   or more on the light and the dark paper; neighbouring days never sit next to their closest look-alike */
+	--l1: #2268f3; /* soda */
+	--l2: #d4277d; /* strawberry */
+	--l3: #128344; /* melon */
+	--l4: #894df0; /* grape */
+	--l5: #a7613b; /* cocoa: warm without glowing (the flame keeps the only bright warm) */
+	--l6: #137b9f; /* lagoon */
+	--l7: #647b11; /* matcha */
 	--l1-ink: #ffffff;
 	--l2-ink: #ffffff;
 	--l3-ink: #ffffff;
@@ -49,6 +73,14 @@
 	--l5-ink: #ffffff;
 	--l6-ink: #ffffff;
 	--l7-ink: #ffffff;
+
+	/* the world's stickers, drawn for it (plain SVG, die-cut: a white edge and a soft shadow drawn in, a slight tilt):
+	   a penguin in a strawberry scarf, a snow bunny with leaf ears and berry eyes, a grape mitten with a heart, a heart.
+	   No snowflake and no star: the crystal means a fixed time, and nothing in this world floats in the sky. */
+	--sticker-penguin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3Cfilter id='b' x='-30%25' y='-30%25' width='160%25' height='160%25'%3E%3CfeGaussianBlur stdDeviation='1.4'/%3E%3C/filter%3E%3Cpath id='o' d='M32 7C20 7 13 18 13 31c0 6 1 11 4 15l-4 5c-1 2 1 5 4 5h30c3 0 5-3 4-5l-4-5c3-4 4-9 4-15C51 18 44 7 32 7z'/%3E%3C/defs%3E%3Cg transform='rotate(-7 32 34)'%3E%3Cuse href='%23o' fill='%230a1830' opacity='.3' filter='url(%23b)' transform='translate(0 2.6)'/%3E%3Cuse href='%23o' fill='%23fff' stroke='%23fff' stroke-width='6' stroke-linejoin='round'/%3E%3Cpath d='M32 10c-10 0-16 9-16 21 0 11 6 21 16 21s16-10 16-21c0-12-6-21-16-21z' fill='%23263866'/%3E%3Cpath d='M17 33c-3 3-4 8-3 11 3-1 5-4 6-7zM47 33c3 3 4 8 3 11-3-1-5-4-6-7z' fill='%231b2a52'/%3E%3Cpath d='M32 22c-5-4-12-1-12 6 0 10 5 21 12 21s12-11 12-21c0-7-7-10-12-6z' fill='%23f7fbff'/%3E%3Ccircle cx='26.6' cy='29' r='2.3' fill='%230f1b2d'/%3E%3Ccircle cx='37.4' cy='29' r='2.3' fill='%230f1b2d'/%3E%3Ccircle cx='27.3' cy='28.2' r='.8' fill='%23fff'/%3E%3Ccircle cx='38.1' cy='28.2' r='.8' fill='%23fff'/%3E%3Cellipse cx='23.6' cy='34' rx='2.8' ry='1.8' fill='%23ff8fb8'/%3E%3Cellipse cx='40.4' cy='34' rx='2.8' ry='1.8' fill='%23ff8fb8'/%3E%3Cpath d='M29.6 32.2h4.8L32 35.4z' fill='%23ff9db5'/%3E%3Cpath d='M18.5 40.5c8 4 19 4 27 0l.6 4.2c-8 4-20 4-28 0z' fill='%23d4277d'/%3E%3Cpath d='M40 43l2.5 9 4-1.2-1.8-8.6z' fill='%23d4277d'/%3E%3Cpath d='M19 42.3c8 3.4 18 3.4 26 0' stroke='%23fff' stroke-width='1.2' stroke-dasharray='2 2.4' fill='none' opacity='.85'/%3E%3Cellipse cx='26.5' cy='53' rx='4.2' ry='2' fill='%23ff9db5'/%3E%3Cellipse cx='37.5' cy='53' rx='4.2' ry='2' fill='%23ff9db5'/%3E%3C/g%3E%3C/svg%3E");
+	--sticker-bunny: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3Cfilter id='b' x='-30%25' y='-30%25' width='160%25' height='160%25'%3E%3CfeGaussianBlur stdDeviation='1.4'/%3E%3C/filter%3E%3Cpath id='o' d='M24 6c-5 1-6 9-3 17-8 3-13 10-13 17 0 10 10 16 24 16s24-6 24-16c0-7-5-14-13-17 3-8 2-16-3-17-4 0-6 5-7 11h-2c-1-6-3-11-7-11z'/%3E%3C/defs%3E%3Cg transform='rotate(7 32 34)'%3E%3Cuse href='%23o' fill='%230a1830' opacity='.28' filter='url(%23b)' transform='translate(0 2.6)'/%3E%3Cuse href='%23o' fill='%23fff' stroke='%23fff' stroke-width='6' stroke-linejoin='round'/%3E%3Cpath d='M22 26c-5-6-6-15-2-17 4-1 6 6 6 15z' fill='%231f8a4c'/%3E%3Cpath d='M42 26c5-6 6-15 2-17-4-1-6 6-6 15z' fill='%231f8a4c'/%3E%3Cpath d='M21.5 22c-2-4-2.5-8-1.2-10M42.5 22c2-4 2.5-8 1.2-10' stroke='%237fd6a2' stroke-width='1.3' stroke-linecap='round' fill='none'/%3E%3Cellipse cx='32' cy='40' rx='21' ry='14' fill='%23f4f8fd' stroke='%23b9cde6' stroke-width='1.6'/%3E%3Cpath d='M14 44c6 7 30 7 36 0' stroke='%23d9e6f5' stroke-width='3' stroke-linecap='round' fill='none'/%3E%3Ccircle cx='25' cy='37' r='2.6' fill='%23d81e55'/%3E%3Ccircle cx='39' cy='37' r='2.6' fill='%23d81e55'/%3E%3Ccircle cx='25.8' cy='36.2' r='.8' fill='%23fff'/%3E%3Ccircle cx='39.8' cy='36.2' r='.8' fill='%23fff'/%3E%3Cellipse cx='21' cy='42' rx='3' ry='1.8' fill='%23ff9fc2'/%3E%3Cellipse cx='43' cy='42' rx='3' ry='1.8' fill='%23ff9fc2'/%3E%3Cpath d='M30 41.5q2 1.8 4 0' stroke='%238aa3c4' stroke-width='1.3' stroke-linecap='round' fill='none'/%3E%3C/g%3E%3C/svg%3E");
+	--sticker-mitten: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3Cfilter id='b' x='-30%25' y='-30%25' width='160%25' height='160%25'%3E%3CfeGaussianBlur stdDeviation='1.4'/%3E%3C/filter%3E%3Cpath id='o' d='M29 7c-9 0-14 7-14 16v14l-5-4c-3-2-7 0-6 4 1 6 7 11 12 13v5c0 3 2 5 5 5h20c3 0 5-2 5-5V22C46 13 39 7 29 7z'/%3E%3C/defs%3E%3Cg transform='rotate(-8 32 34)'%3E%3Cuse href='%23o' fill='%230a1830' opacity='.28' filter='url(%23b)' transform='translate(0 2.6)'/%3E%3Cuse href='%23o' fill='%23fff' stroke='%23fff' stroke-width='6' stroke-linejoin='round'/%3E%3Cpath d='M29 10c-8 0-11 6-11 13v18l-7-6c-2-1-4 0-3.5 2.5 1 5 6 9 10.5 10.5V48h25V22c0-7-6-12-14-12z' fill='%23894df0'/%3E%3Cpath d='M18 18h25M18 26h25M18 34h25' stroke='%23a87bff' stroke-width='2.2' stroke-dasharray='3 2.4' fill='none'/%3E%3Crect x='16' y='46' width='29' height='10' rx='3.5' fill='%23f4f8fd' stroke='%23b9cde6' stroke-width='1.4'/%3E%3Cpath d='M19 49.5v3.5M23 49.5v3.5M27 49.5v3.5M31 49.5v3.5M35 49.5v3.5M39 49.5v3.5M43 49.5v3.5' stroke='%23c9d8ec' stroke-width='1.4' stroke-linecap='round'/%3E%3Cpath d='M30.5 35.5c-3-2.2-6-4.4-6-7.2 0-1.8 1.4-3 3-3 1.3 0 2.4.7 3 1.8.6-1.1 1.7-1.8 3-1.8 1.6 0 3 1.2 3 3 0 2.8-3 5-6 7.2z' fill='%23ff6fae' stroke='%23fff' stroke-width='1.2'/%3E%3C/g%3E%3C/svg%3E");
+	--sticker-heart: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3Cfilter id='b' x='-30%25' y='-30%25' width='160%25' height='160%25'%3E%3CfeGaussianBlur stdDeviation='1.4'/%3E%3C/filter%3E%3Cpath id='o' d='M32 55C21 47 9 38 9 25c0-8 6-14 13-14 4.6 0 8 2.3 10 6 2-3.7 5.4-6 10-6 7 0 13 6 13 14 0 13-12 22-23 30z'/%3E%3C/defs%3E%3Cg transform='rotate(9 32 34)'%3E%3Cuse href='%23o' fill='%230a1830' opacity='.28' filter='url(%23b)' transform='translate(0 2.6)'/%3E%3Cuse href='%23o' fill='%23fff' stroke='%23fff' stroke-width='6' stroke-linejoin='round'/%3E%3Cpath d='M32 51C22.5 44 13 36.5 13 25.5 13 19.5 17.5 15 22.5 15c4.5 0 7.7 2.6 9.5 6.4C33.8 17.6 37 15 41.5 15c5 0 9.5 4.5 9.5 10.5C51 36.5 41.5 44 32 51z' fill='%23d4277d'/%3E%3Cpath d='M19 24c0-3.4 2.4-5.6 5-5.8' stroke='%23fff' stroke-width='2.6' stroke-linecap='round' fill='none' opacity='.9'/%3E%3Ccircle cx='18.8' cy='28.6' r='1.4' fill='%23fff' opacity='.9'/%3E%3Ccircle cx='27' cy='31' r='1.9' fill='%230f1b2d'/%3E%3Ccircle cx='37' cy='31' r='1.9' fill='%230f1b2d'/%3E%3Cellipse cx='23.4' cy='35' rx='2.6' ry='1.6' fill='%23ff9fc2'/%3E%3Cellipse cx='40.6' cy='35' rx='2.6' ry='1.6' fill='%23ff9fc2'/%3E%3Cpath d='M30 34.6q2 1.8 4 0' stroke='%230f1b2d' stroke-width='1.3' stroke-linecap='round' fill='none'/%3E%3C/g%3E%3C/svg%3E");
 }
 @media (prefers-color-scheme: dark) {
 	:root[data-world='snowlight']:not([data-theme='light']) {
@@ -73,6 +105,22 @@
 		--card-shadow: 0 16px 30px -20px rgb(0 0 0 / 0.7);
 		--flake: #eaf2fb;
 		--lift: 30%;
+		--blush: rgb(255 120 180 / 0.14);
+		--mint: rgb(90 220 170 / 0.11);
+		--sky: rgb(120 165 255 / 0.14);
+		--card-tint: 0%;
+		--sticker-edge: #eaf2fb;
+		--sticker-shadow: 0 3px 8px -1px rgb(0 0 0 / 0.55);
+		--sky-dusk: #1d1640;
+		--sky-dusk-low: #2c1838;
+		--sky-night: #071226;
+		--sky-night-low: #0b1a33;
+		--sky-aurora: #0a3a33;
+		--sky-aurora-2: #221c50;
+		--sky-dawn: #2a1a3e;
+		--sky-dawn-low: #3a2436;
+		--sky-star: #eaf2fb;
+		--sky-in-column: 0.12;
 	}
 }
 :root[data-world='snowlight'][data-theme='dark'] {
@@ -97,6 +145,23 @@
 	--card-shadow: 0 16px 30px -20px rgb(0 0 0 / 0.7);
 	--flake: #eaf2fb;
 	--lift: 30%;
+	--blush: rgb(255 120 180 / 0.14);
+	--mint: rgb(90 220 170 / 0.11);
+	--sky: rgb(120 165 255 / 0.14);
+	--card-tint: 0%;
+	--sticker-edge: #eaf2fb;
+	--sticker-shadow: 0 3px 8px -1px rgb(0 0 0 / 0.55);
+	/* the night sky behind the page: never lighter than L 0.044, so the palest words at night (ink-3) keep 4.5:1 */
+	--sky-dusk: #1d1640;
+	--sky-dusk-low: #2c1838;
+	--sky-night: #071226;
+	--sky-night-low: #0b1a33;
+	--sky-aurora: #0a3a33;
+	--sky-aurora-2: #221c50;
+	--sky-dawn: #2a1a3e;
+	--sky-dawn-low: #3a2436;
+	--sky-star: #eaf2fb;
+	--sky-in-column: 0.12; /* at night a star or a flake over the text column shows at 12 %, so it stays under L 0.044 */
 }
 
 /* ── the week list: each day's mark on its colour, under a cap of snow ── */
@@ -119,34 +184,94 @@
 	position: relative;
 	margin-top: 4px;
 }
+/* each tile is a die-cut sticker stuck in the week at a slight tilt: a 3 px white edge, a soft shadow (tinted by its
+   own colour by day), rounder corners; pressing the row presses the sticker flat */
+:root[data-world='snowlight'] .day-mark {
+	border-radius: 12px;
+	box-shadow:
+		0 0 0 3px var(--sticker-edge),
+		var(--sticker-shadow),
+		0 6px 12px -5px color-mix(in srgb, var(--c) var(--card-tint), transparent);
+	transform: rotate(-4deg);
+	transition: transform 160ms var(--ease-out);
+}
+:root[data-world='snowlight'] .week > li:nth-child(even) .day-mark {
+	transform: rotate(3deg);
+}
+:root[data-world='snowlight'] .week > li:nth-child(3n) .day-mark {
+	transform: rotate(-2deg);
+}
+:root[data-world='snowlight'] .wk:active .day-mark {
+	transform: none;
+}
+/* the rows: rounder, each tinted with its own day's colour, so the week reads as a strip of candy (a step deeper under
+   a mouse, as the default world's rows go a step darker) */
+:root[data-world='snowlight'] .wk {
+	border-radius: 18px;
+	background: color-mix(in srgb, var(--c) 9%, var(--paper-2));
+}
+@media (hover: hover) and (pointer: fine) {
+	:root[data-world='snowlight'] .wk:hover {
+		background: color-mix(in srgb, var(--c) 15%, var(--paper-3));
+	}
+}
 
 /* ── the day's card: frosted snow, tinted with the day's colour at the top, a drift along the foot ── */
 :root[data-world='snowlight'] .lantern {
 	--ci: var(--ink);
-	--cf: color-mix(in srgb, var(--c) 11%, transparent);
+	--cf: color-mix(in srgb, var(--c) 15%, transparent);
 	--cm: 1;
-	background: linear-gradient(180deg, color-mix(in srgb, var(--c) 10%, var(--snow-card-top)), var(--snow-card-top) 160px, var(--snow-card-low));
-	border: 1px solid color-mix(in srgb, var(--c) 30%, var(--rule));
-	box-shadow: var(--card-shadow);
-	padding-bottom: 38px;
+	--sticker: var(--sticker-bunny);
+	border-radius: var(--r-card);
+	background: linear-gradient(
+		180deg,
+		color-mix(in srgb, var(--c) 14%, var(--snow-card-top)),
+		var(--snow-card-top) 180px,
+		color-mix(in srgb, var(--c) 8%, var(--snow-card-low))
+	);
+	border: 1px solid color-mix(in srgb, var(--c) 36%, var(--rule));
+	box-shadow:
+		var(--card-shadow),
+		0 14px 30px -22px color-mix(in srgb, var(--c) var(--card-tint), transparent);
+	padding-bottom: 50px;
 }
-/* still snow caught in the frost, fading down the card (static: nothing moves behind what people read) */
+/* a sticker stands in each day's drift, at the card's foot below its last button, never over a word: the world's own
+   snow bunny, mitten, heart and penguin, by turns down the trip (decoration, under the card's content) */
+:root[data-world='snowlight'] .day:nth-of-type(4n + 3) .lantern {
+	--sticker: var(--sticker-mitten);
+}
+:root[data-world='snowlight'] .day:nth-of-type(4n) .lantern {
+	--sticker: var(--sticker-heart);
+}
+:root[data-world='snowlight'] .day:nth-of-type(4n + 1) .lantern {
+	--sticker: var(--sticker-penguin);
+}
+/* still snow caught in the frost, fading down the card, and the day's sticker in the drift (static: nothing moves
+   behind what people read) */
 :root[data-world='snowlight'] .lantern::before {
 	opacity: 1;
 	mix-blend-mode: normal;
 	background-image:
-		radial-gradient(circle, color-mix(in srgb, var(--c) 24%, transparent) 0 1.1px, transparent 1.7px),
+		var(--sticker), radial-gradient(circle, color-mix(in srgb, var(--c) 24%, transparent) 0 1.1px, transparent 1.7px),
 		radial-gradient(circle, color-mix(in srgb, var(--c) 16%, transparent) 0 0.9px, transparent 1.5px);
 	background-size:
+		46px 46px,
 		53px 41px,
 		37px 59px;
 	background-position:
+		right 16px bottom 3px,
 		11px 7px,
 		29px 23px;
-	-webkit-mask: linear-gradient(#000, transparent 72%);
-	mask: linear-gradient(#000, transparent 72%);
+	background-repeat: no-repeat, repeat, repeat;
+	-webkit-mask:
+		linear-gradient(#000, transparent 72%),
+		linear-gradient(#000 0 0) right 8px bottom 0 / 64px 54px no-repeat;
+	mask:
+		linear-gradient(#000, transparent 72%),
+		linear-gradient(#000 0 0) right 8px bottom 0 / 64px 54px no-repeat;
 }
 :root[data-world='snowlight'] .lantern::after {
+	z-index: -2; /* under the sticker that stands in it */
 	top: auto;
 	bottom: 0;
 	height: 30px;
@@ -162,14 +287,45 @@
 }
 :root[data-world='snowlight'] .lantern .l-btn {
 	border-color: color-mix(in srgb, var(--c), #fff var(--lift));
+	border-radius: var(--r-btn);
+}
+:root[data-world='snowlight'] .lantern .chip {
+	border-radius: var(--r-chip);
+}
+:root[data-world='snowlight'] .l-leg {
+	border-radius: var(--r-btn);
 }
 :root[data-world='snowlight'] .lantern .flag.inv,
 :root[data-world='snowlight'] .l-leg.all {
 	background: var(--c);
 	color: #ffffff;
 }
+/* the Today flag is a sticker on the card: a white edge, a soft shadow, a tilt */
+:root[data-world='snowlight'] .lantern .flag.inv {
+	padding: 2px 8px;
+	border-radius: 8px;
+	box-shadow:
+		0 0 0 2px var(--sticker-edge),
+		var(--sticker-shadow);
+	transform: rotate(-4deg);
+}
+/* the day's activity mark beside its date: a die-cut sticker of the mark, white on the day's colour */
+:root[data-world='snowlight'] .l-motif {
+	gap: 8px;
+}
 :root[data-world='snowlight'] .l-motif svg.i {
-	color: color-mix(in srgb, var(--c), #fff var(--lift));
+	box-sizing: border-box;
+	width: 28px;
+	height: 28px;
+	margin: -3px 0;
+	padding: 5px;
+	border-radius: 10px;
+	background: var(--c);
+	color: #ffffff;
+	box-shadow:
+		0 0 0 2.5px var(--sticker-edge),
+		var(--sticker-shadow);
+	transform: rotate(-6deg);
 }
 
 /* ── the path: footprints in snow between the stops, a candle in a snow cup at each ── */
@@ -275,9 +431,49 @@
 :root[data-world='snowlight'] .now-card {
 	position: relative;
 	isolation: isolate;
-	background: linear-gradient(180deg, var(--snow-card-top), var(--paper-2));
-	border: 1px solid var(--rule);
+	border-radius: var(--r-card);
+	/* frosted in candy: the day's own colour (soda before the trip) from the top corner, sky, then blush toward the foot */
+	background:
+		linear-gradient(
+			160deg,
+			color-mix(in srgb, var(--c, var(--l1)) calc(var(--card-tint) * 0.28 + 9%), transparent),
+			var(--sky) 34%,
+			transparent 56%,
+			var(--blush)
+		),
+		linear-gradient(180deg, var(--snow-card-top), var(--paper-2));
+	border: 1px solid color-mix(in srgb, var(--c, var(--l1)) 34%, var(--rule));
 	padding-bottom: 34px;
+}
+/* the world's penguin, stuck on the card's top corner like a sticker in a travel journal: decoration, never over a
+   word (the first line keeps clear of it), never in the way of a tap */
+:root[data-world='snowlight'] .now-card::before {
+	content: '';
+	position: absolute;
+	top: -18px;
+	right: 12px;
+	z-index: 2;
+	width: 60px;
+	height: 60px;
+	pointer-events: none;
+	background: var(--sticker-penguin) center / contain no-repeat;
+}
+:root[data-world='snowlight'] .now-count {
+	padding-right: 58px;
+}
+/* the day's number is a sticker too */
+:root[data-world='snowlight'] .now-day {
+	border-radius: 12px;
+	box-shadow:
+		0 0 0 3px var(--sticker-edge),
+		var(--sticker-shadow);
+	transform: rotate(-3deg);
+}
+:root[data-world='snowlight'] .now-card .go-btn {
+	border-radius: 16px;
+}
+:root[data-world='snowlight'] .now-card .mlink {
+	border-radius: var(--r-btn);
 }
 /* the same drift along its foot as the days': the world is there from the first screen */
 :root[data-world='snowlight'] .now-card::after {
@@ -286,8 +482,9 @@
 	inset: auto 0 0;
 	z-index: -1;
 	height: 28px;
-	border-radius: 0 0 var(--r-lg) var(--r-lg);
-	background: linear-gradient(180deg, color-mix(in srgb, var(--l1) 14%, var(--snowbank)), var(--snowbank));
+	border-radius: 0 0 var(--r-card) var(--r-card);
+	background:
+		linear-gradient(180deg, var(--mint), transparent), linear-gradient(180deg, color-mix(in srgb, var(--l1) 12%, var(--snowbank)), var(--snowbank));
 	-webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 30' preserveAspectRatio='none'%3E%3Cpath d='M0 30V15C46 5 96 7 140 13S218 26 268 18 352 6 400 11V30Z'/%3E%3C/svg%3E")
 		0 100% / 100% 100% no-repeat;
 	mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 30' preserveAspectRatio='none'%3E%3Cpath d='M0 30V15C46 5 96 7 140 13S218 26 268 18 352 6 400 11V30Z'/%3E%3C/svg%3E")
@@ -301,7 +498,7 @@
 	position: absolute;
 	z-index: 1;
 	overflow: hidden;
-	border-radius: var(--r-lg);
+	border-radius: var(--r-card);
 	pointer-events: none;
 }
 :root[data-world='snowlight'] .world-hello i {
@@ -339,26 +536,764 @@
 /* the world's illustrations (engine/src/themes/snowlight-art/, embedded by build.mjs): the day's activity as a banner
    across the top of its card, flush with the card's edges, and the overview's scene above the Now/Next card */
 :root[data-world='snowlight'] .day-art {
+	position: relative;
+	isolation: isolate;
 	margin: -22px -18px 16px;
 	aspect-ratio: 640 / 260;
 	overflow: hidden;
 	background: var(--paper-3);
 }
-:root[data-world='snowlight'] .day-art img,
-:root[data-world='snowlight'] .world-hero img {
+/* the picture is taped into its card like a photo in a travel journal: two strips of washi tape in the day's colour,
+   torn at the ends, across its top corners (decoration over the picture's sky, never over a word or a tap) */
+:root[data-world='snowlight'] .day-art + .l-meta::before,
+:root[data-world='snowlight'] .day-art + .l-meta::after {
+	content: '';
+	position: absolute;
+	top: -6px;
+	z-index: 1;
+	width: 76px;
+	height: 24px;
+	pointer-events: none;
+	background: repeating-linear-gradient(135deg, rgb(255 255 255 / 0.36) 0 4px, transparent 4px 9px), color-mix(in srgb, var(--c) 74%, transparent);
+	-webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 76 24' preserveAspectRatio='none'%3E%3Cpath d='M3 0h70l3 3-3 3 3 3-3 3 3 3-3 3 3 3-3 3H3l-3-3 3-3-3-3 3-3-3-3 3-3-3-3z'/%3E%3C/svg%3E")
+		0 0 / 100% 100% no-repeat;
+	mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 76 24' preserveAspectRatio='none'%3E%3Cpath d='M3 0h70l3 3-3 3 3 3-3 3 3 3-3 3 3 3-3 3H3l-3-3 3-3-3-3 3-3-3-3 3-3-3-3z'/%3E%3C/svg%3E")
+		0 0 / 100% 100% no-repeat;
+}
+:root[data-world='snowlight'] .day-art + .l-meta::before {
+	left: 18px;
+	transform: rotate(-9deg);
+}
+:root[data-world='snowlight'] .day-art + .l-meta::after {
+	right: 18px;
+	transform: rotate(8deg);
+}
+:root[data-world='snowlight'] .day-art > img:not(.art-actor),
+:root[data-world='snowlight'] .world-hero > img:not(.art-actor) {
 	display: block;
 	width: 100%;
 	height: 100%;
 	object-fit: cover;
 }
 :root[data-world='snowlight'] .world-hero {
+	position: relative;
+	isolation: isolate;
 	margin-top: 16px;
 	aspect-ratio: 640 / 300;
 	overflow: hidden;
-	border-radius: var(--r-lg);
+	border-radius: var(--r-card);
 	box-shadow: var(--card-shadow);
 	background: var(--paper-3);
 }
 :root[data-world='snowlight'] .world-hero + .now-card {
 	margin-top: 14px;
+}
+/* on a phone the scene is a strip across the valley and its candle path, so Now and Next with their buttons still end
+   on an iPhone's first screen (390 × 664) on a long trip day; the scene has no moving parts that a crop could cut */
+@media (max-width: 599px) {
+	:root[data-world='snowlight'] .world-hero {
+		margin-top: 12px;
+		aspect-ratio: 640 / 150;
+	}
+	:root[data-world='snowlight'] .world-hero > img:not(.art-actor) {
+		object-position: 50% 68%;
+	}
+	:root[data-world='snowlight'] .world-hero + .now-card {
+		margin-top: 12px;
+	}
+	/* on a trip day the card leads with Now and Next, so the scene narrows to a ribbon at the valley's glow */
+	:root[data-world='snowlight'] .world-hero:has(+ .now-card .now-day) {
+		margin-top: 10px;
+		aspect-ratio: 640 / 88;
+	}
+	:root[data-world='snowlight'] .world-hero:has(+ .now-card .now-day) > img:not(.art-actor) {
+		object-position: 50% 62%;
+	}
+	:root[data-world='snowlight'] .world-hero:has(+ .now-card .now-day) + .now-card {
+		margin-top: 10px;
+	}
+}
+
+/* ── the pictures move (ADR-20261121-world-motion): small, slow and only while a picture is on screen (.is-live,
+   11-scroll-spy.js observeArt). A moving part is a piece of the drawing laid back over it at its own box
+   (engine/world-art.mjs), so at rest, and always under reduced motion, the picture is the drawing as drawn. Everything
+   moves by transform and opacity alone, inside the picture's own box: nothing moves behind words, and nothing on the
+   page around it moves. The candles in the pictures stay still: a flicker means "the stop under way". ── */
+:root[data-world='snowlight'] .art-actor {
+	position: absolute;
+	display: block;
+	max-width: none;
+	pointer-events: none;
+}
+
+/* snow falls in the open-air scenes: two sheets of flakes, the near one bigger and faster, drifting down for ever. The
+   overview, the city and shopping snow gently; snow country (`snow`) snows hard, big flakes on the wind. A scene snows
+   when it sets --snowfall. */
+:root[data-world='snowlight'] .world-hero,
+:root[data-world='snowlight'] .day-art[data-art='city'],
+:root[data-world='snowlight'] .day-art[data-art='shop'],
+:root[data-world='snowlight'] .day-art[data-art='snow'] {
+	--snowfall: '';
+}
+:root[data-world='snowlight'] .world-hero::before,
+:root[data-world='snowlight'] .world-hero::after,
+:root[data-world='snowlight'] .day-art::before,
+:root[data-world='snowlight'] .day-art::after {
+	content: var(--snowfall, none);
+	position: absolute;
+	inset: -180px 0 0;
+	z-index: 1;
+	pointer-events: none;
+	opacity: 0;
+	transition: opacity 600ms var(--ease-out);
+}
+:root[data-world='snowlight'] .world-hero::before,
+:root[data-world='snowlight'] .day-art::before {
+	background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 150 120'%3E%3Cg fill='%23fff'%3E%3Ccircle cx='12' cy='18' r='1.1' opacity='.75'/%3E%3Ccircle cx='64' cy='52' r='1.3' opacity='.6'/%3E%3Ccircle cx='118' cy='30' r='1' opacity='.7'/%3E%3Ccircle cx='40' cy='96' r='1.2' opacity='.55'/%3E%3Ccircle cx='100' cy='88' r='1.4' opacity='.65'/%3E%3Ccircle cx='140' cy='110' r='.9' opacity='.6'/%3E%3C/g%3E%3C/svg%3E")
+		0 0 / 150px 120px repeat;
+}
+:root[data-world='snowlight'] .world-hero::after,
+:root[data-world='snowlight'] .day-art::after {
+	background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 210 180'%3E%3Cg fill='%23fff'%3E%3Ccircle cx='30' cy='40' r='2.2' opacity='.85'/%3E%3Ccircle cx='150' cy='20' r='1.8' opacity='.75'/%3E%3Ccircle cx='96' cy='110' r='2.6' opacity='.8'/%3E%3Ccircle cx='182' cy='140' r='2' opacity='.7'/%3E%3Ccircle cx='20' cy='160' r='1.6' opacity='.7'/%3E%3C/g%3E%3C/svg%3E")
+		0 0 / 210px 180px repeat;
+}
+/* snow country: more and bigger flakes, blown sideways, so the sheets reach further up and out to the left */
+:root[data-world='snowlight'] .day-art[data-art='snow']::before,
+:root[data-world='snowlight'] .day-art[data-art='snow']::after {
+	inset: -540px 0 0 -210px;
+}
+:root[data-world='snowlight'] .day-art[data-art='snow']::before {
+	background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 150 120'%3E%3Cg fill='%23fff'%3E%3Ccircle cx='12' cy='18' r='1.6' opacity='.8'/%3E%3Ccircle cx='64' cy='52' r='1.9' opacity='.7'/%3E%3Ccircle cx='118' cy='30' r='1.5' opacity='.75'/%3E%3Ccircle cx='40' cy='96' r='1.8' opacity='.65'/%3E%3Ccircle cx='100' cy='88' r='2' opacity='.7'/%3E%3Ccircle cx='140' cy='110' r='1.4' opacity='.65'/%3E%3Ccircle cx='86' cy='8' r='1.5' opacity='.7'/%3E%3Ccircle cx='28' cy='60' r='1.3' opacity='.6'/%3E%3C/g%3E%3C/svg%3E")
+		0 0 / 150px 120px repeat;
+}
+:root[data-world='snowlight'] .day-art[data-art='snow']::after {
+	background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 210 180'%3E%3Cg fill='%23fff'%3E%3Ccircle cx='30' cy='40' r='3.2' opacity='.9'/%3E%3Ccircle cx='150' cy='20' r='2.6' opacity='.8'/%3E%3Ccircle cx='96' cy='110' r='3.6' opacity='.85'/%3E%3Ccircle cx='182' cy='140' r='2.8' opacity='.75'/%3E%3Ccircle cx='20' cy='160' r='2.4' opacity='.75'/%3E%3Ccircle cx='120' cy='64' r='2.2' opacity='.7'/%3E%3C/g%3E%3C/svg%3E")
+		0 0 / 210px 180px repeat;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	:root[data-world='snowlight'] .world-hero.is-live::before,
+	:root[data-world='snowlight'] .day-art.is-live::before {
+		opacity: 0.8;
+		animation: snowlight-fall-far 13s linear infinite;
+	}
+	:root[data-world='snowlight'] .world-hero.is-live::after,
+	:root[data-world='snowlight'] .day-art.is-live::after {
+		opacity: 0.9;
+		animation: snowlight-fall-near 8s linear infinite;
+	}
+	:root[data-world='snowlight'] .day-art[data-art='snow'].is-live::before {
+		opacity: 0.9;
+		animation: snowlight-gust-far 24s linear infinite;
+	}
+	:root[data-world='snowlight'] .day-art[data-art='snow'].is-live::after {
+		opacity: 1;
+		animation: snowlight-gust-near 15s linear infinite;
+	}
+
+	/* snow country: the lone spruce sways from its trunk, and powder slides off its lit side on the wind */
+	:root[data-world='snowlight'] .is-live > [data-actor='snow-spruce'] {
+		transform-origin: 50% 100%;
+		animation: snowlight-tree-sway 4.6s var(--ease-in-out) infinite alternate;
+	}
+	:root[data-world='snowlight'] .is-live > [data-actor='snow-drift'] {
+		transform-origin: 0 0;
+		animation: snowlight-drift 4.6s var(--ease-out) infinite;
+	}
+
+	/* the city: someone in a red jacket strolls off down the canal path, step by step, smaller as they go, then the
+	   next one sets off */
+	:root[data-world='snowlight'] .is-live > [data-actor='city-walker'] {
+		transform-origin: 50% 92%;
+		animation:
+			snowlight-stroll 11s var(--ease-out) infinite,
+			snowlight-step 0.55s var(--ease-in-out) infinite alternate;
+	}
+
+	/* shopping: the shopper at the window gives a happy little hop, twice, then looks again */
+	:root[data-world='snowlight'] .is-live > [data-actor='shop-shopper'] {
+		transform-origin: 50% 100%;
+		animation: snowlight-hop 3.4s var(--ease-out) infinite;
+	}
+
+	/* the plane climbs into its place once (out of sight until its picture first comes into view), then flies on: it
+	   banks and lifts on the air while clouds stream past behind it */
+	:root[data-world='snowlight'] [data-actor='plane-jet']:not([data-arrived]) {
+		opacity: 0;
+	}
+	:root[data-world='snowlight'] .is-live > [data-actor='plane-jet']:not([data-arrived]) {
+		animation: snowlight-plane-in 2.4s var(--ease-out) both;
+	}
+	:root[data-world='snowlight'] .is-live > [data-actor='plane-jet'][data-arrived] {
+		transform-origin: 40% 60%;
+		animation: snowlight-cruise 3.6s var(--ease-in-out) infinite alternate;
+	}
+	:root[data-world='snowlight'] .is-live > [data-actor='plane-clouds'] {
+		animation: snowlight-pass-clouds 12s linear infinite;
+	}
+
+	/* the train runs along the bay: it glides in, draws up where it's drawn, waits, then pulls away out of the picture,
+	   and the next one comes */
+	:root[data-world='snowlight'] .is-live > [data-actor='train-cars'] {
+		transform-origin: 66% 55%;
+		animation: snowlight-train-run 10s linear infinite;
+	}
+
+	/* the road trip: the van hums along, the verge poles and the near stakes stream past at two depths, snow puffs off
+	   the back wheel */
+	:root[data-world='snowlight'] .is-live > [data-actor='drive-van'] {
+		transform-origin: 30% 90%;
+		animation: snowlight-hum 0.7s var(--ease-in-out) infinite alternate;
+	}
+	:root[data-world='snowlight'] .is-live > [data-actor='drive-poles'] {
+		animation: snowlight-pass-far 2.6s linear infinite;
+	}
+	:root[data-world='snowlight'] .is-live > [data-actor='drive-stakes'] {
+		animation: snowlight-pass-near 2.6s linear infinite;
+	}
+	:root[data-world='snowlight'] .is-live > [data-actor='drive-puff'] {
+		transform-origin: 100% 60%;
+		animation: snowlight-puff 1.3s var(--ease-out) infinite;
+	}
+
+	/* the hot spring: steam rolls up off the water, slow, and rings spread across it */
+	:root[data-world='snowlight'] .is-live > [data-actor='onsen-steam'] {
+		transform-origin: 50% 100%;
+		animation: snowlight-steam 4.4s var(--ease-in-out) infinite alternate;
+	}
+	:root[data-world='snowlight'] .is-live > [data-actor='onsen-warm'] {
+		transform-origin: 50% 100%;
+		animation: snowlight-steam-b 5.6s var(--ease-in-out) infinite alternate;
+	}
+	:root[data-world='snowlight'] .is-live > [data-actor='onsen-ripple'] {
+		animation: snowlight-ripple 3.2s var(--ease-out) infinite;
+	}
+	/* a meal: steam curls up off the bowl, quicker and twistier than the hot spring's */
+	:root[data-world='snowlight'] .is-live > [data-actor='food-steam'] {
+		transform-origin: 50% 100%;
+		animation: snowlight-curl 2.6s var(--ease-in-out) infinite alternate;
+	}
+
+	/* the penguins waddle, one after another down the line */
+	:root[data-world='snowlight'] .is-live > [data-actor^='zoo-'] {
+		transform-origin: 59% 95%;
+		animation: snowlight-waddle 1.4s var(--ease-in-out) infinite;
+	}
+	:root[data-world='snowlight'] .is-live > [data-actor='zoo-second'] {
+		animation-delay: 0.18s;
+	}
+	:root[data-world='snowlight'] .is-live > [data-actor='zoo-third'] {
+		animation-delay: 0.36s;
+	}
+	:root[data-world='snowlight'] .is-live > [data-actor='zoo-fourth'] {
+		animation-delay: 0.54s;
+	}
+	:root[data-world='snowlight'] .is-live > [data-actor='zoo-last'] {
+		animation-delay: 0.72s;
+	}
+
+	/* the rider and the skier ride the turn: a lift and a deep lean, back and forth */
+	:root[data-world='snowlight'] .is-live > [data-actor='snowboard-rider'],
+	:root[data-world='snowlight'] .is-live > [data-actor='ski-skier'] {
+		transform-origin: 50% 85%;
+		animation: snowlight-carve 2.4s var(--ease-in-out) infinite alternate;
+	}
+	:root[data-world='snowlight'] .is-live > [data-actor='ski-skier'] {
+		animation-duration: 2.9s;
+	}
+
+	/* the breaking wave throws its spray up and lets its foam slide */
+	:root[data-world='snowlight'] .is-live > [data-actor='sea-spray'] {
+		animation: snowlight-spray 2.4s var(--ease-in-out) infinite alternate;
+	}
+	:root[data-world='snowlight'] .is-live > [data-actor='sea-foam'] {
+		animation: snowlight-foam 3.2s var(--ease-in-out) infinite alternate;
+	}
+}
+@keyframes snowlight-fall-far {
+	to {
+		transform: translate3d(0, 120px, 0);
+	}
+}
+@keyframes snowlight-fall-near {
+	to {
+		transform: translate3d(0, 180px, 0);
+	}
+}
+/* three tiles down and one across: seamless, and the wind pushes the flakes to the right */
+@keyframes snowlight-gust-far {
+	to {
+		transform: translate3d(150px, 360px, 0);
+	}
+}
+@keyframes snowlight-gust-near {
+	to {
+		transform: translate3d(210px, 540px, 0);
+	}
+}
+@keyframes snowlight-tree-sway {
+	from {
+		transform: rotate(-1.4deg);
+	}
+	to {
+		transform: rotate(1.6deg);
+	}
+}
+@keyframes snowlight-drift {
+	0% {
+		opacity: 0;
+		transform: translate(-20%, -12%) scale(0.8);
+	}
+	25% {
+		opacity: 1;
+	}
+	100% {
+		opacity: 0;
+		transform: translate(70%, 60%) scale(1.15);
+	}
+}
+@keyframes snowlight-stroll {
+	0% {
+		opacity: 0;
+		transform: none;
+	}
+	6% {
+		opacity: 1;
+	}
+	82% {
+		opacity: 1;
+	}
+	96%,
+	100% {
+		opacity: 0;
+		transform: translate(240%, -170%) scale(0.42);
+	}
+}
+@keyframes snowlight-step {
+	from {
+		rotate: -3deg;
+	}
+	to {
+		rotate: 3deg;
+	}
+}
+@keyframes snowlight-hop {
+	0%,
+	56%,
+	100% {
+		transform: none;
+	}
+	64% {
+		transform: translateY(-9%) scale(0.98, 1.03);
+	}
+	71% {
+		transform: scale(1.03, 0.96);
+	}
+	78% {
+		transform: translateY(-6%);
+	}
+	85% {
+		transform: scale(1.02, 0.98);
+	}
+}
+@keyframes snowlight-plane-in {
+	from {
+		opacity: 0;
+		transform: translate(-24%, 10%);
+	}
+	25% {
+		opacity: 1;
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+@keyframes snowlight-cruise {
+	to {
+		transform: translate(1.6%, -6%) rotate(-1.6deg);
+	}
+}
+@keyframes snowlight-pass-clouds {
+	to {
+		transform: translateX(-32%);
+	}
+}
+@keyframes snowlight-train-run {
+	0% {
+		opacity: 0;
+		transform: translate(-16%, -17%) scale(0.84);
+		animation-timing-function: var(--ease-out);
+	}
+	6% {
+		opacity: 1;
+	}
+	34% {
+		transform: none;
+	}
+	62% {
+		opacity: 1;
+		transform: none;
+		animation-timing-function: var(--ease-in-out);
+	}
+	92% {
+		opacity: 1;
+	}
+	100% {
+		opacity: 0;
+		transform: translate(24%, 26%) scale(1.2);
+	}
+}
+@keyframes snowlight-hum {
+	to {
+		transform: translateY(-2.5%) rotate(-0.3deg);
+	}
+}
+@keyframes snowlight-pass-far {
+	to {
+		transform: translateX(-10%);
+	}
+}
+@keyframes snowlight-pass-near {
+	to {
+		transform: translateX(-16.667%);
+	}
+}
+@keyframes snowlight-puff {
+	from {
+		opacity: 0;
+		transform: translateX(14%) scale(0.7);
+	}
+	30% {
+		opacity: 1;
+	}
+	to {
+		opacity: 0;
+		transform: translate(-34%, -16%) scale(1.15);
+	}
+}
+@keyframes snowlight-steam {
+	to {
+		opacity: 0.5;
+		transform: translateY(-6%) scale(1.06, 1.14) skewX(-4deg);
+	}
+}
+@keyframes snowlight-steam-b {
+	to {
+		opacity: 0.55;
+		transform: translateY(-5%) scale(1.06, 1.1) skewX(3.5deg);
+	}
+}
+@keyframes snowlight-ripple {
+	from {
+		opacity: 1;
+		transform: scale(0.4);
+	}
+	to {
+		opacity: 0;
+		transform: scale(1.1);
+	}
+}
+@keyframes snowlight-curl {
+	from {
+		transform: skewX(4deg);
+	}
+	to {
+		opacity: 0.55;
+		transform: translateY(-9%) scale(1.04, 1.16) skewX(-6deg);
+	}
+}
+@keyframes snowlight-waddle {
+	0%,
+	50%,
+	100% {
+		transform: none;
+	}
+	25% {
+		transform: translateY(-3%) rotate(-7deg);
+	}
+	75% {
+		transform: translateY(-3%) rotate(7deg);
+	}
+}
+@keyframes snowlight-carve {
+	to {
+		transform: translate(2.4%, -3.6%) rotate(-3.2deg);
+	}
+}
+@keyframes snowlight-spray {
+	to {
+		opacity: 0.3;
+		transform: translate(-4%, -18%);
+	}
+}
+@keyframes snowlight-foam {
+	to {
+		opacity: 0.5;
+		transform: translate(6%, -8%);
+	}
+}
+
+/* ── the sky behind the page (ADR-20261121-world-motion; layers laid by build.mjs from snowlight.mjs `backdrop`).
+   Scrolling down the trip is a night passing: dusk at the top, a starry night with an aurora, falling snow, then dawn,
+   with candles standing in the snow along both edges of the path. It sits behind everything, fixed, and moves only
+   with the scroll (nothing in it moves by itself: WCAG 2.2.2); under reduced motion, or where a browser has no scroll
+   timelines, it is a calm, still night. Its colours never cross the --sky-* bounds (light: L 0.8 and up; dark: L 0.044
+   and down), so every word on the page paper keeps 4.5:1 over it; what is bright (a star at night, a flake, a candle)
+   shows in full only in the lanes outside the text column (--lane), and at night only faintly over the column. ── */
+:root[data-world='snowlight'] {
+	--lane: max(16px, (100vw - var(--col)) / 2 + 16px);
+}
+:root[data-world='snowlight'] .world-sky {
+	position: fixed;
+	inset: 0;
+	z-index: -1;
+	overflow: hidden;
+	pointer-events: none;
+	contain: strict;
+	background: linear-gradient(180deg, var(--sky-dusk), var(--sky-dusk-low));
+}
+:root[data-world='snowlight'] .world-sky > i {
+	position: absolute;
+	inset: 0;
+}
+/* a bright thing over the column is dimmed to --sky-in-column (by day nothing is: it is all paler than the paper) */
+:root[data-world='snowlight'] .world-sky > .sky-stars,
+:root[data-world='snowlight'] .world-sky > .sky-snow {
+	-webkit-mask: linear-gradient(
+		90deg,
+		#000 var(--lane),
+		rgb(0 0 0 / var(--sky-in-column)) var(--lane) calc(100% - var(--lane)),
+		#000 calc(100% - var(--lane))
+	);
+	mask: linear-gradient(
+		90deg,
+		#000 var(--lane),
+		rgb(0 0 0 / var(--sky-in-column)) var(--lane) calc(100% - var(--lane)),
+		#000 calc(100% - var(--lane))
+	);
+}
+:root[data-world='snowlight'] .sky-night {
+	background: linear-gradient(180deg, var(--sky-night), var(--sky-night-low));
+}
+:root[data-world='snowlight'] .sky-stars {
+	bottom: -300px;
+	background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 300'%3E%3Cg fill='%23fff'%3E%3Ccircle cx='18' cy='22' r='1.1' opacity='.9'/%3E%3Ccircle cx='92' cy='60' r='.8' opacity='.7'/%3E%3Ccircle cx='160' cy='18' r='1.3' opacity='.85'/%3E%3Ccircle cx='212' cy='84' r='.9' opacity='.7'/%3E%3Ccircle cx='54' cy='132' r='1.2' opacity='.8'/%3E%3Ccircle cx='130' cy='160' r='.7' opacity='.6'/%3E%3Ccircle cx='196' cy='196' r='1.1' opacity='.8'/%3E%3Ccircle cx='30' cy='236' r='.8' opacity='.65'/%3E%3Ccircle cx='104' cy='262' r='1.3' opacity='.85'/%3E%3Ccircle cx='176' cy='280' r='.8' opacity='.6'/%3E%3Cpath d='M140 96l1.2 3.6 3.6 1.2-3.6 1.2-1.2 3.6-1.2-3.6-3.6-1.2 3.6-1.2zM70 190l.9 2.7 2.7.9-2.7.9-.9 2.7-.9-2.7-2.7-.9 2.7-.9z' opacity='.9'/%3E%3C/g%3E%3C/svg%3E")
+		0 0 / 240px 300px repeat;
+}
+:root[data-world='snowlight'] .sky-aurora {
+	inset: -10% -30% 35%;
+	rotate: -9deg;
+	opacity: 0;
+	background:
+		radial-gradient(ellipse 44% 7% at 38% 44%, var(--sky-aurora), transparent 74%),
+		radial-gradient(ellipse 38% 6% at 60% 32%, var(--sky-aurora-2), transparent 74%),
+		radial-gradient(ellipse 34% 5% at 46% 58%, var(--sky-aurora), transparent 72%);
+}
+:root[data-world='snowlight'] .sky-snow {
+	top: -260px;
+	opacity: 0;
+	background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 260 260'%3E%3Cg fill='%23fff'%3E%3Ccircle cx='20' cy='30' r='2.4' opacity='.9'/%3E%3Ccircle cx='120' cy='12' r='1.6' opacity='.75'/%3E%3Ccircle cx='210' cy='56' r='2.8' opacity='.85'/%3E%3Ccircle cx='70' cy='96' r='1.8' opacity='.7'/%3E%3Ccircle cx='168' cy='130' r='2.2' opacity='.8'/%3E%3Ccircle cx='34' cy='170' r='3' opacity='.85'/%3E%3Ccircle cx='236' cy='186' r='1.6' opacity='.7'/%3E%3Ccircle cx='112' cy='210' r='2.6' opacity='.85'/%3E%3Ccircle cx='190' cy='246' r='1.8' opacity='.7'/%3E%3C/g%3E%3C/svg%3E")
+		0 0 / 260px 260px repeat;
+}
+:root[data-world='snowlight'] .sky-dawn {
+	opacity: 0;
+	background: linear-gradient(180deg, var(--sky-night) 0, var(--sky-dawn) 55%, var(--sky-dawn-low));
+}
+/* the candles stand only in the lanes, a pair every 220 px, never behind a word */
+:root[data-world='snowlight'] .sky-candles {
+	--candle-step: 220px;
+	bottom: -220px;
+	background:
+		url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 220'%3E%3Cdefs%3E%3CradialGradient id='g'%3E%3Cstop offset='0' stop-color='%23ffb43c' stop-opacity='.42'/%3E%3Cstop offset='1' stop-color='%23ffb43c' stop-opacity='0'/%3E%3C/radialGradient%3E%3CradialGradient id='f' cx='.5' cy='.66' r='.6'%3E%3Cstop offset='0' stop-color='%23fff3cf'/%3E%3Cstop offset='.4' stop-color='%23fff3cf'/%3E%3Cstop offset='1' stop-color='%23ffa630'/%3E%3C/radialGradient%3E%3C/defs%3E%3Cellipse cx='20' cy='176' rx='19' ry='17' fill='url(%23g)'/%3E%3Cellipse cx='20' cy='196' rx='17' ry='5' fill='%23eef3fa'/%3E%3Cpath d='M12 194l1.4-15h13.2l1.4 15z' fill='%23f4f8fd'/%3E%3Cpath d='M13.4 179h13.2v2.4H13.4z' fill='%23c9d8ec'/%3E%3Cellipse cx='20' cy='179' rx='6.6' ry='1.8' fill='%23f4963a'/%3E%3Cpath d='M20 166c2.6 3 3.8 6 3.8 8.4 0 2.4-1.7 4.2-3.8 4.2s-3.8-1.8-3.8-4.2c0-2.4 1.2-5.4 3.8-8.4z' fill='url(%23f)'/%3E%3C/svg%3E")
+			calc(var(--lane) / 2 - 10px) 0 / 20px 220px repeat-y,
+		url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 220'%3E%3Cdefs%3E%3CradialGradient id='g'%3E%3Cstop offset='0' stop-color='%23ffb43c' stop-opacity='.42'/%3E%3Cstop offset='1' stop-color='%23ffb43c' stop-opacity='0'/%3E%3C/radialGradient%3E%3CradialGradient id='f' cx='.5' cy='.66' r='.6'%3E%3Cstop offset='0' stop-color='%23fff3cf'/%3E%3Cstop offset='.4' stop-color='%23fff3cf'/%3E%3Cstop offset='1' stop-color='%23ffa630'/%3E%3C/radialGradient%3E%3C/defs%3E%3Cellipse cx='20' cy='176' rx='19' ry='17' fill='url(%23g)'/%3E%3Cellipse cx='20' cy='196' rx='17' ry='5' fill='%23eef3fa'/%3E%3Cpath d='M12 194l1.4-15h13.2l1.4 15z' fill='%23f4f8fd'/%3E%3Cpath d='M13.4 179h13.2v2.4H13.4z' fill='%23c9d8ec'/%3E%3Cellipse cx='20' cy='179' rx='6.6' ry='1.8' fill='%23f4963a'/%3E%3Cpath d='M20 166c2.6 3 3.8 6 3.8 8.4 0 2.4-1.7 4.2-3.8 4.2s-3.8-1.8-3.8-4.2c0-2.4 1.2-5.4 3.8-8.4z' fill='url(%23f)'/%3E%3C/svg%3E")
+			right calc(var(--lane) / 2 - 10px) top 110px / 20px 220px repeat-y;
+}
+@media (max-width: 599px) {
+	:root[data-world='snowlight'] .sky-candles {
+		background-size:
+			14px 154px,
+			14px 154px;
+		background-position:
+			1px 0,
+			right 1px top 77px;
+		bottom: -154px;
+		--candle-step: 154px;
+	}
+}
+
+/* the closing scene, after the footer: the sun comes up over snowy hills where candles still stand (no words over it,
+   so it may be bright); the sun rises as the scene scrolls in, and rests risen without motion */
+:root[data-world='snowlight'] .world-end {
+	position: relative;
+	height: clamp(220px, 46vh, 440px);
+	overflow: hidden;
+	pointer-events: none;
+	background: linear-gradient(180deg, transparent, var(--end-sky) 62%, var(--end-glow));
+	view-timeline: --snowlight-end block;
+	--end-sky: rgb(253 214 230 / 0.7);
+	--end-glow: rgb(255 228 190 / 0.9);
+	--end-sun: radial-gradient(circle, #fff6dc 0 16%, rgb(255 206 120 / 0.85) 18%, rgb(255 180 90 / 0.3) 42%, transparent 70%);
+	--end-hills: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 200' preserveAspectRatio='xMidYMax slice'%3E%3Cdefs%3E%3ClinearGradient id='a' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23dbe6f5'/%3E%3Cstop offset='1' stop-color='%23b9cbe6'/%3E%3C/linearGradient%3E%3ClinearGradient id='b' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23f7faff'/%3E%3Cstop offset='1' stop-color='%23dfe8f5'/%3E%3C/linearGradient%3E%3CradialGradient id='g'%3E%3Cstop offset='0' stop-color='%23ffb43c' stop-opacity='.45'/%3E%3Cstop offset='1' stop-color='%23ffb43c' stop-opacity='0'/%3E%3C/radialGradient%3E%3Cg id='c'%3E%3Cellipse cy='-6' rx='14' ry='12' fill='url(%23g)'/%3E%3Cpath d='M-4.6 4l.9-8.4h7.4l.9 8.4z' fill='%23f4f8fd'/%3E%3Cellipse cy='-4.4' rx='3.7' ry='1' fill='%23f4963a'/%3E%3Cpath d='M0-12c1.6 1.8 2.3 3.6 2.3 5 0 1.5-1 2.5-2.3 2.5s-2.3-1-2.3-2.5c0-1.4.7-3.2 2.3-5z' fill='%23ffd27a'/%3E%3C/g%3E%3C/defs%3E%3Cpath d='M0 120C60 96 130 84 200 94S320 120 400 104 540 70 640 92V200H0z' fill='url(%23a)'/%3E%3Cpath d='M0 150C80 130 170 124 250 134S400 158 470 146 580 124 640 132V200H0z' fill='url(%23b)'/%3E%3Cpath d='M0 176C110 166 220 170 330 178S530 184 640 172V200H0z' fill='%23ffffff'/%3E%3Cuse href='%23c' x='92' y='138'/%3E%3Cuse href='%23c' x='176' y='132'/%3E%3Cuse href='%23c' x='262' y='138'/%3E%3Cuse href='%23c' x='350' y='150'/%3E%3Cuse href='%23c' x='436' y='148'/%3E%3Cuse href='%23c' x='520' y='136'/%3E%3Cuse href='%23c' x='600' y='132'/%3E%3C/svg%3E");
+}
+:root[data-world='snowlight'] .world-end > i {
+	position: absolute;
+	left: 50%;
+	bottom: 18%;
+	width: min(300px, 70vw);
+	aspect-ratio: 1;
+	margin-left: calc(min(300px, 70vw) / -2);
+	border-radius: 50%;
+	background: var(--end-sun);
+}
+:root[data-world='snowlight'] .world-end::after {
+	content: '';
+	position: absolute;
+	inset: auto 0 0;
+	height: 62%;
+	background: var(--end-hills) center bottom / cover no-repeat;
+}
+@media (prefers-color-scheme: dark) {
+	:root[data-world='snowlight']:not([data-theme='light']) .world-end {
+		--end-sky: rgb(70 44 100 / 0.8);
+		--end-glow: rgb(170 96 120 / 0.85);
+		--end-sun: radial-gradient(circle, #ffe8c0 0 12%, rgb(255 190 120 / 0.6) 14%, rgb(255 160 110 / 0.18) 40%, transparent 66%);
+		--end-hills: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 200' preserveAspectRatio='xMidYMax slice'%3E%3Cdefs%3E%3ClinearGradient id='a' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%234a5f8f'/%3E%3Cstop offset='1' stop-color='%2334466f'/%3E%3C/linearGradient%3E%3ClinearGradient id='b' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%236d80ad'/%3E%3Cstop offset='1' stop-color='%2355699a'/%3E%3C/linearGradient%3E%3CradialGradient id='g'%3E%3Cstop offset='0' stop-color='%23ffb43c' stop-opacity='.45'/%3E%3Cstop offset='1' stop-color='%23ffb43c' stop-opacity='0'/%3E%3C/radialGradient%3E%3Cg id='c'%3E%3Cellipse cy='-6' rx='14' ry='12' fill='url(%23g)'/%3E%3Cpath d='M-4.6 4l.9-8.4h7.4l.9 8.4z' fill='%23f4f8fd'/%3E%3Cellipse cy='-4.4' rx='3.7' ry='1' fill='%23f4963a'/%3E%3Cpath d='M0-12c1.6 1.8 2.3 3.6 2.3 5 0 1.5-1 2.5-2.3 2.5s-2.3-1-2.3-2.5c0-1.4.7-3.2 2.3-5z' fill='%23ffd27a'/%3E%3C/g%3E%3C/defs%3E%3Cpath d='M0 120C60 96 130 84 200 94S320 120 400 104 540 70 640 92V200H0z' fill='url(%23a)'/%3E%3Cpath d='M0 150C80 130 170 124 250 134S400 158 470 146 580 124 640 132V200H0z' fill='url(%23b)'/%3E%3Cpath d='M0 176C110 166 220 170 330 178S530 184 640 172V200H0z' fill='%238d9fc8'/%3E%3Cuse href='%23c' x='92' y='138'/%3E%3Cuse href='%23c' x='176' y='132'/%3E%3Cuse href='%23c' x='262' y='138'/%3E%3Cuse href='%23c' x='350' y='150'/%3E%3Cuse href='%23c' x='436' y='148'/%3E%3Cuse href='%23c' x='520' y='136'/%3E%3Cuse href='%23c' x='600' y='132'/%3E%3C/svg%3E");
+	}
+}
+:root[data-world='snowlight'][data-theme='dark'] .world-end {
+	--end-sky: rgb(70 44 100 / 0.8);
+	--end-glow: rgb(170 96 120 / 0.85);
+	--end-sun: radial-gradient(circle, #ffe8c0 0 12%, rgb(255 190 120 / 0.6) 14%, rgb(255 160 110 / 0.18) 40%, transparent 66%);
+	--end-hills: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 200' preserveAspectRatio='xMidYMax slice'%3E%3Cdefs%3E%3ClinearGradient id='a' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%234a5f8f'/%3E%3Cstop offset='1' stop-color='%2334466f'/%3E%3C/linearGradient%3E%3ClinearGradient id='b' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%236d80ad'/%3E%3Cstop offset='1' stop-color='%2355699a'/%3E%3C/linearGradient%3E%3CradialGradient id='g'%3E%3Cstop offset='0' stop-color='%23ffb43c' stop-opacity='.45'/%3E%3Cstop offset='1' stop-color='%23ffb43c' stop-opacity='0'/%3E%3C/radialGradient%3E%3Cg id='c'%3E%3Cellipse cy='-6' rx='14' ry='12' fill='url(%23g)'/%3E%3Cpath d='M-4.6 4l.9-8.4h7.4l.9 8.4z' fill='%23f4f8fd'/%3E%3Cellipse cy='-4.4' rx='3.7' ry='1' fill='%23f4963a'/%3E%3Cpath d='M0-12c1.6 1.8 2.3 3.6 2.3 5 0 1.5-1 2.5-2.3 2.5s-2.3-1-2.3-2.5c0-1.4.7-3.2 2.3-5z' fill='%23ffd27a'/%3E%3C/g%3E%3C/defs%3E%3Cpath d='M0 120C60 96 130 84 200 94S320 120 400 104 540 70 640 92V200H0z' fill='url(%23a)'/%3E%3Cpath d='M0 150C80 130 170 124 250 134S400 158 470 146 580 124 640 132V200H0z' fill='url(%23b)'/%3E%3Cpath d='M0 176C110 166 220 170 330 178S530 184 640 172V200H0z' fill='%238d9fc8'/%3E%3Cuse href='%23c' x='92' y='138'/%3E%3Cuse href='%23c' x='176' y='132'/%3E%3Cuse href='%23c' x='262' y='138'/%3E%3Cuse href='%23c' x='350' y='150'/%3E%3Cuse href='%23c' x='436' y='148'/%3E%3Cuse href='%23c' x='520' y='136'/%3E%3Cuse href='%23c' x='600' y='132'/%3E%3C/svg%3E");
+}
+
+/* the scroll is the night passing: each layer comes and goes with how far down the page the reader is */
+@supports (animation-timeline: scroll()) {
+	@media (prefers-reduced-motion: no-preference) {
+		:root[data-world='snowlight'] .world-sky > i {
+			animation-duration: auto;
+			animation-timing-function: linear;
+			animation-fill-mode: both;
+			animation-timeline: scroll(root);
+		}
+		:root[data-world='snowlight'] .sky-night {
+			animation-name: snowlight-sky-night;
+		}
+		:root[data-world='snowlight'] .sky-stars {
+			animation-name: snowlight-sky-stars;
+		}
+		:root[data-world='snowlight'] .sky-aurora {
+			animation-name: snowlight-sky-aurora;
+		}
+		:root[data-world='snowlight'] .sky-snow {
+			animation-name: snowlight-sky-snowfall, snowlight-sky-snowy;
+			animation-iteration-count: 16, 1;
+			animation-timeline: scroll(root), scroll(root);
+		}
+		:root[data-world='snowlight'] .sky-dawn {
+			animation-name: snowlight-sky-dawn;
+		}
+		:root[data-world='snowlight'] .sky-candles {
+			animation-name: snowlight-sky-candles;
+			animation-iteration-count: 14;
+		}
+		:root[data-world='snowlight'] .world-end > i {
+			animation-name: snowlight-sunrise;
+			animation-duration: auto;
+			animation-timing-function: linear;
+			animation-fill-mode: both;
+			animation-timeline: --snowlight-end;
+			animation-range: entry 10% entry 100%;
+		}
+	}
+}
+@keyframes snowlight-sky-night {
+	0%,
+	4% {
+		opacity: 0;
+	}
+	20%,
+	78% {
+		opacity: 1;
+	}
+	94%,
+	100% {
+		opacity: 0;
+	}
+}
+@keyframes snowlight-sky-stars {
+	0%,
+	6% {
+		opacity: 0;
+		transform: none;
+	}
+	22%,
+	70% {
+		opacity: 1;
+	}
+	86%,
+	100% {
+		opacity: 0;
+		transform: translateY(-300px);
+	}
+}
+@keyframes snowlight-sky-aurora {
+	0%,
+	18% {
+		opacity: 0;
+		transform: translateX(-10%) skewX(-8deg);
+	}
+	34%,
+	50% {
+		opacity: 1;
+	}
+	64%,
+	100% {
+		opacity: 0;
+		transform: translateX(10%) skewX(8deg);
+	}
+}
+@keyframes snowlight-sky-snowfall {
+	to {
+		transform: translateY(260px);
+	}
+}
+@keyframes snowlight-sky-snowy {
+	0%,
+	44% {
+		opacity: 0;
+	}
+	54%,
+	78% {
+		opacity: 1;
+	}
+	90%,
+	100% {
+		opacity: 0;
+	}
+}
+@keyframes snowlight-sky-dawn {
+	0%,
+	80% {
+		opacity: 0;
+	}
+	96%,
+	100% {
+		opacity: 1;
+	}
+}
+@keyframes snowlight-sky-candles {
+	to {
+		transform: translateY(calc(-1 * var(--candle-step)));
+	}
+}
+@keyframes snowlight-sunrise {
+	from {
+		transform: translateY(46%) scale(0.92);
+	}
+	to {
+		transform: none;
+	}
 }

@@ -14,6 +14,7 @@ import { renderPNG } from './icons.mjs';
 import { rangeLabel } from './src/core/time.mjs';
 import { dayRoles, hotelsByDay, storeKey } from './src/core/plan.mjs';
 import { leadMotif } from './src/core/motif.mjs';
+import { splitArt } from './world-art.mjs';
 
 const argv = process.argv.slice(2);
 const arg = (name, fallback) => {
@@ -190,8 +191,21 @@ async function loadWorld(name) {
 	if (!/^[a-z][a-z0-9-]*$/.test(String(name)) || !fs.existsSync(`${base}.css`) || !fs.existsSync(`${base}.mjs`))
 		throw new Error(`pack theme ${JSON.stringify(name)}: no engine/src/themes/${name}.css and .mjs`);
 	const mod = await import(pathToFileURL(`${base}.mjs`).href);
-	return { name, css: fs.readFileSync(`${base}.css`, 'utf8'), paper: mod.paper, iconPaint: mod.iconPaint, iconMarks: mod.iconMarks || [] };
+	const backdrop = mod.backdrop || null;
+	if (backdrop && !(Array.isArray(backdrop.layers) && backdrop.layers.every((l) => /^[a-z]+$/.test(l))))
+		throw new Error(`engine/src/themes/${name}.mjs backdrop.layers: a list of lower-case names`);
+	return { name, css: fs.readFileSync(`${base}.css`, 'utf8'), paper: mod.paper, iconPaint: mod.iconPaint, iconMarks: mod.iconMarks || [], backdrop };
 }
+// a world's backdrop (ADR-20261121-world-motion): the sky behind the whole page, fixed layers the world's stylesheet
+// draws and ties to the scroll (one <i class="sky-<layer>"> each, in the order named), and a closing scene after the
+// footer. Decoration only (aria-hidden), and none of it for a page without a world or a world without one.
+const backdropHTML = (w) =>
+	w?.backdrop
+		? {
+				sky: `<div class="world-sky" aria-hidden="true">${w.backdrop.layers.map((l) => `<i class="sky-${l}"></i>`).join('')}</div>\n`,
+				end: w.backdrop.end ? `\n<div class="world-end" aria-hidden="true"><i></i></div>` : '',
+			}
+		: { sky: '', end: '' };
 // each part in its own scope (the country and the city may both define helpers); later parts override earlier ones
 const pack = `  const Pack = Object.freeze(Object.assign({}, ${packParts.map((p) => `(() => {\n${p.body}\n  return { ${p.names.join(', ')} };\n  })()`).join(', ')}));`;
 // the outside hosts a pack's code calls (its bike share's live counts…): the page may connect to them, nothing else of theirs
@@ -238,10 +252,13 @@ function contentSecurityPolicy(html) {
 const app = [appParts[0], ...core, pack, ...appParts.slice(1)].join('\n');
 const title = `${brand} ${ctx.TRIP.start.slice(0, 4)}`;
 const htmlEsc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+const backdrop = backdropHTML(world);
 const shell = shellSrc
 	.replace(/\{\{brand\}\}/g, htmlEsc(brand))
 	.replace(/\{\{dates\}\}/g, rangeLabel(ctx.TRIP.start, ctx.TRIP.end, 'zh'))
-	.replace(/\{\{storeKey\}\}/g, () => JSON.stringify(storeKey(ctx.TRIP)).replace(/</g, '\\u003c'));
+	.replace(/\{\{storeKey\}\}/g, () => JSON.stringify(storeKey(ctx.TRIP)).replace(/</g, '\\u003c'))
+	.replace('<header class="bar" id="bar">', () => `${backdrop.sky}<header class="bar" id="bar">`)
+	.replace('<footer class="foot" id="foot"></footer>', () => `<footer class="foot" id="foot"></footer>${backdrop.end}`);
 const brush = new Set([brand, '定', ...ctx.DAYS.map((d) => d.wish), ctx.PRINCIPLE.wish].join('').replace(/\s/g, ''));
 const brushFont = ctx.TRIP.brushFont || 'Ma Shan Zheng';
 if (!/^[A-Za-z0-9 ]+$/.test(brushFont)) throw new Error(`TRIP.brushFont: a Google Fonts family name, got ${JSON.stringify(brushFont)}`);
@@ -310,21 +327,28 @@ const iconURL = (n) => {
 const APP_ICONS = { 192: iconURL(192), 512: iconURL(512) };
 // the world's illustrations (engine/src/themes/<world>-art/<motif>.svg, and hero.svg for the overview): only the ones this
 // trip's days use go in, each as an image, so their ids never meet on the page. A world without the folder adds nothing.
-const WORLD_ART = (() => {
-	if (!world) return null;
+// A drawing's moving parts (<g data-actor>, ADR-20261121-world-motion) go in as images of their own, with the box the
+// page lays each one at (engine/world-art.mjs); the rest of the drawing is the picture under them.
+const svgURL = (svg) => `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
+const { WORLD_ART, WORLD_ACTORS } = (() => {
+	const none = { WORLD_ART: null, WORLD_ACTORS: null };
+	if (!world) return none;
 	const dir = path.join(engine, 'src', 'themes', `${world.name}-art`);
-	if (!fs.existsSync(dir)) return null;
+	if (!fs.existsSync(dir)) return none;
 	const want = new Set(['hero', ...ctx.DAYS.map((d) => d.motif).filter(Boolean)]);
 	const art = {};
+	const actors = {};
 	for (const name of want) {
 		const f = path.join(dir, `${name}.svg`);
 		if (!/^[a-z]+$/.test(name) || !fs.existsSync(f)) continue;
 		const svg = fs.readFileSync(f, 'utf8');
 		if (/<script|<foreignObject|<image|on[a-z]+=|href="(?!#)|url\((?!#)/i.test(svg))
 			throw new Error(`${path.relative(path.join(engine, '..'), f)}: a world's art is plain SVG: no script, image, handler or outside link`);
-		art[name] = `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
+		const { base, actors: parts } = splitArt(svg);
+		art[name] = svgURL(base);
+		if (parts.length) actors[name] = parts.map((a) => ({ part: a.part, src: svgURL(a.svg), box: a.box }));
 	}
-	return Object.keys(art).length ? art : null;
+	return Object.keys(art).length ? { WORLD_ART: art, WORLD_ACTORS: Object.keys(actors).length ? actors : null } : none;
 })();
 const head = `<title>${htmlEsc(title)}</title>
 <meta name="description" content="${htmlEsc(description)}">
@@ -339,7 +363,7 @@ const worldCSS = world ? world.css : '';
 const scripts = (
 	imgMap,
 	kmlB64,
-) => `<script>window.CREDITS=${safe(credits)};window.GEO=${safe(geo)};window.EXTRA=${safe(extra)};window.WISH=${safe(wish)};window.SHARE_URL=${safe(shareUrl)};window.APP_ICONS=${safe(APP_ICONS)};${WORLD_ART ? `window.WORLD_ART=${safe(WORLD_ART)};` : ''}window.GMAPS=${safe(gmaps)};window.SYNC=${safe(sync)};window.DEMO_CLOCK=${safe(demoClock)};window.FORECAST=${safe(forecast)};window.DRINKS=${safe(drinks)};window.TOILETS=${safe(toilets)};window.MRT=${safe(mrt)};window.YB=${safe(transit.yb)};window.BUS=${safe(transit.bus)};window.SHOPS=${safe(shops)};window.KML_B64=${safe(kmlB64 || '')};${imgMap ? `window.IMG=${imgMap ? 'null' : 'null'};` : ''}</script>
+) => `<script>window.CREDITS=${safe(credits)};window.GEO=${safe(geo)};window.EXTRA=${safe(extra)};window.WISH=${safe(wish)};window.SHARE_URL=${safe(shareUrl)};window.APP_ICONS=${safe(APP_ICONS)};${WORLD_ART ? `window.WORLD_ART=${safe(WORLD_ART)};` : ''}${WORLD_ACTORS ? `window.WORLD_ACTORS=${safe(WORLD_ACTORS)};` : ''}window.GMAPS=${safe(gmaps)};window.SYNC=${safe(sync)};window.DEMO_CLOCK=${safe(demoClock)};window.FORECAST=${safe(forecast)};window.DRINKS=${safe(drinks)};window.TOILETS=${safe(toilets)};window.MRT=${safe(mrt)};window.YB=${safe(transit.yb)};window.BUS=${safe(transit.bus)};window.SHOPS=${safe(shops)};window.KML_B64=${safe(kmlB64 || '')};${imgMap ? `window.IMG=${imgMap ? 'null' : 'null'};` : ''}</script>
 <script>${data}</script>
 <script>${app}</script>`;
 

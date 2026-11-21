@@ -5,11 +5,20 @@ const lanternMark = (c) =>
 // activity mark (DAYS[i].motif, else a plain candle) on its colour
 const dayMark = (d) => (Pack.theme ? `<span class="day-mark">${Motif.svg(d.motif) || Motif.candle}</span>` : lanternMark(d.c));
 // the day's activity mark and its name, on the day's panel; nothing for a day without one
-/** a world's picture for a day's activity, or for the overview ('hero'); decorative, so hidden from screen readers */
-const worldArt = (name, cls) =>
-	Object.hasOwn(WORLD_ART, name)
-		? `<div class="${cls}" aria-hidden="true"><img src="${WORLD_ART[name]}" alt="" decoding="async"${cls === 'day-art' ? ' loading="lazy"' : ''}></div>`
-		: '';
+/** a world's picture for a day's activity, or for the overview ('hero'); decorative, so hidden from screen readers. Its
+ *  moving parts (ADR-20261121-world-motion) lie over it at their own boxes; the world's stylesheet moves them while the
+ *  picture is in view (observeArt) and never under reduced motion, so at rest the picture is the whole drawing. */
+const worldArt = (name, cls) => {
+	if (!Object.hasOwn(WORLD_ART, name)) return '';
+	const lazy = cls === 'day-art' ? ' loading="lazy"' : '';
+	const actors = (Object.hasOwn(WORLD_ACTORS, name) ? WORLD_ACTORS[name] : [])
+		.map(
+			(a) =>
+				`<img class="art-actor" data-actor="${esc(`${name}-${a.part}`)}" src="${a.src}" alt="" decoding="async"${lazy} style="left:${a.box[0]}%;top:${a.box[1]}%;width:${a.box[2]}%;height:${a.box[3]}%">`,
+		)
+		.join('');
+	return `<div class="${cls}" data-art="${esc(name)}" aria-hidden="true"><img src="${WORLD_ART[name]}" alt="" decoding="async"${lazy}>${actors}</div>`;
+};
 const motifTag = (d) => (Motif.svg(d.motif) ? `<span class="l-motif">${Motif.svg(d.motif)}${esc(L(Motif.MARKS[d.motif].name))}</span>` : '');
 const seal = () => `<span class="seal"><b aria-hidden="true">定</b>${Z('固定时间', 'Fixed time')}</span>`;
 const list = (items, cls = 'list') => `<ul class="${cls}">${items.map((x) => `<li>${fmt(x)}</li>`).join('')}</ul>`;

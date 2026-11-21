@@ -131,5 +131,6 @@ function render() {
 	measureBar();
 	observeSections();
 	observeLanterns();
+	observeArt();
 	if (searchState.q && !$('#search-row').hidden) runSearch(searchState.q); // closed search re-runs on open; no need to build every lazy list now
 }

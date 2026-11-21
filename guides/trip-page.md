@@ -94,14 +94,31 @@ two of them seniors.
 Some destinations dress the page in a look of their own, so it feels like the place. Everything works and reads the
 same; only the colours and the drawings change. Without one, the page is the sky lanterns shown in the demo.
 
-- **Snow Light Path** (Sapporo and Otaru): snow-white pages that turn into a navy snowy night in dark mode. Each day is
-  a frosted snow card with a drift along its foot, in one of seven winter colours. The timeline is a footpath in the
-  snow with a small candle at each stop; a fixed time is an ice crystal. The stop the group is on now has its candle lit
-  (it flickers gently, unless the phone asks for less motion). The first time a phone opens the trip, a little snow
-  falls once over the countdown.
+- **Snow Light Path** (Sapporo and Otaru): snow-white pages that turn into a navy snowy night in dark mode, made like
+  a sticker book. Each day is a round frosted snow card with a drift along its foot, in one of seven candy colours
+  (soda blue, strawberry, melon, grape, cocoa, lagoon, matcha) that also tint its chips and its row in the week. The
+  day's activity mark, the day's number on the Now card and the Today flag are die-cut stickers (a white edge, a soft
+  shadow, a little tilt); a penguin sticker sits on the Now card's corner, a sticker (snow bunny, mitten, heart or
+  penguin) stands in each day's drift, and each day's picture is taped in with washi tape in the day's colour. None of
+  them covers a word or a button. The timeline is a footpath in the snow with a small candle at each stop; a fixed time
+  is an ice crystal. The stop the group is on now has its candle lit (it flickers gently, unless the phone asks for
+  less motion). The first time a phone opens the trip, a little snow falls once over the countdown.
+- **The sky behind the page:** in Snow Light Path, scrolling down the trip is a night passing behind the cards: dusk at
+  the top, a starry night with a faint aurora, falling snow, then dawn, with small candles standing along both edges.
+  At the very end the sun comes up over snowy hills. It moves only as you scroll, never by itself, stays pale by day
+  and dark at night so every word stays as readable as on plain paper, and is a calm, still night when the phone asks
+  for less motion.
 - **Pictures of the day:** in a look that has them (Snow Light Path does), each day card opens with a drawing of its
-  activity (`DAYS[i].motif`: snowboarding, the onsen, the penguins…), and the overview opens with a snowy scene above
-  Now and Next. A day with no mark, or a mark the look hasn't drawn, has no picture.
+  activity (`DAYS[i].motif`: snowboarding, the onsen, the penguins, a road trip…), and the overview opens with a snowy
+  scene above Now and Next. A day with no mark, or a mark the look hasn't drawn, has no picture. On a phone the scene
+  is a strip, and on a trip day a slim ribbon, so Now and Next and their buttons fit the first screen.
+- **The pictures move, each its own way:** while a picture is on screen, steam rolls off the onsen as rings spread on
+  its water, steam curls off the noodles, the van on a road-trip day drives past the snow poles, the penguins waddle,
+  the rider and the skier lean through their turn, the wave throws its spray, the train glides in, waits and pulls away,
+  the plane flies on past the clouds, someone strolls off down the canal path in the town, the shopper hops at the
+  window, and in snow country the lone spruce sways as snow blows off it in a heavy, windy snowfall. It all stays
+  inside the picture, never behind the words, stops once the picture is scrolled away, and holds still when the phone
+  asks for less motion.
 - **Its own icon:** the browser tab, the bar's colour and the home-screen icon (a candle in the snow under a night sky)
   follow the look, unless the trip has its own `img/icon/`. When most of the days carry an activity the look can draw
   (Snow Light Path draws a snowboarder carving through powder), it takes the middle and the candle stands small beside it.
@@ -331,31 +348,32 @@ the same spot.
 Everything above that isn't listed here is on every page. The fields are in
 [`trip-format.md`](../memory-bank/standards/trip-format.md); ask your agent, with the `trip-customize` skill.
 
-| Part                                                         | Turned on by                                                                                                                                                           |
-| ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Google's map, ratings, photos, hours, Google search          | building with your own key (`pnpm build … --keys`, [the guide](google-maps.md))                                                                                        |
-| Group sync, names, planners, Recently removed                | `sync-setup`, then building with `--sync`                                                                                                                              |
-| Positions, hours, route legs, food, drinks, toilets          | the data refresh (`data-sync`)                                                                                                                                         |
-| The map and its pins                                         | `geo.json` (from the data refresh)                                                                                                                                     |
-| The forecast                                                 | the data refresh, for trip days within 16 days (`forecast_spots`, `forecastSpot`)                                                                                      |
-| Today's route                                                | `DAYS[i].route`, with the legs from the data refresh                                                                                                                   |
-| Tickets and how to book                                      | `DAYS[i].tickets`, and `extra.json` `tickets`                                                                                                                          |
-| Where to eat, meal chips                                     | `DAYS[i].foodSlots` and `mealAt`, and `extra.json` `food`                                                                                                              |
-| Day cards (decide, rain, budget, wear…)                      | `DAYS[i].blocks`                                                                                                                                                       |
-| Tax refund tag and rules                                     | the country pack (`TRIP.destination`), `shops.json`, and `TAX`                                                                                                         |
-| Lucky draw, drink guide                                      | the country pack, and `ENTRY.lucky` for the draw                                                                                                                       |
-| Metro name, transit card, taxi meter, bike share, toilet tip | the city pack (`TRIP.region`); the transit card also `AIRPORT.transitCard` / `MONEY.transitCard`                                                                       |
-| The local words, one tap to copy                             | the country pack's `native`, with each place's `trad` and `roma` (a stop's own `native`, `roma`; a food, drink or wishlist entry's `name_trad`, `name_roma`)           |
-| The destination's own look, its icon and bar colour          | the city pack's `theme` (Sapporo: Snow Light Path), from `TRIP.destination` and `TRIP.region`; the icon only when the trip has no `img/icon/`                          |
-| The day's activity mark, its picture, and the icon's         | `DAYS[i].motif` (one of the names in `trip-format.md`); the picture when the look has drawn that mark; the icon shows the one on the most days, when the look draws it |
-| The offline transit planner, station pins                    | the city's metro data (`mrt.json`, from the data refresh)                                                                                                              |
-| Fixed times, flight-tied times                               | `fixed: true`, `rel` on a stop                                                                                                                                         |
-| A day that splits                                            | `DAYS[i].split`                                                                                                                                                        |
-| Optional plans, and their chips at stops                     | `OPTIONAL` (and `near`)                                                                                                                                                |
-| Shop lists                                                   | `SHOPLISTS`                                                                                                                                                            |
-| The wishlist, and its suggestions                            | `wish-a.json` / `wish-b.json`, and `freeEvening` / `freeFrom` on a day                                                                                                 |
-| The shop box                                                 | `shops: true` on a stop, and `shops.json`                                                                                                                              |
-| Shared checklist groups                                      | `shared: true` on a `CHECKLIST` group, with group sync                                                                                                                 |
-| A hotel per night                                            | `DAYS[i].hotel`                                                                                                                                                        |
-| Photos, the home-screen icon                                 | `img/` with `img/credits.json`, and `img/icon/` (by hand, `pipeline/README.md`)                                                                                        |
-| Copy link and share links pointing at the live page          | the `SHARE_URL` environment variable at build                                                                                                                          |
+| Part                                                         | Turned on by                                                                                                                                                                                                                             |
+| ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Google's map, ratings, photos, hours, Google search          | building with your own key (`pnpm build … --keys`, [the guide](google-maps.md))                                                                                                                                                          |
+| Group sync, names, planners, Recently removed                | `sync-setup`, then building with `--sync`                                                                                                                                                                                                |
+| Positions, hours, route legs, food, drinks, toilets          | the data refresh (`data-sync`)                                                                                                                                                                                                           |
+| The map and its pins                                         | `geo.json` (from the data refresh)                                                                                                                                                                                                       |
+| The forecast                                                 | the data refresh, for trip days within 16 days (`forecast_spots`, `forecastSpot`)                                                                                                                                                        |
+| Today's route                                                | `DAYS[i].route`, with the legs from the data refresh                                                                                                                                                                                     |
+| Tickets and how to book                                      | `DAYS[i].tickets`, and `extra.json` `tickets`                                                                                                                                                                                            |
+| Where to eat, meal chips                                     | `DAYS[i].foodSlots` and `mealAt`, and `extra.json` `food`                                                                                                                                                                                |
+| Day cards (decide, rain, budget, wear…)                      | `DAYS[i].blocks`                                                                                                                                                                                                                         |
+| Tax refund tag and rules                                     | the country pack (`TRIP.destination`), `shops.json`, and `TAX`                                                                                                                                                                           |
+| Lucky draw, drink guide                                      | the country pack, and `ENTRY.lucky` for the draw                                                                                                                                                                                         |
+| Metro name, transit card, taxi meter, bike share, toilet tip | the city pack (`TRIP.region`); the transit card also `AIRPORT.transitCard` / `MONEY.transitCard`                                                                                                                                         |
+| The local words, one tap to copy                             | the country pack's `native`, with each place's `trad` and `roma` (a stop's own `native`, `roma`; a food, drink or wishlist entry's `name_trad`, `name_roma`)                                                                             |
+| The destination's own look, its icon and bar colour          | the city pack's `theme` (Sapporo: Snow Light Path), from `TRIP.destination` and `TRIP.region`; the icon only when the trip has no `img/icon/`                                                                                            |
+| The sky behind the page and the sunrise at its end           | the look (Snow Light Path draws one); it follows the scroll where the browser can, and holds a still night with less motion asked for                                                                                                    |
+| The day's activity mark, its picture, and the icon's         | `DAYS[i].motif` (one of the names in `trip-format.md`); the picture when the look has drawn that mark, moving when the look moves it (never with less motion asked for); the icon shows the one on the most days, when the look draws it |
+| The offline transit planner, station pins                    | the city's metro data (`mrt.json`, from the data refresh)                                                                                                                                                                                |
+| Fixed times, flight-tied times                               | `fixed: true`, `rel` on a stop                                                                                                                                                                                                           |
+| A day that splits                                            | `DAYS[i].split`                                                                                                                                                                                                                          |
+| Optional plans, and their chips at stops                     | `OPTIONAL` (and `near`)                                                                                                                                                                                                                  |
+| Shop lists                                                   | `SHOPLISTS`                                                                                                                                                                                                                              |
+| The wishlist, and its suggestions                            | `wish-a.json` / `wish-b.json`, and `freeEvening` / `freeFrom` on a day                                                                                                                                                                   |
+| The shop box                                                 | `shops: true` on a stop, and `shops.json`                                                                                                                                                                                                |
+| Shared checklist groups                                      | `shared: true` on a `CHECKLIST` group, with group sync                                                                                                                                                                                   |
+| A hotel per night                                            | `DAYS[i].hotel`                                                                                                                                                                                                                          |
+| Photos, the home-screen icon                                 | `img/` with `img/credits.json`, and `img/icon/` (by hand, `pipeline/README.md`)                                                                                                                                                          |
+| Copy link and share links pointing at the live page          | the `SHARE_URL` environment variable at build                                                                                                                                                                                            |

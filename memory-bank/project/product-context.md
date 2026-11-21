@@ -88,7 +88,11 @@ planners, is in [`guides/trip-page.md`](../../guides/trip-page.md).
 - **The destination's own look:** a pack may dress the page in its world (Sapporo: Snow Light Path), with its own
   colours, drawings, browser-bar colour and home-screen icon, while everything the group operates stays the same; each
   day can show an activity mark the planner picks. Day colours stay at 4.5:1 for their text and 3:1 on the page in both
-  themes, and motion never runs behind what people read (ADR-20261117-destination-themes).
+  themes, and motion never runs behind what people read (ADR-20261117-destination-themes). A world's pictures may move
+  (each activity its own way: steam, a van on the road, penguins waddling), only inside the picture, only while it's on
+  screen, and never under reduced motion; its sky behind the page follows the scroll alone and keeps every word at
+  4.5:1; its stickers never cover a word or a tap; on a phone the overview's scene never pushes Now and Next off the
+  first screen (ADR-20261121-world-motion, ADR-20261121-world-stickers).
 - **Destination info:** a checklist (groups marked shared tick for everyone with group sync), weather, tax refund with
   minimum spend, airport transfer options decided on the day, a shopping box, a free-day time budget worked back from
   the flight.
