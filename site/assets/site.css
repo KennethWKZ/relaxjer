@@ -769,11 +769,19 @@ svg.i {
 	transform: rotate(-6deg);
 	z-index: 1;
 }
+/* the sky's own colour is the night at its top, where the caption sits; the dusk glow is a layer under the art and the
+   caption, so a contrast check reads the colour really behind the words, not the glow's first stop under the hills */
 .sky {
 	position: relative;
 	height: 100%;
 	border-radius: 3px;
 	overflow: hidden;
+	background: #121a33;
+}
+.sky::before {
+	content: '';
+	position: absolute;
+	inset: 0;
 	background: radial-gradient(120% 90% at 50% 120%, #f6a35c 0%, #c24a4a 30%, #3c2a63 62%, #121a33 100%);
 }
 .sky .hills {
@@ -5564,6 +5572,9 @@ thead th.rec {
 
 /* the postcard's front in Snow: a snowy night with candles in the snow, and its caption 札幌 */
 :root[data-world='snow'] .pc-front .sky {
+	background: #08111f;
+}
+:root[data-world='snow'] .pc-front .sky::before {
 	background: radial-gradient(120% 90% at 50% 120%, #2c4f7e 0%, #18305a 38%, #0e1d38 70%, #08111f 100%);
 }
 .snow-art {

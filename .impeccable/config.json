@@ -119,6 +119,15 @@
         "value": "hiragino sans",
         "createdAt": "2026-11-22T04:04:41.114Z",
         "reason": "the :lang(ja) stack in engine/src/style.css draws Japanese text with Japanese system fonts (comment above it); DESIGN.md's stack leads with Chinese fonts, which draw shared kanji the Chinese way"
+      },
+      {
+        "rule": "radial-halo",
+        "value": "*",
+        "files": [
+          "site/index.html"
+        ],
+        "createdAt": "2026-11-22T10:34:04.808Z",
+        "reason": "the hero's drawn sun (.sun): a sun in a daytime sky, not a glow on a dark page. The detector reads the page as dark from the postcard sky's solid night base (site.css .sky), which is there so the contrast check reads the colour really behind its caption"
       }
     ]
   }
