@@ -10,6 +10,7 @@ const TRIP = {
 	start: '2027-02-06',
 	end: '2027-02-10',
 	brand: '札幌示范行', // brush lettering, page title, home-screen name
+	brandShort: '札幌行', // the header's name on a phone too narrow for the whole brand
 	description: '示范：六人札幌五天 · Demo: five days in Sapporo for 6',
 	pax: 6, // party size: every "for 6" figure also shows a share each
 	tz: 'Asia/Tokyo', // the destination's clock, whatever the phone says

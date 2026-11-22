@@ -25,7 +25,8 @@ two of them seniors.
 
 ## Finding your way
 
-- **The header** stays on screen: the trip's name (in brush lettering) and dates, Search, the theme button (light,
+- **The header** stays on screen: the trip's name (in brush lettering; on a phone too narrow for all of it, the trip's
+  short name) and dates, Search, the theme button (light,
   dark, or follow the phone, with a toast saying which), the currency button, the language button (it names the other
   language, and keeps your place; the browser tab's title switches with it, and in English the brush name is read out
   and shown on hover by the trip's English name), and Install.
@@ -145,7 +146,7 @@ same; only the colours and the drawings change. Without one, the page is the sky
     then swirls and settles in about five seconds. Nothing reads the phone's motion.
   - **Snow piles:** snow drifts onto the date tabs and the band's foot; tap a tab and its snow falls off.
 
-  The pause button in the header (at the end of the date tabs on a phone) stops the snow, and the phone remembers it. When the phone asks for less motion the
+  The pause button in the header stops the snow, and the phone remembers it. When the phone asks for less motion the
   sky holds still and the button goes; while the page is hidden nothing moves. On a phone the sky fills the header and
   the band, behind the words; on a computer it's behind the whole page, the snow falling in the margins. With the sky
   off, the page keeps the still backdrop below.
@@ -422,6 +423,7 @@ Everything above that isn't listed here is on every page. The fields are in
 
 | Part                                                                            | Turned on by                                                                                                                                                                                                                             |
 | ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A short name in a narrow phone's header (instead of the long one cut with …)    | `TRIP.brandShort`                                                                                                                                                                                                                        |
 | Google's map, ratings, photos, hours, Google search                             | building with your own key (`pnpm build … --keys`, [the guide](google-maps.md))                                                                                                                                                          |
 | Rating & photos on stops and cards, Google results in the finder                | building with your own key; Google searches lean to `TRIP.destination` and answer in the country pack's `googleZh` when the page reads Chinese                                                                                           |
 | The place finder, place details, the add sheet's look first                     | on every page with `geo.json`; the best day reads the days' stops, their times, `freeFrom`, and the place's hours and `closed_dates` from the data refresh                                                                               |

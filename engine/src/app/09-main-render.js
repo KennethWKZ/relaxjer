@@ -62,6 +62,25 @@ function demoStrip() {
 	el.innerHTML = `<span>${esc(Z(`示范行程：时钟从 ${when}（当地时间）开始走。`, `Demo trip: its clock starts at ${when}, local time, and runs on.`))}</span><a href="../">${Z('回到 RelaxJer', 'Back to RelaxJer')}</a>`;
 }
 
+// the header's brand: the whole name when it fits beside the buttons, else the trip's short name (TRIP.brandShort), so a
+// phone with Install, the sky's pause, search, the currency and the language shows a whole word, not "北海道雪…".
+// Without a short name the long one is cut with an ellipsis, as before. Checked again whenever the header's room changes
+function brandFit() {
+	const n = $('.brand-name');
+	const full = n && $('.bn-full', n);
+	const short = n && $('.bn-short', n);
+	if (!short || short.textContent === full.textContent) return;
+	full.hidden = false;
+	short.hidden = true;
+	if (n.scrollWidth > n.clientWidth + 1) {
+		full.hidden = true;
+		short.hidden = false;
+	}
+}
+// on the next frame: swapping the name inside the observer's own callback resizes what it watches, which WebKit reports
+// as a loop error
+if (window.ResizeObserver) new ResizeObserver(() => requestAnimationFrame(brandFit)).observe($('a.brand'));
+
 function render() {
 	applyFlights();
 	applyShifts();
@@ -93,6 +112,7 @@ function render() {
 	const tripName = lang === 'en' && Array.isArray(TRIP.name) && TRIP.name[1] ? TRIP.name[1] : BRAND;
 	document.title = `${tripName} ${TRIP.start.slice(0, 4)}`;
 	const mark = $('a.brand');
+	brandFit();
 	mark.setAttribute('aria-label', tripName);
 	if (tripName === BRAND) mark.removeAttribute('title');
 	else mark.title = tripName;

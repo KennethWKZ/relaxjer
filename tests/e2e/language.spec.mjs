@@ -25,7 +25,7 @@ test("the tab's title and the header's name follow the language", async ({ page 
 	await switchLang(page, 'en');
 	await expect(page).toHaveTitle(`${trip.en} ${trip.year}`);
 	await expect(page.locator('a.brand'), 'the brush mark stays, named in English').toHaveAccessibleName(trip.en);
-	await expect(page.locator('a.brand .brand-name')).toHaveText(trip.brand);
+	await expect(page.locator('a.brand .bn-full')).toHaveText(trip.brand);
 	await switchLang(page, 'zh');
 	await expect(page).toHaveTitle(`${trip.brand} ${trip.year}`);
 	await expect(page.locator('a.brand')).toHaveAccessibleName(trip.brand);

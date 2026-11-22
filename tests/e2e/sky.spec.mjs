@@ -82,6 +82,22 @@ test("the sky's colour follows the view's weather and day, and stops while the p
 	await expect(page.locator('html')).toHaveAttribute('data-snowing', '1');
 });
 
+// the pause sits in the header's top row at every width; the trip's name makes the room: whole when it fits, else
+// the trip's short name (TRIP.brandShort), never a name cut off with …
+test("the pause stays in the header's top row, and the trip's name beside it is never cut", async ({ page }) => {
+	await open(page, PAGE.live);
+	await expect(page.locator(`#bar-main ${VIEWS.skyBtn}`)).toBeVisible();
+	const name = await page.locator('.brand-name').evaluate((e) => ({
+		cut: e.scrollWidth > e.clientWidth + 1,
+		shown: [...e.children].filter((c) => !c.hidden).map((c) => c.className),
+		short: e.querySelector('.bn-short').textContent !== e.querySelector('.bn-full').textContent,
+	}));
+	expect(name.shown).toHaveLength(1);
+	if (page.viewportSize().width >= 1024) expect(name.shown, 'a desktop has room for the whole brand').toEqual(['bn-full']);
+	// a trip without a short name keeps the old way, its brand cut with …
+	if (name.short) expect(name.cut, 'the name shown is whole').toBe(false);
+});
+
 test('the snow globe: Shake whirls the snow up, and it settles in about five seconds', async ({ page }) => {
 	await open(page, PAGE.globe);
 	const shake = page.locator(`#top ${VIEWS.shake}`);

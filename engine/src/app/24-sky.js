@@ -50,19 +50,6 @@ function skyBtnSync() {
 	b.querySelector('use').setAttribute('href', paused ? '#i-play' : '#i-pause');
 }
 const skyPaused = () => (LOOK.snow != null ? !LOOK.snow : !!store.get('skyPaused', false));
-// where the pause sits: at the end of the date tabs on a phone and a tablet, so the trip's name keeps its room beside
-// Install, search, the currency and the language; beside search on a desktop, which has no tabs
-const skyDesk = matchMedia('(min-width: 1024px)');
-function skyBtnHome() {
-	const b = $('#skyBtn');
-	const row = $('#tabsRow');
-	if (!b || !row) return;
-	if (skyDesk.matches) {
-		if (b.parentElement !== $('#bar-main')) $('#searchBtn').before(b);
-	} else if (b.parentElement !== row) row.append(b);
-}
-skyDesk.addEventListener('change', skyBtnHome);
-skyBtnHome();
 /** the other views' band of sky (the overview and the days draw their own): the view's title moves into it, with
  *  today's weather under it during the trip */
 function skyBands() {

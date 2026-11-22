@@ -89,6 +89,11 @@ export function checkTrip(trip) {
 		}
 	}
 	// the live sky (ADR-20261122-day-views): one of the engine's skies; a world without one ignores it
+	if (
+		TRIP.brandShort != null &&
+		!(typeof TRIP.brandShort === 'string' && TRIP.brandShort.trim() && TRIP.brandShort.length < String(TRIP.brand).length)
+	)
+		bad(`TRIP.brandShort must be a shorter name than TRIP.brand`);
 	if (TRIP.sky != null && !SKIES.includes(TRIP.sky)) bad(`TRIP.sky ${JSON.stringify(TRIP.sky)} must be one of ${SKIES.join('|')}`);
 	for (const v of TRIP.mapViews || [])
 		if (!v.id || !Array.isArray(v.name) || !(Array.isArray(v.bbox) && v.bbox.length === 4))
