@@ -113,6 +113,12 @@
         ],
         "createdAt": "2026-10-02T10:49:50.114Z",
         "reason": "the 6px band of airmail chevrons along the top of each card back and the packing sheet (DESIGN.md § Surface: the landing page, Postcards); an envelope edge, not a card accent"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "hiragino sans",
+        "createdAt": "2026-11-22T04:04:41.114Z",
+        "reason": "the :lang(ja) stack in engine/src/style.css draws Japanese text with Japanese system fonts (comment above it); DESIGN.md's stack leads with Chinese fonts, which draw shared kanji the Chinese way"
       }
     ]
   }
