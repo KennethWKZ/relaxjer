@@ -258,7 +258,8 @@ const skyFx = (() => {
 			})
 			.filter((s) => s.top > 0 && s.top < innerHeight);
 	}
-	function step(dt) {
+	/** dt: this frame's motion step (capped, so a slow frame never throws the flakes far); real: the time that passed */
+	function step(dt, real) {
 		st.t += dt;
 		const g = (G = geom());
 		const P = fall();
@@ -347,8 +348,8 @@ const skyFx = (() => {
 			}
 		}
 		if (flakes.some((f) => f.dead)) flakes = flakes.filter((f) => !f.dead);
-		// a shake settles over about five seconds (core/sky.mjs SETTLE)
-		st.energy = e * Math.exp(-dt / Sky.TAU);
+		// a shake settles over about five seconds of real time (core/sky.mjs SETTLE), even when frames come slowly
+		st.energy = e * Math.exp(-real / Sky.TAU);
 		if (st.energy < 0.01) st.energy = 0;
 		smoothT += dt;
 		if (smoothT > 0.35) {
@@ -461,10 +462,11 @@ const skyFx = (() => {
 			skip = !skip;
 			if (skip) return;
 		}
-		const dt = last ? Math.min(half ? 0.07 : 0.05, (now - last) / 1000) : 1 / 60;
+		const real = last ? Math.min(0.5, (now - last) / 1000) : 1 / 60;
+		const dt = Math.min(half ? 0.07 : 0.05, real);
 		last = now;
 		const t0 = performance.now();
-		step(dt);
+		step(dt, real);
 		draw();
 		work = work * 0.95 + (performance.now() - t0) * 0.05;
 		if (!half && work > 9) half = true; // an older phone: 30 frames a second
