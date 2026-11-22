@@ -49,6 +49,17 @@ they link here.
   `check_in=YYYY-MM-DD&check_out=YYYY-MM-DD&adults=4`. Agoda's room list sometimes doesn't load for an agent: mark it
   `unconfirmed`, don't guess.
 - **Ratings with their scale and count** (9.2/10 from 25 reviews). A new listing with no reviews says so.
+- **A separate test browser for public booking pages.** Check prices and availability in the agent's own headless
+  browser (agent-browser, a fixed session name per run), not the planner's everyday one: Booking.com property pages
+  stalled the planner's browser after about four pages. Keep the planner's signed-in browser for what only it can
+  see: their saved wishlists, member prices, and sites that refuse a headless browser.
+- **Know what each site keeps from the address.** Headless, Booking.com dropped the dates from the address and asked
+  for them again, so its result was for no dates at all; Agoda kept them. When a site drops the dates, set them in the
+  page or use the planner's browser, and say which.
+- **A search list's "sold out" is not proof.** It can mean no room of the size the search asked for, or a stale
+  cache. Open the property page for the dates and the group before marking a stay sold out.
+- **Compare like with like.** Agoda shows a price per room per night before tax; Booking.com and Trip.com usually
+  show the stay's total. Multiply by rooms and nights and add the tax before you compare, or say what the figure is.
 - **One browser checker at a time.** Several agents sharing the planner's one browser take each other's tabs and
   stall it; run checks one after another, or split them by site, never in parallel on the same browser.
 - **Read only.** In the planner's own signed-in browser: never sign in, book, add to a cart, type personal or payment

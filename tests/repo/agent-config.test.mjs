@@ -114,6 +114,7 @@ test('stay research follows knowledge/stays.md', () => {
 		/hotels, and homes/,
 		/recommended/,
 		/Parking, whenever a car is an option/,
+		/A separate test browser for public booking pages/,
 	])
 		assert.match(stays, must, `knowledge/stays.md keeps ${must}`);
 	for (const f of [
