@@ -2,8 +2,9 @@
 id: ADR-20260930-name-relaxjer
 date: 2026-09-30
 title: 'The Project Is Named RelaxJer'
-domain: naming
+domain: design
 status: accepted
+decision: 'The product is called RelaxJer: the exact name is unclaimed, so the site can rank for it, and it carries the lowest legal risk.'
 ---
 
 # The Project Is Named RelaxJer

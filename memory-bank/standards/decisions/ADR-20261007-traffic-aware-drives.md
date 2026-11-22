@@ -2,8 +2,9 @@
 id: ADR-20261007-traffic-aware-drives
 date: 2026-10-07
 title: 'A Drive Still Ahead Gets Google’s Typical and Heavy-Traffic Times, at the Hour the Leg Sets Off'
-domain: data
+domain: trip-data
 status: accepted
+decision: "A drive leg may carry an HH:MM time, and a drive still ahead uses Google's traffic-aware estimate for that time."
 ---
 
 # A Drive Still Ahead Gets Google’s Typical and Heavy-Traffic Times, at the Hour the Leg Sets Off

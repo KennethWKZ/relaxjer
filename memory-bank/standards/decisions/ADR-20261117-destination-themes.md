@@ -2,8 +2,10 @@
 id: ADR-20261117-destination-themes
 date: 2026-11-17
 title: 'A Destination Pack May Dress the Page in Its Own World; Days May Carry an Activity Mark'
-domain: engine
+domain: design
 status: amended
+decision: "A pack may name one visual world; a city's world overrides its country's, and each world is two files in engine/src/themes/."
+tags: [engine]
 ---
 
 # A Destination Pack May Dress the Page in Its Own World; Days May Carry an Activity Mark

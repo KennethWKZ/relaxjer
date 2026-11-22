@@ -2,8 +2,9 @@
 id: ADR-20261002-embed-brush-font
 date: 2026-10-02
 title: "Nothing From the Network Holds the Trip Page's First Paint: the Brush Face Travels in the Page"
-domain: layout
+domain: design
 status: accepted
+decision: "The build embeds the brush font's glyphs the page uses as base64 woff2, so the page renders the same offline."
 ---
 
 # Nothing From the Network Holds the Trip Page's First Paint: the Brush Face Travels in the Page

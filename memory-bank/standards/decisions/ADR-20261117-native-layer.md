@@ -4,6 +4,8 @@ date: 2026-11-17
 title: 'The Native Layer Shows the Local Words Under Each Stop and Place, One Tap to Copy, When the Pack Names the Language'
 domain: engine
 status: accepted
+decision: "A pack sets the native language and the 'please take us here' card text, and the engine reads them from the pack, never a constant."
+tags: [trip-data]
 ---
 
 # The Native Layer Shows the Local Words Under Each Stop and Place, One Tap to Copy, When the Pack Names the Language

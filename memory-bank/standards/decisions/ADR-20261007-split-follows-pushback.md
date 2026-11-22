@@ -4,6 +4,7 @@ date: 2026-10-07
 title: 'A Push-Back Moves a Split Day’s Fork and Rejoin; Each Plan Keeps Its Own Times'
 domain: engine
 status: accepted
+decision: 'A split fork moves like a flexible stop: push-backs before it shift it, and its rejoin keeps its stop planned time.'
 ---
 
 # A Push-Back Moves a Split Day’s Fork and Rejoin; Each Plan Keeps Its Own Times

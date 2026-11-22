@@ -4,6 +4,7 @@ date: 2026-11-22
 title: 'A Phone Can Read Every Figure in the Home Currency, Notes Included, Converted as the Page Draws'
 domain: engine
 status: accepted
+decision: "Currency conversion happens while the text is drawn, in one pure function that reads each amount's own symbol, so NT$ is never read as $."
 ---
 
 # A Phone Can Read Every Figure in the Home Currency, Notes Included, Converted as the Page Draws

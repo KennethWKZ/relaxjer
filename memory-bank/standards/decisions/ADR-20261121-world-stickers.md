@@ -2,8 +2,9 @@
 id: ADR-20261121-world-stickers
 date: 2026-11-21
 title: 'Snow Light Path Is a Sticker Book: Candy Day Colours, Rounder Shapes, Die-Cut Stickers That Never Cover a Word'
-domain: frontend
+domain: design
 status: accepted
+decision: 'Day colours keep text contrast at 4.5:1 or more on light paper and 3.8:1 or more on dark; tints are fixed shares of the colour.'
 ---
 
 # Snow Light Path Is a Sticker Book: Candy Day Colours, Rounder Shapes, Die-Cut Stickers That Never Cover a Word

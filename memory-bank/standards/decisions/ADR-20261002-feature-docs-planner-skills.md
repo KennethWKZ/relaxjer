@@ -2,8 +2,9 @@
 id: ADR-20261002-feature-docs-planner-skills
 date: 2026-10-02
 title: 'Every Feature Is Written Down Where Planners Look, a Tier-0 Test Keeps It So, and Agents Get Setup, Customize and a Travel Agent'
-domain: agents
+domain: tooling
 status: accepted
+decision: 'One planner catalogue, guides/trip-page.md, explains every part of the page; trip-format.md stays the field reference.'
 ---
 
 # Every Feature Is Written Down Where Planners Look, a Tier-0 Test Keeps It So, and Agents Get Setup, Customize and a Travel Agent

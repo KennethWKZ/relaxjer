@@ -4,6 +4,7 @@ date: 2026-09-30
 title: 'Test Strategy: Characterise First, Then Split'
 domain: testing
 status: accepted
+decision: 'Tests run in tiers: fast repo and unit tests always, a browser e2e pass on the built page, and real-trip checks only on a laptop.'
 ---
 
 # Test Strategy: Characterise First, Then Split

@@ -2,8 +2,9 @@
 id: ADR-20261002-sync-planners
 date: 2026-10-02
 title: 'Group Sync Gets Planners, Own-Stop Edits, Undo and a Recently Removed List'
-domain: data
+domain: sync
 status: accepted
+decision: 'A role belongs to a phone, not a name: planner changes are per device, and the undo toast and busy-day caution ship on every page.'
 ---
 
 # Group Sync Gets Planners, Own-Stop Edits, Undo and a Recently Removed List

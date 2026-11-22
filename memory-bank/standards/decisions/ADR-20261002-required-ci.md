@@ -2,8 +2,9 @@
 id: ADR-20261002-required-ci
 date: 2026-10-02
 title: 'A Red CI Blocks the Merge: main Requires One ci-ok Check, and the Maintainer Can Still Push'
-domain: tooling
+domain: testing
 status: accepted
+decision: 'One ci-ok job needs every other CI job and fails unless all pass, so a single required check guards every merge.'
 ---
 
 # A Red CI Blocks the Merge: main Requires One ci-ok Check, and the Maintainer Can Still Push

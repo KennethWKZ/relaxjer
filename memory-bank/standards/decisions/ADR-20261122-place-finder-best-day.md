@@ -4,6 +4,7 @@ date: 2026-11-22
 title: 'The Place Finder Suggests the Nearest Day With Room, From the Page’s Own Data, and Asks Google Only on a Tap'
 domain: engine
 status: accepted
+decision: "A place finder ranks each day's stops by straight-line distance to the place, counting only stops a new stop can follow."
 ---
 
 # The Place Finder Suggests the Nearest Day With Room, From the Page’s Own Data, and Asks Google Only on a Tap

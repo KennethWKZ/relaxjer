@@ -2,8 +2,9 @@
 id: ADR-20261001-memory-bank-agent-config
 date: 2026-10-01
 title: 'Project Context Lives in memory-bank/; Agent Tooling Works for Any Agent, With Claude Code Extras'
-domain: agents
+domain: tooling
 status: accepted
+decision: 'Project context lives in memory-bank/ and agent tooling works for any agent; Claude Code extras stay in .claude/ on top.'
 ---
 
 # Project Context Lives in memory-bank/; Agent Tooling Works for Any Agent, With Claude Code Extras

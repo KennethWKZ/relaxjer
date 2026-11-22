@@ -2,8 +2,10 @@
 id: ADR-20261001-day-split
 date: 2026-10-01
 title: 'A Day Can Split: Part of the Group Takes Its Own Plan, Hung Where the String Forks'
-domain: data
+domain: trip-data
 status: amended
+decision: 'A day can split for part of the group: DAYS[i].split names where it forks and who goes, and the trip contract checks it.'
+tags: [engine]
 ---
 
 # A Day Can Split: Part of the Group Takes Its Own Plan, Hung Where the String Forks

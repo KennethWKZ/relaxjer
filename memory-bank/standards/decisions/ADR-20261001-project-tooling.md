@@ -4,6 +4,7 @@ date: 2026-10-01
 title: "Project Tooling Follows the Maintainer's Standard Setup"
 domain: tooling
 status: amended
+decision: 'pnpm is pinned by Corepack, a release must be 3 days old before it installs, and install scripts stay off unless listed.'
 ---
 
 # Project Tooling Follows the Maintainer's Standard Setup

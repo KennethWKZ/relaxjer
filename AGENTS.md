@@ -36,43 +36,43 @@ Japan pack and a synthetic Sapporo demo in Snow Light Path beside Taipei's. Next
 
 ### Task shortcuts
 
-| If your task is…                        | Start here                                                                                                        |
-| --------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| Set up a fresh clone for a planner      | skill `planner-setup`                                                                                             |
-| Plan a new trip                         | skill `trip-intake`, then `data-sync` → `build-page` → `verify-page` → `publish-htmlapp`                          |
-| Change a trip the planner already has   | skill `trip-customize` (travel questions: the `relaxbro` role), then `build-page` → `verify-page`                 |
-| Answer "what can the page do?"          | [`guides/trip-page.md`](guides/trip-page.md): every feature and what turns it on                                  |
-| Refresh a live trip's data              | skill `data-sync`, then `verify-page` and `publish-htmlapp`                                                       |
-| Share the group's changes across phones | skill `sync-setup`, then `build-page` → `verify-page` → `publish-htmlapp`                                         |
-| Change who may edit what in group sync  | [ADR-20261002-sync-planners](memory-bank/standards/decisions/ADR-20261002-sync-planners.md), `patterns/engine.md` |
-| A new country or city                   | skill `destination-pack`                                                                                          |
-| Change the engine, a section or a pack  | [`memory-bank/standards/patterns/engine.md`](memory-bank/standards/patterns/engine.md)                            |
-| Change the landing page (`site/`)       | [`memory-bank/standards/patterns/frontend.md`](memory-bank/standards/patterns/frontend.md) § The landing page     |
-| Change anything the page shows          | [`memory-bank/standards/patterns/frontend.md`](memory-bank/standards/patterns/frontend.md), `DESIGN.md`           |
-| Write or change a test                  | [`memory-bank/standards/patterns/testing.md`](memory-bank/standards/patterns/testing.md)                          |
-| Write trip data                         | [`memory-bank/standards/patterns/trip-data.md`](memory-bank/standards/patterns/trip-data.md)                      |
-| Touch the pipeline                      | [`memory-bank/standards/patterns/pipeline.md`](memory-bank/standards/patterns/pipeline.md)                        |
-| After a trip                            | skill `trip-retro`                                                                                                |
-| A decision worth recording              | an ADR in `memory-bank/standards/decisions/`, then `pnpm gen:adr-index`                                           |
+| If your task is…                        | Start here                                                                                                                                                                |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Set up a fresh clone for a planner      | skill `planner-setup`                                                                                                                                                     |
+| Plan a new trip                         | skill `trip-intake`, then `data-sync` → `build-page` → `verify-page` → `publish-htmlapp`                                                                                  |
+| Change a trip the planner already has   | skill `trip-customize` (travel questions: the `relaxbro` role), then `build-page` → `verify-page`                                                                         |
+| Answer "what can the page do?"          | [`guides/trip-page.md`](guides/trip-page.md): every feature and what turns it on                                                                                          |
+| Refresh a live trip's data              | skill `data-sync`, then `verify-page` and `publish-htmlapp`                                                                                                               |
+| Share the group's changes across phones | skill `sync-setup`, then `build-page` → `verify-page` → `publish-htmlapp`                                                                                                 |
+| Change who may edit what in group sync  | [ADR-20261002-sync-planners](memory-bank/standards/decisions/ADR-20261002-sync-planners.md), `patterns/engine.md`                                                         |
+| A new country or city                   | skill `destination-pack`                                                                                                                                                  |
+| Change the engine, a section or a pack  | [`memory-bank/standards/patterns/engine.md`](memory-bank/standards/patterns/engine.md)                                                                                    |
+| Change the landing page (`site/`)       | [`memory-bank/standards/patterns/frontend.md`](memory-bank/standards/patterns/frontend.md) § The landing page                                                             |
+| Change anything the page shows          | [`memory-bank/standards/patterns/frontend.md`](memory-bank/standards/patterns/frontend.md), `DESIGN.md`                                                                   |
+| Write or change a test                  | [`memory-bank/standards/patterns/testing.md`](memory-bank/standards/patterns/testing.md)                                                                                  |
+| Write trip data                         | [`memory-bank/standards/patterns/trip-data.md`](memory-bank/standards/patterns/trip-data.md)                                                                              |
+| Touch the pipeline                      | [`memory-bank/standards/patterns/pipeline.md`](memory-bank/standards/patterns/pipeline.md)                                                                                |
+| After a trip                            | skill `trip-retro`                                                                                                                                                        |
+| A decision worth recording              | an ADR in `memory-bank/standards/decisions/` (its domain, one-line `decision` and replace-don't-rewrite rules: `.claude/rules/memory-bank.md`), then `pnpm gen:adr-index` |
 
 ## Skills
 
 Every skill is `.agents/skills/<name>/SKILL.md` (Claude Code sees the same folders through `.claude/skills/`). Load
 the one that fits before you start. Any agent can read the file directly.
 
-| Skill                                                                | For                                                      |
-| -------------------------------------------------------------------- | -------------------------------------------------------- |
-| `planner-setup`                                                      | a fresh clone → tools, install, the demo opened, keys    |
-| `trip-intake`                                                        | requirements → a trip folder that passes the contract    |
-| `trip-customize`                                                     | the planner's changes → the trip's data, and where shown |
-| `data-sync`                                                          | refresh places, hours, weather and links (`pnpm resync`) |
-| `build-page`                                                         | the single-file page                                     |
-| `verify-page`                                                        | tests, a real-browser pass, the group's journeys         |
-| `publish-htmlapp`                                                    | publish behind a password and prove the live copy        |
-| `sync-setup`                                                         | group sync on the planner's own Firebase (`pnpm sync`)   |
-| `destination-pack`                                                   | a new country or city                                    |
-| `trip-retro`                                                         | lessons as a reviewed change                             |
-| `animate`, `review-animations`, `improve-animations`, `apple-design` | motion and interaction (vendored, MIT)                   |
+| Group                  | Skill                                                                | For                                                      |
+| ---------------------- | -------------------------------------------------------------------- | -------------------------------------------------------- |
+| Set up                 | `planner-setup`                                                      | a fresh clone → tools, install, the demo opened, keys    |
+| Plan a trip            | `trip-intake`                                                        | requirements → a trip folder that passes the contract    |
+|                        | `trip-customize`                                                     | the planner's changes → the trip's data, and where shown |
+| Data                   | `data-sync`                                                          | refresh places, hours, weather and links (`pnpm resync`) |
+|                        | `destination-pack`                                                   | a new country or city                                    |
+| The page               | `build-page`                                                         | the single-file page                                     |
+|                        | `verify-page`                                                        | tests, a real-browser pass, the group's journeys         |
+|                        | `publish-htmlapp`                                                    | publish behind a password and prove the live copy        |
+|                        | `sync-setup`                                                         | group sync on the planner's own Firebase (`pnpm sync`)   |
+| After a trip           | `trip-retro`                                                         | lessons as a reviewed change                             |
+| Motion (vendored, MIT) | `animate`, `review-animations`, `improve-animations`, `apple-design` | motion and interaction                                   |
 
 Design skills that aren't vendored (impeccable, diagram-design, and dataviz inside Claude Code), and how to install
 them for your agent: [`.agents/README.md`](.agents/README.md).
@@ -155,6 +155,6 @@ node tests/support/probe.mjs     # debug: page errors of the last staged page, w
 
 1. `pnpm verify` (and `pnpm test:all` for engine or data work; `verify-page` for anything the page shows).
 2. A decision that isn't obvious from the code (a new data field, a dependency, a hosting or security call) gets an ADR
-   in `memory-bank/standards/decisions/` in the same commit, then `pnpm gen:adr-index`.
+   in `memory-bank/standards/decisions/` in the same commit (the contract is in `.claude/rules/memory-bank.md`), then `pnpm gen:adr-index`. A later change to an accepted decision is a new ADR that supersedes it, or a dated amendment; never a rewrite.
 3. Update the story index when a step's status changes.
 4. Commit in the house format. Push only when the maintainer says so; pre-push runs the release gate.

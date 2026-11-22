@@ -45,18 +45,18 @@ Each box is a skill any AI agent can run: Claude Code, Codex, Cursor or Gemini C
 [`.agents/skills/`](.agents/README.md), and [`AGENTS.md`](AGENTS.md) is where an agent starts. Tell your agent about
 the trip in your own words, and it takes it from there, stopping to ask before anything is published or paid for.
 
-| Skill              | Say to your agent                       | It                                                                |
-| ------------------ | --------------------------------------- | ----------------------------------------------------------------- |
-| `planner-setup`    | "Set up RelaxJer on my computer"        | checks the tools, installs, builds and opens the demo             |
-| `trip-intake`      | "Plan a trip to …"                      | turns your words into a trip folder that passes the checks        |
-| `trip-customize`   | "Add …", "move …", "make day 4 lighter" | changes the plan, and says where each change shows on the page    |
-| `data-sync`        | "Refresh the data"                      | fills in places, hours, food and toilets nearby, transit, weather |
-| `build-page`       | "Build the page"                        | makes the one file                                                |
-| `verify-page`      | "Check the page"                        | runs the tests, then looks at it at phone size in two browsers    |
-| `sync-setup`       | "Share our changes across phones"       | sets up group sync on your own Firebase                           |
-| `publish-htmlapp`  | "Publish it"                            | publishes behind a password, after your yes                       |
-| `destination-pack` | "We're going to Japan"                  | adds a country or city RelaxJer doesn't know yet                  |
-| `trip-retro`       | "The trip is over"                      | turns lessons into a reviewed change                              |
+| Group        | Skill              | Say to your agent                       | It                                                                |
+| ------------ | ------------------ | --------------------------------------- | ----------------------------------------------------------------- |
+| Set up       | `planner-setup`    | "Set up RelaxJer on my computer"        | checks the tools, installs, builds and opens the demo             |
+| Plan a trip  | `trip-intake`      | "Plan a trip to …"                      | turns your words into a trip folder that passes the checks        |
+|              | `trip-customize`   | "Add …", "move …", "make day 4 lighter" | changes the plan, and says where each change shows on the page    |
+| Data         | `data-sync`        | "Refresh the data"                      | fills in places, hours, food and toilets nearby, transit, weather |
+|              | `destination-pack` | "We're going to Japan"                  | adds a country or city RelaxJer doesn't know yet                  |
+| The page     | `build-page`       | "Build the page"                        | makes the one file                                                |
+|              | `verify-page`      | "Check the page"                        | runs the tests, then looks at it at phone size in two browsers    |
+|              | `sync-setup`       | "Share our changes across phones"       | sets up group sync on your own Firebase                           |
+|              | `publish-htmlapp`  | "Publish it"                            | publishes behind a password, after your yes                       |
+| After a trip | `trip-retro`       | "The trip is over"                      | turns lessons into a reviewed change                              |
 
 In Claude Code, `relaxbro`, a read-only travel agent, answers travel questions while your agent works ("is day 3 too
 packed?", "what needs booking?"), and reviewer agents check the data, the page and each release. The planner's

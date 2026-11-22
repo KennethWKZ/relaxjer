@@ -4,6 +4,7 @@ date: 2026-10-02
 title: "CI's Browser Jobs Run in Playwright's Image, in Halves, and release-please Makes the Releases"
 domain: tooling
 status: amended
+decision: 'E2e runs on arm64 runners in a Playwright image whose version matches package.json, and a release is tagged and published after CI is green.'
 ---
 
 # CI's Browser Jobs Run in Playwright's Image, in Halves, and release-please Makes the Releases

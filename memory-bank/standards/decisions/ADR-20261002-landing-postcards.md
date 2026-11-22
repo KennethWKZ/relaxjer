@@ -2,8 +2,9 @@
 id: ADR-20261002-landing-postcards
 date: 2026-10-02
 title: 'The Landing Page Is a Set of Postcards, Each With a Drawn Demo That Loops, and Carries Its Own Policy'
-domain: layout
+domain: design
 status: accepted
+decision: 'Each landing-page feature is a postcard: a drawn mini trip page on one spot colour, with its stamp and copy on the back.'
 ---
 
 # The Landing Page Is a Set of Postcards, Each With a Drawn Demo That Loops, and Carries Its Own Policy

@@ -4,6 +4,8 @@ date: 2026-11-17
 title: 'A Second Live Demo in Sapporo, and the Landing Page Picks Its World by the Visitor and the Season, Never by a Trip'
 domain: hosting
 status: accepted
+decision: 'A second synthetic demo, examples/demo-sapporo, is built from public landmarks and invented details only, with no Google content.'
+tags: [design]
 ---
 
 # A Second Live Demo in Sapporo, and the Landing Page Picks Its World by the Visitor and the Season, Never by a Trip

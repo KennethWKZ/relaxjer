@@ -2,8 +2,9 @@
 id: ADR-20261001-group-sync
 date: 2026-10-01
 title: "Group Sync Through the Planner's Own Firebase Realtime Database, Over Its Plain HTTPS API"
-domain: data
+domain: sync
 status: amended
+decision: "Group sync runs on each planner's own Firebase Realtime Database, one per planner, in the trip's region, with no shared server of ours."
 ---
 
 # Group Sync Through the Planner's Own Firebase Realtime Database, Over Its Plain HTTPS API
