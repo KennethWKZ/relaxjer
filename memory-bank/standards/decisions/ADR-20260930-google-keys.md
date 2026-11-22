@@ -2,10 +2,10 @@
 id: ADR-20260930-google-keys
 date: 2026-09-30
 title: 'Each User Brings Their Own Google Keys; RelaxJer Ships No Keys and No Google Content'
-domain: hosting
+domain: trip-data
 status: accepted
 decision: 'RelaxJer ships no Google keys: each user creates their own, a referrer-restricted browser key and a separate server key, never mixed.'
-tags: [trip-data]
+tags: [hosting]
 ---
 
 # Each User Brings Their Own Google Keys; RelaxJer Ships No Keys and No Google Content
