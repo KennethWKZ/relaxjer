@@ -133,7 +133,7 @@
 			skyBtnSync();
 			skyFx.sync();
 		} else if (k === 'theme') {
-			themePref = t.value || (['dark', 'system'].includes(store.get('theme', 'light')) ? store.get('theme') : 'light');
+			themePref = t.value || (['light', 'dark'].includes(store.get('theme', 'system')) ? store.get('theme') : 'system');
 			applyTheme();
 			skyFx.colours();
 		} else if (k === 'clock') {

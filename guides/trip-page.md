@@ -26,8 +26,9 @@ two of them seniors.
 ## Finding your way
 
 - **The header** stays on screen: the trip's name (in brush lettering; on a phone too narrow for all of it, the trip's
-  short name) and dates, Search, the theme button (light,
-  dark, or follow the phone, with a toast saying which), the currency button, the language button (it names the other
+  short name) and dates, Search, the theme button (light, dark, or follow the phone, with a toast saying which; the
+  page follows the phone until someone picks, and on a phone the button sits in the Sections menu), the currency
+  button, the language button (it names the other
   language, and keeps your place; the browser tab's title switches with it, and in English the brush name is read out
   and shown on hover by the trip's English name), and Install.
 - **The currency button**, beside the language button, works the same way: it names the currency the figures would

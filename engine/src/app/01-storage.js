@@ -39,7 +39,9 @@ try {
 const LOOK = { sky: null, wx: null, snow: null, clock: null };
 // the live demo (build --demo-clock) greets its visitors, who come from an English landing page, in English
 let lang = store.get('lang', window.DEMO_CLOCK ? 'en' : 'zh') === 'en' ? 'en' : 'zh';
-let themePref = ['dark', 'system'].includes(store.get('theme', 'light')) ? store.get('theme') : 'light';
+// the page follows the phone's light or dark setting until the reader picks one (the theme button, or Theme in the Sections
+// menu on a phone); a choice made before this default stays as it was
+let themePref = ['light', 'dark'].includes(store.get('theme', 'system')) ? store.get('theme') : 'system';
 // which app a Map or Directions link opens, chosen per phone in the Sections menu (Google unless the phone picked Apple)
 let mapsApp = store.get('maps', 'google') === 'apple' ? 'apple' : 'google';
 let checks = store.get('checks', {}) || {};
