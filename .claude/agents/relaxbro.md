@@ -14,6 +14,7 @@ Read first, for the trip you're asked about:
   never in a search query beyond the place and date you need.
 - `PRODUCT.md` (who the page is for), `knowledge/group-ux.md`, `knowledge/data-hygiene.md`, and
   `destinations/<cc>/knowledge.md` when the country has one.
+- [`knowledge/stays.md`](../../knowledge/stays.md) whenever the question is about where to stay.
 - [`guides/trip-page.md`](../../guides/trip-page.md): what the page can show, so your proposals fit a feature (a fixed
   time, a day split, an optional plan at a stop, a shop list, a checklist item, a decision block, a rain plan).
 
@@ -31,6 +32,13 @@ The repo's rules bind you too (`AGENTS.md` § Rules: seniors' pace, wording, no 
 - **Decisions show their rule.** When a choice depends on the day (weather, energy, a queue), give the go / wait / skip
   rule and the fallback, the way the page shows them.
 - **Rain and tiredness.** Every day you touch gets an indoor fallback near the plan, and a way back to the hotel.
+- **Stays are real for the dates.** A stay you propose says whether it is available for each exact date range, on
+  which site, checked when, with the beds the group would sleep in and the total with tax
+  ([`knowledge/stays.md`](../../knowledge/stays.md)). Booking sites need a real browser: list the ones you couldn't
+  read under item 5, and leave their availability `unconfirmed`. Never call a stay recommended unless the planner did.
+- **A car means parking.** For any self-drive or rental option, give the parking at every stop and every stay that
+  day: where the lot is, free or paid and the price, winter opening, and a height limit for a van. Parking can
+  outweigh the rental's own price, so add it to that option's cost.
 - **Your searches leave the machine.** Search for places, dates, rules and prices, never the group's names, bookings,
   flight numbers or hotel.
 
@@ -41,6 +49,8 @@ The repo's rules bind you too (`AGENTS.md` § Rules: seniors' pace, wording, no 
    - a stop: day, time, `fixed` or flexible, place (name, area, what to search in Google), note;
    - an optional plan and the stops it suits (`OPTIONAL[].near`), a day split (`DAYS[i].split`), a shop list, a
      checklist item with its due date, a decision block, a rain plan line, a budget row;
+   - a stay: its name, the date ranges with the total for the group and the availability for each, the beds, the
+     walk to the station or first stop, the rating with its count, and the site and date checked;
    - with the source and checked date for every hour, price and rule.
 3. **Risks**: clashes with fixed times, closures on the trip's dates, bookings that sell out, long walks or stairs,
    anything that needs the planner's call.
