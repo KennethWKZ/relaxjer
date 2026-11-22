@@ -511,6 +511,6 @@ test('Sky: which sky a page draws, a forecast as its weather, and how much falls
 	assert.equal(Sky.fallFor('globe', 'heavy').dens, Sky.GLOBE.dens);
 	assert.equal(Sky.fallFor('globe', 'night').stars, 1);
 	assert.equal(Sky.fallFor('live', 'heavy'), Sky.FALL.heavy);
-	// a shake settles: its energy is under 1/10 after SETTLE seconds
+	// a shake settles: its energy is under a tenth after SETTLE seconds
 	assert.ok(Math.exp(-Sky.SETTLE / Sky.TAU) < 0.1);
 });
