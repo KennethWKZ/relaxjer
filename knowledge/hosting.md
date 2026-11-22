@@ -52,7 +52,8 @@ id> --update-key <key>` with the key read from outside the repo. Without `--pass
 payment_card`). There's no option to skip it, and nothing goes live on a refusal: the old page stays. On 2026-11-22
   every publish was refused because an SVG written inline in the theme's CSS had a path whose numbers, separated only
   by spaces, held a Visa-shaped number passing the Luhn check (`… 400 104 540 70 640 92`). Commas between path numbers
-  draw the same; `tests/repo/host-scan.test.mjs` now checks the engine. To find a cause, publish builds with halves of
+  draw the same; `tests/repo/host-scan.test.mjs` now checks the engine, and `pnpm publish:trip` checks the built page first
+  and stops before uploading (`scripts/host-scan.mjs`). To find a cause, publish builds with halves of
   the change removed: a refusal costs nothing, and a pass goes live, so keep each half a working page.
 
 ## Rebuilds of a published page

@@ -62,7 +62,9 @@ prompts in every mode), and `.claude/hooks/guard-publish.mjs` denies every other
 Never read or copy the secrets another way. The script:
 
 1. Reads the new page's build id from `trips/<slug>/dist/<fileName>-standalone.html`, and the live page's through the
-   password gate. If they're the same, it stops.
+   password gate. If they're the same, it stops. Before that it checks the page for numbers the host's scan would read
+   as a payment card (`scripts/host-scan.mjs`) and stops with where they are, the digits masked; the usual cause is an
+   inline SVG path, fixed by commas between its numbers (`knowledge/hosting.md`).
 2. Saves the live copy as `~/.config/relaxjer/publish/<slug>-rollback-<build id>.html`. To undo a bad publish, the
    planner publishes that file.
 3. Reads the update key (the Keychain first; `--check` and `--dry-run` never read it), then shares the page to the same

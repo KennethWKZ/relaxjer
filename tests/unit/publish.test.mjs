@@ -16,11 +16,13 @@ import {
 	loudHeaders,
 	parseArgs,
 	policyOf,
+	preflight,
 	readNextViewer,
 	readSecrets,
 	readUpdateKey,
 	redact,
 } from '../../scripts/publish-trip.mjs';
+import { cardRuns, luhn, maskRun } from '../../scripts/host-scan.mjs';
 
 const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), 'rj-publish-'));
 const KEY = 'fake-upd-1';
@@ -162,4 +164,28 @@ test('publish: a new page password comes from the file the planner wrote, and re
 	assert.equal(readSecrets(d, 'demo').viewer, 'fake new viewer');
 	assert.ok(!fs.existsSync(path.join(d, 'demo.viewer.new')), 'the .new file is gone');
 	assert.equal(fs.statSync(path.join(d, 'demo.viewer')).mode & 0o777, 0o600);
+});
+
+// the hills drawing the host refused (2026-11-22): "400 104 540 70 640 92" holds 4001045407064092, Visa-shaped and Luhn-valid
+const HILLS = 'M0 120C60 96 130 84 200 94S320 120 400 104 540 70 640 92V200H0z';
+const page = (body) => `<!doctype html><meta name="relaxjer-build" content="abc123"><style>${body}</style>`;
+
+test('host scan: a run of space-separated numbers holding a card-shaped, Luhn-valid number is found; commas break it', () => {
+	assert.ok(luhn('4001045407064092'));
+	assert.equal(cardRuns(HILLS).length, 1);
+	assert.deepEqual(cardRuns(HILLS.replace(/(?<=\d) (?=\d)/g, ',')), []);
+	assert.deepEqual(cardRuns('Open 10 00 to 17 30, rooms 101 102 103'), [], 'short runs are not a card');
+	assert.deepEqual(cardRuns('4001 0454 0706 4093'), [], 'the Luhn check fails, so not a card');
+});
+
+test('publish pre-flight: the page is read as the host reads it, and no message carries a whole number', () => {
+	const inline = page(`.x{background:url("data:image/svg+xml,%3Cpath d='${encodeURIComponent(HILLS)}'/%3E")}`);
+	const problems = preflight(inline);
+	assert.match(problems[0], /Scan failed: payment_card/);
+	assert.match(problems.join('\n'), /put commas between its numbers/);
+	assert.doesNotMatch(problems.join('\n'), /4001045407064092|400 104 540 70 640 92/, 'the number is masked');
+	assert.equal(maskRun('400 104 540 70 640 92'), '40• ••• ••• •• ••• 92');
+	assert.deepEqual(preflight(page(`.x{d:path('${HILLS.replace(/(?<=\d) (?=\d)/g, ',')}')}`)), [], 'with commas the page is clear');
+	const b64 = Buffer.from(`<svg><path d="${HILLS}"/></svg>`).toString('base64');
+	assert.deepEqual(preflight(page(`.x{background:url(data:image/svg+xml;base64,${b64})}`)), [], 'base64 is left alone, as the host does');
 });
