@@ -16,6 +16,13 @@ const store = {
 			/* storage blocked */
 		}
 	},
+	del(k) {
+		try {
+			localStorage.removeItem(KEY + k);
+		} catch {
+			/* storage blocked */
+		}
+	},
 };
 
 try {
@@ -77,7 +84,13 @@ const shopListOf = (pid) => (ALL_SHOPS.find((s) => s.place === pid) || {}).list;
 // the build's output name (TRIP.fileName), for the My Maps download
 const FILE_BASE = TRIP.fileName || 'trip';
 const CITY = TRIP.city || Pack.city || ['目的地', 'the destination'];
+// the rate (one home unit in the trip's currency): the trip's, until this phone sets its own (the budget or the Sections
+// menu; "use the trip's rate" forgets it again, so a republished rate reaches the phone)
 let rate = Number(store.get('rate', CUR.rate)) || CUR.rate;
+// which currency the figures lead with, kept on this phone and never synced: the trip's (¥, NT$…) or the group's home
+// currency (the header's currency button and the Sections menu). Only when the trip has a home currency of its own
+const CUR_SWITCH = Money.canSwitch(CUR);
+let homeFirst = CUR_SWITCH && store.get('amounts', 'trip') === 'home';
 
 const GEO = window.GEO || null;
 const EXTRA = window.EXTRA || { food: [], tickets: [], sites: {} };

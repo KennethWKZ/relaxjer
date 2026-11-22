@@ -298,14 +298,15 @@ const awayHotel = (ll) => {
 	return k < 0.1 ? Z('就在酒店旁', 'next to the hotel') : Z(`离酒店${distLabel(k)}`, `${distLabel(k)} from hotel`);
 };
 // the country's tourist tax refund (Pack.taxRefund): which of our shops have it, and the minimum spend
-const TRS_MIN = Pack.taxRefund ? `${Pack.sym}${num(Pack.taxRefund.min)}` : '';
+// (plain text, in the home currency when the phone reads that and the pack counts in the trip's currency)
+const trsMin = () => (Pack.taxRefund ? (Pack.sym === CUR.sym ? cvPlain : String)(`${Pack.sym}${num(Pack.taxRefund.min)}`) : '');
 const trsTag = (x) =>
 	!Pack.taxRefund
 		? ''
 		: x.trs === 'yes'
-			? Z(` · 可退税（同日满${TRS_MIN}）`, ` · tax refund (${TRS_MIN}+ same day)`)
+			? Z(` · 可退税（同日满${trsMin()}）`, ` · tax refund (${trsMin()}+ same day)`)
 			: x.trs === 'some'
-				? Z(` · 部分店家可退税（满${TRS_MIN}）`, ` · some shops: tax refund (${TRS_MIN}+)`)
+				? Z(` · 部分店家可退税（满${trsMin()}）`, ` · some shops: tax refund (${trsMin()}+)`)
 				: '';
 // the shops for the free-time day, with that day's opening hours
 const shopRows = () => {
@@ -392,7 +393,7 @@ function freeIdeasHTML() {
 const taxHTML = () =>
 	typeof TAX === 'undefined'
 		? ''
-		: `<details class="more idea-g tax"><summary>${icon('money')}<span>${esc(L(TAX.h))}</span>${TRS_MIN ? `<span class="wg-n">${TRS_MIN}+</span>` : ''}${icon('chev', 'chev')}</summary><div class="more-body">${list(TAX.list)}<p class="small">${fmt(TAX.shops)}</p><p class="xsmall muted">${fmt(TAX.note)}</p></div></details>`;
+		: `<details class="more idea-g tax"><summary>${icon('money')}<span>${esc(L(TAX.h))}</span>${trsMin() ? `<span class="wg-n">${trsMin()}+</span>` : ''}${icon('chev', 'chev')}</summary><div class="more-body">${list(TAX.list)}<p class="small">${fmt(TAX.shops)}</p><p class="xsmall muted">${fmt(TAX.note)}</p></div></details>`;
 // which days suit coming back with bags of shopping
 function shopDaysHTML() {
 	const dl = (id) => {
@@ -675,7 +676,7 @@ function addFindRender(q) {
 	}));
 	hits.sort((a, b) => a.off - b.off || (addSort === 'near' && from ? a.k - b.k : (b.rating || 0) - (a.rating || 0)));
 	const row = (x) =>
-		`<li class="idea"><div class="idea-b"><span class="idea-n">${esc(x.p.name)}</span><span class="idea-m">${esc(L(ADD_KIND[x.cat] || ['', '']))}${x.rating ? ` · ★${x.rating}` : ''}${x.k != null ? ` · ${Z('离上一站', 'from the stop before')} ${distLabel(x.k)}` : ''}${x.trs === 'yes' && TRS_MIN ? Z(` · 可退税（满${TRS_MIN}）`, ` · tax refund (${TRS_MIN}+)`) : ''}${x.off ? `<b class="idea-off"> · ${Z('当天休息', 'closed that day')}</b>` : ''}</span></div>${addBtn(x.p.name, x.p.lat, x.p.lng, x.gpid, x.p.q || x.p.name, '')}</li>`;
+		`<li class="idea"><div class="idea-b"><span class="idea-n">${esc(x.p.name)}</span><span class="idea-m">${esc(L(ADD_KIND[x.cat] || ['', '']))}${x.rating ? ` · ★${x.rating}` : ''}${x.k != null ? ` · ${Z('离上一站', 'from the stop before')} ${distLabel(x.k)}` : ''}${x.trs === 'yes' && trsMin() ? Z(` · 可退税（满${trsMin()}）`, ` · tax refund (${trsMin()}+)`) : ''}${x.off ? `<b class="idea-off"> · ${Z('当天休息', 'closed that day')}</b>` : ''}</span></div>${addBtn(x.p.name, x.p.lat, x.p.lng, x.gpid, x.p.q || x.p.name, '')}</li>`;
 	box.innerHTML =
 		(hits.length
 			? `<p class="xsmall muted">${Z(`${hits.length} 个`, `${hits.length} places`)}${hits.length > 25 ? Z('，只列前25个', ', first 25 shown') : ''}</p><ul class="ideas">${hits.slice(0, 25).map(row).join('')}</ul>`
@@ -1113,30 +1114,37 @@ function secMap() {
     </section>`;
 }
 
+// the airport options' chart: each one's total for the group, in the trip's currency or the home currency (its scale
+// too) as the phone reads amounts. Redrawn on its own when the rate changes
+function airportBars() {
+	const A = AIRPORT;
+	const hv = (v) => (homeFirst ? v / rate : v);
+	const ax = Chart.axis(Math.max(0, ...A.methods.map((m) => hv(m.max))));
+	const maxv = ax.top;
+	return `<div class="bars" role="img" aria-label="${esc(A.methods.map((m) => `${L(m.name)} ${cvPlain(m.cost)}`).join('; '))}">${A.methods
+		.map((m) => {
+			const l = (hv(m.min) / maxv) * 100,
+				w = Math.max(((hv(m.max) - hv(m.min)) / maxv) * 100, 1.2);
+			return `<div class="bar-row2"><span class="bar-lab">${esc(L(m.short))}</span><div class="bar-track"><div class="bar-grid"></div><div class="bar-range" style="left:${l}%;width:${w}%;--c:${m.pick ? 'var(--ink)' : 'var(--ink-3)'}"></div><span class="bar-val" style="${l + w > 70 ? `right:calc(${100 - l}% + 6px)` : `left:calc(${l + w}% + 6px)`}">${cvHtml(esc(m.cost), false)}</span></div></div>`;
+		})
+		.join('')}</div>
+      ${axisHTML(ax)}`;
+}
+
 function secAirport() {
 	const A = AIRPORT;
 	// the airport's terminals (place ids + codes, the first is where we land and leave) and the hotel
 	const TERM = A.terminals || [];
-	const ax = Chart.axis(Math.max(0, ...A.methods.map((m) => m.max)));
-	const maxv = ax.top;
-	const bars = A.methods
-		.map((m) => {
-			const l = (m.min / maxv) * 100,
-				w = Math.max(((m.max - m.min) / maxv) * 100, 1.2);
-			return `<div class="bar-row2"><span class="bar-lab">${esc(L(m.short))}</span><div class="bar-track"><div class="bar-grid"></div><div class="bar-range" style="left:${l}%;width:${w}%;--c:${m.pick ? 'var(--ink)' : 'var(--ink-3)'}"></div><span class="bar-val" style="${l + w > 70 ? `right:calc(${100 - l}% + 6px)` : `left:calc(${l + w}% + 6px)`}">${esc(m.cost)}</span></div></div>`;
-		})
-		.join('');
 	return `<section class="sec" id="airport" data-sec="airport">
       <h2 class="sec-title">${icon('train')}${Z('机场交通', 'Airport transfer')}</h2>
       <p class="sec-lede">${fmt(A.lede)}</p>
       <dl class="facts">${A.facts.map((f) => `<div class="fact"><dt>${esc(L(f.k))}</dt><dd>${fmt(f.v)}</dd></div>`).join('')}</dl>
       <h3 class="sub">${icon('money')}${Z(`Day 1 到酒店：${GROUP[0]}总价`, `Day 1 to the hotel: total ${GROUP[1]}`)}</h3>
-      <div class="bars" role="img" aria-label="${esc(A.methods.map((m) => `${L(m.name)} ${m.cost}`).join('; '))}">${bars}</div>
-      ${axisHTML(ax)}
+      <div id="airport-bars">${airportBars()}</div>
       <div class="methods" style="margin-top:16px">${A.methods
 				.map(
 					(m) => `<article class="method ${m.pick ? 'pick' : ''}" id="m-${m.id}">
-        <div class="method-h"><span class="ic">${icon(m.icon)}</span><div><p class="method-name">${fmt(m.name)}</p><p class="method-sub">${fmt(m.sub)}</p></div><p class="method-cost">${esc(m.cost)}<small>${fmt(m.per)}</small><small data-rm="${m.min},${m.max}">${rmText(m.min, m.max)}</small></p></div>
+        <div class="method-h"><span class="ic">${icon(m.icon)}</span><div><p class="method-name">${fmt(m.name)}</p><p class="method-sub">${fmt(m.sub)}</p></div><p class="method-cost">${cvHtml(esc(m.cost), false)}<small>${fmt(m.per, false)}</small><small data-rm="${m.min},${m.max}">${rmText(m.min, m.max)}</small></p></div>
         <dl class="method-grid"><div class="mg"><dt>${Z('门到门', 'Door to door')}</dt><dd>${fmt(m.time)}</dd></div><div class="mg"><dt>${Z('换乘', 'Changes')}</dt><dd>${fmt(m.xfer)}</dd></div><div class="mg"><dt>${Z('拖行李', 'With bags')}</dt><dd>${fmt(m.bags)}</dd></div></dl>
         ${list(m.list)}
         <p class="note"><strong>${Z('适合', 'Best when')}:</strong> ${fmt(m.when)}</p>
@@ -1206,6 +1214,8 @@ const luckySinceLabel = () => {
 		`People who entered ${Pack.country[1]} since ${Time.dateLabel(d, 'en')} ${d.slice(0, 4)}`,
 	);
 };
+// a figure from the pack, in its currency, which is the trip's: shown as the phone reads amounts
+const packMoney = (n) => (Pack.sym === CUR.sym ? money(n) : `${Pack.sym}${num(n)}`);
 function calcLucky() {
 	if (!Pack.luckyDraw) return;
 	const LK = Pack.luckyDraw.words; // the programme's own words for who wins what
@@ -1221,7 +1231,7 @@ function calcLucky() {
 	out.innerHTML =
 		r === 0
 			? `<p class="warn">${icon('alert')}${esc(L(LK.none).replace('{pax}', PAX))}</p>`
-			: `<dl class="kv"><div><dt>${Z(`${LK.repeat[0]}（各${Pack.sym}${num(Pack.luckyDraw.repeat)}）`, `${LK.repeat[1]} (${Pack.sym}${num(Pack.luckyDraw.repeat)} each)`)}</dt><dd>${r}</dd></div><div><dt>${Z(`${LK.companion[0]}（各${Pack.sym}${num(Pack.luckyDraw.companion)}）`, `${LK.companion[1]} (${Pack.sym}${num(Pack.luckyDraw.companion)} each)`)}</dt><dd>${comp}</dd></div>${left ? `<div><dt>${Z('不能参加', "Can't join")}</dt><dd>${left}</dd></div>` : ''}<div class="sum"><dt>${esc(L(LK.all))}</dt><dd>${Pack.sym}${num(total)}</dd></div></dl><p class="note"><span data-rm="${total},${total}">${rmText(total, total)}</span> · ${Z('要中奖才有，不保证。', 'Only if drawn; not guaranteed.')}</p>`;
+			: `<dl class="kv"><div><dt>${Z(`${LK.repeat[0]}（各${packMoney(Pack.luckyDraw.repeat)}）`, `${LK.repeat[1]} (${packMoney(Pack.luckyDraw.repeat)} each)`)}</dt><dd>${r}</dd></div><div><dt>${Z(`${LK.companion[0]}（各${packMoney(Pack.luckyDraw.companion)}）`, `${LK.companion[1]} (${packMoney(Pack.luckyDraw.companion)} each)`)}</dt><dd>${comp}</dd></div>${left ? `<div><dt>${Z('不能参加', "Can't join")}</dt><dd>${left}</dd></div>` : ''}<div class="sum"><dt>${esc(L(LK.all))}</dt><dd>${packMoney(total)}</dd></div></dl><p class="note"><span data-rm="${total},${total}">${rmText(total, total)}</span> · ${Z('要中奖才有，不保证。', 'Only if drawn; not guaranteed.')}</p>`;
 }
 
 // one optional plan's card: in the Optional section, and in a sheet over the day from a stop's "Nearby options"

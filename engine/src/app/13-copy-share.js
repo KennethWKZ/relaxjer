@@ -49,7 +49,7 @@ function dayText(d) {
 		);
 	});
 	const b = d.blocks.find((x) => x.type === 'budget');
-	if (b) out.push(`${Z('预算', 'Budget')}: ${L(b.total).replace(/\*\*/g, '')} · ${Z('每人约', 'each ≈')}${eachText(b.min, b.max)}`);
+	if (b) out.push(`${Z('预算', 'Budget')}: ${L(b.total).replace(/\*\*/g, '')} · ${Z('每人约', 'each ≈')}${eachTrip(b.min, b.max)}`);
 	const r = d.blocks.find((x) => x.type === 'rain');
 	if (r && r.list) out.push(`${Z('下雨', 'If it rains')}: ${r.list.map(L).join(Z('；', '; '))}`);
 	out.push(linkFor(d.id));

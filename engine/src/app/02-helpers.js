@@ -26,8 +26,32 @@ const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&
 /* the group may split up, so every group figure also shows a rough share each (÷ group size, to the nearest 10) */
 const GROUP = Money.groupWord(PAX); // how the data marks a group figure: ["五人", "for 5"]
 const each = (n) => Money.share(n, PAX);
-const eachText = (min, max) => `${CUR.sym}${num(each(min))}${max > min ? '–' + num(each(max)) : ''}`;
 const numsIn = (x) => Money.amountsIn(x, CUR.sym);
+/* figures lead with the trip's currency or, when this phone picked it (homeFirst), the group's home currency. The page
+   converts as it draws, here: the figure helpers below, fmt() for trip text, and cvHtml() for text drawn without fmt.
+   A converted figure is a span holding its trip-currency figures (data-cv), so a new rate re-texts it in place */
+const tripText = (min, max = min) => `${CUR.sym}${num(min)}${max > min ? '–' + num(max) : ''}`;
+const cvSpan = (min, max = min) => `<span class="cv" data-cv="${min},${max}">${Money.homeAmount(min, max, rate, CUR.home)}</span>`;
+// the original figure beside a converted one, so it's never lost: "≈ RM 140 (¥5,300)". Half-width brackets in both
+// languages: they hold a figure, and a full-width one starting a wrapped line indents it
+const origText = (t) => `<span class="cv-o"> (${t})</span>`;
+/** a figure in the trip's currency as this phone reads it: "¥1,000–2,000", or "≈ RM 26–51" (no ≈ after 约, ~ or about) */
+const money = (min, max = min, approx = false) => (homeFirst ? `${approx ? '' : '≈ '}${cvSpan(min, max)}` : tripText(min, max));
+// each person's share of a group figure, in the trip's currency as before (copied text keeps it too), or converted
+const eachTrip = (min, max) => `${CUR.sym}${num(each(min))}${max > min ? '–' + num(each(max)) : ''}`;
+const eachText = (min, max) => (homeFirst ? cvSpan(each(min), each(max)) : eachTrip(min, max));
+/** escaped text (or markup) with its amounts in the home currency when the phone reads that, each with its original */
+const cvHtml = (h, orig = true) =>
+	homeFirst
+		? Money.mapAmounts(
+				h,
+				CUR.sym,
+				(a) => (a.hi ? `${a.approx ? '' : '≈ '}${cvSpan(a.lo, a.hi)}${a.plus ? '+' : ''}${orig ? origText(a.text) : ''}` : `${esc(CUR.home)} 0`),
+				CUR.home,
+			)
+		: h;
+/** plain text (an SVG label or description, a tag inside a list line) the same way, without markup */
+const cvPlain = (t) => (homeFirst ? Money.toHome(t, CUR.sym, rate, CUR.home) : t);
 // walking, one model: 75 m a minute on streets 1.3× the straight line, at the group's pace (seniors walk ×1.4, AGENTS.md).
 // Every walking time the page shows is at that pace, Google's walking minutes too; a ride's minutes stay as they are.
 const GROUP_WALK = 1.4;
@@ -35,18 +59,21 @@ const walkMinM = (m) => ((m * 1.3) / 75) * GROUP_WALK; // metres in a straight l
 // number ranges and phone numbers stay on one line (core/wrap.mjs), in lists, hours, tables, notes and the airport
 // tiles' narrow cells. keepRanges takes escaped text; escText is esc for text people read (never an attribute).
 const keepRanges = Wrap.keepRanges;
-const escText = (s) => keepRanges(esc(s));
-// shares go in before **bold** turns into <strong>, so a bold group figure gets its share too; ranges go in last
-const fmt = (x) =>
+const escText = (s) => keepRanges(cvHtml(esc(s))); // amounts converted as in fmt()
+// shares go in before **bold** turns into <strong>, so a bold group figure gets its share too; then the conversion, if
+// the phone reads the home currency (the shares are already in it); ranges go in last. orig: false where the line
+// under the text already shows the original figure
+const fmt = (x, orig = true) =>
 	keepRanges(
-		esc(L(x))
-			.replace(Money.groupFigureRe(CUR.sym, PAX), (m, amt, a, b, tail, _at, text) => {
+		cvHtml(
+			esc(L(x)).replace(Money.groupFigureRe(CUR.sym, PAX), (m, amt, a, b, tail, _at, text) => {
 				const lo = +a.replace(/,/g, ''),
 					hi = b ? +b.replace(/,/g, '') : lo;
 				if (Money.statesShare(text, CUR.sym, lo, hi, PAX)) return m; // "NT$600 each, NT$3,000 for 5" says it already
 				return `${amt}${tail}<span class="each-i"> · ${Z(`每人约${eachText(lo, hi)}`, `≈${eachText(lo, hi)} each`)}</span>`;
-			})
-			.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>'),
+			}),
+			orig,
+		).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>'),
 	);
 const eachLine = (min, max) =>
 	`<span class="each">${Z('每人约', 'Each ≈')} <b>${eachText(min, max)}</b> <span class="rm-i" data-rm="${each(min)},${each(max)}">${rmText(each(min), each(max))}</span></span>`;
@@ -56,7 +83,9 @@ const ddEach = (v) => {
 };
 const icon = (n, cls = '') => `<svg class="i ${cls}" aria-hidden="true"><use href="#i-${n}"/></svg>`;
 const num = (n) => Math.round(n).toLocaleString('en-US');
-const rmText = (min, max) => Money.homeText(min, max, rate, CUR.home); // the group's home currency
+// the line under a figure, in the other currency: "≈ RM 26–51" under the trip's, or the original "(¥1,000–2,000)"
+// under a converted one (it doesn't follow the rate, so a new rate leaves it as it is)
+const rmText = (min, max) => (homeFirst ? `(${tripText(min, max)})` : Money.homeText(min, max, rate, CUR.home));
 const BLANK = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
 const imgSrc = (id, sq) => {
 	if (!credit[id]) return '';

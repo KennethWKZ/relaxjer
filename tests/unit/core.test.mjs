@@ -122,6 +122,76 @@ test('Money: the home-currency line', () => {
 	assert.equal(Money.homeText(160, 160, 7.8, 'RM'), '≈ RM 21');
 	assert.equal(Money.homeText(1200, 1800, 7.8, 'RM'), '≈ RM 150–230');
 	assert.equal(Money.homeText(3000, 3000, 20, 'SGD'), '≈ SGD 150');
+	// a range whose ends round to the same figure is one figure
+	assert.equal(Money.homeText(160, 162, 7.8, 'RM'), '≈ RM 21');
+	assert.equal(Money.homeAmount(1200, 1800, 7.8, 'RM'), 'RM 150–230');
+});
+
+test('Money: converted figures claim no more precision than a rate gives', () => {
+	assert.equal(Money.roundHome(0), 0);
+	assert.equal(Money.roundHome(0.257), 0.3); // one significant figure under 1
+	assert.equal(Money.roundHome(0.026), 0.03);
+	assert.equal(Money.roundHome(25.6), 26); // whole under 100
+	assert.equal(Money.roundHome(2571), 2570); // to 10 under 10,000
+	assert.equal(Money.roundHome(27585), 27600); // three significant figures above
+	assert.equal(Money.roundHome(509090), 509000);
+	assert.equal(Money.homeAmount(10, 10, 38.97, 'RM'), 'RM 0.3');
+	assert.equal(Money.homeAmount(781000, 1075000, 38.97, 'RM'), 'RM 20,000–27,600');
+});
+
+test('Money: which trips can show their figures in the home currency', () => {
+	assert.equal(Money.canSwitch({ sym: '¥', home: 'RM', rate: 38.97 }), true);
+	assert.equal(Money.canSwitch({ sym: 'NT$', home: 'NT$', rate: 1 }), false); // the same currency
+	assert.equal(Money.canSwitch({ sym: '¥', rate: 1 }), false); // no home currency
+	assert.equal(Money.canSwitch({ sym: '¥', home: 'RM', rate: 0 }), false);
+	assert.equal(Money.canSwitch(undefined), false);
+});
+
+test('Money: amounts in a text, found and converted', () => {
+	const home = (t, sym = '¥', rate = 40, h = 'RM') => Money.toHome(t, sym, rate, h);
+	// Chinese and English text, commas, decimals, ranges kept as ranges, ≈ added only where nothing says "rough" yet
+	assert.equal(home('每人 ¥1,000'), '每人 ≈ RM 25');
+	assert.equal(home('门票 ¥2,000，晚餐另计'), '门票 ≈ RM 50，晚餐另计');
+	assert.equal(home('≈ ¥56,000–90,000'), '≈ RM 1,400–2,250');
+	assert.equal(home('约 ¥4,000–6,000 / 四人'), '约 RM 100–150 / 四人');
+	assert.equal(home('about ¥4,000–6,000 each'), 'about RM 100–150 each');
+	assert.equal(home('~¥15,000 for 4'), '~RM 380 for 4');
+	assert.equal(home('Bus ¥3.5k, taxi ¥1.2万'), 'Bus ≈ RM 88, taxi ≈ RM 300');
+	assert.equal(home('¥1,000~¥2,000, ¥500-800'), '≈ RM 25–50, ≈ RM 13–20');
+	assert.equal(home('¥3,000+ before tax'), '≈ RM 75+ before tax');
+	assert.equal(home('**¥7,200** / 四人'), '**≈ RM 180** / 四人');
+	assert.equal(home('约 **¥7,200**'), '约 **RM 180**');
+	assert.equal(home('Free (¥0)'), 'Free (RM 0)');
+	// another symbol: NT$, with its own rate
+	assert.equal(home('NT$400–600 a car', 'NT$', 7.8), '≈ RM 51–77 a car');
+	assert.equal(home('门票每人 NT$600，NT$3,000 / 五人', 'NT$', 7.8), '门票每人 ≈ RM 77，≈ RM 380 / 五人');
+	// the writer's own home-currency note isn't repeated once the figure is in the home currency
+	assert.equal(home('¥60,000（≈ RM 1,540），另问'), '≈ RM 1,500，另问');
+	assert.equal(home('¥60,000 (≈ RM 1,540); ask'), '≈ RM 1,500; ask');
+	// never converted: other currencies, a symbol glued to letters, times, distances, counts, a symbol with no number
+	assert.equal(home('约 USD 500（≈ RM 2,100）'), '约 USD 500（≈ RM 2,100）');
+	assert.equal(home('CN¥100, JP¥100'), 'CN¥100, JP¥100');
+	assert.equal(home('NT$400', '$', 3.4, 'S$'), 'NT$400');
+	assert.equal(home('S$50 or $50', '$', 3.4, 'S$'), 'S$50 or ≈ S$ 15');
+	assert.equal(home('10:30–11:00, 5 km, 4人, 搜索：温泉、¥、拉面'), '10:30–11:00, 5 km, 4人, 搜索：温泉、¥、拉面');
+	assert.equal(home('RM 2,000 / 四人'), 'RM 2,000 / 四人');
+	// "¥1,000-3人" isn't a range: the figure alone converts
+	assert.equal(home('¥1,000-3人'), '≈ RM 25-3人');
+});
+
+test('Money: each amount handed over with what it says', () => {
+	const seen = [];
+	const out = Money.mapAmounts('约 ¥1,000–2,000 / 4, ¥300 (≈ RM 8)', '¥', (a) => (seen.push(a), '#'), 'RM');
+	assert.equal(out, '约 # / 4, #'); // the words before a figure stay; only the figure is handed over
+	assert.deepEqual(seen, [
+		{ text: '¥1,000–2,000', lo: 1000, hi: 2000, approx: true, plus: false, note: '' },
+		{ text: '¥300', lo: 300, hi: 300, approx: false, plus: false, note: ' (≈ RM 8)' },
+	]);
+	// without a home currency, a bracket after a figure is the text's own
+	assert.equal(
+		Money.mapAmounts('¥300 (≈ RM 8)', '¥', () => '#'),
+		'# (≈ RM 8)',
+	);
 });
 
 test('Plan: flight-tied times', () => {

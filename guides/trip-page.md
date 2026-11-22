@@ -20,14 +20,23 @@ two of them seniors.
 - **It keeps the destination's clock.** "Now", "today" and the running-late check use the trip's time zone, whatever
   the phone says. Now and Next refresh every minute and whenever you come back to the page.
 - **New version?** When the planner republishes, a bar offers the update (checked when you come back or get online, at
-  most every 10 minutes, never offline). Ticks, added stops, the language, the theme and the rate you set are kept.
+  most every 10 minutes, never offline). Ticks, added stops, the language, the theme, the currency and the rate you set
+  are kept.
 
 ## Finding your way
 
 - **The header** stays on screen: the trip's name (in brush lettering) and dates, Search, the theme button (light,
-  dark, or follow the phone, with a toast saying which), the language button (it names the other language, and keeps
-  your place; the browser tab's title switches with it, and in English the brush name is read out and shown on
-  hover by the trip's English name), and Install.
+  dark, or follow the phone, with a toast saying which), the currency button, the language button (it names the other
+  language, and keeps your place; the browser tab's title switches with it, and in English the brush name is read out
+  and shown on hover by the trip's English name), and Install.
+- **The currency button**, beside the language button, works the same way: it names the currency the figures would
+  switch to (RM while they're in NT$, NT$ while they're in RM). Pressed, every figure in the trip's currency shows in the
+  group's home currency: totals, shares, the budget and its chart, day budgets and their chips, optional plans,
+  tickets, the airport options, taxi estimates, and the amounts written inside notes. Each keeps its original beside
+  it, "≈ RM 710 (NT$5,500)", or on the line under it, and keeps your place; a toast says which currency and the rate.
+  Figures in another currency ("USD 680"), times and distances stay as written. The choice stays on this phone (the
+  rest of the group chooses for themselves), and copied text keeps the trip's currency. A trip without a home currency
+  of its own has no button.
 - **The day strip** under it: Overview, one tab per day (date, weekday, a dot on today, in the day's lantern colour),
   then Map, Airport, Entry, Optional, Wishlist, Food, Budget, Weather, Checklist and Priorities. The lit tab follows
   your scroll, and the edges fade
@@ -35,7 +44,12 @@ two of them seniors.
 - **A day bar** slides in under the header once a day's heading scrolls away: Day N, the date, the title.
 - **The Sections menu** (the round button that appears after the first screen): on a trip day it opens on Now and
   Next (before the trip, a countdown), then Food and Toilets nearby, every day, every section, back to the top, the
-  theme, the Group sync row, and Install.
+  theme, which maps app opens, Amounts and rate, the Group sync row, and Install.
+- **Amounts and rate** (in the Sections menu): the same currency choice as the header button, and the rate (1 RM =
+  NT$…), the same value as the budget's rate field. Figures follow a new rate as you type it; a rate that isn't a
+  number above 0 is outlined and ignored. Under it, the trip's own rate and its note, and "Use the trip's rate" once
+  you've set your own: it forgets yours, so a rate the planner updates later reaches your phone too. Both stay on this
+  phone.
 - **Jumps land instantly** (nearby ones scroll) and ring where they landed. A **Back pill** then takes you to where
   you were reading, and the phone's own Back closes an open sheet, dialog or full-screen map before it leaves the page.
 - **Search** (the magnifier) finds any stop, place, note or list item across the whole plan, grouped by section with
@@ -257,8 +271,9 @@ itself is the planner's: it's in the trip's data, and nobody makes one on the pa
 
 - **Every group cost also shows each person's share** ("≈ NT$x each", bold figures too, and never twice when the text
   already says it). Totals, each person's shares, the day's spend, the group pot, the shared cash and the airport
-  options also show in the home currency, at a rate you can change on the page (it's remembered, and every figure
-  follows it).
+  options also show in the home currency, at a rate you can change on the page (in the budget or the Sections menu;
+  it's remembered, and every figure follows it). The currency button turns that around: the home currency first, the
+  trip's original beside or under it.
 - **The budget:** what's not included, the total and each person's share, a suggestion, which costs don't shrink with
   fewer people (cars), the group pot (also in the home currency), the main shared costs, and a chart of each day's
   costs (estimates dashed, linking to each day).
@@ -359,6 +374,7 @@ Everything above that isn't listed here is on every page. The fields are in
 | Tickets and how to book                                      | `DAYS[i].tickets`, and `extra.json` `tickets`                                                                                                                                                                                            |
 | Where to eat, meal chips                                     | `DAYS[i].foodSlots` and `mealAt`, and `extra.json` `food`                                                                                                                                                                                |
 | Day cards (decide, rain, budget, wear…)                      | `DAYS[i].blocks`                                                                                                                                                                                                                         |
+| The currency button, Amounts and rate                        | `TRIP.currency`: a `home` currency that isn't the trip's own `sym`, and a `rate`                                                                                                                                                         |
 | Tax refund tag and rules                                     | the country pack (`TRIP.destination`), `shops.json`, and `TAX`                                                                                                                                                                           |
 | Lucky draw, drink guide                                      | the country pack, and `ENTRY.lucky` for the draw                                                                                                                                                                                         |
 | Metro name, transit card, taxi meter, bike share, toilet tip | the city pack (`TRIP.region`); the transit card also `AIRPORT.transitCard` / `MONEY.transitCard`                                                                                                                                         |

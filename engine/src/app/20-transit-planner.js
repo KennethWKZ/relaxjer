@@ -130,8 +130,8 @@ function planHTML(to, compact) {
 		`<p class="plan${lead ? ' lead' : ''}">${icon('car')}<span>${
 			fare
 				? Z(
-						`计程车约${taxi}分钟 · 约${CUR.sym}${num(fare[0])}–${num(fare[1])}/辆（${PAX}人要${CARS}辆）`,
-						`Taxi ~${taxi} min · ~${CUR.sym}${num(fare[0])}–${num(fare[1])} per car (${PAX} people = ${CARS} car${CARS > 1 ? 's' : ''})`,
+						`计程车约${taxi}分钟 · 约${money(fare[0], fare[1], true)}/辆（${PAX}人要${CARS}辆）`,
+						`Taxi ~${taxi} min · ~${money(fare[0], fare[1], true)} per car (${PAX} people = ${CARS} car${CARS > 1 ? 's' : ''})`,
 					)
 				: Z(`计程车约${taxi}分钟（${PAX}人要${CARS}辆）`, `Taxi ~${taxi} min (${PAX} people = ${CARS} car${CARS > 1 ? 's' : ''})`)
 		}</span></p>`;

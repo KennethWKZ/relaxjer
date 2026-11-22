@@ -3035,6 +3035,28 @@ details.wgroup > summary .chev {
 	font-size: var(--fs-sm);
 	font-weight: 750;
 }
+/* the currency button beside it, the same family: it names the currency the figures would switch to. A three-letter
+   name (HKD, NT$) steps down a size to stay inside the 44 px square */
+.icon-btn.cur-btn[hidden] {
+	display: none;
+}
+.cur-btn.long {
+	font-size: var(--fs-xs);
+	letter-spacing: -0.01em;
+}
+/* a phone's header then holds the brand, Install, search, currency and language: while Install shows, it keeps its word
+   but drops its icon, and the brush brand steps down, so a six-character brand still fits at 390 px in both languages */
+@media (max-width: 439px) {
+	.bar-row:has(#curBtn:not([hidden])):has(#homeBtn:not([hidden])) .brand-name {
+		font-size: 1.25rem;
+	}
+	.bar-row:has(#curBtn:not([hidden])) .icon-btn.home-hd:not([hidden]) {
+		padding: 0 10px;
+	}
+	.bar-row:has(#curBtn:not([hidden])) .icon-btn.home-hd svg.i {
+		display: none;
+	}
+}
 .stop-eat {
 	grid-column: 1 / -1;
 	margin-top: 10px;
@@ -4249,6 +4271,18 @@ svg.i.flip {
 	color: var(--ink-2);
 	font-weight: 650;
 	white-space: nowrap;
+}
+/* a figure shown in the home currency keeps its number together, and the original it came from follows it, quieter
+   (the same softening as the chips' home-currency line, so it reads on paper and on every lantern) */
+.cv {
+	white-space: nowrap;
+}
+.cv-o {
+	font-weight: 600;
+	opacity: 0.8;
+}
+.lantern .cv-o {
+	opacity: var(--cm, 0.8);
 }
 .kv dd .dd-each {
 	display: block;
@@ -5567,6 +5601,56 @@ h2.landed {
 	font: inherit;
 	font-weight: 700;
 	cursor: pointer;
+}
+/* amounts and rate, in the Sections sheet: which currency leads (a segmented choice, the pressed side filled and
+   ticked) and the rate, on one Fog Grey card like the rows around it */
+.toc-cur {
+	margin-top: 8px;
+}
+.toc-cur-in {
+	display: grid;
+	gap: 10px;
+	margin-top: 8px;
+	padding: 12px 14px;
+	border-radius: 12px;
+	background: var(--paper-2);
+}
+.toc-cur-seg {
+	display: flex;
+}
+.toc-cur-seg button {
+	flex: 1 1 0;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	min-width: 0;
+}
+.toc-cur-seg button b {
+	font-weight: 800;
+}
+.toc-cur-seg button span {
+	font-weight: 600;
+}
+.toc-cur-seg svg.i {
+	width: 18px;
+	height: 18px;
+	flex: none;
+}
+.toc-cur .fx {
+	padding: 0;
+	background: none;
+}
+.toc-cur [hidden] {
+	display: none;
+}
+.toc-cur .toc-rate-reset {
+	justify-self: start;
+	background: var(--paper);
+}
+input[data-rate][aria-invalid='true'] {
+	border-color: var(--bad);
+	box-shadow: inset 0 0 0 1px var(--bad);
 }
 @media (max-width: 599px) {
 	#themeBtn {

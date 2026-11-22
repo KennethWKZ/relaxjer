@@ -14,7 +14,7 @@ their phones, installs it to the home screen, and uses it offline.
 - **Near every stop:** food, drinks, rest spots and toilets with hours and the walk, plus the group's wishlist and
   optional plans that never crowd the schedule.
 - **Money:** every group cost with each person's share, and totals and shares in the home currency too, at a rate you
-  can change.
+  can change; one tap shows every figure, notes included, in the home currency first.
 - **Before and around the trip:** a checklist, the entry rules, the weather and what to wear, the airport options
   priced for the group, and the evening home worked back from take-off.
 - **Your own changes:** add a stop (it checks the time against getting there, walking at a senior's pace ×1.4, and

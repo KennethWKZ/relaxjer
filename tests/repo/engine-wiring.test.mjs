@@ -27,3 +27,12 @@ test('every data attribute the event code acts on is drawn somewhere', () => {
 	});
 	assert.deepEqual(dead, [], 'remove the handler, or draw what it waits for');
 });
+
+// a phone's own settings stay on that phone: group sync (26-sync.js) never reads or writes them, so one person reading
+// the figures in their home currency, at their own rate, in their own language or theme, changes nobody else's page
+test('personal settings never ride group sync', () => {
+	const sync = fs.readFileSync(path.join(src, 'app', '26-sync.js'), 'utf8');
+	assert.match(sync, /store\.(get|set)\(/, 'the sync code was read');
+	const mine = ['amounts', 'rate', 'lang', 'theme', 'maps'].filter((k) => new RegExp(`store\\.(get|set|del)\\('${k}'`).test(sync));
+	assert.deepEqual(mine, []);
+});
