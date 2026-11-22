@@ -68,7 +68,7 @@ two of them seniors.
   Esc closes. A jump opens the match's view (and its sheet, when it's in one) and lands it just under the header.
 - **Links:** every section, day and card has its own address (`#d3`, `#airport`, `#opt-101`), so a link in the group
   chat opens its view right there. A food, drink, wishlist or optional card opens in a sheet over the page, with "Show in the
-  list".
+  list", whether it's tapped or opened from a shared link.
 - **Typing in a sheet** (a stop's name or time, your name, the planner code): the sheet moves up to sit on the phone's
   keyboard, and the field you're typing in stays in view.
 - **Copying** falls back to a "long-press to select all" box where the phone blocks the clipboard.

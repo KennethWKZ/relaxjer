@@ -76,4 +76,5 @@ else if (location.hash.length > 1 && !backTo) {
 	// its view is already on screen (viewApply); then the place in it, in its sheet if it lives in one. WebKit needs
 	// holdLanding() here too (scrollToEl), or a shared link opened off target
 	if (el) setTimeout(() => landOn(el), 50);
+	else setTimeout(cardFromHash, 50); // a meal or wishlist card: its sheet
 }

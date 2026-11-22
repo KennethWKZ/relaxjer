@@ -29,6 +29,15 @@ function hashTarget(h = location.hash) {
 	if (!id || /^add=/.test(id)) return null;
 	return document.getElementById(id) || lazyFor(id);
 }
+/** an address naming a card the page builds only when it's asked for (a meal, a wishlist place: the page shows compact
+ *  rows) has nothing to land on, so it opens the card in its sheet, as a tap on its row does. True when it did */
+function cardFromHash(h = location.hash) {
+	const id = decodeURIComponent(String(h || '').replace(/^#/, ''));
+	if (!id || /^add=/.test(id) || hashTarget(h)) return false;
+	const card = placeCardHTML(id);
+	if (card) openSheet(card, id);
+	return !!card;
+}
 // the views in tab order, as drawn (a trip without a live map draws no map view)
 const viewIds = () => viewSecs().map((s) => s.id);
 const viewIdx = (id) => viewIds().indexOf(id);
@@ -185,6 +194,7 @@ function holdY(y) {
 addEventListener('hashchange', () => {
 	const st = history.state;
 	if (st && st.vid === curVid) return; // our own step, or one popstate already took
+	if (!(st && st.vid) && cardFromHash()) return; // a card's address typed or pasted in, not a step of ours
 	viewPop();
 });
 

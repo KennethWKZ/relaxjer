@@ -3,7 +3,7 @@
 import { test, expect, openTrip } from '../support/fixtures.mjs';
 import { goToView, readingSpot, settle, setStored, viewOn } from '../support/page.mjs';
 
-/* global DAYS -- the trip data, read inside the page */
+/* global DAYS, OPTIONAL -- the trip data, read inside the page */
 
 const top = (page, sel) => page.locator(sel).evaluate((e) => e.getBoundingClientRect().top);
 // a landed place sits just under the sticky bar; the legacy suites allowed a few px of sub-pixel overshoot
@@ -223,6 +223,36 @@ for (const id of ['entry', 'budget', 'checklist']) {
 		const t = await top(page, `#${id}`);
 		expect(t, `#${id} top after load`).toBeGreaterThanOrEqual(LANDED.min);
 		expect(t, `#${id} top after load`).toBeLessThanOrEqual(LANDED.max);
+	});
+}
+
+// a shared link to a meal, a wishlist place or an optional plan opens that card in its sheet. A meal or wishlist card
+// is built only when it's asked for (the page shows compact rows), so there's no element to land on: the sheet is it
+const CARDS = { meal: 'food-', wishlist: 'wish-', optional: '' };
+for (const [kind, pre] of Object.entries(CARDS)) {
+	test(`a shared link to a ${kind} card opens the card on load`, async ({ page }) => {
+		await openTrip(page);
+		// the id from a row's own link, every lazy list built first (as a search does)
+		const id = await page.evaluate((p) => {
+			window.RJ_FILL();
+			if (!p) return typeof OPTIONAL !== 'undefined' && OPTIONAL[0] ? OPTIONAL[0].id : null;
+			const a = document.querySelector(`#app a[href^="#${p}"]`);
+			return a ? a.getAttribute('href').slice(1) : null;
+		}, pre);
+		test.skip(!id, `this trip has no ${kind} cards`);
+		await page.goto('about:blank');
+		await openTrip(page, `#${id}`);
+		const sheet = page.locator('#placeSheet');
+		const there = page.locator(`#${id}`);
+		// either its sheet opens with the card, or (a card the page draws in a view) the reader lands on it
+		await expect
+			.poll(async () => (await sheet.evaluate((d) => d.open)) || (await there.isVisible().catch(() => false)), { timeout: 4000 })
+			.toBe(true);
+		if (await sheet.evaluate((d) => d.open)) {
+			await expect(sheet.locator('.psheet-body article, .psheet-body .hang, .psheet-body .opt').first()).toBeVisible();
+			await page.goBack();
+			await expect.poll(() => sheet.evaluate((d) => d.open), { message: 'Back closes it' }).toBe(false);
+		}
 	});
 }
 
