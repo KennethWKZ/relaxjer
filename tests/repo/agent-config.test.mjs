@@ -104,6 +104,21 @@ test('reviewer agents are read-only', () => {
 	assert.deepEqual(bad, []);
 });
 
+// knowledge/stays.md: the lessons from researching stays (availability for the exact dates, the three sites and both
+// kinds of stay, the planner's ranking) reach every agent that researches or writes a stay
+test('stay research follows knowledge/stays.md', () => {
+	const stays = read('knowledge', 'stays.md');
+	for (const must of [/## Availability for the exact dates/, /Booking\.com, Agoda and Airbnb/, /hotels, and homes/, /recommended/])
+		assert.match(stays, must, `knowledge/stays.md keeps ${must}`);
+	for (const f of [
+		['.claude', 'agents', 'relaxbro.md'],
+		['.agents', 'skills', 'trip-customize', 'SKILL.md'],
+		['.agents', 'skills', 'trip-intake', 'SKILL.md'],
+	])
+		assert.match(read(...f), /knowledge\/stays\.md/, `${f.join('/')} links knowledge/stays.md`);
+	assert.match(read('knowledge', 'README.md'), /\(stays\.md\)/, 'knowledge/README.md lists it');
+});
+
 // `--not` negates every ref after it, the branch included: `git log --not --remotes HEAD` lists nothing, so a check
 // built on it passes over zero commits
 test('agent commands that list unpushed commits name the branch before --not', () => {

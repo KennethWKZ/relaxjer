@@ -20,7 +20,8 @@ You need these before writing data. Ask for any that are missing, all in one mes
 
 - dates, and both flights (numbers, times, airports);
 - the group's size, how many are seniors, and anything that limits walking;
-- the hotel for each night;
+- the hotel for each night, or, where it's not booked yet: the beds the group needs, the bags, a lift, how near the
+  station, the budget, and any stay the planner wants only as a last resort ([stays](../../../knowledge/stays.md));
 - everything booked or at a fixed time (shows, tours, charters, restaurants);
 - the budget the planner has, the home currency, and the two UI languages;
 - must-dos, nice-to-haves, and what the group dislikes. A must-do named loosely ("the lone tree", "that famous
