@@ -66,9 +66,11 @@ function wishForDay(d) {
 		})
 		.join('')}</ul></div>`;
 }
-/* lazy lists: a closed <details data-lazy> is filled the first time it opens (or when search / a jump needs what's inside) */
+/* lazy lists: a closed <details data-lazy> (or a part's sheet, a <dialog data-lazy>: 06-render-blocks.js) is filled the
+   first time it opens, or when search / a jump needs what's inside */
 const LAZY = new Map();
 const LAZY_ID = new Map();
+const LAZY_IN = new Map(); // an id in a lazy list that sits in a sheet not filled yet → the sheet's key
 let lazyN = 0;
 const lazyKey = (fn, ids = []) => {
 	const k = `lz${++lazyN}`;
@@ -78,19 +80,31 @@ const lazyKey = (fn, ids = []) => {
 };
 function lazyFill(d) {
 	const k = d && d.dataset.lazy;
-	const fn = k && LAZY.get(k);
-	if (!fn) return;
-	const body = d.querySelector('[data-lazy-body]') || d;
-	body.insertAdjacentHTML('beforeend', fn());
+	if (!k) return;
+	const fn = LAZY.get(k);
 	delete d.dataset.lazy;
+	if (!fn) return;
+	const sheet = d.matches('dialog');
+	const body = (!sheet && d.querySelector('[data-lazy-body]')) || d;
+	body.insertAdjacentHTML('beforeend', fn());
 	LAZY.delete(k);
+	if (sheet) rateSet(rate); // what it holds was drawn at the last full draw: its figures follow the rate since, and the lucky draw adds up
 }
-const lazyAll = () => $$('details[data-lazy]').forEach(lazyFill);
+// everything at once (search reads all of it); a filled sheet can hold lists of its own, so until none is left
+function lazyAll() {
+	for (let i = 0, els; i < 4 && (els = $$('[data-lazy]')).length; i++) els.forEach(lazyFill);
+}
+// what holds an id: its list, inside a sheet that may itself wait to be filled
 const lazyFor = (id) => {
-	const k = LAZY_ID.get(id);
-	if (k) lazyFill($(`details[data-lazy="${k}"]`));
+	for (let i = 0; i < 3 && !document.getElementById(id); i++) {
+		const k = LAZY_ID.get(id);
+		const el = (k && $(`[data-lazy="${k}"]`)) || (LAZY_IN.has(id) && $(`[data-lazy="${LAZY_IN.get(id)}"]`));
+		if (!el) break;
+		lazyFill(el);
+	}
 	return document.getElementById(id);
 };
+window.RJ_FILL = lazyAll; // for the tests' page-wide audits: the same as a search does
 document.addEventListener(
 	'toggle',
 	(e) => {
@@ -197,17 +211,43 @@ function secBudget() {
       <p class="note">${fmt(B.suggest)}${sg && !homeFirst ? ` <span data-rm="${sg.join(',')}">${rmText(...sg)}</span>` : ''}</p>
       <p class="callout">${icon('users')}<span>${fmt(B.split)}</span></p>
       <p class="callout">${icon('info')}<span>${fmt(B.poolText)}${homeFirst ? '' : ` <span data-rm="${B.pool},${B.pool}">${rmText(B.pool, B.pool)}</span>`}</span></p>
-      <h3 class="sub">${icon('list')}${Z('主要共同支出', 'Main shared costs')}</h3>
-      <dl class="kv">${B.rows.map((r) => `<div><dt>${fmt(r[0])}${r[4] === 'airport' && B.airportNote ? `<span class="check-sub"><a href="#airport">${escText(L(B.airportNote))}</a></span>` : ''}</dt><dd>${fmt(r[1])}<small class="dd-each">${Z('每人', 'each')} ${eachText(r[2], r[3])} ${eachRm(r[2], r[3])}</small></dd></div>`).join('')}<div class="sum"><dt>${Z('合计', 'Total')}</dt><dd>${fmt(B.total)}<small class="dd-each">${Z('每人', 'each')} ${eachText(B.totalMin, B.totalMax)} ${eachRm(B.totalMin, B.totalMax)}</small></dd></div></dl>
-      <h3 class="sub">${icon('chart')}${Z(`每天花费（条＝${GROUP[0]}，小字＝每人，${homeFirst ? CUR.home : CUR.sym}）`, `Per day (bar = all ${PAX}, small = each, ${homeFirst ? CUR.home : CUR.sym})`)}</h3>
-      <div id="budget-bars">${budgetBars()}</div>
-      <p class="note">${esc(L(B.chartNote || ['虚线框 = 估算。', 'Dashed = estimate.']))}</p>
-      <h3 class="sub">${icon('card')}${Pack.transitCard && MONEY.transitCard ? Z(`现金、信用卡和${Pack.transitCard[0]}`, `Cash, cards and ${Pack.transitCard[1]}`) : Z('现金和信用卡', 'Cash and cards')}</h3>
-      <div class="tiers">
+      ${partsHTML(
+				'budget',
+				[
+					{
+						key: 'rows',
+						icon: 'list',
+						h: ['主要共同支出', 'Main shared costs'],
+						sum: `${sumB(Z(`${B.rows.length} 项`, `${B.rows.length} items`))} · ${Z('每人约', 'each ≈')} ${eachText(B.totalMin, B.totalMax)}`,
+						body: `<dl class="kv">${B.rows.map((r) => `<div><dt>${fmt(r[0])}${r[4] === 'airport' && B.airportNote ? `<span class="check-sub"><a href="#airport">${escText(L(B.airportNote))}</a></span>` : ''}</dt><dd>${fmt(r[1])}<small class="dd-each">${Z('每人', 'each')} ${eachText(r[2], r[3])} ${eachRm(r[2], r[3])}</small></dd></div>`).join('')}<div class="sum"><dt>${Z('合计', 'Total')}</dt><dd>${fmt(B.total)}<small class="dd-each">${Z('每人', 'each')} ${eachText(B.totalMin, B.totalMax)} ${eachRm(B.totalMin, B.totalMax)}</small></dd></div></dl>`,
+					},
+					{
+						key: 'days',
+						icon: 'chart',
+						h: [
+							`每天花费（条＝${GROUP[0]}，小字＝每人，${homeFirst ? CUR.home : CUR.sym}）`,
+							`Per day (bar = all ${PAX}, small = each, ${homeFirst ? CUR.home : CUR.sym})`,
+						],
+						sum: sumB(nItems(DAYS.filter((d) => d.blocks.some((b) => b.type === 'budget')).length, '天', 'day', 'days')),
+						body: `<div id="budget-bars">${budgetBars()}</div><p class="note">${esc(L(B.chartNote || ['虚线框 = 估算。', 'Dashed = estimate.']))}</p>`,
+					},
+					{
+						key: 'cash',
+						icon: 'card',
+						h:
+							Pack.transitCard && MONEY.transitCard
+								? [`现金、信用卡和${Pack.transitCard[0]}`, `Cash, cards and ${Pack.transitCard[1]}`]
+								: ['现金和信用卡', 'Cash and cards'],
+						sum: `${Z('共同现金', 'Shared cash')} ${cvHtml(esc(MONEY.cash.amt), false)}`,
+						body: `<div class="tiers">
         <div class="tier"><p class="tier-h">${icon('money')}${Z('共同现金', 'Shared cash')}</p><p class="wear-main" style="margin-top:6px">${cvHtml(esc(MONEY.cash.amt), false)}</p><p class="xsmall" data-rm="${(numsIn(MONEY.cash.amt) || [0, 0]).join(',')}">${rmText(...(numsIn(MONEY.cash.amt) || [0, 0]))}</p><p class="xsmall">${Z('每人约', 'Each ≈')} <b>${eachText(...(numsIn(MONEY.cash.amt) || [0, 0]))}</b></p>${list(MONEY.cash.uses)}</div>
         <div class="tier"><p class="tier-h">${icon('card')}${Z('信用卡', 'Credit card')}</p>${list(MONEY.card)}</div>
         ${Pack.transitCard && MONEY.transitCard ? `<div class="tier"><p class="tier-h">${icon('train')}${esc(L(Pack.transitCard))}</p><p style="margin-top:6px">${fmt(MONEY.transitCard)}</p><div class="links-row"><a class="mlink" href="#transit-card">${icon('arrow')}${Z('买卡与加值', 'Buying & topping up')}</a></div></div>` : ''}
-      </div>
+      </div>`,
+					},
+				],
+				['细节', 'Details'],
+			)}
     </section>`;
 }
 

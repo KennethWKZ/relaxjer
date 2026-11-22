@@ -3,6 +3,7 @@
 // offline keeps its changes and sends them later; personal ticks never leave the phone; and when the planner ends sync,
 // the page says so and keeps working on its own copy.
 import { test, expect } from '../support/fixtures.mjs';
+import { show } from '../support/page.mjs';
 import { TEST_PLANNER_CODE } from '../support/global-setup.mjs';
 import { STORE_KEY } from '../support/store-key.mjs';
 import { endSync, freshDatabase, hasSyncPage, joinSpace, openSync, secondPhone, skipWelcome, stored } from '../support/sync.mjs';
@@ -58,7 +59,7 @@ const addByLink = async (page, name, day = 'd3', t = '16:00') => {
 	const pack = [[day, t, name, 25.1366, 121.5069, '', '']];
 	await openSync(page, `#add=${Buffer.from(JSON.stringify(pack)).toString('base64url')}`);
 	await sheet(page).locator('[data-mine-import]').click();
-	await expect(page.locator(`#${day} .stop.mine`, { hasText: name })).toBeVisible();
+	await expect(page.locator(`#${day} .stop.mine`, { hasText: name })).toBeAttached(); // in its day's view
 };
 
 // tagged @demo: the day, the shared checklist group and its items are the demo trip's
@@ -200,7 +201,7 @@ test.describe('group sync', { tag: '@demo' }, () => {
 
 		const asked = [];
 		page.on('dialog', (d) => asked.push(d.message()));
-		await page.locator('#d3 .stop.mine', { hasText: 'Demo Named Stop' }).locator('[data-mine-del]').click();
+		await (await show(page, page.locator('#d3 .stop.mine', { hasText: 'Demo Named Stop' }).locator('[data-mine-del]'))).click();
 		expect(asked.join(' ')).toContain('everyone');
 		await expect(row, 'gone from the other phone too').toHaveCount(0, { timeout: 15_000 });
 	});
@@ -212,7 +213,7 @@ test.describe('group sync', { tag: '@demo' }, () => {
 		await setName(b.page, 'Ana');
 		await addByLink(page, 'Demo Lee Stop');
 		const there = b.page.locator('#d3 .stop.mine', { hasText: 'Demo Lee Stop' });
-		await expect(there).toBeVisible({ timeout: 15_000 });
+		await expect(there).toBeAttached({ timeout: 15_000 });
 		await expect(there.locator('[data-mine-del]')).toHaveCount(0);
 
 		await claimPlanner(b.page, 'not-the-code');
@@ -224,7 +225,7 @@ test.describe('group sync', { tag: '@demo' }, () => {
 		const kenRow = sheet(b.page).locator('.sync-row', { hasText: 'Lee' });
 		await expect(kenRow).toContainText('1 added stop');
 		await sheet(b.page).locator('[data-close]').click();
-		await there.locator('[data-mine-del]').click();
+		await (await show(b.page, there.locator('[data-mine-del]'))).click();
 		await expect(page.locator('#d3 .stop.mine', { hasText: 'Demo Lee Stop' }), 'the planner removed it for everyone').toHaveCount(0, {
 			timeout: 15_000,
 		});
@@ -253,7 +254,7 @@ test.describe('group sync', { tag: '@demo' }, () => {
 		await addByLink(b.page, 'Demo Tester Stop');
 		await openSync(b.page, '#checklist');
 		await tick(b.page, 'before-charter');
-		await expect(page.locator('#d3 .stop.mine', { hasText: 'Demo Tester Stop' })).toBeVisible({ timeout: 15_000 });
+		await expect(page.locator('#d3 .stop.mine', { hasText: 'Demo Tester Stop' })).toBeAttached({ timeout: 15_000 });
 		// the tick has left the other phone; this one reads it on load rather than waiting on the live stream
 		await expect.poll(() => pendingOf(b.page), { timeout: 15_000 }).not.toContain('tick:before-charter');
 		await openSync(page, '#checklist');
@@ -307,15 +308,15 @@ test.describe('group sync', { tag: '@demo' }, () => {
 		await setName(page, 'Lee');
 		await addByLink(page, 'Demo Oops Stop');
 		const there = b.page.locator('#d3 .stop.mine', { hasText: 'Demo Oops Stop' });
-		await expect(there).toBeVisible({ timeout: 15_000 });
+		await expect(there).toBeAttached({ timeout: 15_000 });
 		const here = page.locator('#d3 .stop.mine', { hasText: 'Demo Oops Stop' });
 
-		await here.locator('[data-mine-del]').click();
+		await (await show(page, here.locator('[data-mine-del]'))).click();
 		await expect(there).toHaveCount(0, { timeout: 15_000 });
 		await page.locator('#toast [data-toast-act]').click();
-		await expect(there, 'Undo brings it back on every phone').toBeVisible({ timeout: 15_000 });
+		await expect(there, 'Undo brings it back on every phone').toBeAttached({ timeout: 15_000 });
 
-		await here.locator('[data-mine-del]').click();
+		await (await show(page, here.locator('[data-mine-del]'))).click();
 		await expect(there).toHaveCount(0, { timeout: 15_000 });
 		await openSyncSheet(b.page);
 		const gone = sheet(b.page).locator('.sync-row', { hasText: 'Demo Oops Stop' });
@@ -325,7 +326,7 @@ test.describe('group sync', { tag: '@demo' }, () => {
 
 		await openSyncSheet(page);
 		await sheet(page).locator('.sync-row', { hasText: 'Demo Oops Stop' }).locator('[data-gone-back]').click();
-		await expect(there, 'put back for everyone').toBeVisible({ timeout: 15_000 });
+		await expect(there, 'put back for everyone').toBeAttached({ timeout: 15_000 });
 	});
 
 	test('“Remove the stops I added” takes only this phone’s; who added what is in the sheet', async ({ page }) => {

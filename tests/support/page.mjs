@@ -51,7 +51,9 @@ export function overflow(page) {
 				if (e.closest(SCROLLERS) || e.closest('details:not([open]) > :not(summary)')) continue;
 				const r = e.getBoundingClientRect();
 				if (!r.width || !r.height) continue;
-				const excess = Math.max(s.left - r.left, r.right - s.right);
+				// a view's band of sky runs edge to edge on purpose (its words keep to the column): the screen bounds it
+				const bleed = e.closest('[data-band]') && !e.closest('.band-col');
+				const excess = bleed ? Math.max(-r.left, r.right - innerWidth) : Math.max(s.left - r.left, r.right - s.right);
 				if (excess <= 0.5) continue;
 				// an ancestor inside the section that clips it keeps it from showing
 				let clipped = false;
@@ -133,6 +135,7 @@ export function splitWords(page, sel, skip = null, numbers = false) {
  */
 export function tripAmounts(page, all = false) {
 	return page.evaluate((all) => {
+		if (window.RJ_FILL) window.RJ_FILL(); // the sheets too: they're built on first open
 		const sym = TRIP.currency.sym.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 		const re = new RegExp(`(?<![A-Za-z0-9])${sym}[ \\u00a0\\u202f]?\\d`);
 		const out = [];
@@ -150,21 +153,110 @@ export function tripAmounts(page, all = false) {
 /** The header's currency button: it names the currency the figures would switch to. */
 export const curBtn = (page) => page.locator('#bar #curBtn');
 
-/** Opens the Sections menu the way a reader does: past the first screen, then its round button. */
+/** Opens the Sections menu the way a reader does: its round button, there from the first screen of every view. */
 export async function openSections(page) {
-	await scrollBy(page, 1200); // the Sections button shows once you're past the first screen
 	await expect(page.locator('#tocBtn')).toHaveAttribute('data-show', '1');
 	await page.locator('#tocBtn').click();
 	await expect(page.locator('#toc')).toBeVisible();
 }
 
-/** Opens every closed <details> so build-on-open lists render, then waits for layout. */
+/* ───────── views (ADR-20261122-day-views): one part of the trip on screen at a time ───────── */
+
+/** The view on screen: its section's id (#top, #d3, #budget…). */
+export const viewOn = (page) => page.locator('html').getAttribute('data-showing');
+
+/** Builds every closed sheet and list, as a search does: a part's sheet is drawn the first time it opens
+ *  (06-render-blocks.js), so a check that reads the whole page fills them first. */
+export const fillAll = (page) => page.evaluate(() => window.RJ_FILL && window.RJ_FILL());
+
+/** Shows a view the way a reader does (its tab on a phone and a tablet, the week rail on a desktop) and waits for it. */
+export async function goToView(page, id) {
+	const tab = page.locator(`#tabs .tab[href="#${id}"]`);
+	if (await tab.isVisible()) await tab.click();
+	else await page.locator(`#rail [data-rail="${id}"]`).click();
+	await expect(page.locator('html')).toHaveAttribute('data-showing', id);
+	await settle(page);
+}
+
+/** The parts of the page the views add: summary buttons, their sheets, a stop's sheet, the day's pager, the rail. */
+export const VIEWS = {
+	part: '.part[data-part]',
+	sheet: 'dialog.bsheet',
+	openSheet: 'dialog.bsheet[open]',
+	stopMore: '.stop-more',
+	pager: '.pager',
+	prev: '.pager [data-pager="prev"]',
+	next: '.pager [data-pager="next"]',
+	rail: '#rail',
+	band: '[data-band]',
+	skyBtn: '#skyBtn',
+	shake: '[data-shake]',
+};
+
+/** Opens a summary button's sheet in the view on screen (its button by index, or a locator) and returns the sheet. */
+export async function openPart(page, which = 0) {
+	const view = await viewOn(page);
+	const btn = typeof which === 'number' ? page.locator(`#${view} ${VIEWS.part}`).nth(which) : which;
+	const id = await btn.getAttribute('data-part');
+	await btn.scrollIntoViewIfNeeded();
+	await btn.click();
+	const sheet = page.locator(`dialog#${id}`);
+	await expect(sheet).toBeVisible();
+	return sheet;
+}
+
+/** Brings what a locator (or selector) names on screen the way a reader gets there: its view first (by the address,
+ *  as a tab or a shared link does), then its sheet when it lives in one, then scrolled into sight. */
+export async function show(page, target) {
+	const loc = (typeof target === 'string' ? page.locator(target) : target).first();
+	if (!(await loc.count())) await fillAll(page); // it waits in a sheet not opened yet
+	const at = await loc.evaluate((e) => ({ view: e.closest('#app > [data-sec]')?.id || '', sheet: e.closest('dialog.bsheet')?.id || '' }));
+	if (at.view && (await viewOn(page)) !== at.view) {
+		await page.evaluate((h) => (location.hash = h), `#${at.view}`);
+		await expect(page.locator('html')).toHaveAttribute('data-showing', at.view);
+	}
+	if (at.sheet && !(await page.locator(`dialog#${at.sheet}`).evaluate((d) => d.open))) {
+		const btn = page.locator(`[data-part="${at.sheet}"]`).first();
+		await btn.scrollIntoViewIfNeeded();
+		await btn.click();
+		await expect(page.locator(`dialog#${at.sheet}`)).toBeVisible();
+	}
+	await loc.scrollIntoViewIfNeeded();
+	return loc;
+}
+
+/** Opens the sheet a place inside one lives in (a block in a day, a stop's links), so its contents can be read. */
+export async function revealIn(page, inner) {
+	if (!(await inner.count())) await fillAll(page);
+	const id = await inner.first().evaluate((e) => (e.closest('dialog.bsheet') || {}).id || '');
+	if (!id) return;
+	const btn = page.locator(`[data-part="${id}"]`).first();
+	await btn.scrollIntoViewIfNeeded();
+	await btn.click();
+	await expect(page.locator(`dialog#${id}`)).toBeVisible();
+}
+
+/** Opens every closed <details> so build-on-open lists render, and for the page-wide audits draws every view and every
+ *  sheet in place (one view at a time and sheets that open on a tap would hide most of the page from them); waits for
+ *  layout. Each sheet is drawn as wide as it opens: a phone sheet's width (the column plus its gutters), and on a
+ *  desktop the side panel's. */
 export async function openAllDetails(page) {
-	await page.evaluate(() =>
+	await fillAll(page);
+	await page.evaluate(() => {
+		document.documentElement.classList.add('rj-audit');
+		const st = document.createElement('style');
+		st.textContent = `html.rj-audit #app > [data-off] { display: block !important; }
+			html.rj-audit #app dialog.bsheet { display: block; position: static; inset: auto; margin: 12px -16px; width: auto;
+				max-width: none; height: auto; max-height: none; transform: none; opacity: 1; box-shadow: none; overflow: visible; }
+			@media (min-width: 1024px) { html.rj-audit #app dialog.bsheet { margin: 12px 0; max-width: min(500px, 42vw); } }`;
+		document.head.append(st);
+		// a stop's sheet lives in its row; drawn in place it would get the row's narrow column, so it moves to the foot
+		// of its view, where it gets a sheet's width (its ids and content stay the same)
+		document.querySelectorAll('#app dialog.ssheet').forEach((d) => d.closest('[data-sec]').append(d));
 		document.querySelectorAll('#app details:not([open])').forEach((d) => {
 			d.open = true;
-		}),
-	);
+		});
+	});
 	await page.waitForTimeout(300);
 }
 

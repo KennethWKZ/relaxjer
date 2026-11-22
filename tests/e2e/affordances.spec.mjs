@@ -1,7 +1,8 @@
 // Affordance rules from memory-bank/standards/patterns/affordances.md, measured on the page (rule numbers in brackets):
 // every control can be hit, looks like what it is, and shows its state.
 import { test, expect, openTrip } from '../support/fixtures.mjs';
-import { openAllDetails, scrollBy } from '../support/page.mjs';
+import { openAllDetails, show } from '../support/page.mjs';
+/* global DAYS -- the trip data, read inside the page */
 
 test('every control is at least 44 px [1]', async ({ page }) => {
 	await openTrip(page);
@@ -96,6 +97,7 @@ test('every other sideways row fades the edge that has more [14]', async ({ page
 		// a jump past sections not drawn yet (content-visibility) can land off the row, and headless Chromium can leave a
 		// section undrawn while it is on screen (real Chrome, scrolled by a person, cues every row): check the rows it drew
 		let drawn = false;
+		await show(page, row); // its view on screen first
 		for (let k = 0; k < 5 && !drawn; k++) {
 			await row.scrollIntoViewIfNeeded();
 			await page.waitForTimeout(100);
@@ -158,8 +160,7 @@ test('lantern buttons are filled, and tappable chips differ from static tags [6,
 
 test('the focus ring on a lantern is drawn in the day’s ink [19]', async ({ page }) => {
 	await openTrip(page);
-	const btn = page.locator('.lantern .l-btn').first();
-	await btn.scrollIntoViewIfNeeded();
+	const btn = await show(page, '.lantern .l-btn');
 	await page.keyboard.press('Tab'); // keyboard modality, so programmatic focus shows the ring
 	await btn.focus();
 	const [ring, ink] = await btn.evaluate((e) => [getComputedStyle(e).outlineColor, getComputedStyle(e.closest('.lantern')).color]);
@@ -204,8 +205,7 @@ test('a website link keeps its word, and phones switch the theme from the Sectio
 	expect(bare, 'website links with no visible word').toBe(0);
 	if ((page.viewportSize()?.width || 0) >= 600) return;
 	await expect(page.locator('#themeBtn')).toBeHidden();
-	await scrollBy(page, 1200); // the Sections button shows once you're past the first screen
-	await expect(page.locator('#tocBtn')).toHaveAttribute('data-show', '1');
+	await expect(page.locator('#tocBtn'), 'the Sections button is there from the first screen').toHaveAttribute('data-show', '1');
 	await page.locator('#tocBtn').click();
 	const row = page.locator('[data-theme-cycle]');
 	await expect(row).toContainText('Theme');
@@ -217,7 +217,8 @@ test('a website link keeps its word, and phones switch the theme from the Sectio
 test('a jump holds a ring on where it landed, even with reduced motion [20]', async ({ page }) => {
 	await page.emulateMedia({ reducedMotion: 'reduce' });
 	await openTrip(page);
-	await page.locator('.tab.day').nth(1).click();
+	// a link to a place in another view (a stop of the second day): its view, then the place, ringed
+	await page.evaluate(() => (location.hash = `#${DAYS[1].id}-s1`));
 	const ring = () =>
 		page.evaluate(() => (document.querySelector('.landed') ? getComputedStyle(document.querySelector('.landed')).boxShadow : 'none'));
 	await expect.poll(ring).not.toBe('none');

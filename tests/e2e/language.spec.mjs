@@ -1,15 +1,14 @@
 // Switching language redraws the page but keeps the reader where they were, the tab's title and the header's name follow it,
 // and the choice is remembered.
 import { test, expect, openTrip } from '../support/fixtures.mjs';
-import { readingSpot, scrollBy, settle, switchLang } from '../support/page.mjs';
+import { goToView, readingSpot, scrollBy, switchLang } from '../support/page.mjs';
 /* global TRIP -- the trip data, read inside the page */
 
 for (const tab of ['d3', 'airport', 'wish', 'budget']) {
 	test(`language switch keeps the reader in #${tab}`, async ({ page }) => {
 		await openTrip(page);
 		test.skip((await page.locator(`.tab[href="#${tab}"]`).count()) === 0, `this trip has no #${tab} section`);
-		await page.locator(`.tab[href="#${tab}"]`).first().click();
-		await settle(page);
+		await goToView(page, tab);
 		await scrollBy(page, 400);
 		const before = await readingSpot(page);
 		expect(before.sec).toBeTruthy();

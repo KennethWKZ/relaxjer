@@ -12,7 +12,15 @@ const searchState = { q: '', hits: [], idx: -1 };
 const CAND = 'h2,h3,p,li,dt,dd,th,td,figcaption,.tag,.chip,.method-name,.bar-lab,.route,.wr-name';
 const textOf = (el) => (el.matches('figcaption') ? (el.firstChild ? el.firstChild.textContent : '') : el.textContent);
 const hay = (el) => norm(textOf(el) + ' ' + (el.dataset.alt || ''));
-const shown = (el) => el.getClientRects().length || el.closest('details:not([open])');
+// shown, or would be once its view is on screen, its sheet open or its list unfolded: nothing on the way up to there hides it
+const shown = (el) => {
+	if (el.getClientRects().length) return true;
+	for (let a = el; a && a.id !== 'app'; a = a.parentElement) {
+		if (a.matches('#app > [data-sec], dialog.bsheet, details:not([open]) > :not(summary)')) return true;
+		if (a.hidden || getComputedStyle(a).display === 'none') return false;
+	}
+	return false;
+};
 function runSearch(raw) {
 	searchState.q = raw;
 	const q = norm(raw.trim());
@@ -132,21 +140,24 @@ function jumpTo(i) {
 		p = p.parentElement && p.parentElement.closest('details');
 	}
 	$('#results').dataset.state = 'closed';
+	// the hit's view first (20-views.js); the search keeps one history step however many hits it visits, so Back
+	// returns to the view and the place the search started from
+	const v = viewOf(el) || curView;
 	if (!(history.state && history.state.tpSearch)) {
-		history.replaceState(Object.assign({}, history.state, { y: window.scrollY }), '');
-		history.pushState({ tpJump: 1, tpSearch: 1 }, '');
+		viewLeave(searchState.y0 != null ? searchState.y0 : window.scrollY);
+		curVid = ++vseq;
+		history.pushState({ tpJump: 1, tpSearch: 1, view: v, vid: curVid }, '');
 		syncBackPill();
+	} else history.replaceState(Object.assign({}, history.state, { view: v }), '');
+	const moved = v !== curView;
+	if (moved) showView(v, 0);
+	const sheet = el.closest('dialog.bsheet');
+	if (sheet) partOpen(sheet, el);
+	// under the bar, like every other jump: landed mid-screen, the top of the screen still belonged to the section before
+	else {
+		scrollToEl(el, 'start', !moved && Math.abs(el.getBoundingClientRect().top) <= innerHeight * 3 && !noMotion());
+		flash(el);
 	}
-	// under the bar, like every other jump: landed mid-screen, the top of the screen still belonged to the section before,
-	// and the strip lit that one
-	scrollToEl(el, 'start', Math.abs(el.getBoundingClientRect().top) <= innerHeight * 3 && !noMotion());
-	// light the hit's section in the strip at once, as a tab jump does: the old day's tab stayed lit after the jump
-	const sec = el.closest('[data-sec]');
-	if (sec) {
-		setActive(sec.id);
-		spyHold = performance.now() + 1100;
-	}
-	flash(el);
 	if (window.Highlight && CSS.highlights) {
 		const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
 		const q = norm(searchState.q.trim());
@@ -178,6 +189,9 @@ function flash(el) {
 	setTimeout(() => el.classList.remove('flash', 'fade'), 1300);
 }
 function openSearch() {
+	// where the reader is before the search row and its results change the header: a jump's Back returns here (the
+	// browser's scroll anchoring moves scrollY while the results show)
+	searchState.y0 = window.scrollY;
 	$('#bar-main').hidden = true;
 	$('#search-row').hidden = false;
 	$('#q').focus();

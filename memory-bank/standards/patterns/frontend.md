@@ -37,7 +37,11 @@ Every interactive element also follows [`affordances.md`](./affordances.md): how
 states and its feedback, as 25 testable rules with sources.
 
 - **Phones first.** Design at 390 px, then check desktop. One column (`--col`, 46rem); wide screens get margin, not
-  more columns.
+  more columns (from 1024 px the week rail sits beside it: navigation, not a second reading column).
+- **One part of the trip at a time** ([ADR-20261122-day-views](../decisions/ADR-20261122-day-views.md)). A day or a
+  section is a view a few phone screens long; what the group plans or reads rarely (a decision, a table, a budget, the
+  rules) goes behind a summary button whose one line says what's inside, and opens in a sheet that scrolls on its own
+  and closes with Back. Back returns to the exact view and place; a new jump opens its view first.
 - **The operated layer stays plain.** Times, prices, instructions and buttons use the system sans at the existing type
   scale. The brush face is for names and wishes only.
 - **44 px tap targets at least**, and 52 px for the floating actions. Type in `rem`, so the phone's text-size setting

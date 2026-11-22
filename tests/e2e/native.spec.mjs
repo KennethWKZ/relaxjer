@@ -1,7 +1,7 @@
 // The native layer (ADR-20261117-native-layer): when the trip's country pack names a local language the group doesn't
 // read, each stop and place shows its local words under its name, one tap copies them. A trip without it shows none.
 import { test, expect, openTrip } from '../support/fixtures.mjs';
-import { switchLang } from '../support/page.mjs';
+import { openAllDetails, show, switchLang } from '../support/page.mjs';
 /* global DAYS, PLACES -- the trip data, read inside the page */
 
 test('the demo (Taiwan) has no native layer: nothing new under its stops @demo', async ({ page }) => {
@@ -22,7 +22,7 @@ test('the native layer: local words under each named stop, in their language, on
 	await expect(chips).toHaveCount(want.length);
 
 	const first = chips.first();
-	await first.scrollIntoViewIfNeeded();
+	await show(page, first); // its stop's sheet
 	const lang = await first.locator('.nat-t').getAttribute('lang');
 	expect(lang, 'the words carry their language, so the right glyphs and voice are used').toMatch(/^[a-z]{2,3}(-|$)/);
 	const words = (await first.locator('.nat-t').textContent()).trim();
@@ -35,6 +35,8 @@ test('the native layer: local words under each named stop, in their language, on
 
 	// tap: the local words, and only them, go to the clipboard, and a toast says so (in both page languages)
 	for (const l of ['zh', 'en']) {
+		if (await page.locator('dialog.bsheet[open]').count()) await page.keyboard.press('Escape'); // the stop's sheet covers the header
+		await expect(page.locator('dialog.bsheet[open]')).toHaveCount(0);
 		await switchLang(page, l);
 		await page.evaluate(() => {
 			window.__copied = [];
@@ -44,7 +46,7 @@ test('the native layer: local words under each named stop, in their language, on
 			});
 		});
 		const chip = page.locator('.stop .mlink.native').first();
-		await chip.scrollIntoViewIfNeeded();
+		await show(page, chip);
 		await chip.click();
 		await expect.poll(() => page.evaluate(() => window.__copied)).toEqual([words]);
 		await expect(page.locator('#toast')).toContainText(words);
@@ -54,12 +56,13 @@ test('the native layer: local words under each named stop, in their language, on
 test('the native layer fits a phone: no chip runs past its card', async ({ page }) => {
 	await openTrip(page);
 	test.skip((await page.locator('.mlink.native').count()) === 0, "this trip's pack has no native layer");
+	await openAllDetails(page); // every view and every stop's sheet drawn, at a sheet's width
 	const over = await page.evaluate(() =>
 		[...document.querySelectorAll('.mlink.native')]
 			.filter((b) => b.offsetParent)
 			.filter((b) => {
 				const r = b.getBoundingClientRect();
-				const card = b.closest('.stop-b, .block, article, li') || document.body;
+				const card = b.closest('.bsheet-body, .stop-b, .block, article, li') || document.body;
 				return r.right > card.getBoundingClientRect().right + 1;
 			})
 			.map((b) => b.textContent.trim()),

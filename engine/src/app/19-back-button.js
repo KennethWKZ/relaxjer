@@ -65,12 +65,7 @@ window.addEventListener('popstate', () => {
 		setTimeout(() => keepPlace(o.y), 30);
 		return;
 	}
-	const y = history.state && history.state.y;
-	if (y != null) {
-		pinN++;
-		window.scrollTo({ top: y, behavior: 'instant' });
-	} // back to where you were, no long scroll
-	syncBackPill();
+	viewPop(); // back to the view and the place you were (20-views.js), no long scroll
 });
 function syncBackPill() {
 	const b = $('#backPill');
@@ -157,6 +152,11 @@ function scrollToEl(el, block, smooth) {
 }
 const noMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 function goTo(el, block = 'start', after, instant) {
+	// a whole view (a tab, the week list, the rail, a day's previous / next): that view, as its own step (20-views.js)
+	if (el.matches('#app > [data-sec]')) {
+		goView(el.id);
+		return;
+	}
 	const y0 = window.scrollY;
 	if (mapFullOn) mapFull(false);
 	whenSettled(() => {
@@ -165,16 +165,22 @@ function goTo(el, block = 'start', after, instant) {
 			p.open = true;
 			p = p.parentElement && p.parentElement.closest('details');
 		}
-		history.replaceState(Object.assign({}, history.state, { y: y0 }), '');
-		history.pushState({ tpJump: 1 }, '', el.id ? '#' + el.id : location.href);
-		const far = instant || Math.abs(el.getBoundingClientRect().top) > innerHeight * 3;
-		scrollToEl(el, block, !far && !noMotion());
-		const sec = el.closest('[data-sec]');
-		if (sec) {
-			setActive(sec.id);
-			spyHold = performance.now() + (far ? 250 : 1100);
-		} // the tapped tab stays lit while we scroll there
+		// a place inside a view: its view first, then the place (in its sheet, if it lives in one)
+		const v = viewOf(el) || curView;
+		viewLeave(y0);
+		const st = { tpJump: 1, view: v, vid: ++vseq };
+		history.pushState(st, '', el.id ? '#' + el.id : location.href);
+		curVid = st.vid;
+		const moved = v !== curView;
+		if (moved) showView(v, 0);
 		syncBackPill();
+		const sheet = el.closest('dialog.bsheet');
+		if (sheet) {
+			partOpen(sheet, sheet === el ? null : el);
+			return;
+		}
+		const far = instant || moved || Math.abs(el.getBoundingClientRect().top) > innerHeight * 3;
+		scrollToEl(el, block, !far && !noMotion());
 		if (after) after();
 	});
 }

@@ -15,6 +15,7 @@ pnpm build --trip trips/<slug> --keys … --sync ~/.config/relaxjer/sync/<slug>.
 #                                     moved into the visitor's own year;
 #                                     it opens in English, says it's a demo, never asks for location;
 #                                     the build refuses it for any other trip
+pnpm build --trip trips/<slug> --preview   # the planner's preview copy: <fileName>-preview.html only (below)
 ```
 
 ## What it writes
@@ -27,6 +28,13 @@ In `<out>` (default `trips/<slug>/dist/`, gitignored):
 | `<fileName>.html`            | the page's body only (no head, policy, build id or icons): never publish it |
 | `<fileName>-mymaps.kml`      | a Google My Maps export of the trip's places, one layer per day             |
 | `mymaps/NN-<layer>.kml`      | the same, one file per layer (My Maps imports one layer at a time)          |
+
+With `--preview` the build writes only `<fileName>-preview.html`: the page plus a dashed **Preview** button in the
+header that opens a panel to compare looks before deciding (the sky: live weather, snow globe, snow piles or off; a
+day's weather; snow on or off; the theme; the clock during the trip or before departure). Its choices are for looking
+only: they change nothing in the trip's data, are never saved on the phone and never sync. Open it locally for the
+planner; never publish it. Once the planner picks a sky, write it in `TRIP.sky` (`trip-customize`) and build normally
+([ADR-20261122-day-views](../../../memory-bank/standards/decisions/ADR-20261122-day-views.md)).
 
 `<fileName>` is `TRIP.fileName` (default `trip`). The build prints its size and whether a key went in. Read that line:
 a page meant for anyone outside the group must say no key.

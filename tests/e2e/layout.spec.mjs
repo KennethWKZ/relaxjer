@@ -1,6 +1,6 @@
 // Nothing sticks out sideways and no text is squeezed into a sliver, in both languages, with every list open.
 import { test, expect, openTrip } from '../support/fixtures.mjs';
-import { openAllDetails, overflow, splitWords, squeezed, switchLang } from '../support/page.mjs';
+import { openAllDetails, overflow, show, splitWords, squeezed, switchLang } from '../support/page.mjs';
 
 for (const lang of ['en', 'zh']) {
 	test(`no sideways overflow or squeezed text (${lang})`, async ({ page }) => {
@@ -20,7 +20,7 @@ for (const lang of ['en', 'zh']) {
 		await openTrip(page);
 		if (lang === 'zh') await switchLang(page, 'zh');
 		const cells = page.locator('.method-grid');
-		await cells.first().scrollIntoViewIfNeeded(); // Chromium lays out a section only near the screen
+		await show(page, cells); // the airport view's sheet of ways to the hotel
 		await expect.poll(() => cells.first().innerText()).not.toBe('');
 		expect(await splitWords(page, '.mg dd')).toEqual([]);
 	});

@@ -2,7 +2,7 @@
 // browser has no "yes" on record (Safari forgets one). The install button lives in the header until the page is installed.
 // Playwright can't answer a real permission prompt, so the browser's permission state and GPS are stubbed.
 import { test, expect, openTrip } from '../support/fixtures.mjs';
-import { setStored } from '../support/page.mjs';
+import { setStored, show } from '../support/page.mjs';
 /* global DAYS */
 
 const HERE = { latitude: 25.0339, longitude: 121.5645, accuracy: 20 };
@@ -120,7 +120,7 @@ test('allowing location from "near me" clears the card at once', async ({ page }
 	await openOn(page, -3);
 	await expect(card(page)).toBeVisible();
 	const near = page.locator('#app [data-near]').first();
-	await near.scrollIntoViewIfNeeded();
+	await show(page, near); // its view (food near me) on screen
 	await near.click();
 	await expect(card(page)).toHaveCount(0);
 });
@@ -129,7 +129,7 @@ test('far from the trip, "near me" says it counts from the hotel, and the card s
 	await stubGeo(page, 'prompt', { latitude: 3.139, longitude: 101.6869, accuracy: 20 }); // another country
 	await openOn(page, -3);
 	const near = page.locator('#app [data-near]').first();
-	await near.scrollIntoViewIfNeeded();
+	await show(page, near); // its view (food near me) on screen
 	await near.click();
 	await expect(page.locator('#near .near-far')).toContainText('distances start from the hotel');
 	await expect(card(page)).toHaveCount(0);

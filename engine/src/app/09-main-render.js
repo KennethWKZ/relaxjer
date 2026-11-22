@@ -51,7 +51,9 @@ function demoStrip() {
 	if (!window.DEMO_CLOCK) return;
 	let el = $('#demoStrip');
 	if (!el) {
-		$('#app').insertAdjacentHTML('beforebegin', '<p class="demo-strip" id="demoStrip"></p>');
+		// above the stage, not inside it: on a desktop the stage is the rail and the view side by side, and a third child
+		// pushed the view under the rail, 300 px wide
+		($('#stage') || $('#app')).insertAdjacentHTML('beforebegin', '<p class="demo-strip" id="demoStrip"></p>');
 		el = $('#demoStrip');
 	}
 	const clock = window.DEMO_CLOCK;
@@ -119,6 +121,7 @@ function render() {
 	mapSearchReset(); // the map section is drawn again: its finder's Back step goes too
 	LAZY.clear();
 	LAZY_ID.clear();
+	LAZY_IN.clear();
 	$('#app').innerHTML =
 		secOverview() +
 		DAYS.map((d) => secDay(d, now.date)).join('') +
@@ -132,6 +135,8 @@ function render() {
 		secWeather() +
 		secChecklist() +
 		secRules();
+	skyBands();
+	viewApply(); // one view on screen (20-views.js): the same one after a redraw
 	renderNow();
 	markToday();
 	updateProgress();

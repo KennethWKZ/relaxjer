@@ -401,9 +401,21 @@ document.addEventListener('click', (e) => {
 			});
 		mineSet(list);
 		closeDialog($('#placeSheet'));
+		const sid = x ? x.id : list[list.length - 1].id;
 		addItem = null;
 		const added = Z(`已加入 Day ${dayById[day].n} ${tm}`, `Added to Day ${dayById[day].n}, ${tm}`);
-		whenSettled(() => mineRerender(SYNC ? `${added}${Z('（大家的页面都有）', ' · on everyone’s page')}` : added));
+		// added from another view (the map's finder, another day): one tap shows the day, at the new stop (20-views.js)
+		const show =
+			day !== curView
+				? {
+						label: Z(`看 Day ${dayById[day].n}`, `Show Day ${dayById[day].n}`),
+						run: () => {
+							const el = document.getElementById(sid);
+							if (el) goTo(el);
+						},
+					}
+				: null;
+		whenSettled(() => mineRerender(SYNC ? `${added}${Z('（大家的页面都有）', ' · on everyone’s page')}` : added, show));
 		return;
 	}
 	if (t.matches('[data-mine-edit]')) {
@@ -742,16 +754,16 @@ document.addEventListener('click', (e) => {
 		if (!el) return;
 		e.preventDefault();
 		closeDialog(t.closest('dialog'));
-		const nav = t.matches('.tab, .toc-sec, .toc-day, .toc-now, .toc-top, .wk');
+		// a view (a tab, the week list, the rail, a day's previous / next) opens at its top; a place inside one lands
+		// with the highlight and the ring that holds on it (20-views.js shows its view first)
+		const nav = t.matches('.tab, .toc-sec, .toc-day, .toc-now, .toc-top, .wk, .rl, .pg');
 		goTo(
 			el,
 			'start',
-			el.matches('[data-sec]')
-				? () => {
-						const h = el.querySelector('.lantern, h2');
-						if (h && nav) landed(h);
-					}
-				: () => flash(el),
+			() => {
+				flash(el);
+				landed(el);
+			},
 			nav,
 		);
 	}

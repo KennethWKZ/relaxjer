@@ -15,14 +15,59 @@ const NAV = [
 	{ id: 'rules', label: ['原则', 'Priorities'] },
 ];
 function renderTabs(today) {
-	$('#tabs').innerHTML = NAV.map((n) => {
-		if (n.day) {
-			const d = n.day;
-			return `<a class="tab day" href="#${d.id}" data-tab="${d.id}" style="${colorVars(d.c)}" aria-label="${esc(`Day ${d.n} ${dateLabel(d.date, d.dow)}`)}"><span class="tab-num">${+d.date.slice(8)}</span><span class="tab-dow">${esc(L(d.dow))}</span>${today === d.date ? '<span class="today-dot" aria-hidden="true"></span>' : ''}</a>`;
-		}
-		return `<a class="tab" href="#${n.id}" data-tab="${n.id}">${esc(L(n.label))}</a>`;
-	}).join('');
+	$('#tabs').innerHTML = NAV.filter((n) => n.day || navDrawn(n.id))
+		.map((n) => {
+			if (n.day) {
+				const d = n.day;
+				return `<a class="tab day" href="#${d.id}" data-tab="${d.id}" style="${colorVars(d.c)}" aria-label="${esc(`Day ${d.n} ${dateLabel(d.date, d.dow)}`)}"><span class="tab-num">${+d.date.slice(8)}</span><span class="tab-dow">${esc(L(d.dow))}</span>${today === d.date ? '<span class="today-dot" aria-hidden="true"></span>' : ''}</a>`;
+			}
+			return `<a class="tab" href="#${n.id}" data-tab="${n.id}">${esc(L(n.label))}</a>`;
+		})
+		.join('');
 	tabsCue();
+	renderRail(today);
+}
+/* the week rail (1024 px and up, beside the view; the tab strip's job there): the overview, every day with its mark,
+   date, title and forecast, then the other sections. Each row is a link to its view; the one on screen is lit */
+function renderRail(today) {
+	const rail = $('#rail');
+	if (!rail) return;
+	const left = dnum(TRIP.start) - dnum(tpNow().date);
+	const td = DAYS.find((d) => d.date === today);
+	const topSub = td
+		? Z(`今天是第 ${td.n} 天`, `Today is day ${td.n}`)
+		: left > 0
+			? Z(`还有 ${left} 天出发`, `${left} days to go`)
+			: Z('旅程已结束', 'Trip over');
+	const row = (id, mark, h, subs, style = '') =>
+		`<a class="rl" href="#${id}" data-rail="${id}"${style}>${mark}<span class="rl-t"><b>${h}</b>${subs
+			.filter(Boolean)
+			.map((x) => `<small>${x}</small>`)
+			.join('')}</span>${icon('chev-r', 'rl-ch')}</a>`;
+	const days = DAYS.map((d) => {
+		const fc = fcOf(d);
+		return row(
+			d.id,
+			dayMark(d),
+			`${esc(dateLabel(d.date, d.dow))}${today === d.date ? ` <span class="flag">${Z('今天', 'Today')}</span>` : ''}`,
+			[esc(L(d.title)), fc ? `${icon(fcIcon(fc.code))}${fc.tmin}–${fc.tmax}°` : ''],
+			` style="${colorVars(d.c)}"`,
+		);
+	}).join('');
+	const secs = NAV.filter((n) => !n.day && n.id !== 'top' && navDrawn(n.id))
+		.map((n) => row(n.id, `<span class="rl-sq">${icon(TOC_ICON[n.id] || 'arrow')}</span>`, esc(L(n.label)), []))
+		.join('');
+	rail.setAttribute('aria-label', Z('行程', 'Trip'));
+	rail.innerHTML = `<div class="rail-card">${row('top', `<span class="rl-sq">${icon('calendar')}</span>`, esc(Z('总览', 'Overview')), [esc(topSub)])}
+      <p class="rail-h">${Z('每一天', 'Each day')}</p>${days}
+      <p class="rail-h">${Z('其他', 'Everything else')}</p>${secs}</div>`;
+	railMark();
+}
+function railMark() {
+	$$('#rail [data-rail]').forEach((a) => {
+		if (a.dataset.rail === curView) a.setAttribute('aria-current', 'page');
+		else a.removeAttribute('aria-current');
+	});
 }
 // a sideways row's scrollbar is hidden: fade each edge that has more behind it (style.css .more-l / .more-r), on the
 // day tabs and on every other row that scrolls sideways (photos, the map's filters), so the row says it scrolls

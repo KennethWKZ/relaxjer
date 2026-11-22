@@ -1,5 +1,5 @@
 ---
-total_decisions: 30
+total_decisions: 31
 last_updated: 2026-11-22
 ---
 
@@ -42,7 +42,8 @@ merged id never changes; a new ADR that collides takes a fresh slug.
 | [ADR-20261117-destination-themes](decisions/ADR-20261117-destination-themes.md)                   | 2026-11-17 | A Destination Pack May Dress the Page in Its Own World; Days May Carry an Activity Mark                                                  | engine   | amended  |
 | [ADR-20261117-native-layer](decisions/ADR-20261117-native-layer.md)                               | 2026-11-17 | The Native Layer Shows the Local Words Under Each Stop and Place, One Tap to Copy, When the Pack Names the Language                      | engine   | accepted |
 | [ADR-20261117-second-demo-and-site-worlds](decisions/ADR-20261117-second-demo-and-site-worlds.md) | 2026-11-17 | A Second Live Demo in Sapporo, and the Landing Page Picks Its World by the Visitor and the Season, Never by a Trip                       | hosting  | accepted |
-| [ADR-20261121-world-motion](decisions/ADR-20261121-world-motion.md)                               | 2026-11-21 | A World's Pictures May Move: Parts of the Drawing Itself, Only on Screen; Its Sky Follows the Scroll; Nothing Moves Under Reduced Motion | engine   | accepted |
+| [ADR-20261121-world-motion](decisions/ADR-20261121-world-motion.md)                               | 2026-11-21 | A World's Pictures May Move: Parts of the Drawing Itself, Only on Screen; Its Sky Follows the Scroll; Nothing Moves Under Reduced Motion | engine   | amended  |
 | [ADR-20261121-world-stickers](decisions/ADR-20261121-world-stickers.md)                           | 2026-11-21 | Snow Light Path Is a Sticker Book: Candy Day Colours, Rounder Shapes, Die-Cut Stickers That Never Cover a Word                           | frontend | accepted |
 | [ADR-20261122-currency-switch](decisions/ADR-20261122-currency-switch.md)                         | 2026-11-22 | A Phone Can Read Every Figure in the Home Currency, Notes Included, Converted as the Page Draws                                          | engine   | accepted |
+| [ADR-20261122-day-views](decisions/ADR-20261122-day-views.md)                                     | 2026-11-22 | One View per Tab, Planning Parts as Summary Buttons and Sheets, the Sections Button Always There, and a Live Sky a Trip Picks            | engine   | accepted |
 | [ADR-20261122-place-finder-best-day](decisions/ADR-20261122-place-finder-best-day.md)             | 2026-11-22 | The Place Finder Suggests the Nearest Day With Room, From the Page’s Own Data, and Asks Google Only on a Tap                             | engine   | accepted |

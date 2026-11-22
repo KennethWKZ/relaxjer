@@ -841,6 +841,17 @@ function spotRestore(sp) {
 	});
 	const host = document.getElementById(sp.id) || lazyFor(sp.id);
 	if (!host) return;
+	// the view it sits in comes back first (20-views.js), as its own step's view
+	const v = viewOf(host);
+	if (v && v !== curView) {
+		showView(v);
+		history.replaceState(Object.assign({}, history.state, { view: v }), '');
+		// the address names the view again once the page has loaded: WebKit scrolls to the address's #id at load, after
+		// this restore, which put the reader back at the top of the view
+		const nameIt = () => history.replaceState(history.state, '', `#${v}`);
+		if (document.readyState === 'complete') setTimeout(nameIt, 0);
+		else addEventListener('load', () => setTimeout(nameIt, 0), { once: true });
+	}
 	let el = host;
 	for (const i of sp.path) {
 		const c = el.children[i];

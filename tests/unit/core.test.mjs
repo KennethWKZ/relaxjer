@@ -7,6 +7,7 @@ import * as Money from '../../engine/src/core/money.mjs';
 import * as Plan from '../../engine/src/core/plan.mjs';
 import * as Wrap from '../../engine/src/core/wrap.mjs';
 import * as Fit from '../../engine/src/core/fit.mjs';
+import * as Sky from '../../engine/src/core/sky.mjs';
 
 test('Time: clock parsing and formatting', () => {
 	assert.equal(Time.clockMinutes('09:05'), 545);
@@ -473,4 +474,43 @@ test('Fit: closed, already planned and past days are listed but never suggested;
 	assert.equal(none.best, null);
 	assert.equal(none.far, false);
 	assert.deepEqual(Fit.fitDays(PLACE, []), { rows: [], best: null, far: false });
+});
+
+test('Sky: which sky a page draws, a forecast as its weather, and how much falls', () => {
+	// the trip's choice in a world with a sky, else the world's; a world without one draws none whatever the trip says
+	assert.equal(Sky.modeFor(undefined, 'live'), 'live');
+	assert.equal(Sky.modeFor('globe', 'live'), 'globe');
+	assert.equal(Sky.modeFor('off', 'live'), 'off');
+	assert.equal(Sky.modeFor('pile', null), 'off');
+	assert.equal(Sky.modeFor('snowstorm', 'live'), 'live');
+	// no forecast: a light snowfall; clear by day or a clear night after dark; rain reads as showers in a snow world
+	assert.equal(Sky.kindOf(null), Sky.DEFAULT_KIND);
+	assert.equal(Sky.kindOf(0), 'clear');
+	assert.equal(Sky.kindOf(1, true), 'night');
+	assert.equal(Sky.kindOf(3, true), 'light');
+	assert.equal(Sky.kindOf(61), 'shower');
+	assert.equal(Sky.kindOf(71), 'light');
+	assert.equal(Sky.kindOf(75), 'heavy');
+	assert.equal(Sky.kindOf(85), 'shower');
+	assert.equal(Sky.kindOf(86), 'heavy');
+	for (let c = 0; c <= 99; c++) assert.ok(Sky.KINDS.includes(Sky.kindOf(c)), `code ${c}`);
+	assert.ok(Sky.isNight(18 * 60) && Sky.isNight(5 * 60 + 59) && !Sky.isNight(6 * 60) && !Sky.isNight(17 * 60 + 59));
+	// every weather has its fall and its words in both languages
+	for (const k of Sky.KINDS) assert.ok(Sky.FALL[k], k);
+	for (const c of [0, 2, 45, 61, 71, 73, 75, 85, 95]) {
+		const w = Sky.wordFor(c);
+		assert.ok(w.name[0] && w.name[1] && w.icon, `code ${c}`);
+	}
+	assert.equal(Sky.wordFor(0, true).icon, 'moon');
+	// the cap holds whatever the screen: a phone's band 110 flakes, a desktop's sky 240
+	assert.equal(Sky.flakesFor(Sky.FALL.heavy, 390 * 844, Sky.CAP.phone), 110);
+	assert.equal(Sky.flakesFor(Sky.FALL.heavy, 2560 * 1440, Sky.CAP.desk), 240);
+	assert.equal(Sky.flakesFor(Sky.FALL.night, 1e6, 240), 0);
+	assert.ok(Sky.flakesFor(Sky.FALL.light, 390 * 300, 110) < Sky.flakesFor(Sky.FALL.heavy, 390 * 300, 110));
+	// the globe snows its own snow whatever the weather, but keeps a clear night's stars
+	assert.equal(Sky.fallFor('globe', 'heavy').dens, Sky.GLOBE.dens);
+	assert.equal(Sky.fallFor('globe', 'night').stars, 1);
+	assert.equal(Sky.fallFor('live', 'heavy'), Sky.FALL.heavy);
+	// a shake settles: its energy is under 1/10 after SETTLE seconds
+	assert.ok(Math.exp(-Sky.SETTLE / Sky.TAU) < 0.1);
 });

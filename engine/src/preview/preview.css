@@ -1,0 +1,138 @@
+/* the planner's preview panel (build --preview only; ADR-20261122-day-views): a tool beside the design, never part
+   of it, so it says so with its own dashed violet outline */
+:root {
+	--pv: #6a3fd1;
+	--pv-bg: #f4f0ff;
+}
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme='light']) {
+		--pv: #b9a1ff;
+		--pv-bg: #1b1736;
+	}
+}
+:root[data-theme='dark'] {
+	--pv: #b9a1ff;
+	--pv-bg: #1b1736;
+}
+.pv-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	min-height: 44px;
+	padding: 0 10px 0 12px;
+	border-radius: 10px;
+	border: 1.5px dashed var(--pv);
+	background: var(--pv-bg);
+	color: var(--pv);
+	font: inherit;
+	font-size: 0.8125rem;
+	font-weight: 800;
+	cursor: pointer;
+}
+.pv-chip .pv-chev {
+	transition: transform 200ms var(--ease-out);
+}
+.pv-chip[aria-expanded='true'] .pv-chev {
+	transform: rotate(180deg);
+}
+.pv-panel {
+	position: fixed;
+	z-index: 90;
+	top: calc(env(safe-area-inset-top, 0px) + var(--bar-h) + 8px);
+	right: max(12px, env(safe-area-inset-right, 0px));
+	width: min(360px, calc(100vw - 24px));
+	max-height: calc(100dvh - var(--bar-h) - 24px);
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	padding: 12px 14px 14px;
+	border-radius: 18px;
+	border: 1.5px dashed var(--pv);
+	background: var(--paper);
+	color: var(--ink);
+	box-shadow: 0 10px 28px -10px rgba(0, 0, 0, 0.45);
+}
+.pv-head {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+}
+.pv-head h2 {
+	flex: 1;
+	margin: 0;
+	font-size: 1rem;
+	font-weight: 800;
+	color: var(--pv);
+}
+.pv-head h2 small {
+	display: block;
+	font-size: 0.8125rem;
+	font-weight: 600;
+	color: var(--ink-2);
+}
+.pv-x {
+	border: 1px solid var(--rule);
+	background: var(--paper-2);
+}
+.pv-panel fieldset {
+	min-width: 0;
+	margin: 12px 0 0;
+	padding: 0;
+	border: 0;
+}
+.pv-panel legend {
+	margin-bottom: 6px;
+	padding: 0;
+	font-size: 0.875rem;
+	font-weight: 750;
+	color: var(--ink-2);
+}
+.pv-seg {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+.pv-seg label {
+	position: relative;
+}
+.pv-seg input {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	opacity: 0;
+}
+.pv-seg span {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	min-height: 44px;
+	padding: 0 12px;
+	border-radius: 10px;
+	background: var(--paper-3);
+	color: var(--ink);
+	font-size: 0.9375rem;
+	font-weight: 650;
+	cursor: pointer;
+}
+.pv-seg span svg.i {
+	display: none;
+	width: 16px;
+	height: 16px;
+	stroke-width: 2.6;
+}
+.pv-seg input:checked + span {
+	background: var(--ink);
+	color: var(--paper);
+	font-weight: 800;
+}
+.pv-seg input:checked + span svg.i {
+	display: inline-block;
+}
+.pv-seg input:focus-visible + span {
+	outline: 3px solid var(--focus);
+	outline-offset: 2px;
+}
+.pv-note {
+	margin: 6px 0 0;
+	font-size: 0.875rem;
+	color: var(--ink-2);
+}

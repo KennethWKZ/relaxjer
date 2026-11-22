@@ -144,3 +144,117 @@ function airportStrip() {
 		),
 	)}</desc>${lines.join('')}${parts.join('')}</svg></figure>`;
 }
+
+/* ───────── planning parts (ADR-20261122-day-views) ─────────
+   A day's planning blocks (and the long parts of the budget, airport and entry views) aren't laid out down the page any
+   more: each is a summary button under the view's title, saying in one line what's inside, and the part itself opens in
+   a sheet. The line is read from the block's own data (never a trip's names); a block may carry its own, `sum`. */
+const plainText = (x) => L(x).replace(/\*\*/g, '').replace(/\s+/g, ' ').trim();
+// the lowest and highest amount written in some texts, or null
+function amountSpan(texts) {
+	let lo = Infinity;
+	let hi = -Infinity;
+	for (const t of texts) {
+		const n = numsIn(L(t));
+		if (n) {
+			lo = Math.min(lo, n[0]);
+			hi = Math.max(hi, n[1]);
+		}
+	}
+	return lo <= hi ? [lo, hi] : null;
+}
+const nItems = (n, zh, en1, en) => Z(`${n} ${zh}`, `${n} ${n === 1 ? en1 : en}`);
+const sumB = (x) => `<b>${x}</b>`;
+const withSpan = (head, span) => (span ? `${head} · ${money(span[0], span[1])}` : head);
+/** one line saying what's in a day block */
+function blockSum(b) {
+	if (b.sum) return fmt(b.sum);
+	switch (b.type) {
+		case 'decide': {
+			const o = b.pick && b.opts.find((x) => x.k === b.pick);
+			if (o) return `<span class="part-pick">${icon('check')}${Z('已定', 'Chosen')} ${esc(o.mark || '')}</span>${escText(plainText(o.name))}`;
+			return withSpan(sumB(nItems(b.opts.length, '个选择', 'option', 'options')), amountSpan(b.opts.map((x) => x.cost)));
+		}
+		case 'table': {
+			// the range of the column with amounts in most of its rows, named by its heading, leaving out a total row: a table
+			// of stays priced in the home currency read "¥1,300–2,000" from its parking column, as if that were the price,
+			// and a quotes table ran from a day's quote to the whole trip's total. Otherwise, what its columns hold
+			const head = sumB(nItems(b.rows.length, '行', 'row', 'rows'));
+			const rows = b.rows.filter((r) => !/^(合计|总计|共计|total)/i.test(plainText(r[0] || '')));
+			let best = null;
+			const ncol = Math.max(0, ...rows.map((r) => r.length));
+			for (let c = 0; c < ncol; c++) {
+				const cells = rows.map((r) => r[c]).filter((x) => x != null);
+				const hits = cells.filter((x) => numsIn(L(x))).length;
+				if (hits * 2 >= rows.length && (!best || hits > best.hits)) best = { c, hits, span: amountSpan(cells) };
+			}
+			if (best) return `${head} · ${b.cols && b.cols[best.c] ? `${escText(plainText(b.cols[best.c]))} ` : ''}${money(best.span[0], best.span[1])}`;
+			if (b.cols) return `${head} · ${esc(b.cols.map(plainText).join(' / '))}`;
+			return head + (b.rows[0] ? ` · ${escText(plainText(b.rows[0][0]))}` : '');
+		}
+		case 'list':
+			return `${sumB(nItems(b.list.length, '条', 'item', 'items'))} · ${escText(plainText(b.list[0]))}`;
+		case 'costs':
+		case 'kv':
+			return withSpan(sumB(nItems(b.rows.length, '项', 'item', 'items')), amountSpan(b.rows.map((r) => r[1])));
+		case 'text':
+			return b.total ? `${sumB(money(b.total.min, b.total.max))} ${esc(Z(GROUP[0], GROUP[1]))}` : escText(plainText(b.p[0]));
+		case 'route':
+			return esc(`${plainText(b.stops[0].name)} → ${plainText(b.stops[b.stops.length - 1].name)}`);
+		case 'weather':
+			return esc(b.opts.map((o) => plainText(o.name)).join(' · '));
+		case 'wear':
+			return escText(plainText(b.main));
+		case 'budget':
+			return `${sumB(money(b.min, b.max))} ${esc(Z(GROUP[0], GROUP[1]))} · ${Z('每人约', '≈')}${eachText(b.min, b.max)}${Z('', ' each')}${b.est ? Z('（估）', ' (est.)') : ''}`;
+		case 'rain': {
+			const items = b.list || b.groups.flatMap((g) => g.list);
+			return `${sumB(Z('雨天方案', 'Rain plan'))} · ${escText(plainText(items[0]))}`;
+		}
+		case 'checklist':
+			return checkSum(b.items.map((_, i) => `${b.id}-${i}`));
+		case 'groups':
+			return esc(b.groups.map((g) => plainText(g.h)).join(' · '));
+		default:
+			return '';
+	}
+}
+// how many of a checklist's ticks are done; data-sum-checks lets a tick update the line in place (22-events.js)
+const checkLine = (ids) => sumB(`${Z('已勾', 'Ticked')} ${ids.filter((id) => checks[id]).length} / ${ids.length}`);
+const checkSum = (ids) => `<span data-sum-checks="${esc(ids.join(' '))}">${checkLine(ids)}</span>`;
+function checkSumSync() {
+	$$('[data-sum-checks]').forEach((s) => (s.innerHTML = checkLine(s.dataset.sumChecks.split(' '))));
+}
+/** a part: { key, icon, h: [zh, en] or text, sum: html, body: html, sub: text }. Its sheet's id is <scope>-p-<key> */
+const partId = (scope, p) => `${scope}-p-${p.key}`;
+// a summary's number runs stay on one line ("NT$460–" over "620" stranded the rest): only in its text, never inside a
+// tag or an attribute, and never twice
+const keepRangesIn = (h) => h.replace(/(<span class="rng">[^<]*<\/span>)|(<[^>]*>)|([^<]+)/g, (m, rng, tag, text) => (text ? keepRanges(text) : m));
+const partBtn = (scope, p) =>
+	`<button type="button" class="part" data-part="${partId(scope, p)}" aria-haspopup="dialog" aria-expanded="false" aria-controls="${partId(scope, p)}"><span class="part-ic" aria-hidden="true">${icon(p.icon || 'list')}</span><span class="part-h">${fmt(p.h)}</span>${icon('chev-r', 'part-ch')}<span class="part-s">${keepRangesIn(p.sum)}</span></button>`;
+// the ids in a piece of markup; and the ids a lazy list inside it will bring are found through the sheet too (lazyFor)
+function idsIn(h, sheetKey) {
+	const keys = new Set([...h.matchAll(/data-lazy="([^"]+)"/g)].map((m) => m[1]));
+	if (keys.size) LAZY_ID.forEach((k, id) => keys.has(k) && LAZY_IN.set(id, sheetKey));
+	return [...h.matchAll(/\sid="([^"]+)"/g)].map((m) => m[1]);
+}
+/* a part's sheet. A closed sheet is a closed list (tests/e2e/boot.spec.mjs): what's in it is built the first time it
+   opens, or when search or a jump needs it (lazyKey, 08-wishlist.js), so a long trip's page doesn't draw every table
+   and option at first paint. `fill` builds it afresh then (a day's block reads the ticks as they are by then); the
+   figures follow the rate as they're built (lazyFill) */
+function partSheet(scope, p) {
+	const id = partId(scope, p);
+	const k = lazyKey(
+		() =>
+			`<div class="bsheet-head"><span class="bsheet-grip" aria-hidden="true"></span><span class="part-ic" aria-hidden="true">${icon(p.icon || 'list')}</span><h3 class="bsheet-h" id="${id}-h">${fmt(p.h)}${p.sub ? `<small>${esc(p.sub)}</small>` : ''}</h3><button type="button" class="icon-btn bsheet-x" data-close aria-label="${Z('关闭', 'Close')}">${icon('x')}</button></div><div class="bsheet-body">${p.fill ? p.fill() : p.body}</div>`,
+	);
+	idsIn(p.body, k).forEach((x) => LAZY_ID.set(x, k));
+	return `<dialog class="sheet bsheet" id="${id}" aria-labelledby="${id}-h" data-lazy="${k}"></dialog>`;
+}
+/** a view's row of summary buttons, its heading, and their sheets (out of the flow until one opens) */
+function partsHTML(scope, parts, h) {
+	const ps = parts.filter((p) => p && p.body);
+	if (!ps.length) return '';
+	return `<div class="parts-wrap"><h3 class="sub parts-h">${icon('list')}${fmt(h || ['这天的细节', 'Plans and details'])}<small>${Z(`${ps.length} 项，点开看`, `${ps.length}, tap to open`)}</small></h3>
+      <div class="parts">${ps.map((p) => partBtn(scope, p)).join('')}</div>${ps.map((p) => partSheet(scope, p)).join('')}</div>`;
+}

@@ -93,6 +93,7 @@
 	--col: 46rem;
 	--ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 	--ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+	--ease-drawer: cubic-bezier(0.32, 0.72, 0, 1); /* a part's sheet coming up from the bottom (iOS's drawer curve) */
 	--now: var(--rule);
 	--ctrl-filter: none; /* map library's dark icons */
 	color-scheme: light;
@@ -410,6 +411,24 @@ svg.i {
 	background: var(--paper-3);
 }
 
+/* the date tabs, and at their end the sky's pause on a phone and a tablet (24-sky.js), where it leaves the trip's name
+   its room in the row above */
+.tabs-row {
+	display: flex;
+	align-items: center;
+	max-width: var(--col);
+	margin: 0 auto;
+}
+.tabs-row > .sky-btn {
+	flex: none;
+	margin: -4px max(16px, env(safe-area-inset-right, 0px)) 0 -8px;
+}
+.tabs-row > .tabs {
+	flex: 1;
+	min-width: 0;
+	max-width: none;
+	margin: 0;
+}
 .tabs {
 	max-width: var(--col);
 	margin: 0 auto;
@@ -1344,6 +1363,12 @@ ul.list li::marker {
 	gap: 8px;
 	margin-top: 8px;
 }
+/* a link whose label is longer than its row (a source's full name) wraps inside its button, never past the card */
+.links-row > .mlink {
+	max-width: 100%;
+	white-space: normal;
+	text-align: left;
+}
 /* the Now card's two actions share one row, a long label wrapping inside its button: stacked, the second one dropped
    below an iPhone's first screen (390 × 664) in English */
 .now-card > .links-row {
@@ -2169,8 +2194,8 @@ dialog.sheet::backdrop {
 	min-height: 56px;
 }
 /* in the plan, Show driver is on today's current and next stop only, one tap from where the group is going: on every
-   stop it took another 70 px line at 390 px. Every place still has it in its place sheet. */
-.stop:not(.now):not(.next) .stop-links [data-driver] {
+   stop it took another 70 px line at 390 px. Every stop still has it in its own sheet, every place in its place sheet. */
+.stop:not(.now):not(.next) .stop-drv {
 	display: none;
 }
 .driver-name {
@@ -2233,6 +2258,9 @@ dialog.sheet::backdrop {
 	.tabs {
 		max-width: 76rem;
 		justify-content: safe center;
+	}
+	.tabs-row {
+		max-width: 76rem;
 	}
 }
 @media (max-width: 380px) {
@@ -5747,16 +5775,16 @@ svg.i.pf-plus {
 		box-shadow: 0 0 0 3px transparent;
 	}
 }
+/* any place a jump lands on gets it: a heading, a day's card, a stop, a card in a sheet (a view switch alone doesn't:
+   the whole screen changing says where you are) */
+.landed {
+	animation: landed 2300ms linear both;
+}
 h2.landed {
 	border-radius: 8px;
-	animation: landed 2300ms linear both;
-}
-.lantern.landed {
-	animation: landed 2300ms linear both;
 }
 @media (prefers-reduced-motion: reduce) {
-	h2.landed,
-	.lantern.landed {
+	.landed {
 		animation: none;
 		box-shadow: 0 0 0 3px var(--land);
 	}
@@ -6085,4 +6113,568 @@ input[data-rate][aria-invalid='true'] {
 	width: 14px;
 	height: 14px;
 	opacity: 0.75;
+}
+
+/* ───────── Views (ADR-20261122-day-views) ─────────
+   One view on screen at a time: the others stay in the page but aren't drawn. Each view leaves room at its foot for the
+   floating buttons and the phone's home bar. */
+#app > [data-off] {
+	display: none !important;
+}
+#app > section.day,
+#app > section.sec {
+	padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+}
+.day {
+	padding-top: 16px;
+}
+/* the full-screen map lies over whichever view is on screen: its section stays drawn while it's up, out of the flow
+   and out of sight, so only the map's own fixed layer shows */
+html.map-full-on #app > #map[data-off] {
+	display: block !important;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	visibility: hidden;
+	padding: 0;
+}
+html.map-full-on #app > #map[data-off] .map-stage.is-full {
+	visibility: visible;
+}
+
+/* the summary buttons: one per planning part, under the view's title */
+.parts-wrap {
+	margin-top: 18px;
+}
+.parts-h small {
+	margin-left: auto;
+	font-size: var(--fs-xs);
+	font-weight: 650;
+	color: var(--ink-3);
+	letter-spacing: 0;
+}
+.parts {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	gap: 8px;
+	margin-top: 10px;
+}
+.parts.lead-part {
+	margin-top: 16px;
+}
+.part {
+	display: grid;
+	grid-template-columns: 34px minmax(0, 1fr) 20px;
+	grid-template-areas: 'ic h ch' 'ic s ch';
+	column-gap: 12px;
+	row-gap: 1px;
+	align-items: center;
+	min-height: 62px;
+	padding: 10px 12px 11px;
+	border-radius: var(--r-btn, 14px);
+	border: 1px solid color-mix(in srgb, var(--c, var(--ink-3)) 36%, var(--rule));
+	background: color-mix(in srgb, var(--c, var(--ink-3)) 7%, var(--paper));
+	color: var(--ink);
+	font: inherit;
+	text-align: left;
+	text-decoration: none;
+	cursor: pointer;
+	transition:
+		transform 160ms var(--ease-out),
+		background-color 160ms ease;
+}
+.part:active {
+	transform: scale(0.97);
+	transition-duration: 0ms;
+}
+.part[aria-expanded='true'] {
+	box-shadow: inset 0 0 0 2px var(--c, var(--ink));
+}
+.part-ic {
+	grid-area: ic;
+	width: 34px;
+	height: 34px;
+	display: grid;
+	place-items: center;
+	border-radius: 10px;
+	background: var(--c, var(--ink));
+	color: var(--ci, var(--paper));
+}
+.part-ic svg.i {
+	width: 20px;
+	height: 20px;
+}
+.part-h {
+	grid-area: h;
+	min-width: 0;
+	font-size: var(--fs-base);
+	font-weight: 750;
+	line-height: 1.3;
+}
+.part-ch {
+	grid-area: ch;
+	width: 20px;
+	height: 20px;
+	color: color-mix(in srgb, var(--c, var(--ink)) 70%, var(--ink));
+}
+.part-s {
+	grid-area: s;
+	min-width: 0;
+	font-size: var(--fs-sm);
+	line-height: 1.42;
+	color: var(--ink-2);
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+	line-clamp: 2;
+	overflow: hidden;
+}
+.part-s b {
+	color: var(--ink);
+	font-weight: 700;
+}
+.part-pick {
+	display: inline-flex;
+	align-items: center;
+	gap: 3px;
+	margin-right: 6px;
+	padding: 0 7px 0 5px;
+	border-radius: 7px;
+	background: color-mix(in srgb, var(--good) 15%, transparent);
+	color: var(--good);
+	font-weight: 800;
+}
+.part-pick svg.i {
+	width: 14px;
+	height: 14px;
+	stroke-width: 2.6;
+}
+@media (min-width: 600px) {
+	.parts {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+@media (hover: hover) and (pointer: fine) {
+	.part:hover {
+		background: color-mix(in srgb, var(--c, var(--ink-3)) 13%, var(--paper));
+	}
+}
+
+/* a part's sheet: from the bottom on a phone, scrolling on its own; a panel at the side from 1024 px */
+dialog.bsheet {
+	overflow: auto;
+	overscroll-behavior: contain;
+	padding: 0;
+	background: linear-gradient(180deg, color-mix(in srgb, var(--c, var(--paper)) 8%, var(--paper)), var(--paper) 140px);
+}
+.bsheet-head {
+	position: sticky;
+	top: 0;
+	z-index: 3;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 18px 10px 12px 16px;
+	background: color-mix(in srgb, var(--c, var(--paper)) 8%, var(--paper));
+	border-bottom: 1px solid var(--rule);
+	touch-action: none;
+}
+.bsheet-grip {
+	position: absolute;
+	left: 50%;
+	top: 7px;
+	width: 40px;
+	height: 5px;
+	margin-left: -20px;
+	border-radius: 3px;
+	background: color-mix(in srgb, var(--ink-3) 55%, transparent);
+}
+.bsheet-h {
+	flex: 1;
+	min-width: 0;
+	font-size: 1.1875rem;
+	font-weight: 800;
+	letter-spacing: -0.01em;
+	line-height: 1.3;
+}
+.bsheet-h small {
+	display: block;
+	font-size: var(--fs-xs);
+	font-weight: 650;
+	letter-spacing: 0;
+	color: var(--ink-2);
+}
+.bsheet-x {
+	flex: none;
+	border: 1px solid var(--rule);
+	background: var(--paper-2);
+}
+.bsheet-body {
+	padding: 14px 16px 28px;
+	container: sheet / inline-size;
+}
+/* a sheet is a phone's width even as a desktop's side panel: its tables lay out as they do on a phone, one card per
+   row, instead of a squeezed table scrolling sideways in 500 px */
+@container sheet (max-width: 560px) {
+	.tbl {
+		min-width: 0;
+	}
+	.tbl thead {
+		display: none;
+	}
+	.tbl tr {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr);
+		padding: 10px 0;
+		border-bottom: 1px solid var(--rule);
+	}
+	.tbl th,
+	.tbl td {
+		border: 0;
+		padding: 1px 0;
+	}
+	.tbl td:last-child {
+		color: var(--ink);
+		font-weight: 650;
+	}
+	.tbl td:nth-child(2) {
+		color: var(--ink-2);
+	}
+	.tbl tbody th {
+		white-space: normal;
+	}
+	/* and the airport's ways and the budget's tiers stay one to a row, as on a phone */
+	.methods,
+	.tiers {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+/* the sheet's own head names it: the block's heading inside would say it twice */
+.bsheet-body > .block:first-child {
+	margin-top: 0;
+}
+.bsheet-body > .block:first-child > .block-h:first-child {
+	display: none;
+}
+dialog.bsheet :is([id], li, p, td, figure, .block) {
+	scroll-margin-top: 84px;
+}
+@media (max-width: 1023px) {
+	dialog.bsheet {
+		width: 100%;
+		max-width: none;
+		margin: auto 0 0;
+		max-height: calc(100dvh - env(safe-area-inset-top, 0px) - 40px);
+		border-radius: 22px 22px 0 0;
+		padding-bottom: env(safe-area-inset-bottom, 0px);
+		transition:
+			opacity 420ms var(--ease-drawer),
+			transform 420ms var(--ease-drawer),
+			overlay 420ms allow-discrete,
+			display 420ms allow-discrete;
+	}
+	@starting-style {
+		dialog.bsheet[open] {
+			opacity: 1;
+			transform: translateY(100%);
+		}
+	}
+}
+@media (min-width: 1024px) {
+	dialog.bsheet {
+		width: min(500px, 42vw);
+		max-width: none;
+		height: calc(100dvh - 32px);
+		max-height: none;
+		margin: 16px max(16px, env(safe-area-inset-right, 0px)) 16px auto;
+		border-radius: 22px;
+		box-shadow:
+			0 10px 28px -10px rgba(0, 0, 0, 0.45),
+			0 0 0 1px var(--glass-edge);
+	}
+	dialog.bsheet::backdrop {
+		background: color-mix(in srgb, var(--scrim) 55%, transparent);
+	}
+	@starting-style {
+		dialog.bsheet[open] {
+			opacity: 0;
+			transform: translateX(40px);
+		}
+	}
+	.bsheet-grip {
+		display: none;
+	}
+	.bsheet-head {
+		touch-action: auto;
+	}
+}
+
+/* a stop opens its map, directions and what's near it in its own sheet: the chevron, or a tap on the row */
+.stop.has-more .stop-b {
+	cursor: pointer;
+}
+.stop.has-more .stop-b > :not(.stop-more):not(dialog) {
+	grid-column: 1;
+}
+.stop-more {
+	grid-column: 2;
+	grid-row: 1 / span 2;
+	align-self: start;
+	width: 44px;
+	height: 44px;
+	margin: -10px 0 0 0;
+	display: grid;
+	place-items: center;
+	border: 0;
+	border-radius: 12px;
+	background: transparent;
+	color: var(--ink-3);
+	cursor: pointer;
+}
+.stop-more svg.i {
+	width: 20px;
+	height: 20px;
+}
+.stop-more:active {
+	background: var(--paper-3);
+}
+/* in the row, a phone's meal and drink options reach under the time column; in the stop's sheet they have its width */
+@media (max-width: 599px) {
+	dialog.ssheet :is(.stop-eat, .stop-near, .stop-drink) {
+		margin-left: 0;
+	}
+}
+
+/* the day's route: one line of places, how you get between them, and the whole route in the maps app below */
+.route-line {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 2px 6px;
+	margin: 0 0 10px;
+	padding: 0;
+	list-style: none;
+	font-size: var(--fs-sm);
+	font-weight: 700;
+	line-height: 1.4;
+}
+.route-line li {
+	display: inline-flex;
+	align-items: center;
+	gap: 2px;
+}
+.rl-m {
+	color: var(--cm-ink, currentColor);
+	opacity: var(--cm, 0.85);
+	font-weight: 650;
+}
+.rl-m svg.i {
+	width: 17px;
+	height: 17px;
+}
+.rl-m small {
+	font-size: 0.8125rem;
+}
+.l-route .l-legs {
+	grid-template-columns: minmax(0, 1fr);
+}
+
+/* previous / next day, at the foot of each day */
+.pager {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 10px;
+	margin-top: 24px;
+}
+.pg {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	gap: 2px;
+	min-width: 0;
+	min-height: 68px;
+	padding: 10px 14px;
+	border-radius: var(--r-btn, 14px);
+	border: 1.5px solid color-mix(in srgb, var(--c, var(--ink-3)) 55%, var(--rule));
+	background: color-mix(in srgb, var(--c, var(--ink-3)) 9%, var(--paper));
+	color: var(--ink);
+	text-decoration: none;
+	transition: transform 160ms var(--ease-out);
+}
+.pg:active {
+	transform: scale(0.97);
+	transition-duration: 0ms;
+}
+.pg b {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	font-size: var(--fs-base);
+	font-weight: 800;
+}
+.pg small {
+	font-size: var(--fs-xs);
+	line-height: 1.35;
+	color: var(--ink-2);
+	overflow-wrap: anywhere;
+}
+.pg.next {
+	align-items: flex-end;
+	text-align: right;
+}
+
+/* the week rail: on a desktop it takes the tab strip's place, beside the view */
+.rail {
+	display: none;
+}
+.rail-card {
+	padding: 10px;
+	border-radius: var(--r-card, 18px);
+	border: 1px solid var(--rule);
+	background: var(--paper);
+}
+.rail-h {
+	margin: 12px 10px 6px;
+	font-size: var(--fs-label, 0.8125rem);
+	font-weight: 750;
+	color: var(--ink-3);
+}
+.rl {
+	display: grid;
+	grid-template-columns: 34px minmax(0, 1fr) 20px;
+	gap: 2px 10px;
+	align-items: center;
+	min-height: 56px;
+	padding: 9px 10px;
+	border-radius: 14px;
+	color: var(--ink);
+	text-decoration: none;
+	background: color-mix(in srgb, var(--c, var(--ink)) 6%, transparent);
+}
+.rl + .rl {
+	margin-top: 6px;
+}
+.rl-t {
+	min-width: 0;
+}
+.rl-t b {
+	display: block;
+	font-weight: 750;
+	line-height: 1.3;
+}
+.rl-t small {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	font-size: 0.875rem;
+	line-height: 1.35;
+	color: var(--ink-2);
+}
+.rl-sq {
+	width: 30px;
+	height: 30px;
+	display: grid;
+	place-items: center;
+	border-radius: 9px;
+	border: 1px solid var(--rule);
+	background: var(--paper);
+}
+.rl-ch {
+	width: 20px;
+	height: 20px;
+	color: var(--ink-3);
+}
+.rl[aria-current='page'] {
+	background: color-mix(in srgb, var(--c, var(--ink)) 15%, var(--paper));
+	box-shadow: inset 0 0 0 2px var(--c, var(--ink));
+}
+.rl[aria-current='page'] .rl-t b {
+	font-weight: 800;
+}
+@media (hover: hover) and (pointer: fine) {
+	.rl:hover {
+		background: color-mix(in srgb, var(--c, var(--ink)) 12%, var(--paper-2));
+	}
+}
+@media (min-width: 1024px) {
+	.stage {
+		display: grid;
+		grid-template-columns: 300px minmax(0, var(--col));
+		gap: 28px;
+		justify-content: center;
+		padding: 22px max(24px, env(safe-area-inset-right, 0px)) 0 max(24px, env(safe-area-inset-left, 0px));
+	}
+	.rail {
+		display: block;
+		position: sticky;
+		top: calc(var(--bar-h) + 22px);
+		align-self: start;
+		max-height: calc(100dvh - var(--bar-h) - 44px);
+		overflow-y: auto;
+		overscroll-behavior: contain;
+		border-radius: var(--r-card, 18px);
+	}
+	.stage main {
+		width: 100%;
+		max-width: none;
+		margin: 0;
+	}
+	.bar .tabs {
+		display: none;
+	}
+	/* the header (and the live demo's strip) spans the rail and the column below it */
+	.bar-row,
+	.demo-strip {
+		max-width: calc(300px + 28px + var(--col) + 48px);
+		padding-inline: 24px;
+	}
+}
+
+/* the sky's band (a world with a live sky): structure here, its colours in the world's stylesheet */
+.band {
+	position: relative;
+	isolation: isolate;
+	margin-inline: calc(50% - 50vw);
+	padding-inline: calc(50vw - 50%);
+}
+#app > [data-sec]:has(> .band) {
+	padding-top: 0;
+}
+.band-cv,
+.bar-cv,
+.full-cv {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+}
+.band-cv {
+	z-index: 0;
+}
+.band-col {
+	position: relative;
+	z-index: 1;
+	padding-block: 14px 46px;
+}
+.sky-full {
+	display: none;
+}
+.shake-btn,
+.sky-btn {
+	display: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+	:root[data-sky-on='1'] .sky-btn {
+		display: grid;
+	}
+	:root[data-sky-now='globe'] .shake-btn {
+		display: inline-flex;
+	}
+}
+body {
+	overflow-x: clip;
 }
