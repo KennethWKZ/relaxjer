@@ -191,14 +191,14 @@ This guide isn't legal advice. To stay closest to the terms:
 
 ## If the map doesn't load
 
-| You see                                              | Likely cause                                                                                       |
-| ---------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| The free map instead of Google's                     | The build had no `--keys`, or `google.json` lacks `browserKey` or `mapId`                          |
-| "This page can't load Google Maps correctly"         | Billing is off, or the key isn't allowed this address (`RefererNotAllowedMapError` in the console) |
-| `ApiNotActivatedMapError`                            | Maps JavaScript API isn't enabled on the project                                                   |
-| Ratings or "Search Google" fail while the map works  | Places API (New) isn't enabled, or isn't ticked in the browser key's API restrictions              |
-| `no Google key at …` from `pnpm resync`              | The server key isn't in `~/.config/relaxjer/google-places.key`                                     |
-| Works on the published page but not on your computer | Add `http://localhost/*` and `http://127.0.0.1/*`, and serve the page instead of opening the file  |
+| You see                                              | Likely cause                                                                                                                                                                                                                                    |
+| ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| The free map instead of Google's                     | The build had no `--keys`, or `google.json` lacks `browserKey` or `mapId`                                                                                                                                                                       |
+| "This page can't load Google Maps correctly"         | Billing is off, or the key isn't allowed this address (`RefererNotAllowedMapError` in the console)                                                                                                                                              |
+| `ApiNotActivatedMapError`                            | Maps JavaScript API isn't enabled on the project                                                                                                                                                                                                |
+| Ratings or "Search Google" fail while the map works  | Places API (New) isn't enabled, or isn't ticked in the browser key's API restrictions, or the page's address isn't in the key's Websites list. Google gives the same "Permission denied on the service" for all three, so check the address too |
+| `no Google key at …` from `pnpm resync`              | The server key isn't in `~/.config/relaxjer/google-places.key`                                                                                                                                                                                  |
+| Works on the published page but not on your computer | Add `http://localhost/*` and `http://127.0.0.1/*`, and serve the page instead of opening the file                                                                                                                                               |
 
 ## About the free map
 
