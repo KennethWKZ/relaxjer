@@ -1,7 +1,7 @@
 // Affordance rules from memory-bank/standards/patterns/affordances.md, measured on the page (rule numbers in brackets):
 // every control can be hit, looks like what it is, and shows its state.
 import { test, expect, openTrip } from '../support/fixtures.mjs';
-import { openAllDetails, show } from '../support/page.mjs';
+import { openAllDetails, setStored, show } from '../support/page.mjs';
 /* global DAYS -- the trip data, read inside the page */
 
 test('every control is at least 44 px [1]', async ({ page }) => {
@@ -188,6 +188,24 @@ test('disabled is dimmed, and a location request in flight says so [18]', async 
 	await expect(on).toHaveAttribute('aria-busy', 'true');
 	await expect(on).toBeDisabled();
 	await expect(on).toContainText('Finding you');
+});
+
+// a first visit follows the phone's own light or dark setting, until the reader picks one; a pick is kept whatever the
+// phone says after
+for (const colorScheme of ['light', 'dark']) {
+	test(`a first visit follows the phone's ${colorScheme} setting`, async ({ page }) => {
+		await page.emulateMedia({ colorScheme });
+		await openTrip(page);
+		await expect(page.locator('html')).not.toHaveAttribute('data-theme', /./);
+		expect(await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme)).toBe(colorScheme);
+	});
+}
+test('a theme the reader picked is kept, whatever the phone says', async ({ page }) => {
+	await page.emulateMedia({ colorScheme: 'dark' });
+	await openTrip(page);
+	await setStored(page, { theme: 'light' });
+	await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+	expect(await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme)).toBe('light');
 });
 
 test('a website link keeps its word, and phones switch the theme from the Sections sheet [9]', async ({ page }) => {
