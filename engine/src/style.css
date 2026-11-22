@@ -411,17 +411,12 @@ svg.i {
 	background: var(--paper-3);
 }
 
-/* the date tabs, and at their end the sky's pause on a phone and a tablet (24-sky.js), where it leaves the trip's name
-   its room in the row above */
+/* the date tabs */
 .tabs-row {
 	display: flex;
 	align-items: center;
 	max-width: var(--col);
 	margin: 0 auto;
-}
-.tabs-row > .sky-btn {
-	flex: none;
-	margin: -4px max(16px, env(safe-area-inset-right, 0px)) 0 -8px;
 }
 .tabs-row > .tabs {
 	flex: 1;
@@ -3083,6 +3078,12 @@ details.wgroup > summary .chev {
 	}
 	.bar-row:has(#curBtn:not([hidden])) .icon-btn.home-hd svg.i {
 		display: none;
+	}
+}
+/* a small Android (360 px) with the sky's pause too: one more step, so a three-character short name stays whole */
+@media (max-width: 379px) {
+	.bar-row:has(#curBtn:not([hidden])):has(#homeBtn:not([hidden])) .brand-name {
+		font-size: 1.0625rem;
 	}
 }
 .stop-eat {

@@ -168,6 +168,8 @@ vm.createContext(ctx);
 vm.runInContext(data + ';this.DAYS=DAYS;this.PRINCIPLE=PRINCIPLE;this.TRIP=TRIP;', ctx);
 // the trip's name on the page, the home screen and the KML; the shell's {{brand}} / {{dates}} are filled from it
 const { brand, description } = ctx.TRIP;
+// the header's short name, for a phone whose header can't fit the whole brand beside its buttons (09-main-render.js)
+const brandShort = ctx.TRIP.brandShort || brand;
 // the output files' base name: TRIP.fileName (e.g. 'taipei-trip'), else 'trip' → trip.html, trip-standalone.html, trip-mymaps.kml
 const fileBase = ctx.TRIP.fileName || 'trip';
 if (!/^[a-z0-9][a-z0-9-]*$/.test(fileBase))
@@ -280,11 +282,12 @@ const htmlEsc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<':
 const backdrop = backdropHTML(world);
 const shell = shellSrc
 	.replace(/\{\{brand\}\}/g, htmlEsc(brand))
+	.replace(/\{\{brandShort\}\}/g, htmlEsc(brandShort))
 	.replace(/\{\{dates\}\}/g, rangeLabel(ctx.TRIP.start, ctx.TRIP.end, 'zh'))
 	.replace(/\{\{storeKey\}\}/g, () => JSON.stringify(storeKey(ctx.TRIP)).replace(/</g, '\\u003c'))
 	.replace('<header class="bar" id="bar">', () => `${backdrop.sky}<header class="bar" id="bar">`)
 	.replace('<footer class="foot" id="foot"></footer>', () => `<footer class="foot" id="foot"></footer>${backdrop.end}`);
-const brush = new Set([brand, '定', ...ctx.DAYS.map((d) => d.wish), ctx.PRINCIPLE.wish].join('').replace(/\s/g, ''));
+const brush = new Set([brand, brandShort, '定', ...ctx.DAYS.map((d) => d.wish), ctx.PRINCIPLE.wish].join('').replace(/\s/g, ''));
 const brushFont = ctx.TRIP.brushFont || 'Ma Shan Zheng';
 if (!/^[A-Za-z0-9 ]+$/.test(brushFont)) throw new Error(`TRIP.brushFont: a Google Fonts family name, got ${JSON.stringify(brushFont)}`);
 const fontHref = `https://fonts.googleapis.com/css2?family=${brushFont.replace(/ /g, '+')}&display=swap&text=${encodeURIComponent([...brush].join(''))}`;

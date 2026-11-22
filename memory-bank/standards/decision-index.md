@@ -24,7 +24,7 @@ How a trip becomes the page: the views, the sections, the day logic and the pack
 | [ADR-20261007-split-follows-pushback](decisions/ADR-20261007-split-follows-pushback.md) | 2026-10-07 | accepted | A split fork moves like a flexible stop: push-backs before it shift it, and its rejoin keeps its stop planned time.                                  |
 | [ADR-20261117-native-layer](decisions/ADR-20261117-native-layer.md)                     | 2026-11-17 | accepted | A pack sets the native language and the 'please take us here' card text, and the engine reads them from the pack, never a constant.                  |
 | [ADR-20261122-currency-switch](decisions/ADR-20261122-currency-switch.md)               | 2026-11-22 | accepted | Currency conversion happens while the text is drawn, in one pure function that reads each amount's own symbol, so NT$ is never read as $.            |
-| [ADR-20261122-day-views](decisions/ADR-20261122-day-views.md)                           | 2026-11-22 | accepted | Each tab is its own view with its own #address and Back step; a day's planning cards open as sheets from one-line summaries; TRIP.sky picks the sky. |
+| [ADR-20261122-day-views](decisions/ADR-20261122-day-views.md)                           | 2026-11-22 | amended  | Each tab is its own view with its own #address and Back step; a day's planning cards open as sheets from one-line summaries; TRIP.sky picks the sky. |
 | [ADR-20261122-place-finder-best-day](decisions/ADR-20261122-place-finder-best-day.md)   | 2026-11-22 | accepted | A place finder ranks each day's stops by straight-line distance to the place, counting only stops a new stop can follow.                             |
 
 ## trip-data

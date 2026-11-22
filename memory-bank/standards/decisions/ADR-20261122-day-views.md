@@ -3,7 +3,7 @@ id: ADR-20261122-day-views
 date: 2026-11-22
 title: 'One View per Tab, Planning Parts as Summary Buttons and Sheets, the Sections Button Always There, and a Live Sky a Trip Picks'
 domain: engine
-status: accepted
+status: amended
 decision: "Each tab is its own view with its own #address and Back step; a day's planning cards open as sheets from one-line summaries; TRIP.sky picks the sky."
 ---
 
@@ -147,3 +147,12 @@ that moves by itself.
 
 Changing how the page moves between days and sections, what a view shows, a planning block's summary or sheet, the
 Sections button, the desktop layout, a world's live sky or `TRIP.sky`, or the planner's preview build.
+
+## Amendment 2026-11-22
+
+The maintainer wants the sky's pause in the header's top row on phones too, beside search, with the trip's name making
+the room instead of the pause moving to the end of the date tabs. A new optional
+`TRIP.brandShort` is shown when the whole brand doesn't fit beside the buttons (measured on each render and whenever
+the header's room changes; `brandFit` in `09-main-render.js`), and a header under 380 px with Install and the currency
+steps the brush down once more, so a three-character short name stays whole at 360 px. The page title and the
+home-screen name keep the whole brand.
