@@ -63,7 +63,8 @@ export function stagePage({ engine, trip, outDir, args = [], keys = 'none' }) {
 			stdio: 'pipe',
 		});
 		// <TRIP.fileName>-standalone.html: the one single-file page the build writes
-		page = path.join(outDir, fs.readdirSync(outDir).find((f) => f.endsWith('-standalone.html')) || 'trip-standalone.html');
+		// (a build with --preview writes <TRIP.fileName>-preview.html instead, and nothing else)
+		page = path.join(outDir, fs.readdirSync(outDir).find((f) => /-(standalone|preview)\.html$/.test(f)) || 'trip-standalone.html');
 	} else {
 		for (const f of LEGACY_ENGINE_FILES) copy(path.join(engine.dir, f), path.join(outDir, f));
 		for (const f of TRIP_FILES) {

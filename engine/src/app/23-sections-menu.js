@@ -70,17 +70,36 @@ const curRow = () => {
         </div>
       </div>`;
 };
+/* the Sections button is always there (ADR-20261122-day-views), but steps aside over the map, while search is open,
+   and wherever it would cover a day's Next button. The Back pill, there only for a moment after a jump, stays: each
+   view's foot leaves room under the pager for both, so at the end of a day nothing covers it. A sheet (a modal
+   dialog) covers both anyway */
+const overlapsFab = (r, f) => !!r && r.top < f.bottom + 10 && r.bottom > f.top - 10 && r.right > f.left - 10 && r.left < f.right + 10;
 const fabSync = () => {
 	const fab = $('#tocBtn');
 	if (!fab) return;
-	const mw = $('.map-wrap');
-	const r = mw && mw.getBoundingClientRect();
-	const overMap = !!r && r.top < innerHeight - 16 && r.bottom > innerHeight - 76;
-	const on = scrollY > innerHeight * 0.8 && !overMap && $('#search-row').hidden;
+	const view = curView && document.getElementById(curView);
+	const box = (sel) => {
+		const e = view && view.querySelector(sel);
+		return e && e.getClientRects().length ? e.getBoundingClientRect() : null;
+	};
+	// where the button sits at rest (it drops 14 px while hidden): bottom right, 52 px, above the home bar
+	const f = fab.getBoundingClientRect();
+	const rest = {
+		top: f.top - (fab.dataset.show === '0' ? 14 : 0),
+		bottom: f.bottom - (fab.dataset.show === '0' ? 14 : 0),
+		left: f.left,
+		right: f.right,
+	};
+	const mw = box('.map-wrap');
+	const overMap = mapFullOn || (!!mw && mw.top < innerHeight - 16 && mw.bottom > innerHeight - 76);
+	const pg = box('.pager .next');
+	const on = !overMap && !overlapsFab(pg, rest) && $('#search-row').hidden;
 	fab.dataset.show = on ? '1' : '0';
 	fab.tabIndex = on ? 0 : -1;
 	fab.setAttribute('aria-hidden', on ? 'false' : 'true');
 };
+addEventListener('resize', () => requestAnimationFrame(fabSync));
 let fabRaf = 0;
 addEventListener(
 	'scroll',

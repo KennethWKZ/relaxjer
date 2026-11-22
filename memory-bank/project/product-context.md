@@ -80,7 +80,13 @@ planners, is in [`guides/trip-page.md`](../../guides/trip-page.md).
 - **Near each stop, and "near me":** food, drinks, rest spots and toilets (plus places that let you borrow a toilet),
   the group's wishlist where it fits, and the optional plans the trip suggests at that stop, which open over the day.
 - **Each day:** Now and Next on a trip day (a countdown and the to-dos coming due before it), Copy for chat and Copy
-  link, today's route as one navigation link per leg, decide-on-the-day options, and the rain plan.
+  link, today's route as one line with a whole-route link, decide-on-the-day options, and the rain plan.
+- **One part at a time** (ADR-20261122-day-views): each day and each section is its own view with its own address,
+  so a long trip never becomes one long page: a day fits in a few phone screens. Back steps through the views and
+  restores each one's scroll; every jump (Now and Next, search, the map, the Sections menu, a link) opens its view
+  first. A day's planning cards are summary buttons with a one-line summary, each opening a sheet that scrolls on its
+  own and closes with Back; big Previous day and Next day buttons end every day. The Sections button is there from the
+  first screen of every view.
 - **Map:**
   - Google first, MapLibre as fallback;
   - Map and Directions links in Google Maps or Apple Maps, chosen per phone;
@@ -101,7 +107,10 @@ planners, is in [`guides/trip-page.md`](../../guides/trip-page.md).
   (each activity its own way: steam, a van on the road, penguins waddling), only inside the picture, only while it's on
   screen, and never under reduced motion; its sky behind the page follows the scroll alone and keeps every word at
   4.5:1; its stickers never cover a word or a tap; on a phone the overview's scene never pushes Now and Next off the
-  first screen (ADR-20261121-world-motion, ADR-20261121-world-stickers).
+  first screen (ADR-20261121-world-motion, ADR-20261121-world-stickers). A world with a sky (Snow Light Path) draws one
+  over every view, chosen per trip (`TRIP.sky`: live weather, a snow globe, snow piling on the tabs, or off): it
+  follows each day's forecast, falls behind the words, has a pause button the phone remembers, stops while the page is
+  hidden and holds still under reduced motion (ADR-20261122-day-views).
 - **Destination info:** a checklist (groups marked shared tick for everyone with group sync), weather, tax refund with
   minimum spend, airport transfer options decided on the day, a shopping box, a free-day time budget worked back from
   the flight.
@@ -110,7 +119,7 @@ planners, is in [`guides/trip-page.md`](../../guides/trip-page.md).
   - a home-screen install button, with the iPhone steps as a guide;
   - an update bar when a newer build is live (never while offline);
   - site search, the Sections menu (Now and Next at the top on a trip day), a Back pill, instant tab jumps with a
-    landing glow;
+    landing glow; on a computer a week rail beside the view and sheets as a side panel;
   - with group sync, a phone's first open asks once for a name in a welcome sheet (Not now is fine), and until it has
     one a bar under the header asks again (Add name, or Later, which hides it for a day). Group sync itself stays a row
     in the Sections menu;

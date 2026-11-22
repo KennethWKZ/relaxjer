@@ -6,7 +6,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { plannerCode } from '../../scripts/sync/sync.mjs';
 import { DEMO_TRIPS, ROOT, resolveEngine, resolveTrip, stagePage } from './stage.mjs';
-import { makeWorldTrip } from './world-trip.mjs';
+import { makeWorldTrip, SKIES } from './world-trip.mjs';
 
 export const PAGES_DIR = path.join(ROOT, '.cache', 'pages');
 export const SYNC_TEST_FILE = path.join(ROOT, '.cache', 'sync-test.json');
@@ -35,7 +35,7 @@ export default async function globalSetup() {
 	fs.cpSync(path.join(ROOT, 'site'), path.join(PAGES_DIR, 'site'), { recursive: true });
 
 	fs.rmSync(path.join(PAGES_DIR, 'trip-sync.html'), { force: true });
-	fs.rmSync(path.join(PAGES_DIR, 'trip-world.html'), { force: true });
+	for (const f of fs.readdirSync(PAGES_DIR).filter((x) => /^trip-world/.test(x))) fs.rmSync(path.join(PAGES_DIR, f), { force: true });
 	fs.rmSync(path.join(PAGES_DIR, 'trip-gkey.html'), { force: true });
 	if (engine.kind !== 'engine') return; // the legacy engine has no group sync
 	const port = Number(process.env.RELAXJER_TEST_PORT || 8124);
@@ -60,6 +60,18 @@ export default async function globalSetup() {
 	// the same trip in a destination world, with a mark on every day (tests/e2e/world.spec.mjs)
 	const world = stagePage({ engine, trip: { dir: makeWorldTrip(trip.dir) }, outDir: path.join(ROOT, '.cache', 'stage-world') });
 	fs.copyFileSync(world, path.join(PAGES_DIR, 'trip-world.html'));
+	// the same world with each other sky a trip can pick (TRIP.sky), and the planner's preview build of it
+	// (tests/e2e/sky.spec.mjs); the preview build writes <name>-preview.html, never a page that could be published
+	for (const sky of SKIES) {
+		const dir = makeWorldTrip(trip.dir, path.join(ROOT, '.cache', 'trips', `world-trip-${sky}`), sky);
+		const p = stagePage({ engine, trip: { dir }, outDir: path.join(ROOT, '.cache', `stage-world-${sky}`) });
+		fs.copyFileSync(p, path.join(PAGES_DIR, `trip-world-${sky}.html`));
+	}
+	const pvOut = path.join(ROOT, '.cache', 'stage-world-preview');
+	const pv = stagePage({ engine, trip: { dir: makeWorldTrip(trip.dir) }, outDir: pvOut, args: ['--preview'] });
+	const wrote = fs.readdirSync(pvOut).filter((f) => f.endsWith('.html'));
+	if (wrote.length !== 1 || !wrote[0].endsWith('-preview.html')) throw new Error(`--preview wrote ${wrote.join(', ')}: only <name>-preview.html`);
+	fs.copyFileSync(pv, path.join(PAGES_DIR, 'trip-world-preview.html'));
 
 	// the live demo, built as pages.yml builds it, with the workflow's own clock (tests/e2e/demo.spec.mjs)
 	fs.rmSync(path.join(PAGES_DIR, 'trip-demo.html'), { force: true });

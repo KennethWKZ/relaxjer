@@ -26,8 +26,10 @@ async function themeOf(dir) {
 	return theme;
 }
 
-async function openWorld(page) {
-	await page.goto('/trip-world.html');
+// trip-world-off.html is the same trip with the live sky off (TRIP.sky 'off'), where the world's own backdrop and the
+// scene above Now and Next show as they do in a world without a sky
+async function openWorld(page, file = 'trip-world.html') {
+	await page.goto(`/${file}`);
 	await expect(page.locator('#app [data-sec]').first()).toBeAttached();
 }
 
@@ -140,15 +142,16 @@ test.describe('motion in a world', () => {
 		// decoration inside a picture that clips it: nothing moves over the card's words
 		expect(await art.evaluate((el) => [el.getAttribute('aria-hidden'), getComputedStyle(el).overflow])).toEqual(['true', 'hidden']);
 		for (const p of await parts.all()) expect(await p.evaluate((el) => el.closest('.lantern > .day-art') !== null)).toBe(true);
-		// scrolled away (after the jump's landing hold), it stops and costs nothing
+		// off screen (after the jump's landing hold: another view on screen), it stops and costs nothing
 		await page.waitForTimeout(1600);
-		await page.evaluate(() => scrollTo(0, 0));
+		await page.evaluate(() => (location.hash = '#top'));
+		await expect(page.locator('html')).toHaveAttribute('data-showing', 'top');
 		await expect(art).not.toHaveClass(/\bis-live\b/);
 		for (const p of await parts.all()) expect(await p.evaluate((el) => getComputedStyle(el).animationName)).toBe('none');
 	});
 
 	test('the sky behind the page: behind everything, never wider than the screen, and moving only with the scroll', async ({ page }) => {
-		await openWorld(page);
+		await openWorld(page, 'trip-world-off.html');
 		const sky = page.locator('body > .world-sky');
 		test.skip(!(await sky.count()), 'this world draws no sky');
 		const box = await sky.evaluate((el) => {
@@ -222,7 +225,7 @@ test("a world's illustrations: each day's activity across the top of its card, a
 	const art = path.join(ROOT, 'engine', 'src', 'themes', `${WORLD.theme}-art`);
 	test.skip(!fs.existsSync(art), 'this world has no illustrations');
 	const drawn = new Set(fs.readdirSync(art).map((f) => f.replace(/\.svg$/, '')));
-	await openWorld(page);
+	await openWorld(page, 'trip-world-off.html');
 	const days = await page.evaluate(() => DAYS.map((d) => [d.id, d.motif]));
 	for (const [id, motif] of days) {
 		const pic = page.locator(`#${id} .lantern > .day-art > img:not(.art-actor)`);

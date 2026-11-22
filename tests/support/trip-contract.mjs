@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import { names as MOTIFS } from '../../engine/src/core/motif.mjs';
+import { MODES as SKIES } from '../../engine/src/core/sky.mjs';
 
 // read when present: the themed shop lists (SNOW is the older single-list form)
 export const OPTIONAL_GLOBALS = ['SHOPLISTS', 'SNOW'];
@@ -87,6 +88,8 @@ export function checkTrip(trip) {
 			bad(`TRIP.tz "${TRIP.tz}" is not a time zone`);
 		}
 	}
+	// the live sky (ADR-20261122-day-views): one of the engine's skies; a world without one ignores it
+	if (TRIP.sky != null && !SKIES.includes(TRIP.sky)) bad(`TRIP.sky ${JSON.stringify(TRIP.sky)} must be one of ${SKIES.join('|')}`);
 	for (const v of TRIP.mapViews || [])
 		if (!v.id || !Array.isArray(v.name) || !(Array.isArray(v.bbox) && v.bbox.length === 4))
 			bad(`TRIP.mapViews ${v.id}: needs id, name [zh, en] and bbox [w, s, e, n]`);
@@ -144,6 +147,10 @@ export function checkTrip(trip) {
 			for (const p of [...(b.places || []), ...(b.opts || []).map((o) => o.place).filter(Boolean)])
 				if (!PLACES[p]) bad(`${d.id} ${b.type} block: unknown place "${p}"`);
 			if (b.type === 'budget' && !(b.min <= b.max)) bad(`${d.id} budget block: min ${b.min} > max ${b.max}`);
+			// a block's summary button (ADR-20261122-day-views): its own line, and the option a decision has settled on
+			if (b.sum != null && !isLabel(b.sum)) bad(`${d.id} ${b.type} block: sum must be [zh, en]`);
+			if (b.pick != null && !(b.type === 'decide' && (b.opts || []).some((o) => o.k === b.pick)))
+				bad(`${d.id} ${b.type} block: pick ${JSON.stringify(b.pick)} must be the k of one of its options (decide blocks only)`);
 		}
 		if (d.split) splitChecks(d);
 	});

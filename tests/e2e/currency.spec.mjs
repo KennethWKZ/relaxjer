@@ -4,7 +4,7 @@
 // with a home currency of its own; a trip without one has no button.
 import { test, expect, openTrip } from '../support/fixtures.mjs';
 import * as Money from '../../engine/src/core/money.mjs';
-import { curBtn, openSections, overflow, tripAmounts } from '../support/page.mjs';
+import { curBtn, openSections, overflow, show, tripAmounts } from '../support/page.mjs';
 import { STORE_KEY } from '../support/store-key.mjs';
 /* global TRIP -- the trip data, read inside the page */
 
@@ -63,6 +63,7 @@ test("the rate is one value in the budget and the Sections menu: figures follow 
 	// trip currency first: the home-currency lines follow the budget's field
 	const rm = page.locator('#app [data-rm]').first();
 	const [a, b] = (await rm.getAttribute('data-rm')).split(',').map(Number);
+	await show(page, '#rate'); // the budget view
 	await page.locator('#rate').fill(String(r1));
 	await expect(rm).toHaveText(Money.homeText(a, b, r1, cur.home));
 

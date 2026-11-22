@@ -8,6 +8,7 @@ import zlib from 'node:zlib';
 import { ROOT } from '../support/stage.mjs';
 import { renderPNG } from '../../engine/icons.mjs';
 import * as Motif from '../../engine/src/core/motif.mjs';
+import * as Sky from '../../engine/src/core/sky.mjs';
 import { splitArt } from '../../engine/world-art.mjs';
 
 const THEMES = path.join(ROOT, 'engine', 'src', 'themes');
@@ -125,6 +126,49 @@ test("a world's sky behind the page: every word on the paper keeps 4.5:1 over it
 		for (const sel of ['.world-sky', '.sky-', '.world-end']) {
 			const outside = css.slice(0, at) + css.slice(end);
 			assert.doesNotMatch(outside, new RegExp(`${sel.replace('.', '\\.')}[^{]*\\{[^}]*animation`), `${sel}: no motion outside the scroll`);
+		}
+	}
+});
+
+// the sky over the views (ADR-20261122-day-views): its band and header take each weather's colours, with the day's
+// colour blended into the band's foot, and the words on them must stay readable whatever the day and the weather
+test("a world's live sky: the band's words keep 4.5:1 on every weather, and the wish 3:1 in every day colour", async () => {
+	const pct = (block) => Object.fromEntries([...block.matchAll(/(--[\w-]+):\s*([\d.]+)%/g)].map((m) => [m[1], Number(m[2]) / 100]));
+	for (const w of worlds) {
+		const { sky } = await import(path.join(THEMES, `${w}.mjs`));
+		if (!sky) continue;
+		const css = fs.readFileSync(path.join(THEMES, `${w}.css`), 'utf8');
+		const lightBlock = css.slice(0, css.indexOf('@media'));
+		const darkBlock = /\[data-theme='dark'\]\s*\{([^}]*)\}/.exec(css)[1];
+		const days = [1, 2, 3, 4, 5, 6, 7].map((n) => props(lightBlock)[`--l${n}`]);
+		for (const [name, block] of [
+			['light', lightBlock],
+			['dark', darkBlock],
+		]) {
+			const set = { ...props(block), ...pct(block) };
+			const tint = set['--sky-band-tint'];
+			assert.ok(tint > 0 && tint < 0.5, `${w} ${name}: --sky-band-tint`);
+			for (const kind of Sky.KINDS) {
+				const k = (s) => set[`--wx-${kind}-${s}`];
+				for (const s of ['top', 'mid', 'low', 'ink', 'ink-2', 'wish']) assert.ok(k(s), `${w} ${name}: --wx-${kind}-${s}`);
+				assert.ok(k('amt') >= 0 && k('amt') <= 1, `${w} ${name}: --wx-${kind}-amt`);
+				// the header runs top → mid, the band mid → its foot, the foot taking the day's colour at --sky-band-tint
+				const feet = days.map((c) => mixHex(k('low'), c, tint));
+				for (const t of ['ink', 'ink-2'])
+					for (const [where, bg] of [
+						['top', k('top')],
+						['mid', k('mid')],
+						['low', k('low')],
+						...feet.map((f, i) => [`the foot on day colour ${i + 1}`, f]),
+					])
+						assert.ok(contrast(k(t), bg) >= 4.5, `${w} ${name} ${kind}: ${t} on ${where} ${contrast(k(t), bg).toFixed(2)}`);
+				// the wish: the day's colour mixed with the weather's wish colour, large brush lettering on the band
+				days.forEach((c, i) => {
+					const wish = mixHex(c, k('wish'), k('amt'));
+					for (const bg of [k('mid'), feet[i]])
+						assert.ok(contrast(wish, bg) >= 3, `${w} ${name} ${kind}: day ${i + 1}'s wish ${contrast(wish, bg).toFixed(2)}`);
+				});
+			}
 		}
 	}
 });

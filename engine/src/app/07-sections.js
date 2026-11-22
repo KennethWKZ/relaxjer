@@ -1,8 +1,16 @@
 /* ───────── sections ───────── */
 function secOverview() {
 	const hotelAddr = addrFor(hotelOf(ROLE.arrive)); // the facts' address line: the first night's hotel
+	const now = tpNow();
+	const td = DAYS.find((d) => d.date === now.date);
+	// with a live sky the trip's name, dates and today's weather sit in the sky's band at the top
+	const head = skyOn()
+		? bandHTML(
+				`<p class="band-meta"><span>${esc(Time.rangeLabel(TRIP.start, TRIP.end, lang))}</span><span>${esc(Z(`${PAX} 人`, `${PAX} people`))}</span>${td ? `<span class="flag">Day ${td.n}</span>` : ''}</p><h1 class="band-h">${esc(L(TRIP.name))}</h1>${td ? wxLine(td) : ''}`,
+			)
+		: `<h1 class="sr-only">${esc(L(TRIP.name))}</h1>`;
 	return `<section class="sec" id="top" data-sec="top">
-      <h1 class="sr-only">${esc(L(TRIP.name))}</h1>
+      ${head}
       ${worldArt('hero', 'world-hero')}
       <div class="now-card" id="now" aria-live="polite"></div>
       <h2 class="sub">${icon('calendar')}${Z('这一周', 'The week')}</h2>
@@ -20,8 +28,12 @@ const FC = window.FORECAST || null;
 // which forecast spot a day reads: the day's `forecastSpot`, else the trip's
 const FC_SPOT = Object.fromEntries(DAYS.filter((d) => d.forecastSpot).map((d) => [d.id, d.forecastSpot]));
 const fcIcon = (c) => (c >= 61 || (c >= 51 && c < 60) || c >= 80 ? 'umbrella' : c >= 2 ? 'cloud' : 'sun');
+/** a day's forecast ({ code, tmin, tmax, rain }), or null without one */
+function fcOf(d) {
+	return (d && FC && FC.days && FC.days[d.date] && FC.days[d.date][FC_SPOT[d.id] || TRIP.forecastSpot]) || null;
+}
 function fcChip(d) {
-	const f = FC && FC.days && FC.days[d.date] && FC.days[d.date][FC_SPOT[d.id] || TRIP.forecastSpot];
+	const f = fcOf(d);
 	if (!f) return '';
 	return `<span class="chip" title="${esc(Z(`天气预报（${FC.checked} 查）`, `Forecast (checked ${FC.checked})`))}">${icon(fcIcon(f.code))}${f.tmin}–${f.tmax}° · ${Z('雨', 'rain')} ${f.rain}%</span>`;
 }
@@ -971,18 +983,44 @@ function mineImportOffer() {
 let mineIncoming = null;
 let flightT = 0;
 
+/* the band of sky at the top of a view (a world with a live sky, ADR-20261122-day-views): the sky behind, snow falling
+   behind the words, and the view's weather line. Its globe's Shake shows only in the globe sky (24-sky.js) */
+const bandHTML = (inner) =>
+	`<div class="band" data-band><div class="band-col">${inner}<button type="button" class="shake-btn" data-shake>${icon('globe')}<span>${Z('摇一摇', 'Shake the snow')}</span></button></div></div>`;
+// what the forecast says, in words (the sky itself draws it, 24-sky.js), and what to wear beside it
+function wxLine(d, wear) {
+	const f = fcOf(d);
+	const now = tpNow();
+	const parts = [];
+	if (f) {
+		const w = Sky.wordFor(f.code, d.date === now.date && Sky.isNight(now.mins));
+		parts.push(
+			`<span class="wx-now">${icon(w.icon)}<b>${esc(L(w.name))}</b></span><span>${f.tmin}–${f.tmax}°</span><span class="wx-note">${Z('降水', 'precip.')} ${f.rain}%</span>`,
+		);
+	}
+	if (wear) parts.push(`<span class="wx-wear">${icon('shirt')}<span>${Z('穿', 'Wear')}: ${esc(L(wear))}</span></span>`);
+	return parts.length ? `<p class="wx-line">${parts.join('')}</p>` : '';
+}
 function secDay(d, today) {
 	const isToday = today === d.date;
-	const wish =
+	const sky = skyOn();
+	const wishOnly =
 		lang === 'zh'
-			? `<h2 class="wish">${esc(d.wish)}</h2><p class="l-title"${alt(other(d.title))}>${esc(L(d.title))}</p>`
-			: `<p class="wish" lang="zh-Hans" aria-hidden="true">${esc(d.wish)}</p><p class="wish-gloss">${esc(d.gloss[1])}</p><h2 class="l-title"${alt(other(d.title))}>${esc(L(d.title))}</h2>`;
-	const wx = fcChip(d);
+			? `<h2 class="wish">${esc(d.wish)}</h2>`
+			: `<p class="wish" lang="zh-Hans" aria-hidden="true">${esc(d.wish)}</p><p class="wish-gloss">${esc(d.gloss[1])}</p>`;
+	const titleOnly =
+		lang === 'zh'
+			? `<p class="l-title"${alt(other(d.title))}>${esc(L(d.title))}</p>`
+			: `<h2 class="l-title"${alt(other(d.title))}>${esc(L(d.title))}</h2>`;
+	const meta = `<div class="l-meta"><span>Day ${d.n}</span><span>${esc(dateLabel(d.date, d.dow))}</span>${motifTag(d)}${isToday ? `<span class="flag inv">${Z('今天', 'Today')}</span>` : ''}</div>`;
+	// with a live sky the day's date, wish, weather and what to wear sit in the sky's band; the card keeps the rest
+	const band = sky ? bandHTML(`${meta}${wishOnly}${wxLine(d, d.wear)}`) : '';
+	const wx = sky ? '' : fcChip(d);
 	const chips = [
 		wx,
 		d.focus && `<span class="chip">${icon('flag')}${esc(L(d.focus))}</span>`,
 		d.budgetChip && budgetChip(d),
-		d.wear && `<span class="chip">${icon('shirt')}${esc(L(d.wear))}</span>`,
+		!sky && d.wear && `<span class="chip">${icon('shirt')}${esc(L(d.wear))}</span>`,
 	]
 		.filter(Boolean)
 		.join('');
@@ -996,19 +1034,35 @@ function secDay(d, today) {
 		const t = it.step ? String(it.step) : L(it.t || '');
 		const pt = parseT(it.t || '');
 		const cls = ['stop', it.fixed && 'fixed', it.key && 'key'].filter(Boolean).join(' ');
-		return `<li class="${cls}${it._sh ? ' shifted' : ''}" id="${d.id}-s${i}" ${pt.s != null ? `data-s="${pt.s}"` : ''}><div class="stop-t">${esc(t)}${it._sh ? `<span class="t-was">${esc(Z(`原 ${L(it._base)}`, `was ${L(it._base)}`))}</span>` : ''}</div><div class="stop-knot">${closes[i] ? '' : gapBtn(d, `${i}`)}</div><div class="stop-b">
-        <p class="stop-name"${alt(other(it.what))}>${fmt(it.what)}${it.fixed ? seal() : ''}<span class="flag-slot"></span></p>
-        ${stopNative(it)}
+		// the stop's map, directions, what's near it (food, the wishlist, drinks and rest spots) and its shop box open in
+		// its own sheet: tap the row (ADR-20261122-day-views). The row keeps the time, the name, the note and its warnings
+		const more = [
+			stopNative(it),
+			it.place || it.link
+				? `<div class="stop-links">${it.place ? placeLinks(it.place, { noSite: false, noNative: true }) : ''}${it.link ? `<a class="mlink" href="${SITES[it.link] ? SITES[it.link].url : it.link}">${icon('arrow')}${Z('看详情', 'Details')}</a>` : ''}</div>`
+				: '',
+			it.shops ? shopBoxHTML() : '',
+			mealEats(d, it),
+			nearWish(d, it),
+			nearDrinks(d, it),
+			it.photo ? thumb(it.photo) : '',
+		]
+			.join('')
+			.trim();
+		const sid = `${d.id}-s${i}`;
+		const moreBtn = more
+			? `<button type="button" class="stop-more" data-part="${sid}-more" aria-haspopup="dialog" aria-expanded="false" aria-label="${esc(`${L(it.t || '')} ${stopName(it)}: ${Z('地图、路线和附近', 'map, directions and nearby')}`)}">${icon('chev-r')}</button>`
+			: '';
+		const moreSheet = more
+			? `<dialog class="sheet bsheet ssheet" id="${sid}-more" aria-labelledby="${sid}-more-h"><div class="bsheet-head"><span class="bsheet-grip" aria-hidden="true"></span><span class="part-ic" aria-hidden="true">${icon(it.fixed ? 'clock' : 'pin')}</span><h3 class="bsheet-h" id="${sid}-more-h">${escText(stopName(it))}<small>Day ${d.n} · ${esc(dateLabel(d.date, d.dow))}${it.t ? ` · ${esc(L(it.t))}` : ''}</small></h3><button type="button" class="icon-btn bsheet-x" data-close aria-label="${Z('关闭', 'Close')}">${icon('x')}</button></div><div class="bsheet-body">${more}</div></dialog>`
+			: '';
+		return `<li class="${cls}${it._sh ? ' shifted' : ''}${more ? ' has-more' : ''}" id="${sid}" ${pt.s != null ? `data-s="${pt.s}"` : ''}><div class="stop-t">${esc(t)}${it._sh ? `<span class="t-was">${esc(Z(`原 ${L(it._base)}`, `was ${L(it._base)}`))}</span>` : ''}</div><div class="stop-knot">${closes[i] ? '' : gapBtn(d, `${i}`)}</div><div class="stop-b">
+        <p class="stop-name"${alt(other(it.what))}>${fmt(it.what)}${it.fixed ? seal() : ''}<span class="flag-slot"></span></p>${moreBtn}
         ${it.note ? `<p class="stop-note">${fmt(it.note)}</p>` : ''}
         ${splitBack(d, it)}
-        ${it.shops ? shopBoxHTML() : ''}
         ${it._clash ? `<p class="warn">${icon('alert')}${esc(Z(`推迟后会撞到 ${L(it._clash.t)}「${stopName(it._clash)}」：这一项缩短或跳过`, `Now runs into the fixed ${L(it._clash.t)} ${stopName(it._clash)}: shorten or skip this`))}</p>` : ''}
-        ${it.place || it.link ? `<div class="stop-links">${it.place ? placeLinks(it.place, { noSite: false, noNative: true }) : ''}${it.link ? `<a class="mlink" href="${SITES[it.link] ? SITES[it.link].url : it.link}">${icon('arrow')}${Z('看详情', 'Details')}</a>` : ''}</div>` : ''}
-        ${mealEats(d, it)}
-        ${nearOpts(d, it)}
-        ${nearWish(d, it)}
-        ${nearDrinks(d, it)}
-        ${it.photo ? thumb(it.photo) : ''}</div></li>`;
+        ${it.place ? `<div class="stop-drv"><button type="button" class="mlink" data-driver="${it.place}">${icon('car')}${Z('给司机看', 'Show driver')}</button></div>` : ''}
+        ${nearOpts(d, it)}${moreSheet}</div></li>`;
 	});
 	if (d.split) {
 		// it forks after the last stop that starts by then; added stops still sort around it by time
@@ -1019,16 +1073,59 @@ function secDay(d, today) {
 	const sched = mineMerge(d, planned);
 	const foodSlots = d.foodSlots || []; // the day's researched food slots (extra.json food[].slot)
 	const tickets = d.tickets || []; // the day's ticket/booking cards (ids in extra.json tickets)
-	const tix = tickets
-		.map((t) => ticketBlock(t))
-		.filter(Boolean)
-		.join('');
+	const tixOk = tickets.map((t) => (EXTRA.tickets || []).find((x) => x.id === t)).filter(Boolean);
+	const tix = tixOk.map((t) => ticketBlock(t.id)).join('');
+	const food = foodBlock(foodSlots);
+	const foodN = (EXTRA.food || []).filter((f) => foodSlots.includes(f.slot)).length;
+	const wishD = wishForDay(d);
+	const wishN = (wishD.match(/class="wish-row"/g) || []).length;
+	const ideas = d.id === ROLE.free ? freeIdeasHTML() : '';
+	const BLOCK_ICON = { wear: 'shirt', budget: 'money', rain: 'umbrella' };
+	// the day's planning blocks: a summary button each under the title, the block itself in its sheet
+	const parts = [
+		ideas && {
+			key: 'ideas',
+			icon: 'star',
+			h: ['自由时间去哪', 'Free-time ideas'],
+			sum: `${sumB(Z('点＋加入行程', 'Tap ＋ to add a stop'))} · ${nItems((ideas.match(/class="more idea-g/g) || []).length, '组', 'group', 'groups')}`,
+			body: ideas,
+		},
+		tix && {
+			key: 'tickets',
+			icon: 'ticket',
+			h: ['门票与怎么订', 'Tickets & how to book'],
+			sum: `${sumB(nItems(tixOk.length, '张', 'ticket', 'tickets'))} · ${escText(lang === 'en' ? tixOk[0].title_en : tixOk[0].title_zh)}`,
+			body: `<div class="block">${blockH('ticket', ['门票与怎么订', 'Tickets & how to book'])}<div class="stack">${tix}</div></div>`,
+		},
+		...d.blocks.map((b, i) => ({
+			key: `b${i}`,
+			icon: BLOCK_ICON[b.type] || b.icon,
+			h: b.h,
+			sum: blockSum(b),
+			body: renderBlock(b, d),
+			fill: () => renderBlock(b, d),
+		})),
+		food && {
+			key: 'food',
+			icon: 'food',
+			h: ['去哪吃（参考）', 'Where to eat'],
+			sum: sumB(nItems(foodN, '个吃饭的地方', 'place to eat', 'places to eat')),
+			body: food,
+		},
+		wishD && {
+			key: 'wish',
+			icon: 'star',
+			h: ['顺路还可以去', 'Also nearby'],
+			sum: sumB(nItems(wishN, '个想去的地方', 'wishlist place', 'wishlist places')),
+			body: wishD,
+		},
+	].filter(Boolean);
 	return `<section class="day" id="${d.id}" data-sec="${d.id}" style="${colorVars(d.c)}">
+      ${band}
       <div class="day-bar"><span class="sw" aria-hidden="true"></span><span class="dt">Day ${d.n} · ${esc(dateLabel(d.date, d.dow))}</span><span class="rt">${esc(L(d.title))}</span></div>
       <div class="lantern">
         ${worldArt(d.motif, 'day-art')}
-        <div class="l-meta"><span>Day ${d.n}</span><span>${esc(dateLabel(d.date, d.dow))}</span>${motifTag(d)}${isToday ? `<span class="flag inv">${Z('今天', 'Today')}</span>` : ''}</div>
-        ${wish}
+        ${sky ? titleOnly : `${meta}${wishOnly}${titleOnly}`}
         <div class="l-chips">${chips}</div>
         ${routeCard(d)}
         <div class="l-actions">
@@ -1037,15 +1134,12 @@ function secDay(d, today) {
           ${GEO ? `<button type="button" class="l-btn" data-map-day="${d.id}">${icon('map')}${Z('地图', 'Map')}</button>` : ''}
         </div>
       </div>
+      ${partsHTML(d.id, parts)}
       ${d.lede ? `<p class="day-lede">${fmt(d.lede)}</p>` : ''}
       ${d.id === ROLE.leave ? leaveBudgetHTML() : ''}${d.id === ROLE.arrive ? `<div class="block arrive-flight">${fltEditHTML('arr')}</div>` : ''}
       <div class="block">${blockH(d.stepsTitle ? 'list' : 'clock', [stopsTitle, stopsTitle])}${shiftBanner(d)}<ol class="sched">${sched}</ol>${d.id !== ROLE.flight ? `<button type="button" class="go-btn ghost add-stop" data-add-open="${d.id}">${icon('plus')}${Z(`加一站到 Day ${d.n}`, `Add a stop to Day ${d.n}`)}</button>` : ''}</div>
-      ${d.id === ROLE.free ? freeIdeasHTML() : ''}
       ${photos.length ? `<div class="photos" role="list">${photos.map((p) => figure(p)).join('')}</div>` : ''}
-      ${tix ? `<div class="block">${blockH('ticket', ['门票与怎么订', 'Tickets & how to book'])}<div class="stack">${tix}</div></div>` : ''}
-      ${d.blocks.map((b) => renderBlock(b, d)).join('')}
-      ${foodBlock(foodSlots)}
-      ${wishForDay(d)}
+      ${pagerHTML(d)}
     </section>`;
 }
 
@@ -1137,9 +1231,16 @@ function secAirport() {
       <dl class="facts">${A.facts.map((f) => `<div class="fact"><dt>${esc(L(f.k))}</dt><dd>${fmt(f.v)}</dd></div>`).join('')}</dl>
       <h3 class="sub">${icon('money')}${Z(`Day 1 到酒店：${GROUP[0]}总价`, `Day 1 to the hotel: total ${GROUP[1]}`)}</h3>
       <div id="airport-bars">${airportBars()}</div>
-      <div class="methods" style="margin-top:16px">${A.methods
-				.map(
-					(m) => `<article class="method ${m.pick ? 'pick' : ''}" id="m-${m.id}">
+      ${airportParts(A, TERM)}
+    </section>`;
+}
+// the airport view's long parts, each a summary button and a sheet (ADR-20261122-day-views): the ways to the hotel,
+// the train route, deciding on the day, the transit card and going home
+function airportParts(A, TERM) {
+	const pick = A.methods.find((m) => m.pick);
+	const methods = `<div class="methods">${A.methods
+		.map(
+			(m) => `<article class="method ${m.pick ? 'pick' : ''}" id="m-${m.id}">
         <div class="method-h"><span class="ic">${icon(m.icon)}</span><div><p class="method-name">${fmt(m.name)}</p><p class="method-sub">${fmt(m.sub)}</p></div><p class="method-cost">${cvHtml(esc(m.cost), false)}<small>${fmt(m.per, false)}</small><small data-rm="${m.min},${m.max}">${rmText(m.min, m.max)}</small></p></div>
         <dl class="method-grid"><div class="mg"><dt>${Z('门到门', 'Door to door')}</dt><dd>${fmt(m.time)}</dd></div><div class="mg"><dt>${Z('换乘', 'Changes')}</dt><dd>${fmt(m.xfer)}</dd></div><div class="mg"><dt>${Z('拖行李', 'With bags')}</dt><dd>${fmt(m.bags)}</dd></div></dl>
         ${list(m.list)}
@@ -1147,32 +1248,48 @@ function secAirport() {
         ${m.pick ? `<p class="pick-badge">${icon('check')}${Z(`建议：大家要搭${METRO[0]}的话，这样最省力`, 'Recommended if we take the train')}</p>` : ''}
         ${m.ticket ? ticketBlock(m.ticket) : ''}
       </article>`,
-				)
-				.join('')}</div>
-      ${
-				A.route
-					? `<h3 class="sub">${icon('route')}${esc(L(A.routeTitle || ['怎么搭车到酒店', 'To the hotel by train']))}</h3>
-      ${airportStrip()}`
-					: ''
-			}
+		)
+		.join('')}</div>`;
+	const routeTitle = A.routeTitle || ['怎么搭车到酒店', 'To the hotel by train'];
+	const route = `${A.route ? airportStrip() : ''}
       <ol class="list steps">${A.steps.map((s) => `<li>${fmt(s)}</li>`).join('')}</ol>
-      <div class="links-row">${TERM[0] ? placeLinks(TERM[0].place, { noDriver: true }) : ''}${(A.sites || []).map((k) => siteLink(k)).join('')}${TERM.map((t) => ext(gmDir(PLACES[hotelOf(ROLE.arrive)].maps, 'transit', PLACES[t.place].maps), Z(`${t.code} → 酒店（搭车）`, `${t.code} → hotel (transit)`), 'route')).join('')}</div>
-      <h3 class="sub">${icon('clock')}${Z('当天怎么决定', 'Deciding on the day')}</h3>
-      <div class="decide">${A.rule.map(optRow).join('')}</div>
-      ${
-				Pack.transitCard && A.transitCard
-					? `<h3 class="sub" id="transit-card">${icon('card')}${esc(L(Pack.transitCard))}</h3>
-      ${list(A.transitCard)}
+      <div class="links-row">${TERM[0] ? placeLinks(TERM[0].place, { noDriver: true }) : ''}${(A.sites || []).map((k) => siteLink(k)).join('')}${TERM.map((t) => ext(gmDir(PLACES[hotelOf(ROLE.arrive)].maps, 'transit', PLACES[t.place].maps), Z(`${t.code} → 酒店（搭车）`, `${t.code} → hotel (transit)`), 'route')).join('')}</div>`;
+	const card =
+		Pack.transitCard && A.transitCard
+			? `<div id="transit-card">${list(A.transitCard)}
       <div class="links-row">${siteLink(A.transitCardSite)}</div>
-      ${A.transitCardTicket ? ticketBlock(A.transitCardTicket) : ''}`
-					: ''
-			}
-      <h3 class="sub" id="depart">${icon('plane')}${Z(`回程：${Time.dateLabel(departEve(), 'zh')}晚到机场`, `Going home: to the airport on ${Time.dateLabel(departEve(), 'en')}`)}</h3>
-      <p>${fmt(A.depart.lede)}</p>
+      ${A.transitCardTicket ? ticketBlock(A.transitCardTicket) : ''}</div>`
+			: '';
+	const depart = `<div id="depart"><p>${fmt(A.depart.lede)}</p>
       ${list(A.depart.list)}
-      <div class="links-row">${TERM.map((t) => ext(gmDir(PLACES[t.place].maps, 'driving', PLACES[hotelOf(ROLE.leave)].maps), Z(`酒店 → ${t.code}（开车）`, `Hotel → ${t.code} (drive)`), 'car')).join('')}${TERM[0] ? ext(gmDir(PLACES[TERM[0].place].maps, 'transit', PLACES[hotelOf(ROLE.leave)].maps), Z(`酒店 → ${TERM[0].code}（搭车）`, `Hotel → ${TERM[0].code} (transit)`), 'train') : ''}${(A.departSites || []).map((x) => (typeof x === 'string' ? siteLink(x) : siteLink(x.site, 'ext', x.label))).join('')}</div>
-      <p class="xsmall" style="margin-top:10px">${fmt(A.sourceNote)}</p>
-    </section>`;
+      <div class="links-row">${TERM.map((t) => ext(gmDir(PLACES[t.place].maps, 'driving', PLACES[hotelOf(ROLE.leave)].maps), Z(`酒店 → ${t.code}（开车）`, `Hotel → ${t.code} (drive)`), 'car')).join('')}${TERM[0] ? ext(gmDir(PLACES[TERM[0].place].maps, 'transit', PLACES[hotelOf(ROLE.leave)].maps), Z(`酒店 → ${TERM[0].code}（搭车）`, `Hotel → ${TERM[0].code} (transit)`), 'train') : ''}${(A.departSites || []).map((x) => (typeof x === 'string' ? siteLink(x) : siteLink(x.site, 'ext', x.label))).join('')}</div></div>`;
+	const parts = [
+		{
+			key: 'ways',
+			icon: 'route',
+			h: ['到酒店的方法', 'Ways to the hotel'],
+			sum: `${sumB(nItems(A.methods.length, '个方法', 'way', 'ways'))}${pick ? ` · ${Z('建议', 'Pick')}: ${escText(plainText(pick.short))}` : ''}`,
+			body: methods,
+		},
+		{ key: 'route', icon: 'train', h: routeTitle, sum: sumB(nItems(A.steps.length, '步', 'step', 'steps')), body: route },
+		{
+			key: 'rule',
+			icon: 'clock',
+			h: ['当天怎么决定', 'Deciding on the day'],
+			sum: esc(A.rule.map((o) => plainText(o.name)).join(' · ')),
+			body: `<div class="decide">${A.rule.map(optRow).join('')}</div>`,
+		},
+		card && { key: 'card', icon: 'card', h: Pack.transitCard, sum: escText(plainText(A.transitCard[0])), body: card },
+		{
+			key: 'depart',
+			icon: 'plane',
+			h: [`回程：${Time.dateLabel(departEve(), 'zh')}晚到机场`, `Going home: to the airport on ${Time.dateLabel(departEve(), 'en')}`],
+			sum: escText(plainText(A.depart.list[0] || A.depart.lede)),
+			body: depart,
+		},
+	];
+	return `${partsHTML('airport', parts, ['去市区和回机场', 'To town and back'])}
+      <p class="xsmall" style="margin-top:10px">${fmt(A.sourceNote)}</p>`;
 }
 
 function secEntry() {
@@ -1180,11 +1297,37 @@ function secEntry() {
 	const lk = Pack.luckyDraw && E.lucky; // the lucky draw only where the country's pack runs one
 	return `<section class="sec" id="entry" data-sec="entry">
       <h2 class="sec-title">${icon('passport')}${lk ? Z('入境与抽奖', 'Entry & lucky draw') : Z('入境', 'Entry')}</h2>
-      <div class="stack" style="margin-top:14px">${E.rules.map((r) => `<div class="tier"><p class="tier-h">${fmt(r.h)}</p><p style="margin-top:6px">${fmt(r.p)}</p>${r.warn ? `<p class="warn">${icon('alert')}${fmt(r.warn)}</p>` : ''}${SITES[r.site] ? `<div class="links-row">${siteLink(r.site)}</div>` : ''}</div>`).join('')}</div>
-      ${
-				lk
-					? `      <h3 class="sub" id="lucky">${icon('star')}${fmt(lk.name)}</h3>
-      <p>${fmt(lk.period)}</p>
+      ${entryParts(E, lk)}
+      <div class="links-row">${lk ? (lk.sites || []).map((k) => siteLink(k)).join('') : ''}${(E.sites || [])
+				.filter((k) => lk || !E.rules.some((r) => r.site === k))
+				.map((k) => siteLink(k))
+				.join('')}</div>
+      <p class="xsmall" style="margin-top:10px">${Z(`资料来源：${L0(E.sources, '官方网站')}（${checkedOn('ymd')}查）。`, `Sources: ${L1(E.sources, 'official sites')} (checked ${checkedOn('long')}).`)}</p>
+    </section>`;
+}
+// the entry view (ADR-20261122-day-views): the entry ticks' progress first (they live in the checklist), then each
+// rule and the lucky draw as a summary button and a sheet
+function entryParts(E, lk) {
+	const ids = ENTRY_CHECKS.items.map((it) => `${ENTRY_CHECKS.id}-${it.id}`);
+	const ticks = `<a class="part go-part" href="#checklist"><span class="part-ic" aria-hidden="true">${icon('check')}</span><span class="part-h">${fmt(ENTRY_CHECKS.h)}</span>${icon('arrow', 'part-ch')}<span class="part-s">${checkSum(ids)}</span></a>`;
+	const rules = E.rules.map((r, i) => ({
+		key: `r${i}`,
+		icon: r.warn ? 'alert' : 'passport',
+		h: r.h,
+		sum: escText(plainText(r.p)),
+		body: `<div class="tier"><p>${fmt(r.p)}</p>${r.warn ? `<p class="warn">${icon('alert')}${fmt(r.warn)}</p>` : ''}${SITES[r.site] ? `<div class="links-row">${siteLink(r.site)}</div>` : ''}</div>`,
+	}));
+	const lucky = lk && {
+		key: 'lucky',
+		icon: 'star',
+		h: lk.name,
+		sum: escText(plainText(lk.period)),
+		body: `<div id="lucky">${luckyHTML(lk)}</div>`,
+	};
+	return `<div class="parts lead-part">${ticks}</div>${partsHTML('entry', [...rules, lucky], ['入境要知道的', 'What to know at entry'])}`;
+}
+function luckyHTML(lk) {
+	return `<p>${fmt(lk.period)}</p>
       <p class="callout">${icon('alert')}<span>${fmt(lk.deadline)}</span></p>
       <div class="block">${blockH('list', ['谁可以参加', 'Who can join'])}${list(lk.who)}</div>
       <div class="block">${blockH('users', [`我们${PAX}人可以拿多少？`, `How much could the ${PAX} of us get?`])}
@@ -1192,15 +1335,7 @@ function secEntry() {
           <div class="stepper"><button type="button" class="icon-btn" data-step="-1" aria-label="${Z('减少', 'Fewer')}">${icon('minus')}</button><output id="repeat" aria-live="polite">${store.get('repeat', 3)}</output><button type="button" class="icon-btn" data-step="1" aria-label="${Z('增加', 'More')}">${icon('plus')}</button></div>
           <div id="calcout"></div></div></div>
       <div class="block">${blockH('check', ['中奖后怎么领', 'If we win'])}${list(lk.how)}</div>
-      <p class="note">${fmt(lk.unsure)}</p>`
-					: ''
-			}
-      <div class="links-row">${lk ? (lk.sites || []).map((k) => siteLink(k)).join('') : ''}${(E.sites || [])
-				.filter((k) => lk || !E.rules.some((r) => r.site === k))
-				.map((k) => siteLink(k))
-				.join('')}</div>
-      <p class="xsmall" style="margin-top:10px">${Z(`资料来源：${L0(E.sources, '官方网站')}（${checkedOn('ymd')}查）。`, `Sources: ${L1(E.sources, 'official sites')} (checked ${checkedOn('long')}).`)}</p>
-    </section>`;
+      <p class="note">${fmt(lk.unsure)}</p>`;
 }
 // the country's lucky draw (Pack.luckyDraw): how many of us could win, and how much
 const luckySinceLabel = () => {

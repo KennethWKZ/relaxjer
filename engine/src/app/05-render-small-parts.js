@@ -23,7 +23,7 @@ const motifTag = (d) => (Motif.svg(d.motif) ? `<span class="l-motif">${Motif.svg
 const seal = () => `<span class="seal"><b aria-hidden="true">定</b>${Z('固定时间', 'Fixed time')}</span>`;
 const list = (items, cls = 'list') => `<ul class="${cls}">${items.map((x) => `<li>${fmt(x)}</li>`).join('')}</ul>`;
 const totalBox = (amt, per, min, max, extra = '') =>
-	`<div class="total"><span class="amt">${cvHtml(esc(amt), min == null)}</span><span class="per">${fmt(per)}</span>${min != null ? `<span class="rm" data-rm="${min},${max}">${rmText(min, max)}</span>` : ''}${extra}</div>`;
+	`<div class="total"><span class="amt">${keepRangesIn(cvHtml(esc(amt), min == null))}</span><span class="per">${fmt(per)}</span>${min != null ? `<span class="rm" data-rm="${min},${max}">${rmText(min, max)}</span>` : ''}${extra}</div>`;
 function figure(id) {
 	const c = credit[id];
 	if (!c) return '';
@@ -519,17 +519,26 @@ const legSub = (t, mode) => {
 	);
 	return `<small class="l-leg-s">${Z(`约${min}分`, `~${min} min`)}${rides.length ? ` · ${esc(rides.join(' → '))}` : ''}</small>`;
 };
+// the day's route as one line of places with how you get between them (ADR-20261122-day-views: it was a button per
+// leg); each stop's own sheet has its map and directions, and the whole route opens in the maps app below the line
+function routeLine(day, legs, nm) {
+	const LT = (GEO && GEO.legs) || {};
+	const end = (pid) => (isHotel(pid) ? Z('酒店', 'hotel') : nm(pid));
+	const items = legs
+		.map(([a, b, m], li) => {
+			const t = Plan.storedLeg(LT, day.id, li, [a, b, m]);
+			const min = t ? (m === 'walking' ? Math.round(t.min * GROUP_WALK) : t.min) : null;
+			const how = `${Z(MODES[m][0], MODES[m][1])}${min ? Z(` 约 ${min} 分钟`, `, ~${min} min`) : ''}`;
+			return `${li ? '' : `<li class="rl-p">${esc(end(a))}</li>`}<li class="rl-m" aria-label="${esc(how)}">${icon(MODES[m][2])}${min ? `<small aria-hidden="true">${min}′</small>` : ''}</li><li class="rl-p">${esc(end(b))}</li>`;
+		})
+		.join('');
+	return `<ol class="route-line" aria-label="${Z('今天的路线', "Today's route")}">${items}</ol>`;
+}
 function routeCard(day) {
 	const legs = LEGS[day.id];
 	if (!legs) return '';
 	const nm = (pid) => L(PLACES[pid].name);
-	const LT = (GEO && GEO.legs) || {};
-	const rows = legs
-		.map(
-			([a, b, m], li) =>
-				`<a class="l-leg" href="${esc(gmDir(PLACES[b].maps, m, PLACES[a].maps))}" target="_blank" rel="noopener" aria-label="${esc(`${nm(a)} → ${nm(b)} · ${Z(MODES[m][0], MODES[m][1])}`)}">${icon(MODES[m][2])}<span class="l-leg-t">${b === 'hotel' ? Z('回酒店', 'back to hotel') : `${Z('去', 'to')} ${esc(nm(b))}`}${legSub(Plan.storedLeg(LT, day.id, li, [a, b, m]), m)}</span><span class="l-leg-m dlbl">${esc(Z(MODES[m][0], MODES[m][1]))}</span></a>`,
-		)
-		.join('');
+	const rows = routeLine(day, legs, nm);
 	const ids = [legs[0][0], ...legs.map((l) => l[1])];
 	const chunks = []; // ≤3 waypoints per link on phones, so a long day is split; each part says where it starts and ends
 	for (let i = 0; i < ids.length - 1; i += 4) chunks.push(ids.slice(i, Math.min(i + 5, ids.length)));
@@ -545,5 +554,5 @@ function routeCard(day) {
 				)}" target="_blank" rel="noopener">${icon('map')}<span class="l-leg-t">${chunks.length > 1 ? `${Z('全程路线', 'Whole route')} ${i + 1}/${chunks.length}<span class="l-leg-sub"> · ${esc(end(c[0]))} → ${esc(end(c[c.length - 1]))}</span>` : Z('全程路线', 'Whole route')}</span><span class="l-leg-m">${Z('开车', 'drive')}${mapsApp === 'apple' ? ' · Google' : ''}</span></a>`,
 		)
 		.join('');
-	return `<div class="l-route" id="${day.id}-route"><p class="l-route-h">${icon('route')}${Z('今天路线', "Today's route")}<span>${Z(`点一下用 ${mapsName(mapsApp)}导航`, `Tap to navigate in ${mapsName(mapsApp)}`)}</span></p><div class="l-legs">${rows}${multi}</div></div>`;
+	return `<div class="l-route" id="${day.id}-route">${rows}<div class="l-legs">${multi}</div></div>`;
 }

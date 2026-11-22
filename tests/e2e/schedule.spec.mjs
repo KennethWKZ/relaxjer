@@ -1,7 +1,7 @@
 // Timeline rules: fixed times never move; flight-tied times follow the flight; a push-back only suggests and stops at
 // the next fixed item.
 import { test, expect, openTrip } from '../support/fixtures.mjs';
-import { setStored } from '../support/page.mjs';
+import { fillAll, setStored, show } from '../support/page.mjs';
 /* global DAYS, SITES */
 
 // tagged @demo: stop ids, times and dates are the demo trip's
@@ -13,6 +13,7 @@ test.describe('timeline rules', { tag: '@demo' }, () => {
 	// the flight editor is a <details>; the page's redraw keeps it open, so only open it when it is closed
 	async function openFlightEditor(page) {
 		const d = page.locator('#d1 details.flt-d');
+		await show(page, d); // Day 1's view
 		if (!(await d.evaluate((el) => el.open))) await d.locator('summary').click();
 	}
 
@@ -50,7 +51,7 @@ test.describe('timeline rules', { tag: '@demo' }, () => {
 	test('the push-back sheet can undo a push', async ({ page }) => {
 		await openTrip(page);
 		await setStored(page, { shift: { '2027-03-17': [{ from: 14 * 60 + 30, min: 30 }] } });
-		await page.locator('#d5 .shift-bar [data-shift-edit]').click();
+		await (await show(page, '#d5 .shift-bar [data-shift-edit]')).click();
 		const sheet = page.locator('#placeSheet');
 		await expect(sheet.locator('.shift-sheet')).toBeVisible();
 		await sheet.locator('[data-shift-clear]').click();
@@ -96,5 +97,6 @@ test("a day card's site links show, on its cards and on each option of a choice"
 		),
 	);
 	test.skip(!want.length, 'no day card on this trip links a site');
+	await fillAll(page); // the day cards' sheets are built on first open
 	for (const { day, url } of want) await expect(page.locator(`#${day} a[href="${url}"]`).first(), `${day}: ${url}`).toBeAttached();
 });

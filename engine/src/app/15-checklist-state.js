@@ -1,5 +1,6 @@
 /* ───────── checklist state ───────── */
 function updateProgress() {
+	checkSumSync(); // the "ticked n / N" lines on the summary buttons (06-render-blocks.js)
 	const boxes = $$('#checklist [data-check]');
 	const done = boxes.filter((b) => b.checked).length;
 	const t = $('#prog-text');

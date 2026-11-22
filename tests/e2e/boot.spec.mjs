@@ -1,5 +1,6 @@
 // The page renders every section from trip data alone, offline, without errors, and keeps closed lists unbuilt.
 import { test, expect, openTrip } from '../support/fixtures.mjs';
+import { fillAll, show } from '../support/page.mjs';
 
 const TABS = ['map', 'airport', 'entry', 'optional', 'wish', 'eat', 'budget', 'weather', 'checklist', 'rules'];
 // the wishlist is optional trip data: a trip without one has no section and no tab
@@ -36,16 +37,18 @@ test('closed lists are not built until opened', async ({ page }) => {
 	await expect(page.locator('.wishcard')).toHaveCount(0);
 	test.skip((await page.locator('#wish details.wgroup').count()) === 0, 'this trip has no wishlist');
 	const group = page.locator('#wish details.wgroup').first();
-	await group.locator('summary').click();
+	await (await show(page, group.locator('summary'))).click();
 	await expect(group, 'the list opened').toHaveAttribute('open', '');
 	await expect(group.locator('.wishcard').first(), 'and was built on open').toBeAttached();
 });
 
 test('a closed wishlist place is flagged in the wishlist and left out of day suggestions @demo', async ({ page }) => {
 	await openTrip(page);
-	// it fits Day 2, next to an open place that also fits Day 2
+	// it fits Day 2, next to an open place that also fits Day 2 (the day's suggestions sheet, built on first open)
+	await fillAll(page);
 	await expect(page.locator('#d2')).toContainText('Demo Soup Dumplings');
 	await expect(page.locator('#d2')).not.toContainText('Demo Closed Shop');
+	await show(page, '#wish details.wgroup summary');
 	for (const g of await page.locator('#wish details.wgroup summary').all()) await g.click();
 	const card = page.locator('#wish .wishcard', { hasText: 'Demo Closed Shop' });
 	await expect(card.locator('.warn')).toContainText('Reported closed');

@@ -1,6 +1,6 @@
 // Every group cost also shows a per-person share, and home-currency figures follow the editable rate.
 import { test, expect, openTrip } from '../support/fixtures.mjs';
-import { openAllDetails } from '../support/page.mjs';
+import { fillAll, openAllDetails, show } from '../support/page.mjs';
 
 // every "NT$a–b for 5" text run, with whether the page put a per-person share right after it
 // every "NT$… for 5" in the page text: followed by its share (shared), or already stating it (stated: "NT$600 each,
@@ -67,20 +67,21 @@ test('a bold group figure also gets a per-person share @demo', async ({ page }) 
 
 test('a group cost row shows the share of five @demo', async ({ page }) => {
 	await openTrip(page);
-	// Day 2 dinner: "NT$1,500–2,250 for 5" → each NT$300–450
+	// Day 2 dinner: "NT$1,500–2,250 for 5" → each NT$300–450 (in its sheet, built on first open)
+	await fillAll(page);
 	const row = page.locator('#d2 .block', { hasText: 'NT$1,500–2,250 for 5' }).first();
 	await expect(row.locator('.each-i').first()).toContainText('NT$300–450');
 });
 
 test('home-currency figures follow the rate and the rate is remembered', async ({ page }) => {
 	await openTrip(page);
-	const rm = page.locator('#app [data-rm]').first();
-	await rm.scrollIntoViewIfNeeded();
+	const rm = page.locator('#app [data-rm]').first(); // read from its text: it may sit in another view
 	const expected = async (rate) => {
 		const [a, b] = (await rm.getAttribute('data-rm')).split(',').map(Number);
 		const r = (v) => Math.round(v < 100 ? Math.round(v) : Math.round(v / 10) * 10).toLocaleString('en-US');
 		return [r(a / rate), r(b / rate)];
 	};
+	await show(page, '#rate'); // the budget view
 	await page.locator('#rate').fill('7');
 	for (const n of await expected(7)) await expect(rm).toContainText(n);
 	await page.reload();
@@ -90,9 +91,9 @@ test('home-currency figures follow the rate and the rate is remembered', async (
 
 test('the rate takes a home currency worth far more, or far less, than the destination’s', async ({ page }) => {
 	await openTrip(page);
-	const rm = page.locator('#app [data-rm]').first();
-	await rm.scrollIntoViewIfNeeded();
+	const rm = page.locator('#app [data-rm]').first(); // read from its text: it may sit in another view
 	const r = (v) => Math.round(v < 100 ? Math.round(v) : Math.round(v / 10) * 10).toLocaleString('en-US');
+	await show(page, '#rate'); // the budget view
 	for (const rate of [32, 0.25]) {
 		await page.locator('#rate').fill(String(rate));
 		const [a, b] = (await rm.getAttribute('data-rm')).split(',').map(Number);
@@ -103,6 +104,7 @@ test('the rate takes a home currency worth far more, or far less, than the desti
 // the reserve line and the shared-cost rows had no home-currency figure, while the pool line had one
 test('the budget gives every shared amount in the home currency too', async ({ page }) => {
 	await openTrip(page);
+	await fillAll(page); // the budget's rows sit in a sheet
 	const missing = await page.evaluate(() => {
 		const out = [];
 		document.querySelectorAll('#budget dl.kv > div').forEach((row) => {

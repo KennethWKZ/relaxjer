@@ -37,8 +37,9 @@ export default [
 	{
 		// the page script: engine/build.mjs joins these fragments into one IIFE, so a name defined in one fragment is used
 		// in another, and the trip data (TRIP, DAYS, …) arrives as page globals. Per-file undefined/unused checks would
-		// only report that split; the e2e suite fails on any page error instead.
-		files: ['engine/src/app/**/*.js'],
+		// only report that split; the e2e suite fails on any page error instead. The planner's preview panel
+		// (engine/src/preview/, joined in only by a build with --preview) is a fragment of the same script.
+		files: ['engine/src/app/**/*.js', 'engine/src/preview/**/*.js'],
 		languageOptions: { ecmaVersion: 'latest', sourceType: 'script', globals: { ...globals.browser } },
 		rules: { 'no-undef': 'off', 'no-unused-vars': 'off', 'no-redeclare': 'off' },
 	},

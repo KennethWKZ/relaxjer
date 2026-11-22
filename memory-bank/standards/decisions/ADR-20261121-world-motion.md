@@ -3,7 +3,7 @@ id: ADR-20261121-world-motion
 date: 2026-11-21
 title: "A World's Pictures May Move: Parts of the Drawing Itself, Only on Screen; Its Sky Follows the Scroll; Nothing Moves Under Reduced Motion"
 domain: engine
-status: accepted
+status: amended
 ---
 
 # A World's Pictures May Move: Parts of the Drawing Itself, Only on Screen; Its Sky Follows the Scroll; Nothing Moves Under Reduced Motion
@@ -68,7 +68,12 @@ day, so Now and Next with their buttons stay on an iPhone's first screen. This a
   - the candles in the pictures never flicker: a flicker means "the stop under way".
 - **Snow falls** in a world's open-air scenes as two sheets of flakes on the picture's `::before` and `::after`,
   switched on per scene by `--snowfall`; snow country's snow is heavier and blown sideways.
-- **The sky behind the page follows the scroll, and nothing else.** A world's `.mjs` may export `backdrop` (`layers`,
+- **The sky behind the page follows the scroll, and nothing else.** _Amended by
+  [ADR-20261122-day-views](ADR-20261122-day-views.md): a world may also draw a live sky that moves by itself
+  (`sky` in its `.mjs`, picked per trip by `TRIP.sky`): snow falling behind the words in the header and a band at the top
+  of each view (the whole page behind the column on a desktop), with a Pause in the header that the phone remembers,
+  still and without the Pause under reduced motion, stopped while the page is hidden. With a live sky this scroll-bound
+  backdrop steps aside; with `TRIP.sky: 'off'` it stays as below._ A world's `.mjs` may export `backdrop` (`layers`,
   and `end` for a closing scene). The build lays `<div class="world-sky" aria-hidden="true">` with one `<i>` per layer
   before the header, and `<div class="world-end" aria-hidden="true">` after the footer; a page without a world, or a
   world without a backdrop, carries none of it. The layers are fixed, behind everything (`z-index: -1`), take no taps,
@@ -93,7 +98,8 @@ day, so Now and Next with their buttons stay on an iPhone's first screen. This a
 - **One shared motion for every picture (snowfall, or the van):** cheaper, but the planner found it samey; each
   activity's own movement tells the day at a glance.
 - **A sky that drifts on its own (time-based):** livelier, but it moves behind words by itself, needs a pause control
-  (WCAG 2.2.2) and costs battery while the group just reads.
+  (WCAG 2.2.2) and costs battery while the group just reads. (Taken up later with those costs met: a Pause, snow behind
+  the words only, stopped while hidden, a frame cap: [ADR-20261122-day-views](ADR-20261122-day-views.md).)
 - **The sky only in the margins:** no words over it at all, but a phone has 16 px margins, so the group would never see
   it; bounded colours behind the words give the same contrast.
 - **Hiding the overview's scene on a phone on a trip day:** frees the most room, but the first screen loses the world

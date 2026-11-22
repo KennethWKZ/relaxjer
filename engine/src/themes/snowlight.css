@@ -57,6 +57,52 @@
 	--sky-star: #ffffff;
 	--sky-in-column: 1; /* how much of a star, a flake or a candle shows over the text column (by day, all: they're paler than the paper) */
 
+	/* the live sky (ADR-20261122-day-views): one sky per weather, its top, middle and low colours, its two inks, and how
+	   far the day's wish moves toward its ink to stay readable on it. tests/unit/worlds.test.mjs checks every pair */
+	--wx-heavy-top: #a9b3c1;
+	--wx-heavy-mid: #c3cbd6;
+	--wx-heavy-low: #dfe5ec;
+	--wx-heavy-ink: #0f1b2d;
+	--wx-heavy-ink-2: #2c394c;
+	--wx-heavy-wish: #0f1b2d;
+	--wx-heavy-amt: 34%;
+	--wx-light-top: #b6c0ea;
+	--wx-light-mid: #ccd4f1;
+	--wx-light-low: #e7ebf8;
+	--wx-light-ink: #0f1b2d;
+	--wx-light-ink-2: #2c394c;
+	--wx-light-wish: #0f1b2d;
+	--wx-light-amt: 32%;
+	--wx-shower-top: #9fb3d0;
+	--wx-shower-mid: #bfcfe5;
+	--wx-shower-low: #e0e9f5;
+	--wx-shower-ink: #0f1b2d;
+	--wx-shower-ink-2: #2c394c;
+	--wx-shower-wish: #0f1b2d;
+	--wx-shower-amt: 34%;
+	--wx-clear-top: #86bdf0;
+	--wx-clear-mid: #aed2f4;
+	--wx-clear-low: #dcecfa;
+	--wx-clear-ink: #0f1b2d;
+	--wx-clear-ink-2: #22324a;
+	--wx-clear-wish: #0f1b2d;
+	--wx-clear-amt: 36%;
+	--wx-night-top: #1c2a58;
+	--wx-night-mid: #2a3b72;
+	--wx-night-low: #44579a;
+	--wx-night-ink: #ffffff;
+	--wx-night-ink-2: #dbe4f5;
+	--wx-night-wish: #ffffff;
+	--wx-night-amt: 55%;
+	/* what falls in it: a flake and the faint rim that shows it on a pale sky, the snow it piles into, a cold sun */
+	--snow-flake: #ffffff;
+	--snow-flake-rim: rgba(40, 62, 100, 0.3);
+	--snow-cap: #ffffff;
+	--snow-cap-rim: rgba(30, 52, 90, 0.2);
+	--snow-drift-rim: rgba(15, 27, 45, 0.08);
+	--snow-sun: rgba(255, 255, 255, 0.85);
+	--sky-band-tint: 8%; /* how much of the day's colour the sky takes at its foot */
+
 	/* seven candy winter day colours, as bright as white text allows: white on each at 4.7:1 or more, and each at 3.8:1
 	   or more on the light and the dark paper; neighbouring days never sit next to their closest look-alike */
 	--l1: #2268f3; /* soda */
@@ -121,6 +167,48 @@
 		--sky-dawn-low: #3a2436;
 		--sky-star: #eaf2fb;
 		--sky-in-column: 0.12;
+		--wx-heavy-top: #1c2431;
+		--wx-heavy-mid: #242e3e;
+		--wx-heavy-low: #2d384b;
+		--wx-heavy-ink: #eaf1fa;
+		--wx-heavy-ink-2: #c3cfdf;
+		--wx-heavy-wish: #ffffff;
+		--wx-heavy-amt: 42%;
+		--wx-light-top: #1a193c;
+		--wx-light-mid: #24234f;
+		--wx-light-low: #2f2c5e;
+		--wx-light-ink: #eaf1fa;
+		--wx-light-ink-2: #c9cdea;
+		--wx-light-wish: #ffffff;
+		--wx-light-amt: 42%;
+		--wx-shower-top: #18223a;
+		--wx-shower-mid: #22304a;
+		--wx-shower-low: #2c3d5a;
+		--wx-shower-ink: #eaf1fa;
+		--wx-shower-ink-2: #c3cfdf;
+		--wx-shower-wish: #ffffff;
+		--wx-shower-amt: 42%;
+		--wx-clear-top: #0e2c50;
+		--wx-clear-mid: #163c68;
+		--wx-clear-low: #1f4b78;
+		--wx-clear-ink: #eaf1fa;
+		--wx-clear-ink-2: #c6d6ea;
+		--wx-clear-wish: #ffffff;
+		--wx-clear-amt: 45%;
+		--wx-night-top: #040a1c;
+		--wx-night-mid: #08132e;
+		--wx-night-low: #0e1d40;
+		--wx-night-ink: #eaf1fa;
+		--wx-night-ink-2: #b9c6d8;
+		--wx-night-wish: #ffffff;
+		--wx-night-amt: 40%;
+		--snow-flake: #eaf2fb;
+		--snow-flake-rim: rgba(0, 0, 0, 0);
+		--snow-cap: #dce6f3;
+		--snow-cap-rim: rgba(234, 242, 251, 0.22);
+		--snow-drift-rim: rgba(234, 242, 251, 0.16);
+		--snow-sun: rgba(160, 195, 255, 0.3);
+		--sky-band-tint: 12%;
 	}
 }
 :root[data-world='snowlight'][data-theme='dark'] {
@@ -162,6 +250,48 @@
 	--sky-dawn-low: #3a2436;
 	--sky-star: #eaf2fb;
 	--sky-in-column: 0.12; /* at night a star or a flake over the text column shows at 12 %, so it stays under L 0.044 */
+	--wx-heavy-top: #1c2431;
+	--wx-heavy-mid: #242e3e;
+	--wx-heavy-low: #2d384b;
+	--wx-heavy-ink: #eaf1fa;
+	--wx-heavy-ink-2: #c3cfdf;
+	--wx-heavy-wish: #ffffff;
+	--wx-heavy-amt: 42%;
+	--wx-light-top: #1a193c;
+	--wx-light-mid: #24234f;
+	--wx-light-low: #2f2c5e;
+	--wx-light-ink: #eaf1fa;
+	--wx-light-ink-2: #c9cdea;
+	--wx-light-wish: #ffffff;
+	--wx-light-amt: 42%;
+	--wx-shower-top: #18223a;
+	--wx-shower-mid: #22304a;
+	--wx-shower-low: #2c3d5a;
+	--wx-shower-ink: #eaf1fa;
+	--wx-shower-ink-2: #c3cfdf;
+	--wx-shower-wish: #ffffff;
+	--wx-shower-amt: 42%;
+	--wx-clear-top: #0e2c50;
+	--wx-clear-mid: #163c68;
+	--wx-clear-low: #1f4b78;
+	--wx-clear-ink: #eaf1fa;
+	--wx-clear-ink-2: #c6d6ea;
+	--wx-clear-wish: #ffffff;
+	--wx-clear-amt: 45%;
+	--wx-night-top: #040a1c;
+	--wx-night-mid: #08132e;
+	--wx-night-low: #0e1d40;
+	--wx-night-ink: #eaf1fa;
+	--wx-night-ink-2: #b9c6d8;
+	--wx-night-wish: #ffffff;
+	--wx-night-amt: 40%;
+	--snow-flake: #eaf2fb;
+	--snow-flake-rim: rgba(0, 0, 0, 0);
+	--snow-cap: #dce6f3;
+	--snow-cap-rim: rgba(234, 242, 251, 0.22);
+	--snow-drift-rim: rgba(234, 242, 251, 0.16);
+	--snow-sun: rgba(160, 195, 255, 0.3);
+	--sky-band-tint: 12%;
 }
 
 /* ── the week list: each day's mark on its colour, under a cap of snow ── */
@@ -1264,5 +1394,388 @@
 	}
 	to {
 		transform: none;
+	}
+}
+
+/* ───────── the live sky (ADR-20261122-day-views; 24-sky.js draws what falls) ─────────
+   On a phone and a tablet the sky is the sticky header and a band at the top of each view, the snow behind the words;
+   from 1024 px it's behind the whole page, the column on paper and the snow in the margins. Its colours blend to the
+   view's weather (data-wx) and its foot to the day's colour (--sky-tint) when the view changes. With a live sky the
+   scroll's night (.world-sky) and its closing sunrise step aside. */
+@property --sky-top {
+	syntax: '<color>';
+	inherits: true;
+	initial-value: #b6c0ea;
+}
+@property --sky-mid {
+	syntax: '<color>';
+	inherits: true;
+	initial-value: #ccd4f1;
+}
+@property --sky-low {
+	syntax: '<color>';
+	inherits: true;
+	initial-value: #e7ebf8;
+}
+@property --sky-ink {
+	syntax: '<color>';
+	inherits: true;
+	initial-value: #0f1b2d;
+}
+@property --sky-ink-2 {
+	syntax: '<color>';
+	inherits: true;
+	initial-value: #2c394c;
+}
+@property --sky-wish {
+	syntax: '<color>';
+	inherits: true;
+	initial-value: #0f1b2d;
+}
+@property --sky-tint {
+	syntax: '<color>';
+	inherits: true;
+	initial-value: #e7ebf8;
+}
+@property --sky-wish-amt {
+	syntax: '<percentage>';
+	inherits: true;
+	initial-value: 32%;
+}
+@property --sky-sun-a {
+	syntax: '<number>';
+	inherits: true;
+	initial-value: 0;
+}
+:root[data-world='snowlight'][data-sky-on='1'] {
+	--sky-top: var(--wx-light-top);
+	--sky-mid: var(--wx-light-mid);
+	--sky-low: var(--wx-light-low);
+	--sky-ink: var(--wx-light-ink);
+	--sky-ink-2: var(--wx-light-ink-2);
+	--sky-wish: var(--wx-light-wish);
+	--sky-wish-amt: var(--wx-light-amt);
+	--sky-sun-a: 0;
+	transition:
+		--sky-top 0.7s var(--ease-out),
+		--sky-mid 0.7s var(--ease-out),
+		--sky-low 0.7s var(--ease-out),
+		--sky-ink 0.7s var(--ease-out),
+		--sky-ink-2 0.7s var(--ease-out),
+		--sky-wish 0.7s var(--ease-out),
+		--sky-tint 0.7s var(--ease-out),
+		--sky-wish-amt 0.7s var(--ease-out),
+		--sky-sun-a 0.9s var(--ease-out);
+}
+:root[data-world='snowlight'][data-sky-on='1'][data-wx='heavy'] {
+	--sky-top: var(--wx-heavy-top);
+	--sky-mid: var(--wx-heavy-mid);
+	--sky-low: var(--wx-heavy-low);
+	--sky-ink: var(--wx-heavy-ink);
+	--sky-ink-2: var(--wx-heavy-ink-2);
+	--sky-wish: var(--wx-heavy-wish);
+	--sky-wish-amt: var(--wx-heavy-amt);
+	--sky-sun-a: 0;
+}
+:root[data-world='snowlight'][data-sky-on='1'][data-wx='shower'] {
+	--sky-top: var(--wx-shower-top);
+	--sky-mid: var(--wx-shower-mid);
+	--sky-low: var(--wx-shower-low);
+	--sky-ink: var(--wx-shower-ink);
+	--sky-ink-2: var(--wx-shower-ink-2);
+	--sky-wish: var(--wx-shower-wish);
+	--sky-wish-amt: var(--wx-shower-amt);
+	--sky-sun-a: 0.35;
+}
+:root[data-world='snowlight'][data-sky-on='1'][data-wx='clear'] {
+	--sky-top: var(--wx-clear-top);
+	--sky-mid: var(--wx-clear-mid);
+	--sky-low: var(--wx-clear-low);
+	--sky-ink: var(--wx-clear-ink);
+	--sky-ink-2: var(--wx-clear-ink-2);
+	--sky-wish: var(--wx-clear-wish);
+	--sky-wish-amt: var(--wx-clear-amt);
+	--sky-sun-a: 1;
+}
+:root[data-world='snowlight'][data-sky-on='1'][data-wx='night'] {
+	--sky-top: var(--wx-night-top);
+	--sky-mid: var(--wx-night-mid);
+	--sky-low: var(--wx-night-low);
+	--sky-ink: var(--wx-night-ink);
+	--sky-ink-2: var(--wx-night-ink-2);
+	--sky-wish: var(--wx-night-wish);
+	--sky-wish-amt: var(--wx-night-amt);
+	--sky-sun-a: 0;
+}
+:root[data-world='snowlight'][data-sky-on='1'] .world-sky,
+:root[data-world='snowlight'][data-sky-on='1'] .world-end {
+	display: none;
+}
+/* the strip above the header (the phone's status bar) is sky too */
+:root[data-world='snowlight'][data-sky-on='1'] body::before {
+	content: '';
+	position: fixed;
+	inset: 0 0 auto;
+	height: env(safe-area-inset-top, 0px);
+	z-index: 41;
+	background: var(--sky-top);
+}
+/* the header: the sky starts here, the snow falling behind its buttons */
+:root[data-world='snowlight'][data-sky-on='1'] .bar {
+	isolation: isolate;
+	background: linear-gradient(180deg, var(--sky-top), var(--sky-mid));
+	-webkit-backdrop-filter: none;
+	backdrop-filter: none;
+	box-shadow: none;
+}
+:root[data-world='snowlight'][data-sky-on='1'] .bar-cv {
+	z-index: -1;
+}
+:root[data-world='snowlight'][data-sky-on='1'] .bar .brand,
+:root[data-world='snowlight'][data-sky-on='1'] .bar-row > .icon-btn:not(.lang-btn) {
+	color: var(--sky-ink);
+}
+:root[data-world='snowlight'][data-sky-on='1'] .bar .brand-dates {
+	color: var(--sky-ink-2);
+}
+:root[data-world='snowlight'][data-sky-on='1'] .bar :focus-visible {
+	outline-color: var(--sky-ink);
+}
+:root[data-world='snowlight'][data-sky-on='1'] .bar-row > .icon-btn:not(.lang-btn):not(.home-hd) {
+	border: 1px solid color-mix(in srgb, var(--sky-ink) 28%, transparent);
+	background: color-mix(in srgb, var(--sky-ink) 10%, transparent);
+}
+:root[data-world='snowlight'][data-sky-on='1'] .bar .tab {
+	box-shadow: 0 1px 2px rgb(15 27 45 / 0.12);
+}
+/* a view's band of sky: it carries on from the header, its foot taking the day's colour, and ends in a drift of paper
+   snow (drawn on its canvas, under the words) */
+:root[data-world='snowlight'][data-sky-on='1'] .band {
+	overflow: hidden;
+	background: linear-gradient(180deg, var(--sky-mid), color-mix(in srgb, var(--sky-low), var(--sky-tint) var(--sky-band-tint)));
+	color: var(--sky-ink);
+}
+:root[data-world='snowlight'][data-sky-on='1'] .band::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	z-index: 0;
+	pointer-events: none;
+	background: radial-gradient(120% 140% at 96% -30%, var(--snow-sun), transparent 58%);
+	opacity: var(--sky-sun-a);
+}
+:root[data-world='snowlight'][data-sky-on='1'] .band :focus-visible {
+	outline-color: var(--sky-ink);
+}
+:root[data-world='snowlight'][data-sky-on='1'] .band .l-meta,
+:root[data-world='snowlight'][data-sky-on='1'] .band-meta {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px 12px;
+	min-height: 30px;
+	margin: 0;
+	font-size: var(--fs-sm);
+	font-weight: 700;
+	color: var(--sky-ink-2);
+	opacity: 1;
+}
+:root[data-world='snowlight'][data-sky-on='1'] .band .wish {
+	margin: 6px 0 4px;
+	font-size: 2.25rem;
+	color: color-mix(in srgb, var(--c), var(--sky-wish) var(--sky-wish-amt));
+}
+:root[data-world='snowlight'][data-sky-on='1'] .band .wish-gloss {
+	color: var(--sky-ink-2);
+	opacity: 1;
+}
+:root[data-world='snowlight'][data-sky-on='1'] .band .flag,
+:root[data-world='snowlight'][data-sky-on='1'] .band .flag.inv {
+	padding: 1px 8px;
+	border-radius: 8px;
+	background: var(--c, var(--l1));
+	color: #ffffff;
+	font-size: 0.8125rem;
+	font-weight: 800;
+	box-shadow:
+		0 0 0 2px var(--sticker-edge),
+		var(--sticker-shadow);
+	transform: rotate(-4deg);
+}
+:root[data-world='snowlight'][data-sky-on='1'] .band-h,
+:root[data-world='snowlight'][data-sky-on='1'] .band .sec-title {
+	margin: 6px 0 4px;
+	font-size: 1.75rem;
+	font-weight: 800;
+	letter-spacing: -0.02em;
+	line-height: 1.2;
+	color: var(--sky-ink);
+}
+:root[data-world='snowlight'][data-sky-on='1'] .wx-line {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 2px 12px;
+	margin: 6px 0 0;
+	font-size: var(--fs-sm);
+	font-weight: 650;
+	color: var(--sky-ink);
+}
+:root[data-world='snowlight'][data-sky-on='1'] .wx-now {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+:root[data-world='snowlight'][data-sky-on='1'] .wx-now svg.i {
+	width: 22px;
+	height: 22px;
+}
+:root[data-world='snowlight'][data-sky-on='1'] .wx-note {
+	color: var(--sky-ink-2);
+}
+:root[data-world='snowlight'][data-sky-on='1'] .wx-wear {
+	flex-basis: 100%;
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+:root[data-world='snowlight'][data-sky-on='1'] .wx-wear svg.i {
+	flex: none;
+	width: 18px;
+	height: 18px;
+	color: var(--sky-ink-2);
+}
+/* the globe's Shake: a sticker-edged button on the drift, under the words */
+:root[data-world='snowlight'] .shake-btn {
+	position: absolute;
+	right: 0;
+	bottom: 2px;
+	z-index: 2;
+	align-items: center;
+	gap: 6px;
+	min-height: 44px;
+	padding: 0 14px 0 12px;
+	border-radius: var(--r-btn);
+	border: 1.5px solid color-mix(in srgb, var(--c, var(--l1)) 70%, var(--ink));
+	background: var(--paper);
+	color: var(--ink);
+	font: inherit;
+	font-size: var(--fs-sm);
+	font-weight: 750;
+	box-shadow: var(--sticker-shadow);
+	cursor: pointer;
+}
+:root[data-world='snowlight'] .shake-btn svg.i {
+	width: 20px;
+	height: 20px;
+	color: var(--c, var(--l1));
+}
+:root[data-world='snowlight'][data-sky-now='globe'] .band-col {
+	padding-bottom: 58px;
+}
+/* with the sky above it, the day's card opens with its picture or its title */
+:root[data-world='snowlight'][data-sky-on='1'] .band + .day-bar + .lantern {
+	margin-top: 4px;
+}
+/* desktop: the sky behind the whole page, snow in the margins; the column on paper, the header glass again */
+@media (min-width: 1024px) {
+	:root[data-world='snowlight'][data-sky-on='1'] .sky-full {
+		display: block;
+		position: fixed;
+		inset: 0;
+		z-index: -1;
+		pointer-events: none;
+		background: linear-gradient(180deg, var(--sky-top), var(--sky-mid) 48%, color-mix(in srgb, var(--sky-low), var(--sky-tint) var(--sky-band-tint)));
+	}
+	:root[data-world='snowlight'][data-sky-on='1'] .sky-full::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background: radial-gradient(55% 60% at 88% -12%, var(--snow-sun), transparent 62%);
+		opacity: var(--sky-sun-a);
+	}
+	:root[data-world='snowlight'][data-sky-on='1'] body {
+		background: transparent;
+	}
+	:root[data-world='snowlight'][data-sky-on='1'] body::before {
+		background: var(--glass);
+	}
+	:root[data-world='snowlight'][data-sky-on='1'] .bar {
+		background: var(--glass);
+		-webkit-backdrop-filter: blur(20px) saturate(180%);
+		backdrop-filter: blur(20px) saturate(180%);
+		box-shadow: 0 1px 0 var(--glass-edge);
+	}
+	:root[data-world='snowlight'][data-sky-on='1'] .bar-cv {
+		display: none;
+	}
+	:root[data-world='snowlight'][data-sky-on='1'] .bar .brand,
+	:root[data-world='snowlight'][data-sky-on='1'] .bar-row > .icon-btn:not(.lang-btn) {
+		color: var(--ink);
+	}
+	:root[data-world='snowlight'][data-sky-on='1'] .bar .brand-dates {
+		color: var(--ink-3);
+	}
+	:root[data-world='snowlight'][data-sky-on='1'] .bar :focus-visible {
+		outline-color: var(--focus);
+	}
+	:root[data-world='snowlight'][data-sky-on='1'] .bar-row > .icon-btn:not(.lang-btn):not(.home-hd) {
+		border-color: var(--rule);
+		background: var(--paper-2);
+	}
+	/* the view on a card of paper; its band is the card's own top, the sky in still colour (the snow keeps outside) */
+	:root[data-world='snowlight'][data-sky-on='1'] #app > [data-sec] {
+		margin-inline: 0;
+		padding-inline: 20px;
+		border-radius: var(--r-card);
+		border: 1px solid var(--rule);
+		background: var(--paper);
+		box-shadow: var(--card-shadow);
+		overflow: clip;
+	}
+	:root[data-world='snowlight'][data-sky-on='1'] #app > [data-sec] + footer,
+	:root[data-world='snowlight'][data-sky-on='1'] .stage {
+		padding-bottom: 40px;
+	}
+	:root[data-world='snowlight'][data-sky-on='1'] .band {
+		margin-inline: -20px;
+		padding-inline: 20px;
+	}
+	:root[data-world='snowlight'][data-sky-on='1'] .band-col {
+		padding-bottom: 22px;
+	}
+	:root[data-world='snowlight'][data-sky-on='1'] .rail-card {
+		background: linear-gradient(180deg, var(--snow-card-top), var(--snow-card-low));
+		box-shadow: var(--card-shadow);
+	}
+	:root[data-world='snowlight'][data-sky-on='1'] .foot {
+		color: var(--sky-ink);
+	}
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+	:root[data-world='snowlight'][data-sky-on='1'] .bar {
+		-webkit-backdrop-filter: none;
+		backdrop-filter: none;
+	}
+}
+/* a phone's overview: the band is the world's sky now, so the scene above Now and Next steps aside and the trip's name
+   (the brand above it) is for screen readers, keeping Now and Next with their buttons on an iPhone's first screen */
+@media (max-width: 599px) {
+	:root[data-world='snowlight'][data-sky-on='1'] #top .world-hero {
+		display: none;
+	}
+	:root[data-world='snowlight'][data-sky-on='1'] #top .band-h {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip: rect(0 0 0 0);
+		white-space: nowrap;
+	}
+	:root[data-world='snowlight'][data-sky-on='1'] .band-col {
+		padding-block: 10px 34px;
+	}
+	:root[data-world='snowlight'][data-sky-now='globe'] .band-col {
+		padding-bottom: 56px;
 	}
 }

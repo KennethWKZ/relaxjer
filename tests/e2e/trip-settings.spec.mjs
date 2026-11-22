@@ -2,7 +2,7 @@
 // (these started as test.fail() debt markers and pass since roadmap step 3). New engine debt goes here the same way:
 // a test.fail(true, reason) that states the behaviour we want.
 import { test, expect, openTrip } from '../support/fixtures.mjs';
-import { setStored } from '../support/page.mjs';
+import { fillAll, setStored } from '../support/page.mjs';
 
 /* global DAYS, FLIGHTS, PLACES, TRIP, SHOPLISTS, SNOW -- the trip data, read inside the page */
 
@@ -20,7 +20,8 @@ test.describe('trip settings', { tag: '@demo' }, () => {
 
 	test("the going-home heading uses the trip's own date", async ({ page }) => {
 		await openTrip(page);
-		await expect(page.locator('#depart')).toContainText('18 Mar');
+		// the airport view's summary button for going home (and its sheet's head) carry the heading
+		await expect(page.locator('#airport .part', { hasText: 'Going home' })).toContainText('18 Mar');
 	});
 });
 
@@ -72,6 +73,7 @@ test('every shop list gets its own section and free-time ideas group', async ({ 
 		const all = typeof SHOPLISTS !== 'undefined' ? SHOPLISTS : typeof SNOW !== 'undefined' ? [{ id: 'snow', ...SNOW }] : [];
 		return all.map((l) => ({ id: l.id, h: (l.h || ['', 'Shops'])[1], group: (l.group || ['', 'Shops'])[1], n: (l.shops || []).length }));
 	});
+	await fillAll(page); // a free day's ideas sit in a sheet, built on first open
 	for (const l of lists) {
 		await expect(page.locator(`#optional h3[id="${l.id}"]`), `list ${l.id} heading`).toHaveText(l.h);
 		if (l.n) await expect(page.locator('#free-ideas summary', { hasText: l.group }), `list ${l.id} in the ideas`).toHaveCount(1);

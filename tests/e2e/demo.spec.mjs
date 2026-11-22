@@ -2,6 +2,7 @@
 // way rather than on a countdown. Global setup builds trip-demo.html the way the workflow does, with the workflow's
 // clock, and in each visitor's own year. And a page with no Google key, like the demo, never offers a Google search it could only fail.
 import { test, expect, openTrip } from '../support/fixtures.mjs';
+import { show } from '../support/page.mjs';
 
 test.describe('the live demo', { tag: '@demo' }, () => {
 	test.skip(!!(process.env.TRIP_DIR || process.env.LEGACY_ENGINE_DIR), 'the live demo is the demo trip, on this engine');
@@ -60,7 +61,7 @@ test.describe('a trip page that is not the live demo', () => {
 
 test('a page without a Google key offers no Google search when adding a stop', async ({ page }) => {
 	await openTrip(page);
-	await page.locator('[data-add-gap]').first().click();
+	await (await show(page, '[data-add-gap]')).click();
 	const sheet = page.locator('#placeSheet');
 	await sheet.locator('[data-addq]').fill('zzqx nowhere');
 	await expect(sheet.locator('[data-add-res]')).toContainText("The page doesn't have this place.");
@@ -69,8 +70,7 @@ test('a page without a Google key offers no Google search when adding a stop', a
 
 test("a page without a Google key offers no Google search in the map's place search", async ({ page }) => {
 	await openTrip(page);
-	const q = page.locator('#mapq');
-	await q.scrollIntoViewIfNeeded();
+	const q = await show(page, '#mapq'); // the map's view
 	await q.fill('zzqx nowhere');
 	await expect(page.locator('#mapres')).toBeVisible();
 	await expect(page.locator('#mapres')).toContainText('Nothing found');
@@ -89,7 +89,7 @@ test.describe('the Sapporo live demo', { tag: '@demo' }, () => {
 		await expect(page.locator('#d3 .stop.now')).toContainText('Ski lesson');
 		await expect(page.locator('.now-num'), 'no countdown on a day under way').toHaveCount(0);
 		await expect(page.locator('#d3 [data-native] .nat-t').first()).toHaveAttribute('lang', 'ja');
-		await expect(page.locator('#d3 .l-motif')).toBeVisible();
+		await expect(await show(page, '#d3 .l-motif'), "the day's mark, in its view").toBeVisible();
 	});
 
 	test("a flying day's plane climbs into its picture once, then rests where it's drawn and rides the air", async ({ page }) => {

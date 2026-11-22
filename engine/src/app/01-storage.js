@@ -34,6 +34,9 @@ try {
 } catch {
 	/* old browser: no section skipping */
 } // see style.css: content-visibility needs scroll anchoring
+// what a page built with --preview looks at instead (its planner's panel, engine/src/preview/): another sky, weather,
+// snow on or off, a clock. Never saved, never synced, and nothing sets it in a page built without the flag
+const LOOK = { sky: null, wx: null, snow: null, clock: null };
 // the live demo (build --demo-clock) greets its visitors, who come from an English landing page, in English
 let lang = store.get('lang', window.DEMO_CLOCK ? 'en' : 'zh') === 'en' ? 'en' : 'zh';
 let themePref = ['dark', 'system'].includes(store.get('theme', 'light')) ? store.get('theme') : 'light';

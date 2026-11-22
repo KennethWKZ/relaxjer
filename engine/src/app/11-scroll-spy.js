@@ -1,34 +1,14 @@
-/* ───────── scroll spy + bar colour ───────── */
+/* ───────── the lit tab + bar colour ───────── */
 
-// which tab is lit: the last section whose top has passed just under the sticky header (live positions, so jumps are right)
-let spyRAF = 0;
-let spyHold = 0;
+// which tab is lit: the view on screen (20-views.js). With one view at a time there is nothing to spy on while
+// scrolling
 let spyOn = false;
 function spyNow() {
-	spyRAF = 0;
-	if (performance.now() < spyHold) return;
-	const secs = $$('[data-sec]');
-	if (!secs.length) return;
-	const line = barH + Math.min(140, innerHeight * 0.22);
-	let best = secs[0];
-	for (const s of secs) {
-		if (s.getBoundingClientRect().top <= line) best = s;
-		else break;
-	}
-	const last = secs[secs.length - 1]; // the last short section can't reach the line: light it once you're at the very bottom
-	if (innerHeight + scrollY >= document.documentElement.scrollHeight - 4 && last.getBoundingClientRect().top < innerHeight * 0.6) best = last;
-	setActive(best.id);
+	if (curView) setActive(curView);
 }
 function observeSections() {
 	if (!spyOn) {
 		spyOn = true;
-		addEventListener(
-			'scroll',
-			() => {
-				if (!spyRAF) spyRAF = requestAnimationFrame(spyNow);
-			},
-			{ passive: true },
-		);
 		addEventListener('resize', () => spyNow());
 	}
 	spyNow();

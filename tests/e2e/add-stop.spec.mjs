@@ -1,7 +1,7 @@
 // Your own stops: "+" under a timeline dot, clash warnings near fixed times, and share links that others can import.
 // The #add= link format is a contract: links already sent to a group chat must keep working after the refactor.
 import { test, expect, openTrip } from '../support/fixtures.mjs';
-import { settle, setStored } from '../support/page.mjs';
+import { goToView, settle, setStored, show } from '../support/page.mjs';
 /* global DAYS, FLIGHTS */
 
 // tagged @demo: day ids, gaps and times are the demo trip's
@@ -10,7 +10,7 @@ test.describe('your own stops', { tag: '@demo' }, () => {
 
 	test('"+" after a stop offers nearby places and adds the pick in time order', async ({ page }) => {
 		await openTrip(page);
-		await page.locator('[data-add-gap="d2|4"]').click(); // after Huashan, 14:00–16:30
+		await (await show(page, '[data-add-gap="d2|4"]')).click(); // after Huashan, 14:00–16:30
 		const sheet = page.locator('#placeSheet');
 		const pick = sheet.locator('[data-add-res] [data-add]').first();
 		await expect(pick).toBeVisible();
@@ -34,7 +34,7 @@ test.describe('your own stops', { tag: '@demo' }, () => {
 	test("an added stop's Change and Remove are full targets, Change says so, and the pink reads at night", async ({ page }) => {
 		await openTrip(page);
 		await setStored(page, { theme: 'dark' }); // the page's own theme switch, not the system's
-		await page.locator('[data-add-gap="d2|4"]').click();
+		await (await show(page, '[data-add-gap="d2|4"]')).click();
 		const sheet = page.locator('#placeSheet');
 		await expect(sheet.locator('[data-add-res] [data-add]').first()).toHaveCSS('color', 'rgb(241, 154, 184)');
 		await sheet.locator('[data-add-res] [data-add]').first().click();
@@ -52,7 +52,7 @@ test.describe('your own stops', { tag: '@demo' }, () => {
 
 	test('with the phone keyboard up, the sheet sits above it and the field being typed in shows', async ({ page }) => {
 		await openTrip(page);
-		await page.locator('[data-add-gap="d2|4"]').click();
+		await (await show(page, '[data-add-gap="d2|4"]')).click();
 		const sheet = page.locator('#placeSheet');
 		await sheet.locator('[data-add-res] [data-add]').first().click();
 		const field = sheet.locator('[data-add-t]');
@@ -83,7 +83,7 @@ test.describe('your own stops', { tag: '@demo' }, () => {
 
 	test('adding a stop close to a fixed time warns before saving', async ({ page }) => {
 		await openTrip(page);
-		await page.locator('[data-add-gap="d5|4"]').click();
+		await (await show(page, '[data-add-gap="d5|4"]')).click();
 		const sheet = page.locator('#placeSheet');
 		await sheet.locator('[data-add-res] [data-add]').first().click();
 		await sheet.locator('[data-add-t]').fill('19:00');
@@ -106,7 +106,7 @@ test.describe('your own stops', { tag: '@demo' }, () => {
 
 	test('the add sheet checks the time against getting there, and offers the soonest that works', async ({ page }) => {
 		await openTrip(page);
-		await page.locator('[data-add-gap="d2|4"]').click(); // after Huashan, 14:00–16:30
+		await (await show(page, '[data-add-gap="d2|4"]')).click(); // after Huashan, 14:00–16:30
 		const sheet = page.locator('#placeSheet');
 		await sheet.locator('[data-add-res] [data-add]').last().click(); // the farthest of the nearby picks
 		const leg = sheet.locator('[data-add-leg]');
@@ -127,7 +127,7 @@ test.describe('your own stops', { tag: '@demo' }, () => {
 		await openTrip(page, `#add=${Buffer.from(JSON.stringify(pack)).toString('base64url')}`);
 		await page.locator('#placeSheet [data-mine-import]').click();
 		await settle(page);
-		await page.locator('[data-add-gap="d2|4"]').click();
+		await (await show(page, '[data-add-gap="d2|4"]')).click();
 		const sheet = page.locator('#placeSheet');
 		await sheet.locator('[data-add-res] [data-add]').first().click();
 		await expect(sheet.locator('[data-add-clash] .crowd-note')).toContainText('already has 4 added stops');
@@ -140,7 +140,7 @@ test.describe('your own stops', { tag: '@demo' }, () => {
 		await openTrip(page, `#add=${Buffer.from(JSON.stringify(pack)).toString('base64url')}`);
 		await page.locator('#placeSheet [data-mine-import]').click();
 		await settle(page);
-		await page.locator('#d3 .stop.mine [data-mine-del]').click();
+		await (await show(page, '#d3 .stop.mine [data-mine-del]')).click();
 		await expect(page.locator('#d3 .stop.mine')).toHaveCount(0);
 		const undo = page.locator('#toast [data-toast-act]');
 		await expect(undo).toHaveText('Undo');
@@ -162,6 +162,7 @@ test('the add sheet says a time has passed, and on the leaving day offers nothin
 		return { day: DAYS[1], leave: DAYS.find((d) => d.date === eve) || DAYS[DAYS.length - 1] };
 	});
 	const pick = async (dayId, time) => {
+		await goToView(page, dayId);
 		await page.locator(`[data-add-gap^="${dayId}|"]:visible`).last().click(); // stops already past are folded away
 		const sheet = page.locator('#placeSheet');
 		await sheet.locator('[data-add-res] [data-add]').first().click();

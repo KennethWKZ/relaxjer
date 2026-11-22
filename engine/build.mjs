@@ -1,6 +1,8 @@
 // Build: engine/src/* + a trip's data and img/ → <name>.html (artifact body) and <name>-standalone.html (single file,
 // images inlined), plus the My Maps KML. Moved verbatim from the first trip's repo; only where files are read and written changed.
-//   node engine/build.mjs --trip <trip dir> [--out <dir>] [--keys <google.json>] [--sync <sync.json>] [--demo-clock <YYYY-MM-DD HH:MM>]
+//   node engine/build.mjs --trip <trip dir> [--out <dir>] [--keys <google.json>] [--sync <sync.json>] [--demo-clock <YYYY-MM-DD HH:MM>] [--preview]
+// --preview writes <name>-preview.html only, with the planner's preview panel (engine/src/preview/): a page to look at,
+// never the one published, which stays <name>-standalone.html from a build without the flag (ADR-20261122-day-views).
 // The trip dir holds data.js, the *.json side files and img/. The Google browser key + Map ID go in only when --keys
 // names a file (keep it outside the repo, e.g. ~/.config/relaxjer/google.json, mode 600): a page built without it,
 // like the demo, can be shared without leaking a key. Without one the page keeps the free MapLibre map.
@@ -14,6 +16,7 @@ import { renderPNG } from './icons.mjs';
 import { rangeLabel } from './src/core/time.mjs';
 import { dayRoles, hotelsByDay, storeKey } from './src/core/plan.mjs';
 import { leadMotif } from './src/core/motif.mjs';
+import { MODES as SKY_MODES, modeFor as skyModeFor } from './src/core/sky.mjs';
 import { splitArt } from './world-art.mjs';
 
 const argv = process.argv.slice(2);
@@ -29,6 +32,9 @@ const syncFile = arg('sync', 'none').replace(/^~(?=\/)/, os.homedir());
 // the live demo's clock (ADR-20261002-live-demo-on-pages): the page opens at this moment of the trip, in the trip's own
 // time, and runs on from there, so a visitor sees a day under way. The demo trip only: a real trip keeps the real time.
 const demoClock = arg('demo-clock', null);
+// the planner's preview panel (sky, weather, snow, theme, clock): only in a page built with --preview, which is written
+// under its own name so a publish can never pick it up
+const preview = argv.includes('--preview');
 if (demoClock && !/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(demoClock)) {
 	console.error(`--demo-clock: YYYY-MM-DD HH:MM in the trip's time, got ${JSON.stringify(demoClock)}`);
 	process.exit(2);
@@ -41,7 +47,7 @@ if (demoClock && !DEMOS.includes(trip)) {
 }
 if (!arg('trip') || !fs.existsSync(path.join(trip, 'data.js'))) {
 	console.error(
-		'usage: node engine/build.mjs --trip <dir with data.js> [--out <dir>] [--keys <google.json>] [--sync <sync.json>] [--demo-clock <YYYY-MM-DD HH:MM>]',
+		'usage: node engine/build.mjs --trip <dir with data.js> [--out <dir>] [--keys <google.json>] [--sync <sync.json>] [--demo-clock <YYYY-MM-DD HH:MM>] [--preview]',
 	);
 	process.exit(2);
 }
@@ -194,8 +200,24 @@ async function loadWorld(name) {
 	const backdrop = mod.backdrop || null;
 	if (backdrop && !(Array.isArray(backdrop.layers) && backdrop.layers.every((l) => /^[a-z]+$/.test(l))))
 		throw new Error(`engine/src/themes/${name}.mjs backdrop.layers: a list of lower-case names`);
-	return { name, css: fs.readFileSync(`${base}.css`, 'utf8'), paper: mod.paper, iconPaint: mod.iconPaint, iconMarks: mod.iconMarks || [], backdrop };
+	if (mod.sky != null && !SKY_MODES.includes(mod.sky)) throw new Error(`engine/src/themes/${name}.mjs sky: one of ${SKY_MODES.join('|')}`);
+	return {
+		name,
+		css: fs.readFileSync(`${base}.css`, 'utf8'),
+		paper: mod.paper,
+		iconPaint: mod.iconPaint,
+		iconMarks: mod.iconMarks || [],
+		backdrop,
+		sky: mod.sky || null,
+	};
 }
+// the live sky (ADR-20261122-day-views): TRIP.sky picks it ('live', 'globe', 'pile' or 'off'), else the world's own; a
+// world without a sky (the default lantern world) draws none whatever the trip says
+if (ctx.TRIP.sky != null && !SKY_MODES.includes(ctx.TRIP.sky))
+	throw new Error(`TRIP.sky: one of ${SKY_MODES.join('|')}, got ${JSON.stringify(ctx.TRIP.sky)}`);
+const skyMode = skyModeFor(ctx.TRIP.sky, world?.sky);
+if (ctx.TRIP.sky && ctx.TRIP.sky !== 'off' && skyMode === 'off')
+	console.warn(`! TRIP.sky ${JSON.stringify(ctx.TRIP.sky)}: ${world ? `the ${world.name} world` : 'the default world'} has no sky, so none is drawn`);
 // a world's backdrop (ADR-20261121-world-motion): the sky behind the whole page, fixed layers the world's stylesheet
 // draws and ties to the scroll (one <i class="sky-<layer>"> each, in the order named), and a closing scene after the
 // footer. Decoration only (aria-hidden), and none of it for a page without a world or a world without one.
@@ -249,7 +271,10 @@ function contentSecurityPolicy(html) {
 		.map(([k, v]) => `${k} ${[...new Set(v)].join(' ')}`)
 		.join('; ');
 }
-const app = [appParts[0], ...core, pack, ...appParts.slice(1)].join('\n');
+// the preview panel's script joins the page's own, before 99-close, so it can reach the sky, the theme and the clock
+const previewDir = path.join(engine, 'src', 'preview');
+const previewJS = preview ? [fs.readFileSync(path.join(previewDir, 'preview.js'), 'utf8')] : [];
+const app = [appParts[0], ...core, pack, ...appParts.slice(1, -1), ...previewJS, appParts.at(-1)].join('\n');
 const title = `${brand} ${ctx.TRIP.start.slice(0, 4)}`;
 const htmlEsc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 const backdrop = backdropHTML(world);
@@ -356,9 +381,14 @@ const head = `<title>${htmlEsc(title)}</title>
 <meta name="theme-color" content="${world?.paper?.dark || '#0c1017'}" media="(prefers-color-scheme: dark)">`;
 // the world on <html> before first paint: the standalone page's own tag carries it, the artifact (whose host writes the
 // <html>) sets it from a one-line script
-const worldAttr = world ? ` data-world="${world.name}"` : '';
-const worldScript = world ? `<script>document.documentElement.dataset.world=${JSON.stringify(world.name)}</script>\n` : '';
-const worldCSS = world ? world.css : '';
+const skyAttr = skyMode !== 'off' ? ` data-sky="${skyMode}"` : '';
+const worldAttr = world ? ` data-world="${world.name}"${skyAttr}` : '';
+const worldScript = world
+	? `<script>document.documentElement.dataset.world=${JSON.stringify(world.name)}${skyAttr ? `;document.documentElement.dataset.sky=${JSON.stringify(skyMode)}` : ''}</script>\n`
+	: '';
+// the preview panel's own style and script, only with --preview (and never in the artifact or the standalone page)
+const previewCSS = preview ? fs.readFileSync(path.join(previewDir, 'preview.css'), 'utf8') : '';
+const worldCSS = (world ? world.css : '') + previewCSS;
 
 const scripts = (
 	imgMap,
@@ -371,7 +401,7 @@ const scripts = (
 const writePages = (kmlB64) => {
 	// 1) artifact body (the host adds doctype/head/body)
 	const artifact = `${worldScript}${head}\n<style>${fontCSS}${css}${worldCSS}${brushCSS}</style>\n${shell}\n${scripts(null, kmlB64)}\n`;
-	fs.writeFileSync(path.join(out, `${fileBase}.html`), artifact);
+	if (!preview) fs.writeFileSync(path.join(out, `${fileBase}.html`), artifact);
 
 	// 2) standalone single file
 	const imgMap = {};
@@ -408,14 +438,14 @@ ${scripts(imgMap, kmlB64)}
 	// the page's own version, first bytes of the file: a paused home-screen app reads the live copy's to offer an update
 	const build = crypto.createHash('sha256').update(withCsp).digest('hex').slice(0, 12);
 	const standalone = withCsp.replace('{{build}}', build);
-	fs.writeFileSync(path.join(out, `${fileBase}-standalone.html`), standalone);
+	fs.writeFileSync(path.join(out, `${fileBase}-${preview ? 'preview' : 'standalone'}.html`), standalone);
 
 	const kb = (s) => (Buffer.byteLength(s) / 1024).toFixed(0) + ' KB';
 	return { artifact, standalone, kb };
 };
 const { artifact, standalone, kb } = writePages('');
 console.log(
-	`google key ${gmaps ? 'yes' : 'no'} · group sync ${sync ? `yes (planner code ${sync.planner ? 'set' : 'not set'})` : 'no'}${demoClock ? ` · demo clock ${demoClock}` : ''} · artifact ${kb(artifact)} · standalone ${kb(standalone)} · photos ${credits.length} · geo ${geo ? 'yes' : 'no'} · food ${extra.food?.length || 0} · tickets ${extra.tickets?.length || 0} · wish ${wish.length} · brush glyphs ${brush.size} (${fontCSS ? 'font in the page' : 'system Kaiti'})${drawnIcon.size ? ` · icon drawn (${world.name}${iconMark ? ` + ${iconMark}` : ''})` : ''}`,
+	`${preview ? 'PREVIEW (not for publishing) · ' : ''}google key ${gmaps ? 'yes' : 'no'} · group sync ${sync ? `yes (planner code ${sync.planner ? 'set' : 'not set'})` : 'no'}${demoClock ? ` · demo clock ${demoClock}` : ''}${skyMode !== 'off' ? ` · sky ${skyMode}` : ''} · artifact ${kb(artifact)} · standalone ${kb(standalone)} · photos ${credits.length} · geo ${geo ? 'yes' : 'no'} · food ${extra.food?.length || 0} · tickets ${extra.tickets?.length || 0} · wish ${wish.length} · brush glyphs ${brush.size} (${fontCSS ? 'font in the page' : 'system Kaiti'})${drawnIcon.size ? ` · icon drawn (${world.name}${iconMark ? ` + ${iconMark}` : ''})` : ''}`,
 );
 
 // 3) Google My Maps export (KML): one combined file + one file per layer

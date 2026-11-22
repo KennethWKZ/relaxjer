@@ -12,6 +12,13 @@ export const paper = { light: '#f7fafd', dark: '#0a1424' };
  */
 export const backdrop = { layers: ['night', 'stars', 'aurora', 'snow', 'dawn'], end: true };
 
+/**
+ * The world's live sky (ADR-20261122-day-views): the sky a trip in this world draws unless TRIP.sky picks another.
+ * 'live' is the day's own weather, snowing by itself in the header and a band at the top of each view (the whole page
+ * behind the column on a desktop). With a live sky the scroll's night above (`backdrop`) steps aside.
+ */
+export const sky = 'live';
+
 const mix = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
 const NIGHT_TOP = [10, 22, 44];
 const NIGHT_LOW = [24, 44, 80];

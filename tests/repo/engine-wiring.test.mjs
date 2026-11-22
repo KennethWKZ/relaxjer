@@ -36,3 +36,25 @@ test('personal settings never ride group sync', () => {
 	const mine = ['amounts', 'rate', 'lang', 'theme', 'maps'].filter((k) => new RegExp(`store\\.(get|set|del)\\('${k}'`).test(sync));
 	assert.deepEqual(mine, []);
 });
+
+// the planner's preview panel (ADR-20261122-day-views) is a build of its own: nothing of it may reach a page that can be
+// published. Its code lives only in engine/src/preview/, the build reads that folder only behind --preview and then
+// writes no artifact and no standalone page, and publishing uploads only a standalone page
+test('the preview panel is only in a page built with --preview', () => {
+	const pv = path.join(src, 'preview');
+	assert.deepEqual(fs.readdirSync(pv).sort(), ['preview.css', 'preview.js']);
+	const panel = fs.readFileSync(path.join(pv, 'preview.js'), 'utf8');
+	const ids = [...new Set([...panel.matchAll(/\bid = '(pv[A-Za-z]+)'/g)].map((m) => m[1]))];
+	assert.ok(ids.includes('pvPanel') && ids.includes('pvChip'), 'the panel was read');
+	const shipped = [all, fs.readFileSync(path.join(src, 'style.css'), 'utf8'), ...read(path.join(src, 'themes'))].join('\n');
+	for (const id of [...ids, 'data-preview', 'pv-panel', 'pv-chip']) assert.ok(!shipped.includes(id), `${id} outside engine/src/preview/`);
+	const build = fs.readFileSync(path.join(ROOT, 'engine', 'build.mjs'), 'utf8');
+	const reads = [...build.matchAll(/^.*previewDir.*$/gm)].map((m) => m[0].trim()).filter((l) => !l.startsWith('const previewDir'));
+	assert.ok(reads.length >= 2, 'the build was read');
+	for (const l of reads) assert.match(l, /= preview \?/, `read only behind --preview: ${l}`);
+	assert.match(build, /if \(!preview\) fs\.writeFileSync\(path\.join\(out, `\$\{fileBase\}\.html`\), artifact\)/);
+	assert.match(build, /`\$\{fileBase\}-\$\{preview \? 'preview' : 'standalone'\}\.html`/);
+	const publish = fs.readFileSync(path.join(ROOT, 'scripts', 'publish-trip.mjs'), 'utf8');
+	assert.match(publish, /endsWith\('-standalone\.html'\)/);
+	assert.ok(!publish.includes('-preview'), 'publishing never picks up a preview page');
+});

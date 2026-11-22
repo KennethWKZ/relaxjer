@@ -5,7 +5,7 @@
 // Trip-agnostic: the places and days come from the trip's own data. The live map itself can't load offline, so a
 // result's pin on the map is checked by eye (verify-page), not here.
 import { test, expect, openTrip } from '../support/fixtures.mjs';
-import { FINDER as F, overflow, setStored, switchLang } from '../support/page.mjs';
+import { FINDER as F, overflow, setStored, show, switchLang } from '../support/page.mjs';
 import { stubGoogle, stubMovingGeo } from '../support/google-stub.mjs';
 /* global DAYS, EXTRA, TRIP */
 
@@ -33,7 +33,7 @@ test('a place found on the map shows each day’s nearest stop and the best day,
 	const food = await aFoodPlace(page);
 	test.skip(!food, 'the trip has no researched food with a position');
 	const q = page.locator(F.query);
-	await q.scrollIntoViewIfNeeded();
+	await show(page, q); // the map view
 	await q.fill(food.name);
 	const hit = page.locator(F.result(food.pid));
 	await hit.click();
@@ -87,7 +87,7 @@ test('the shop box’s shops, which have no pin, are found by the map’s search
 	const shop = await page.evaluate(() => (window.SHOPS || []).find((x) => x.lat != null && x.lng != null) || null);
 	test.skip(!shop, 'the trip has no shop box');
 	const q = page.locator(F.query);
-	await q.scrollIntoViewIfNeeded();
+	await show(page, q); // the map view
 	await q.fill(shop.name_trad);
 	const hit = page.locator(F.result(`buy-${shop.id}`));
 	await hit.click();
@@ -100,7 +100,7 @@ test('the shop box’s shops, which have no pin, are found by the map’s search
 test('the add sheet opens a place before adding it, and Back finds the list as it was', async ({ page }) => {
 	page.on('dialog', (d) => d.accept());
 	await beforeTrip(page);
-	await page.locator('[data-add-gap]').first().click();
+	await (await show(page, '[data-add-gap]')).click();
 	const sheet = page.locator(F.sheet);
 	const rows = sheet.locator(F.listRow);
 	await expect(rows.first()).toBeVisible();
@@ -142,7 +142,7 @@ test('the add sheet opens a place before adding it, and Back finds the list as i
 
 test('closing the add sheet from a preview leaves no Back step behind', async ({ page }) => {
 	await beforeTrip(page);
-	await page.locator('[data-add-gap]').first().click();
+	await (await show(page, '[data-add-gap]')).click();
 	const sheet = page.locator(F.sheet);
 	await sheet.locator(F.listRow).first().click();
 	await expect(sheet.locator(F.preview)).toBeVisible();
@@ -158,7 +158,7 @@ for (const lang of ['en', 'zh']) {
 		const food = await aFoodPlace(page);
 		test.skip(!food, 'the trip has no researched food with a position');
 		const q = page.locator(F.query);
-		await q.scrollIntoViewIfNeeded();
+		await show(page, q); // the map view
 		await q.fill(await page.evaluate((pid) => EXTRA.food[+pid.slice(4)].name_trad, food.pid));
 		await page.locator(F.result(food.pid)).click();
 		const panel = page.locator(F.panel);
@@ -174,7 +174,7 @@ for (const lang of ['en', 'zh']) {
 		await expect(sheet.locator(F.save)).toBeVisible();
 		expect(await noSideways(sheet), 'the add sheet runs wider than the screen').toBeLessThanOrEqual(0);
 		await sheet.locator('[data-close]').first().click();
-		await page.locator('[data-add-gap]').first().click();
+		await (await show(page, '[data-add-gap]')).click();
 		await sheet.locator(F.listRow).first().click();
 		await expect(sheet.locator(F.preview)).toBeVisible();
 		expect(await noSideways(sheet), 'the preview runs wider than the screen').toBeLessThanOrEqual(0);
@@ -187,7 +187,7 @@ test('without a key: no Google parts on stops or cards, and details from the tri
 	const food = await aFoodPlace(page);
 	test.skip(!food, 'the trip has no researched food with a position');
 	const q = page.locator(F.query);
-	await q.scrollIntoViewIfNeeded();
+	await show(page, q); // the map view
 	await q.fill(food.name);
 	await page.locator(F.result(food.pid)).click();
 	await page.locator(F.detailsBtn).click();
@@ -205,7 +205,7 @@ test.describe('with the planner’s key (a stand-in, Google stubbed in the page)
 	test('a stop’s Rating & photos opens its details, found by name near its pin, with Google’s rating, hours and photo', async ({ page }) => {
 		await beforeTrip(page, '/trip-gkey.html');
 		const btn = page.locator(`.stop-links ${F.google}`).first();
-		await btn.scrollIntoViewIfNeeded();
+		await show(page, btn); // its stop's sheet
 		await btn.click();
 		const card = page.locator(`${F.sheet} ${F.detailsCard}`);
 		await expect(card).toBeVisible();
@@ -230,7 +230,7 @@ test.describe('with the planner’s key (a stand-in, Google stubbed in the page)
 			.filter({ has: page.locator(F.google) })
 			.first();
 		test.skip(!(await card.count()), 'the trip has no optional plan with a mapped place');
-		await card.locator(F.google).scrollIntoViewIfNeeded();
+		await show(page, card.locator(F.google)); // the Optional view
 		await card.locator(F.google).click();
 		await expect(card.locator(`${F.googleBox} .gstars`)).toContainText('4.6');
 		await expect(card.locator(F.google)).toBeHidden();
@@ -238,7 +238,7 @@ test.describe('with the planner’s key (a stand-in, Google stubbed in the page)
 
 	test('the add sheet’s preview brings Google’s part with it, once per place', async ({ page }) => {
 		await beforeTrip(page, '/trip-gkey.html');
-		await page.locator('[data-add-gap]').first().click();
+		await (await show(page, '[data-add-gap]')).click();
 		const sheet = page.locator(F.sheet);
 		await sheet.locator(F.listRow).first().click();
 		await expect(sheet.locator(`${F.preview} ${F.googleBox} .gstars`)).toContainText('4.6');
@@ -256,7 +256,7 @@ test('Google’s results in the map’s search stay while the phone’s location
 	await page.addInitScript(stubMovingGeo);
 	await beforeTrip(page);
 	const q = page.locator(F.query);
-	await q.scrollIntoViewIfNeeded();
+	await show(page, q); // the map view
 	await q.fill('noodles');
 	// follow the phone: the list's "Nearest" asks for location
 	await page.locator('#mapres [data-mapsort="near"]').click();
@@ -283,7 +283,7 @@ test('Google’s results in the map’s search stay while the phone’s location
 	await expect(res).toHaveCount(0);
 	// in Chinese, Google answers in Chinese
 	await switchLang(page, 'zh');
-	await q.scrollIntoViewIfNeeded();
+	await show(page, q); // the map view
 	await q.fill('noodles');
 	await page.locator(F.googleSearch).click();
 	await expect(res).toHaveCount(2);

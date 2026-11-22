@@ -9,6 +9,9 @@ their phones, installs it to the home screen, and uses it offline.
   with fixed times that never move, a push-back for running late that stops at the next fixed time (with location on,
   the page notices when you fall behind and offers it), and days that split for part of the group, with each plan's
   rule and where they meet again.
+- **One part at a time:** each day and each section is its own view, a few phone screens long, with big Previous and
+  Next day buttons; a day's plans open from one-line summaries, and Back returns to exactly where you were. In a
+  snowy destination, a live sky snows as each day's forecast says (or a snow globe to shake), with a pause button.
 - **Getting there:** directions per leg, an offline metro planner, taxi fares per car, live bike-share counts, and a
   "show the driver" card with the local name and address.
 - **Near every stop:** food, drinks, rest spots and toilets with hours and the walk, plus the group's wishlist and
