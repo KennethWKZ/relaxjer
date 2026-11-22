@@ -58,6 +58,11 @@ states and its feedback, as 25 testable rules with sources.
 - **The phone keyboard never hides the field being typed in.** A bottom sheet with a text field moves up to sit on the
   keyboard while it's open, and the focused field scrolls into view (`.kb-up` in `19-back-button.js`;
   `knowledge/engine-browser.md`). A new sheet with a field gets the same check in WebKit at 390 px.
+- **Commas between the numbers of an inline SVG path** (`M0,120C60,96,130,84…`), in CSS, JS and HTML alike. Space-only
+  runs can read as a payment card number to the host's scan, which then refuses every publish
+  ([`knowledge/hosting.md`](../../../knowledge/hosting.md)); commas draw the same. `tests/repo/host-scan.test.mjs`
+  checks the engine on every commit, and `pnpm publish:trip` checks the built page before it uploads. Art files the
+  build base64-encodes (`themes/*-art/*.svg`) are exempt.
 - **Never describe people by family relationship** in any copy.
 - **Avoid the travel-app defaults:** stock hero photos, a teal accent, grids of identical icon cards.
 

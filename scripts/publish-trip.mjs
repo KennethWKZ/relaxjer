@@ -21,6 +21,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { maskRun, pageCardRuns } from './host-scan.mjs';
 
 export const SECRETS_DIR = path.join(os.homedir(), '.config', 'relaxjer', 'publish');
 // lavish-axi is a devDependency, so a fresh clone has it after `pnpm install`; a global one is the fallback
@@ -30,6 +31,20 @@ const BUILD_RE = /<meta name="relaxjer-build" content="([0-9a-f]+)"/;
 
 /** The build id the engine writes into the first bytes of a page, or null. */
 export const buildId = (html) => (BUILD_RE.exec(String(html).slice(0, 8192)) || [])[1] || null;
+
+/**
+ * Before an upload: what the host's scan would refuse the page for, as messages ([] when clear). Each number is masked,
+ * since a run can come from the trip's own text.
+ */
+export function preflight(html) {
+	const runs = pageCardRuns(html);
+	if (!runs.length) return [];
+	return [
+		`the host would refuse this page ("Scan failed: payment_card"): ${runs.length} run(s) of numbers read as a card number`,
+		...runs.slice(0, 5).map((r) => `  ${maskRun(r.run)}  (at character ${r.index})`),
+		'an inline SVG path: put commas between its numbers (it draws the same); trip text: write the number another way',
+	];
+}
 
 const readIf = (f) => (fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : null);
 const labelled = (text, key) => {
@@ -382,8 +397,12 @@ async function main(argv) {
 	const page = fs.existsSync(dist) && fs.readdirSync(dist).find((f) => f.endsWith('-standalone.html'));
 	if (!page) throw new Error(`no built page in ${dist}: run pnpm build --trip ${tripArg} first`);
 	const file = path.join(dist, page);
-	const next = buildId(fs.readFileSync(file, 'utf8'));
+	const pageHtml = fs.readFileSync(file, 'utf8');
+	const next = buildId(pageHtml);
 	if (!next) throw new Error(`${file} has no build id: rebuild it with this engine`);
+	// the host's card scan, here first: a refusal there comes after the rollback copy and the key, and names nothing
+	const scan = checkOnly || auditOnly ? [] : preflight(pageHtml);
+	if (scan.length) throw new Error(`${scan.join('\n  ')}\n  nothing was published`);
 
 	const sec = readSecrets(SECRETS_DIR, slug);
 	let updateKey = null;

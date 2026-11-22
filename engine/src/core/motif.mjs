@@ -28,6 +28,10 @@ export const MARKS = {
 	},
 	snow: { name: ['雪景', 'Snow country'], use: 'snow' },
 	train: { name: ['坐火车', 'By train'], use: 'train' },
+	drive: {
+		name: ['公路旅行', 'Road trip'],
+		d: '<path d="M2.5 17V8.5a2 2 0 0 1 2-2h10l4.2 4.3 1.6.6a1.8 1.8 0 0 1 1.2 1.7V17"/><path d="M2.5 17h2.4M9.3 17h5.4M19.2 17h2.3"/><path d="M2.5 10.8h16.2M9.5 6.5v4.3M14.5 6.5v4.3"/><circle cx="7.1" cy="17.2" r="2.2"/><circle cx="17" cy="17.2" r="2.2"/>',
+	},
 	plane: { name: ['飞行日', 'Flying'], use: 'plane' },
 	shop: { name: ['购物', 'Shopping'], use: 'bag' },
 	food: { name: ['美食', 'Food'], use: 'food' },

@@ -60,13 +60,60 @@ document.addEventListener('click', (e) => {
 		return;
 	}
 	if (t.matches('[data-gplace]')) {
+		// Google's rating and photos: in the card it sits on, else (a stop, a place on a day card) in the details sheet
+		const ref = t.dataset.gref || '';
+		const info = (ref && placeInfo(ref)) || { ref, gpid: t.dataset.gplace || null };
 		const card = t.closest('article');
-		const box = card && card.querySelector('.gplace');
-		if (box) {
-			box.hidden = false;
+		if (card) {
+			let box = card.querySelector('.gplace');
+			if (!box) {
+				(card.querySelector('.links-row') || t).insertAdjacentHTML('beforebegin', '<div class="gplace"></div>');
+				box = card.querySelector('.gplace');
+			}
 			t.hidden = true;
-			loadPlace(t.dataset.gplace, box);
-		}
+			gLoad(info, box);
+		} else if (ref) openPlaceDetails(ref);
+		return;
+	}
+	if (t.matches('[data-find-detail]')) {
+		const info = finderAt && finderAt.info;
+		if (!info) return;
+		openSheet(placeDetailsHTML(info));
+		const box = $('#placeSheet .pdet .gplace');
+		// once Google's hours are in, the finder can say which days it's closed
+		if (box) gLoad(info, box).then(finderRefresh);
+		return;
+	}
+	if (t.matches('[data-find-back]')) {
+		finderBack();
+		return;
+	}
+	if (t.matches('[data-fit-add]')) {
+		// the finder's day: the add sheet, set to that day, at the time right after the stop it follows
+		const [dayId, key] = t.dataset.fitAdd.split('|');
+		const info = finderAt && finderAt.info;
+		if (!info || !dayById[dayId]) return;
+		const ctx = gapContext(dayId, key);
+		openSheet(
+			addSheet({
+				n: info.n,
+				lat: info.lat,
+				lng: info.lng,
+				gpid: info.gpid,
+				q: info.q || info.n,
+				addr: info.addr || '',
+				ref: info.ref,
+				day: dayId,
+				t: ctx.t || undefined,
+			}),
+		);
+		setTimeout(addClashNote, 0);
+		return;
+	}
+	if (t.matches('[data-gfind]')) {
+		const info = placeInfo(`g:${t.dataset.gfind}`);
+		if ($('#mapq')) $('#mapq').blur();
+		finderOpen(info, null, `[data-gfind="${t.dataset.gfind}"]`);
 		return;
 	}
 	if (t.matches('[data-mapfull]')) {
@@ -100,6 +147,39 @@ document.addEventListener('click', (e) => {
 		toast(`${Z('打开地图用', 'Open maps in')}：${mapsName(mapsApp)}`);
 		return;
 	}
+	// which currency the figures lead with: the header's button (it names the other one) or the Sections menu's choice
+	if (t.matches('[data-amounts]')) {
+		const home = t.dataset.amounts === 'home';
+		if (CUR_SWITCH && home !== homeFirst) {
+			const sp = spotNow();
+			const inSheet = !!t.closest('.toc');
+			homeFirst = home;
+			store.set('amounts', home ? 'home' : 'trip');
+			render();
+			spotRestore(sp);
+			const box = $('.toc-cur');
+			if (box) {
+				box.outerHTML = curRow(); // redrawn, so focus moves to the side now pressed
+				if (inSheet) $(`.toc-cur [data-amounts="${home ? 'home' : 'trip'}"]`).focus();
+			}
+			toast(
+				home
+					? Z(`金额改用 ${CUR.home} 显示（1 ${CUR.home} = ${CUR.sym}${rate}）`, `Amounts in ${CUR.home} now (1 ${CUR.home} = ${CUR.sym}${rate})`)
+					: Z(`金额改回 ${CUR.sym} 显示`, `Amounts in ${CUR.sym} again`),
+			);
+		}
+		return;
+	}
+	if (t.matches('[data-rate-reset]')) {
+		store.del('rate'); // forgotten, not copied: the phone follows the trip's rate again, a republished one too
+		rateSet(CUR.rate);
+		$$('input[data-rate]').forEach((i) => {
+			i.value = rate;
+			i.setAttribute('aria-invalid', 'false');
+		});
+		toast(Z(`汇率改回行程的 1 ${CUR.home} = ${CUR.sym}${rate}`, `Back to the trip's rate: 1 ${CUR.home} = ${CUR.sym}${rate}`));
+		return;
+	}
 	if (t.matches('[data-lang]')) {
 		if (t.dataset.lang !== lang) {
 			const sp = spotNow();
@@ -130,12 +210,16 @@ document.addEventListener('click', (e) => {
 	}
 	if (t.matches('[data-map-day]')) {
 		const f = t.dataset.mapDay;
+		mapView = 'list';
 		mapFull(true);
 		withMap(() => map.filter(f));
 		return;
 	}
 	if (t.matches('[data-view]')) return map && map.view(t.dataset.view);
-	if (t.matches('[data-filter]')) return map && map.filter(t.dataset.filter);
+	if (t.matches('[data-filter]')) {
+		mapView = 'list'; // a day the person picks: the page's places for it
+		return map && map.filter(t.dataset.filter);
+	}
 	if (t.matches('[data-reset-all]')) {
 		resetAll();
 		return;
@@ -266,11 +350,22 @@ document.addEventListener('click', (e) => {
 			return;
 		}
 		if (addDay && t.closest('[data-add-res]')) {
+			// from the add sheet's list: the place first, over the list, which Back brings back as it was
 			it.day = addDay;
 			if (addCtx.t) it.t = addCtx.t;
-		}
-		sheetShow(addSheet(it));
+			addPeek(it, t);
+		} else sheetShow(addSheet(it));
 		setTimeout(addClashNote, 0);
+		return;
+	}
+	if (t.matches('[data-add-peek]')) {
+		// the row itself: the same as its "Add to plan"
+		const a = t.parentElement && t.parentElement.querySelector('[data-add]');
+		if (a) a.click();
+		return;
+	}
+	if (t.matches('[data-add-back]')) {
+		addPeekBack();
 		return;
 	}
 	if (t.matches('[data-add-day]')) {
@@ -501,6 +596,7 @@ document.addEventListener('click', (e) => {
 		return;
 	}
 	if (t.matches('[data-gback]')) {
+		mapView = 'list';
 		mapListSync();
 		return;
 	}
@@ -516,6 +612,7 @@ document.addEventListener('click', (e) => {
 	if (t.matches('[data-cat]')) {
 		// works before the map has loaded too: remembered, applied when it is ready
 		const c = t.dataset.cat;
+		mapView = 'list'; // a category the person picks: the page's places in it
 		const go = () => {
 			if (c === 'all') {
 				mapCat = 'all';
@@ -545,10 +642,18 @@ document.addEventListener('click', (e) => {
 	}
 	if (t.matches('[data-mres]')) {
 		const pid = t.dataset.mres;
-		mapListOpen(false);
+		const p = findPool().find((x) => x.pid === pid);
 		if ($('#mapq')) $('#mapq').blur();
+		// a sight, a shop, food or drink: the finder, beside the map (how it fits the plan); transport and toilets: the pin
+		const info = p && finderFor(p) && placeInfo(pinRef(p));
+		if (info) {
+			finderOpen(info, p.type === 'buy' ? null : pid, `[data-mres="${pid}"]`); // a shop box shop has no pin
+			return;
+		}
+		mapListOpen(false);
 		const w = $('.map-wrap');
 		if (!mapFullOn && w && w.getBoundingClientRect().top < 0) w.scrollIntoView({ block: 'center', behavior: 'instant' });
+		if (p && !map) showCard(p); // the card under the map, while the live map is still on its way (or can't come)
 		withMap(() => map.select(pid));
 		return;
 	}
@@ -694,6 +799,8 @@ document.addEventListener('input', (e) => {
 		return;
 	}
 	if (e.target.id === 'mapq') {
+		mapView = 'list'; // a new query: the page's places for it, the Google search one tap below
+		if (finderAt) finderReset();
 		mapListOpen(true);
 		if (!map) withMap(() => {});
 		return;
@@ -702,19 +809,53 @@ document.addEventListener('input', (e) => {
 		const v = e.target.value;
 		requestAnimationFrame(() => runSearch(v));
 	}
-	if (e.target.id === 'rate') {
+	// the rate, in the budget or the Sections menu (one value, kept on this phone): a usable one takes effect as it's typed
+	if (e.target.matches && e.target.matches('input[data-rate]')) {
 		const v = parseFloat(e.target.value);
-		if (v > 0 && v < 1e5) {
-			rate = v;
+		const ok = v > 0 && v < 1e5;
+		e.target.setAttribute('aria-invalid', ok ? 'false' : 'true');
+		if (ok) {
 			store.set('rate', v);
-			$$('[data-rm]').forEach((el) => {
-				const [a, b] = el.dataset.rm.split(',').map(Number);
-				el.textContent = rmText(a, b);
-			});
-			calcLucky();
+			rateSet(v);
 		}
 	}
 });
+// a rate field left with an unusable entry shows the rate in use again
+document.addEventListener('change', (e) => {
+	if (e.target.matches && e.target.matches('input[data-rate]')) {
+		e.target.value = rate;
+		e.target.setAttribute('aria-invalid', 'false');
+	}
+});
+// every figure that follows the rate, re-texted in place (no redraw, so the field keeps its focus): the home-currency
+// lines, converted figures and labels, the budget chart when it's in the home currency, both rate fields, the reset
+function rateSet(v) {
+	rate = v;
+	if (!homeFirst)
+		$$('[data-rm]').forEach((el) => {
+			const [a, b] = el.dataset.rm.split(',').map(Number);
+			el.textContent = rmText(a, b);
+		});
+	$$('[data-cv]').forEach((el) => {
+		const [a, b] = el.dataset.cv.split(',').map(Number);
+		el.textContent = Money.homeAmount(a, b, rate, CUR.home);
+	});
+	$$('[data-cvt]').forEach((el) => {
+		el.textContent = cvPlain(el.dataset.cvt);
+	});
+	if (homeFirst) {
+		const bars = $('#budget-bars'),
+			air = $('#airport-bars');
+		if (bars) bars.innerHTML = budgetBars();
+		if (air) air.innerHTML = airportBars();
+	}
+	$$('input[data-rate]').forEach((i) => {
+		if (i !== document.activeElement) i.value = rate;
+	});
+	const reset = $('[data-rate-reset]');
+	if (reset) reset.hidden = store.get('rate') == null; // only while this phone has a rate of its own
+	calcLucky();
+}
 document.addEventListener('keydown', (e) => {
 	if (e.target.id === 'q' && e.key === 'Enter') {
 		e.preventDefault();

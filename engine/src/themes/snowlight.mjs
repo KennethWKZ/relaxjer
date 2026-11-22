@@ -4,6 +4,14 @@
 /** the page's paper, light and dark: the browser bar's colour (theme-color) and the installed app's background */
 export const paper = { light: '#f7fafd', dark: '#0a1424' };
 
+/**
+ * The sky behind the page (ADR-20261121-world-motion): scrolling down the trip is a night passing, from dusk at the top
+ * through a starry night with an aurora and falling snow to dawn at the foot. The build lays one fixed layer per name
+ * (snowlight.css draws and moves them, with the scroll only) and, after the footer, the closing scene: the sun coming
+ * up over snowy hills.
+ */
+export const backdrop = { layers: ['night', 'stars', 'aurora', 'snow', 'dawn'], end: true };
+
 const mix = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
 const NIGHT_TOP = [10, 22, 44];
 const NIGHT_LOW = [24, 44, 80];

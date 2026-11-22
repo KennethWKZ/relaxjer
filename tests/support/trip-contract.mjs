@@ -196,6 +196,12 @@ export function checkTrip(trip) {
 		...(ENTRY?.sites || []).map((k) => ['ENTRY.sites', k]),
 		...(ENTRY?.lucky?.sites || []).map((k) => ['ENTRY.lucky.sites', k]),
 		...(ENTRY?.rules || []).filter((r) => r.site).map((r) => ['ENTRY.rules[].site', r.site]),
+		...DAYS.flatMap((d) =>
+			(d.blocks || []).flatMap((b, i) => [
+				...(b.sites || []).map((k) => [`${d.id}.blocks[${i}].sites`, k]),
+				...(b.opts || []).filter((o) => o.site).map((o) => [`${d.id}.blocks[${i}].opts[].site`, o.site]),
+			]),
+		),
 	];
 	for (const [where, k] of siteRefs) if (!SITES[k]) bad(`${where}: no site "${k}" in SITES`);
 	for (const [id, p] of Object.entries(PLACES)) if (!Array.isArray(p.name) || !p.maps) bad(`place ${id}: needs name [zh, en] and a maps query`);

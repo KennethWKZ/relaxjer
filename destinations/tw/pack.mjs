@@ -5,6 +5,9 @@
 export const country = ['台湾', 'Taiwan'];
 export const sym = 'NT$';
 
+/** the Chinese Google's search and map answer in when the page reads Chinese: Traditional, as Taiwan's own signs */
+export const googleZh = 'zh-TW';
+
 /** how to order a drink at a tea shop: [[term, text], …], each [zh, en] */
 export const drinkGuide = [
 	[

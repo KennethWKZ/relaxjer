@@ -5,16 +5,25 @@ const lanternMark = (c) =>
 // activity mark (DAYS[i].motif, else a plain candle) on its colour
 const dayMark = (d) => (Pack.theme ? `<span class="day-mark">${Motif.svg(d.motif) || Motif.candle}</span>` : lanternMark(d.c));
 // the day's activity mark and its name, on the day's panel; nothing for a day without one
-/** a world's picture for a day's activity, or for the overview ('hero'); decorative, so hidden from screen readers */
-const worldArt = (name, cls) =>
-	Object.hasOwn(WORLD_ART, name)
-		? `<div class="${cls}" aria-hidden="true"><img src="${WORLD_ART[name]}" alt="" decoding="async"${cls === 'day-art' ? ' loading="lazy"' : ''}></div>`
-		: '';
+/** a world's picture for a day's activity, or for the overview ('hero'); decorative, so hidden from screen readers. Its
+ *  moving parts (ADR-20261121-world-motion) lie over it at their own boxes; the world's stylesheet moves them while the
+ *  picture is in view (observeArt) and never under reduced motion, so at rest the picture is the whole drawing. */
+const worldArt = (name, cls) => {
+	if (!Object.hasOwn(WORLD_ART, name)) return '';
+	const lazy = cls === 'day-art' ? ' loading="lazy"' : '';
+	const actors = (Object.hasOwn(WORLD_ACTORS, name) ? WORLD_ACTORS[name] : [])
+		.map(
+			(a) =>
+				`<img class="art-actor" data-actor="${esc(`${name}-${a.part}`)}" src="${a.src}" alt="" decoding="async"${lazy} style="left:${a.box[0]}%;top:${a.box[1]}%;width:${a.box[2]}%;height:${a.box[3]}%">`,
+		)
+		.join('');
+	return `<div class="${cls}" data-art="${esc(name)}" aria-hidden="true"><img src="${WORLD_ART[name]}" alt="" decoding="async"${lazy}>${actors}</div>`;
+};
 const motifTag = (d) => (Motif.svg(d.motif) ? `<span class="l-motif">${Motif.svg(d.motif)}${esc(L(Motif.MARKS[d.motif].name))}</span>` : '');
 const seal = () => `<span class="seal"><b aria-hidden="true">定</b>${Z('固定时间', 'Fixed time')}</span>`;
 const list = (items, cls = 'list') => `<ul class="${cls}">${items.map((x) => `<li>${fmt(x)}</li>`).join('')}</ul>`;
 const totalBox = (amt, per, min, max, extra = '') =>
-	`<div class="total"><span class="amt">${esc(amt)}</span><span class="per">${fmt(per)}</span>${min != null ? `<span class="rm" data-rm="${min},${max}">${rmText(min, max)}</span>` : ''}${extra}</div>`;
+	`<div class="total"><span class="amt">${cvHtml(esc(amt), min == null)}</span><span class="per">${fmt(per)}</span>${min != null ? `<span class="rm" data-rm="${min},${max}">${rmText(min, max)}</span>` : ''}${extra}</div>`;
 function figure(id) {
 	const c = credit[id];
 	if (!c) return '';
@@ -103,12 +112,7 @@ const SLOT_MEALS = (slot) =>
 							? ['lunch', 'dinner']
 							: ['lunch', 'dinner']; // only when a food entry lists no meals of its own
 const mealsOf = (f) => (f.meals && f.meals.length ? f.meals : SLOT_MEALS(f.slot || ''));
-const km = (a, b) => {
-	const r = Math.PI / 180,
-		x = (b.lng - a.lng) * r * Math.cos(((a.lat + b.lat) / 2) * r),
-		y = (b.lat - a.lat) * r;
-	return 6371 * Math.hypot(x, y);
-};
+const km = Fit.distKm; // straight-line km between two { lat, lng } (engine/src/core/fit.mjs)
 // a taxi door to door, in minutes: the road runs about 1.3× the straight line at about 22 km/h in the city, plus about
 // 10 min to hail one and get in. One model everywhere: the add sheet, an added stop, the late check and the planner
 // once gave the same leg as 19 and 13 min
@@ -347,16 +351,17 @@ function mealEats(d, it) {
 }
 
 const placeMemo = new Map(); // this page view only; ratings/photos are never stored
-const gBtn = (id) =>
-	GM && id
-		? `<button type="button" class="mlink gbtn" data-gplace="${esc(id)}">${icon('star')}<span>${Z('评分', 'Rating')}</span><span class="dlbl">${Z('和照片', ' & photos')}</span></button>`
+// Google's rating and photos on a tap (only with the planner's key): by the place's Google id, or by its ref
+// (21-place-finder.js), which can look the id up near its pin
+const gBtn = (id, ref) =>
+	GM && (id || ref)
+		? `<button type="button" class="mlink gbtn" data-gplace="${esc(id || '')}"${ref ? ` data-gref="${esc(ref)}"` : ''}>${icon('star')}<span>${Z('评分', 'Rating')}</span><span class="dlbl">${Z('和照片', ' & photos')}</span></button>`
 		: '';
 const gBox = (id) => (GM && id ? '<div class="gplace" hidden></div>' : '');
 async function loadPlace(id, box) {
 	box.innerHTML = `<p class="xsmall">${Z('载入中…', 'Loading…')}</p>`;
 	try {
-		await loadGoogle();
-		const { Place } = await google.maps.importLibrary('places');
+		const { Place } = await gPlaces(); // Google's library, loaded once (21-place-finder.js)
 		let pl = placeMemo.get(id);
 		if (!pl) {
 			pl = new Place({ id });
@@ -377,7 +382,7 @@ async function loadPlace(id, box) {
 		const quoted = card && card.querySelector('.rating-q');
 		if (quoted) quoted.outerHTML = stars;
 		const wd = (pl.regularOpeningHours && pl.regularOpeningHours.weekdayDescriptions) || [];
-		const todayI = (new Date(Date.now() + 8 * 3600e3).getUTCDay() + 6) % 7;
+		const todayI = Time.weekdayIndex(tpNow().date); // today on the trip's own clock (Google lists Monday first)
 		const hrs = wd.length
 			? `<details class="ghours"><summary>${icon('clock')}${Z('Google 营业时间', 'Google opening hours')}${icon('chev', 'chev')}</summary><ul>${wd.map((x, i) => `<li${i === todayI ? ' class="today"' : ''}>${esc(x)}</li>`).join('')}</ul></details>`
 			: '';
@@ -392,8 +397,10 @@ async function loadPlace(id, box) {
 								.join('')}</div>`
 						: ''
 				}`;
+		return pl;
 	} catch {
 		box.innerHTML = `<p class="xsmall">${Z('暂时查不到 Google 资料（可能额度用完）。点「地图」看。', 'Google details unavailable (quota may be used up). Tap “Map”.')}</p>`;
+		return null;
 	}
 }
 const md = (d) => `${+d.slice(5, 7)}/${+d.slice(8, 10)}`;
@@ -425,7 +432,7 @@ function drinkCard(x) {
       ${(lang === 'en' ? x.hours_en : x.hours_zh) ? `<p class="xsmall">${icon('clock')} ${escText(lang === 'en' ? x.hours_en : x.hours_zh)}</p>` : ''}
       ${rrLine(x.gpid, x.lat, x.lng)}
       ${closedNote(x)}
-      <div class="links-row">${nativeChip(x.name_trad, x.name_roma)}${extI(gmSearch(q, x.gpid), Z('地图', 'Map'), 'pin')}${extI(gmDir(q, 'walking', undefined, x.gpid), Z('路线', 'Directions'), 'route')}${addBtn(drinkName(x), x.lat, x.lng, x.gpid, q, x.address_trad)}</div>
+      <div class="links-row">${nativeChip(x.name_trad, x.name_roma)}${gBtn(x.gpid, `d:${x.id}`)}${extI(gmSearch(q, x.gpid), Z('地图', 'Map'), 'pin')}${extI(gmDir(q, 'walking', undefined, x.gpid), Z('路线', 'Directions'), 'route')}${addBtn(drinkName(x), x.lat, x.lng, x.gpid, q, x.address_trad, `d:${x.id}`)}</div>
     </article>`;
 }
 function placeCardHTML(id) {
@@ -465,7 +472,7 @@ function foodCard(f) {
       ${closedNote(f)}
       ${(lang === 'en' ? f.note_en : f.note_zh) ? `<p class="note">${esc(lang === 'en' ? f.note_en : f.note_zh)}</p>` : ''}
       ${gBox(f.gpid)}
-      <div class="links-row">${nativeChip(f.name_trad, f.name_roma)}${gBtn(f.gpid)}${extI(gmSearch(q, f.gpid), Z('地图', 'Map'), 'pin')}${extI(gmDir(q, 'transit', undefined, f.gpid), Z('路线', 'Directions'), 'route')}${f.site ? extI(f.site, Z('官网', 'Website'), 'ext') : ''}${addBtn(name, f.lat, f.lng, f.gpid, q, f.address_trad)}</div>
+      <div class="links-row">${nativeChip(f.name_trad, f.name_roma)}${gBtn(f.gpid, `f:${(EXTRA.food || []).indexOf(f)}`)}${extI(gmSearch(q, f.gpid), Z('地图', 'Map'), 'pin')}${extI(gmDir(q, 'transit', undefined, f.gpid), Z('路线', 'Directions'), 'route')}${f.site ? extI(f.site, Z('官网', 'Website'), 'ext') : ''}${addBtn(name, f.lat, f.lng, f.gpid, q, f.address_trad, `f:${(EXTRA.food || []).indexOf(f)}`)}</div>
     </article>`;
 }
 const srcShort = (s = '') =>

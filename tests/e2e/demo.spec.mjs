@@ -91,4 +91,13 @@ test.describe('the Sapporo live demo', { tag: '@demo' }, () => {
 		await expect(page.locator('#d3 [data-native] .nat-t').first()).toHaveAttribute('lang', 'ja');
 		await expect(page.locator('#d3 .l-motif')).toBeVisible();
 	});
+
+	test("a flying day's plane climbs into its picture once, then rests where it's drawn and rides the air", async ({ page }) => {
+		await page.goto('/trip-demo-sapporo.html#d1');
+		await expect(page.locator('#app [data-sec]').first()).toBeAttached();
+		const jet = page.locator('#d1 .day-art > .art-actor[data-actor="plane-jet"]');
+		await expect(page.locator('#d1 .day-art')).toHaveClass(/\bis-live\b/);
+		await expect(jet, 'arrived').toHaveAttribute('data-arrived', '', { timeout: 6000 });
+		expect(await jet.evaluate((el) => [getComputedStyle(el).opacity, getComputedStyle(el).animationIterationCount])).toEqual(['1', 'infinite']);
+	});
 });

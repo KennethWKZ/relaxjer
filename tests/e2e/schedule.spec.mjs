@@ -2,7 +2,7 @@
 // the next fixed item.
 import { test, expect, openTrip } from '../support/fixtures.mjs';
 import { setStored } from '../support/page.mjs';
-/* global DAYS */
+/* global DAYS, SITES */
 
 // tagged @demo: stop ids, times and dates are the demo trip's
 test.describe('timeline rules', { tag: '@demo' }, () => {
@@ -84,4 +84,17 @@ test('the Weather section says where the forecast comes from and when it was che
 	const line = page.locator('#weather [data-fc-checked]');
 	await expect(line).toHaveCount(1);
 	await expect(line).toContainText('Open-Meteo');
+});
+
+test("a day card's site links show, on its cards and on each option of a choice", async ({ page }) => {
+	await openTrip(page);
+	const want = await page.evaluate(() =>
+		DAYS.flatMap((d) =>
+			(d.blocks || []).flatMap((b) =>
+				[...(b.sites || []), ...(b.opts || []).map((o) => o.site).filter(Boolean)].map((s) => ({ day: d.id, url: SITES[s].url })),
+			),
+		),
+	);
+	test.skip(!want.length, 'no day card on this trip links a site');
+	for (const { day, url } of want) await expect(page.locator(`#${day} a[href="${url}"]`).first(), `${day}: ${url}`).toBeAttached();
 });

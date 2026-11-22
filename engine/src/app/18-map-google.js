@@ -30,7 +30,7 @@ function loadGoogle() {
 		};
 		const sc = document.createElement('script');
 		sc.async = true;
-		sc.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(GM.key)}&v=weekly&loading=async&libraries=marker,places&language=${lang === 'en' ? 'en' : 'zh-TW'}&region=TW&callback=__tpGmInit`;
+		sc.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(GM.key)}&v=weekly&loading=async&libraries=marker,places&language=${encodeURIComponent(gLang())}${gRegion() ? `&region=${gRegion().toUpperCase()}` : ''}&callback=__tpGmInit`;
 		sc.onerror = () => {
 			clearTimeout(t);
 			rej(new Error('load'));
@@ -152,6 +152,7 @@ function mountGoogle() {
 	let meCirc = null;
 	let meLine = null;
 	let rideLine = null; // a split day's route (07-sections.js splitHTML), dashed in the day's colour
+	let spotMk = null; // the finder's place without a pin
 	m.controls[g.ControlPosition.RIGHT_BOTTOM].push(loc);
 	const VIEWS = { all: GEO.bbox, ...Object.fromEntries((TRIP.mapViews || []).map((v) => [v.id, v.bbox])) };
 	const bounds = (b) => ({ west: b[0], south: b[1], east: b[2], north: b[3] });
@@ -197,6 +198,19 @@ function mountGoogle() {
 		},
 		refit() {
 			/* Google resizes itself */
+		},
+		// a place with no pin of its own (a Google result in the finder): one marker of its own, and the map on it
+		spot(p) {
+			if (spotMk) spotMk.map = null;
+			spotMk = null;
+			if (!p) return;
+			iw.close();
+			const el = document.createElement('div'); // a div, not a button: the marker is the control (Google's rule)
+			el.className = 'lpin sel spot';
+			el.innerHTML = pinSVG({ type: 'mine', days: [] });
+			spotMk = new g.marker.AdvancedMarkerElement({ map: m, position: { lat: p.lat, lng: p.lng }, content: el, title: p.n, zIndex: 998 });
+			m.panTo({ lat: p.lat, lng: p.lng });
+			if (m.getZoom() < 15.5) m.setZoom(16);
 		},
 		me(ll, acc, hd) {
 			if (!meMk) {

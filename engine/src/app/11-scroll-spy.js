@@ -46,6 +46,22 @@ function observeLanterns() {
 	);
 	$$('.day .lantern').forEach((l) => barSpy.observe(l));
 }
+/* a destination world's pictures move only while they're on screen (ADR-20261121-world-motion): each one is `is-live`
+   while any of it is in view, and the world's stylesheet runs its motion only there, so a picture scrolled away stops
+   and costs nothing. A part that arrives (a finite animation) is marked when it has, so it rests where it's drawn from
+   then on and doesn't arrive again on every scroll past. Under reduced motion the stylesheet runs nothing at all. */
+let artSpy;
+function observeArt() {
+	if (artSpy) artSpy.disconnect();
+	const art = $$('.day-art, .world-hero');
+	if (!art.length) return;
+	if (!('IntersectionObserver' in window)) return art.forEach((a) => a.classList.add('is-live'));
+	artSpy = new IntersectionObserver((ents) => ents.forEach((e) => e.target.classList.toggle('is-live', e.isIntersecting)), { threshold: 0 });
+	art.forEach((a) => artSpy.observe(a));
+}
+document.addEventListener('animationend', (e) => {
+	if (e.target instanceof HTMLImageElement && e.target.classList.contains('art-actor')) e.target.dataset.arrived = '';
+});
 let active = '';
 function setActive(id) {
 	if (id === active) return;

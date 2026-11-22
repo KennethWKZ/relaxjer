@@ -59,6 +59,14 @@ test('day ids must run d1…dN, and one free-time day at most', () => {
 	trip.FLIGHTS.ret.plan.steps[0].at = ['soon'];
 	trip.AIRPORT.sites = ['nowhere'];
 	trip.AIRPORT.terminals[1].place = 'atlantis';
+	const day = trip.DAYS.find((d) => (d.blocks || []).some((b) => b.type === 'list'));
+	const card = day.blocks.findIndex((b) => b.type === 'list');
+	day.blocks[card].sites = ['nowhere'];
+	day.blocks.push({
+		type: 'decide',
+		h: ['选', 'Pick'],
+		opts: [{ k: 'a', mark: 'A', name: ['甲', 'A'], cost: ['', ''], when: ['', ''], site: 'elsewhere' }],
+	});
 	const problems = checkTrip(trip).join('\n');
 	for (const want of [
 		'day ids must run d1…d7 in order',
@@ -66,6 +74,8 @@ test('day ids must run d1…dN, and one free-time day at most', () => {
 		'steps[0].at',
 		'AIRPORT.sites: no site "nowhere"',
 		'AIRPORT.terminals.1.',
+		`${day.id}.blocks[${card}].sites: no site "nowhere"`,
+		'opts[].site: no site "elsewhere"',
 	])
 		assert.match(problems, new RegExp(want.replace(/[…[\]]/g, '.')));
 });

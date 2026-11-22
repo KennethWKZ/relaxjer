@@ -85,13 +85,24 @@ function openDialog(d) {
 			if (d.open) d.close();
 		});
 		d._ov = o;
-		d.addEventListener('close', () => dropOverlay(o), { once: true }); // Esc: the close event comes later, that's fine
+		// Esc: the close event comes later, that's fine; a step inside the dialog (the add sheet's preview) goes with it
+		d.addEventListener(
+			'close',
+			() => {
+				dropSubs(d);
+				dropOverlay(o);
+			},
+			{ once: true },
+		);
 	});
 }
+// the history steps a dialog took for views inside it (d._subs): they leave with the dialog, in the same step back
+const dropSubs = (d) => (d._subs || []).splice(0).forEach(dropOverlay);
 // our own closes drop the history step right away: the close event is async, and a jump right after must come after it
 function closeDialog(d) {
 	if (!d) return;
 	if (d.open) d.close();
+	dropSubs(d);
 	if (d._ov) {
 		dropOverlay(d._ov);
 		d._ov = null;
@@ -171,6 +182,7 @@ function goTo(el, block = 'start', after, instant) {
 function sheetShow(html) {
 	const d = $('#placeSheet');
 	if (d && d.open) {
+		dropSubs(d); // a new view in the sheet: the one before it (and its Back step) is gone
 		d.querySelector('.psheet-body').innerHTML = html;
 		d.scrollTop = 0;
 	} else openSheet(html);
@@ -178,6 +190,7 @@ function sheetShow(html) {
 function openSheet(html, listId) {
 	const d = $('#placeSheet');
 	if (!d) return;
+	dropSubs(d);
 	d.innerHTML = `<div class="psheet-top"><span class="psheet-grip" aria-hidden="true"></span><button type="button" class="icon-btn" data-close aria-label="${Z('关闭', 'Close')}">${icon('x')}</button></div>
       <div class="psheet-body">${html}${listId && (document.getElementById(listId) || LAZY_ID.has(listId)) ? `<a class="mlink psheet-go" href="#${esc(listId)}" data-go>${icon('list')}${Z('在清单里看', 'Show in the list')}</a>` : ''}</div>`;
 	d.querySelectorAll('.psheet-body [id]').forEach((x) => x.removeAttribute('id'));

@@ -57,7 +57,11 @@ code that makes the first one.
 What every trip page keeps. It came from the first trip, and the tests characterise it. Every part of the page, for
 planners, is in [`guides/trip-page.md`](../../guides/trip-page.md).
 
-- **Costs:** per-person costs next to group totals, both converted to the home currency (the rate is editable).
+- **Costs:** per-person costs next to group totals, both converted to the home currency (the rate is editable, in the
+  budget and the Sections menu, and resets to the trip's). A currency switch beside the language switch shows every
+  figure in the trip's currency, including amounts inside notes, in the home currency first, never losing the
+  original (beside it or on the line under it), rounded to what a rate can claim; other currencies, times and
+  distances stay as written. The choice and the rate stay on each phone; group sync never carries them.
 - **Timeline:**
   - each day's timeline with fixed times that never move;
   - times tied to the flights, and a flight-delay editor;
@@ -65,7 +69,8 @@ planners, is in [`guides/trip-page.md`](../../guides/trip-page.md).
     anchoring the day;
   - your own added stops: a per-day button, a "+" under each timeline dot that lands right after its stop, a
     getting-there check (walk ×1.4, taxi, metro; "Use HH:MM" when too early; when to leave for the next timed stop),
-    clash and deadline checks, a caution when a day already has 4 added stops, and Undo on the toast after a removal (every page). With group sync, a link isn't
+    clash and deadline checks, a caution when a day already has 4 added stops, and Undo on the toast after a removal (every page). A place picked
+    from the add sheet's list opens first (what the page knows of it, with Add), and Back finds the list as it was. With group sync, a link isn't
     needed: they reach every phone marked with who added them. Each phone changes or removes only the stops it added,
     and "Remove the N stops I added" clears them; a planner can change any, clear one phone's, block one, and put the
     whole plan back. A phone's "Recently removed" list (30 kept, the newest 10 shown) offers Put back. Only stops are
@@ -79,7 +84,11 @@ planners, is in [`guides/trip-page.md`](../../guides/trip-page.md).
 - **Map:**
   - Google first, MapLibre as fallback;
   - Map and Directions links in Google Maps or Apple Maps, chosen per phone;
-  - categories, search, a list and sorting;
+  - categories, search, a list and sorting; Google's results stay put while the phone's location updates;
+  - a place finder: a searched place's nearest stop on each day, the day it fits best, and one tap into the add sheet,
+    from the page's own data and estimates, never a paid routing call (ADR-20261122-place-finder-best-day);
+  - one details view for any place (our photo, the day's hours, the address), with Google's rating and photos on a tap
+    when the page has the key;
   - a live location dot, asked for only from a card that says why;
   - an offline transit planner that needs no routing API;
   - live bike-share counts where the city has them.
@@ -88,7 +97,11 @@ planners, is in [`guides/trip-page.md`](../../guides/trip-page.md).
 - **The destination's own look:** a pack may dress the page in its world (Sapporo: Snow Light Path), with its own
   colours, drawings, browser-bar colour and home-screen icon, while everything the group operates stays the same; each
   day can show an activity mark the planner picks. Day colours stay at 4.5:1 for their text and 3:1 on the page in both
-  themes, and motion never runs behind what people read (ADR-20261117-destination-themes).
+  themes, and motion never runs behind what people read (ADR-20261117-destination-themes). A world's pictures may move
+  (each activity its own way: steam, a van on the road, penguins waddling), only inside the picture, only while it's on
+  screen, and never under reduced motion; its sky behind the page follows the scroll alone and keeps every word at
+  4.5:1; its stickers never cover a word or a tap; on a phone the overview's scene never pushes Now and Next off the
+  first screen (ADR-20261121-world-motion, ADR-20261121-world-stickers).
 - **Destination info:** a checklist (groups marked shared tick for everyone with group sync), weather, tax refund with
   minimum spend, airport transfer options decided on the day, a shopping box, a free-day time budget worked back from
   the flight.
@@ -101,7 +114,8 @@ planners, is in [`guides/trip-page.md`](../../guides/trip-page.md).
   - with group sync, a phone's first open asks once for a name in a welcome sheet (Not now is fine), and until it has
     one a bar under the header asks again (Add name, or Later, which hides it for a day). Group sync itself stays a row
     in the Sections menu;
-  - a language switch that keeps your place, and a theme switch (light, dark, follow the phone);
+  - a language switch that keeps your place, a currency switch beside it that does the same, and a theme switch
+    (light, dark, follow the phone);
   - search in both languages (a Traditional character finds its Simplified form), with highlights and previous / next;
   - location asked for only from a card that explains a refusal, a forgotten answer or an approximate position.
 - **Speed and build:**

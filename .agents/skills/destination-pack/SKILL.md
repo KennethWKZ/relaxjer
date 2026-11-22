@@ -28,6 +28,9 @@ source and the date you checked it. A fact without a source doesn't go in.
 - Only the exports the engine reads (the table in `destinations/README.md`). A new capability needs an engine change
   first: document the export in that table in the same change.
 - Text is `[zh, en]` pairs, as elsewhere, until story step 4.
+- **A world for the page** (`theme`, ADR-20261117-destination-themes): pick one that fits the place and season, or
+  draw a new one under `engine/src/themes/` (its palette, a banner per activity mark, and their motion). A trip whose
+  packs name none gets the plain page. Design work handed to a subagent runs on the strongest model at `xhigh` effort or above.
 
 ## 3. Pipeline steps (if the city needs them)
 

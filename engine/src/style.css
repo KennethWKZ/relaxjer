@@ -3035,6 +3035,28 @@ details.wgroup > summary .chev {
 	font-size: var(--fs-sm);
 	font-weight: 750;
 }
+/* the currency button beside it, the same family: it names the currency the figures would switch to. A three-letter
+   name (HKD, NT$) steps down a size to stay inside the 44 px square */
+.icon-btn.cur-btn[hidden] {
+	display: none;
+}
+.cur-btn.long {
+	font-size: var(--fs-xs);
+	letter-spacing: -0.01em;
+}
+/* a phone's header then holds the brand, Install, search, currency and language: while Install shows, it keeps its word
+   but drops its icon, and the brush brand steps down, so a six-character brand still fits at 390 px in both languages */
+@media (max-width: 439px) {
+	.bar-row:has(#curBtn:not([hidden])):has(#homeBtn:not([hidden])) .brand-name {
+		font-size: 1.25rem;
+	}
+	.bar-row:has(#curBtn:not([hidden])) .icon-btn.home-hd:not([hidden]) {
+		padding: 0 10px;
+	}
+	.bar-row:has(#curBtn:not([hidden])) .icon-btn.home-hd svg.i {
+		display: none;
+	}
+}
 .stop-eat {
 	grid-column: 1 / -1;
 	margin-top: 10px;
@@ -4250,6 +4272,18 @@ svg.i.flip {
 	font-weight: 650;
 	white-space: nowrap;
 }
+/* a figure shown in the home currency keeps its number together, and the original it came from follows it, quieter
+   (the same softening as the chips' home-currency line, so it reads on paper and on every lantern) */
+.cv {
+	white-space: nowrap;
+}
+.cv-o {
+	font-weight: 600;
+	opacity: 0.8;
+}
+.lantern .cv-o {
+	opacity: var(--cm, 0.8);
+}
 .kv dd .dd-each {
 	display: block;
 	color: var(--ink-3);
@@ -4965,17 +4999,201 @@ dialog.toc {
 	color: #1a73e8;
 	flex: none;
 }
-.gres {
-	padding: 8px 12px;
+
+/* the map's place finder (21-place-finder.js): a place against the plan, in the results' box, so it sits where the
+   thumb just was and the map stays in view below it */
+.pfind {
+	scroll-margin-top: calc(var(--bar-h) + 8px);
 }
-.gres + .gres {
+.pf-body {
+	padding: 12px 12px 14px;
+}
+.pf-body > * + * {
+	margin-top: 10px;
+}
+.pf-body > .sub-h {
+	margin-top: 16px;
+}
+.pf-in,
+.pf-none {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	flex-wrap: wrap;
+	font-size: var(--fs-sm);
+	color: var(--ink-2);
+	font-weight: 650;
+}
+.pf-in svg.i,
+.pf-none svg.i {
+	flex: none;
+}
+/* the day it fits best: a filled panel with a check and its words (the other days are plain rows); the day's colour
+   stays in its chip, where it means "this day" */
+.pf-best {
+	padding: 12px;
+	border: 1.5px solid var(--ink-3);
+	border-radius: var(--r-md);
+	background: var(--paper-2);
+}
+.pf-best-h {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px 8px;
+	align-items: center;
+	font-weight: 750;
+}
+.pf-best-h svg.i {
+	flex: none;
+	width: 18px;
+	height: 18px;
+	color: var(--good);
+}
+.pf-date {
+	font-size: var(--fs-sm);
+	color: var(--ink-2);
+}
+.pf-add-t {
+	display: grid;
+	min-width: 0;
+}
+.pf-add-t small {
+	font-size: var(--fs-xs);
+	font-weight: 650;
+	opacity: 0.86;
+	overflow-wrap: anywhere;
+}
+.pf-why {
+	margin-top: 4px;
+	font-size: var(--fs-sm);
+	color: var(--ink-2);
+	overflow-wrap: anywhere;
+}
+.pf-best .warn {
+	margin-top: 8px;
+}
+.go-btn.pf-add {
+	width: 100%;
+	min-height: 56px;
+	margin-top: 10px;
+	padding: 8px 14px;
+	justify-content: flex-start;
+	text-align: left;
+}
+.pf-add svg.i {
+	flex: none;
+}
+.pf-days {
+	list-style: none;
+	margin: 6px 0 0;
+	padding: 0;
+}
+.pf-days li + li {
 	border-top: 1px solid var(--rule);
 }
-.gres-b {
+.pf-day {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	width: 100%;
+	min-height: 56px;
+	padding: 8px 4px;
+	border: 0;
+	border-radius: var(--r-sm);
+	background: none;
+	font: inherit;
+	color: inherit;
+	text-align: left;
+}
+button.pf-day {
+	cursor: pointer;
+	transition: background-color 160ms ease;
+}
+button.pf-day:active,
+button.pf-day:hover {
+	background: var(--paper-2);
+}
+.pf-day .daychip {
+	flex: none;
+}
+.pf-day-b {
+	flex: 1;
+	min-width: 0;
 	display: grid;
 }
-.gres .links-row {
-	margin-top: 6px;
+.pf-day-n {
+	font-weight: 750;
+	overflow-wrap: anywhere;
+}
+.pf-day-m {
+	font-size: var(--fs-xs);
+	color: var(--ink-3);
+	font-weight: 650;
+}
+.pf-off {
+	font-size: var(--fs-xs);
+	color: var(--bad);
+}
+.pf-day.is-off .pf-day-n,
+.pf-day.is-off .daychip {
+	opacity: 0.72;
+}
+svg.i.pf-plus {
+	flex: none;
+	width: 20px;
+	height: 20px;
+	color: var(--link);
+}
+.pfind .hang-name:focus,
+.add-place .hang-name:focus,
+.add-name:focus {
+	outline: none;
+}
+/* the add sheet's list: the whole row opens the place (the same as its Add) */
+.idea-go {
+	flex: 1;
+	min-width: 0;
+	min-height: 44px;
+	padding: 4px 6px 4px 0;
+	border: 0;
+	border-radius: var(--r-sm);
+	background: none;
+	font: inherit;
+	color: inherit;
+	text-align: left;
+	cursor: pointer;
+	transition: background-color 160ms ease;
+}
+.idea-go:active,
+.idea-go:hover {
+	background: var(--paper-2);
+}
+.add-place {
+	margin-top: 8px;
+}
+/* under the sheet's heading, a card's hanging string would read as a stray caret */
+.add-place::before {
+	content: none;
+}
+/* the add sheet's Add stays in reach at the sheet's foot, however long the place and its checks run */
+.links-row.add-act {
+	position: sticky;
+	bottom: 0;
+	z-index: 1;
+	margin: 12px -16px -18px;
+	padding: 10px 16px 18px;
+	border-top: 1px solid var(--rule);
+	background: var(--paper);
+}
+/* a field brought into view (the keyboard coming up) stops above that foot, not under it */
+.psheet-body:has(.add-act) input {
+	scroll-margin-bottom: 96px;
+}
+.add-place .addr,
+.add-place .links-row,
+.add-place .gplace,
+.add-place [data-add-hours] > * {
+	margin-top: 8px;
 }
 
 /* Day 6: time budget + free-time ideas */
@@ -5567,6 +5785,56 @@ h2.landed {
 	font: inherit;
 	font-weight: 700;
 	cursor: pointer;
+}
+/* amounts and rate, in the Sections sheet: which currency leads (a segmented choice, the pressed side filled and
+   ticked) and the rate, on one Fog Grey card like the rows around it */
+.toc-cur {
+	margin-top: 8px;
+}
+.toc-cur-in {
+	display: grid;
+	gap: 10px;
+	margin-top: 8px;
+	padding: 12px 14px;
+	border-radius: 12px;
+	background: var(--paper-2);
+}
+.toc-cur-seg {
+	display: flex;
+}
+.toc-cur-seg button {
+	flex: 1 1 0;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	min-width: 0;
+}
+.toc-cur-seg button b {
+	font-weight: 800;
+}
+.toc-cur-seg button span {
+	font-weight: 600;
+}
+.toc-cur-seg svg.i {
+	width: 18px;
+	height: 18px;
+	flex: none;
+}
+.toc-cur .fx {
+	padding: 0;
+	background: none;
+}
+.toc-cur [hidden] {
+	display: none;
+}
+.toc-cur .toc-rate-reset {
+	justify-self: start;
+	background: var(--paper);
+}
+input[data-rate][aria-invalid='true'] {
+	border-color: var(--bad);
+	box-shadow: inset 0 0 0 1px var(--bad);
 }
 @media (max-width: 599px) {
 	#themeBtn {

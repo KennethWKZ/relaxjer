@@ -54,6 +54,24 @@ trip. Lessons that hold for every country live in [`knowledge/`](../../knowledge
   pack has no `bikeShare`.
 - **Four people fill one taxi**, without big suitcases: with bags, a jumbo taxi or a charter van.
 
+## Sights with look-alikes and traps (Hokkaido)
+
+- **Biei's "lone tree" usually means the Christmas Tree** (クリスマスツリーの木): one narrow spruce alone in a field. The
+  others are easy to mix up: the Ken & Mary Tree (ケンとメリーの木, a broad poplar by a road, from a 1972 car advert), the
+  Seven Stars Tree (セブンスターの木) and the Parent and Child Tree (親子の木). Confirm which one the group means
+  (`trip-intake`). Every tree stands on private farmland: no stepping into the fields, and no drones anywhere in Biei.
+  Found while planning a winter trip, 2026-11.
+- **The Christmas Tree in winter:** the road beside it is walk-only with no stopping, so a charter can't take the group
+  there; the Christmas Tree Liner bus from the tourist centre by Biei Station does, and needs booking. It runs only
+  part of the winter (the 2026–27 season starts in early January). https://www.biei-hokkaido.jp/en/202627ws ,
+  checked 2026-11; recheck each season.
+- **Hill of the Buddha** (頭大仏, Makomanai Takino Cemetery, south Sapporo): winter viewing 10:00–15:00, ¥1,000 an adult
+  (¥1,000 notes or a card). The lavender hill is snow, and the snowfields are closed; the path is 135 m with a 40 m
+  tunnel, and wheeled cases aren't allowed on it. No taxi rank, and the cemetery doesn't call one, so it fits a charter
+  day (for example on the way out of Sapporo) or a booked taxi both ways. Bus: Chuo Bus 真108 from Makomanai Station,
+  ¥500; its winter timetable wasn't readable. https://www.takinoreien.com/pages/107/ ,
+  https://www.takinoreien.com/pages/108/ , https://www.takinoreien.com/pages/315/ , checked 2026-11-21.
+
 ## Shops and data
 
 - **Convenience stores and drugstores:** Seicomart (Hokkaido's own chain), Lawson, FamilyMart, Sapporo Drug (サツドラ).

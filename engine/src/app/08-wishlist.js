@@ -47,7 +47,7 @@ function wishCard(w) {
       ${rrLine(br.gpid, br.lat, br.lng)}
       ${closedNote(br)}
       ${gBox(br.gpid)}
-      <div class="links-row">${nativeChip(w.name_trad, w.name_roma)}${gBtn(br.gpid)}${extI(gmSearch(q, br.gpid), Z('地图', 'Map'), 'pin')}${extI(gmDir(q, 'transit', undefined, br.gpid), Z('路线', 'Directions'), 'route')}${w.site ? extI(w.site, Z('官网', 'Website'), 'ext') : ''}${addBtn(wName(w), br.lat, br.lng, br.gpid, q, br.address_trad)}</div>
+      <div class="links-row">${nativeChip(w.name_trad, w.name_roma)}${gBtn(br.gpid, `w:${w.id}:${w.branches.indexOf(br)}`)}${extI(gmSearch(q, br.gpid), Z('地图', 'Map'), 'pin')}${extI(gmDir(q, 'transit', undefined, br.gpid), Z('路线', 'Directions'), 'route')}${w.site ? extI(w.site, Z('官网', 'Website'), 'ext') : ''}${addBtn(wName(w), br.lat, br.lng, br.gpid, q, br.address_trad)}</div>
       ${(lang === 'en' ? w.note_en : w.note_zh) ? `<details class="more wnote"><summary>${icon('info')}${Z('备注', 'Notes')}${icon('chev', 'chev')}</summary><div class="more-body"><p class="note">${escText(lang === 'en' ? w.note_en : w.note_zh)}</p></div></details>` : ''}
       ${others.length ? `<details class="more branches"><summary>${icon('list')}${Z('其他分店', 'Other branches')} (${others.length})${icon('chev', 'chev')}</summary><div class="more-body"><ul class="blist">${others.map((b) => `<li><p class="small"><strong>${esc(lang === 'en' ? b.label_en || b.label_zh || '' : b.label_zh || '')}</strong> ${escText(b.address_trad || '')}</p>${(lang === 'en' ? b.mrt_en : b.mrt_zh) ? `<p class="xsmall">${escText(lang === 'en' ? b.mrt_en : b.mrt_zh)}${(lang === 'en' ? b.hours_en : b.hours_zh) ? ` · ${escText(lang === 'en' ? b.hours_en : b.hours_zh)}` : ''}</p>` : ''}${closedNote(b)}<div class="links-row">${ext(gmSearch(wQuery(b, w)), Z('地图', 'Map'), 'pin')}${ext(gmDir(wQuery(b, w), 'transit'), Z('路线', 'Directions'), 'route')}</div></li>`).join('')}</ul></div></details>` : ''}
     </article>`;
@@ -153,9 +153,35 @@ function secWish() {
 
 function budgetChip(d) {
 	const b = d.blocks.find((x) => x.type === 'budget');
-	if (!b) return `<span class="chip">${icon('money')}${esc(L(d.budgetChip))}</span>`;
+	if (!b) return `<span class="chip">${icon('money')}${cvHtml(esc(L(d.budgetChip)))}</span>`;
 	const rm = (a, z) => `<span class="chip-rm nw" data-rm="${a},${z}">${rmText(a, z)}</span>`; // on a narrow phone the home-currency figure drops under the NT$ instead of overflowing
-	return `<a class="chip chip-link chip-2l" href="#${d.id}-budget">${icon('money')}<span class="chip-lines"><span><span class="nw">${Z('每人', 'Each')} <b>${eachText(b.min, b.max)}</b>${b.est ? Z('（估）', ' (est.)') : ''}</span> ${rm(each(b.min), each(b.max))}</span><span class="chip-sub"><span class="nw">${Z(GROUP[0], 'Group')} ${CUR.sym}${num(b.min)}–${num(b.max)}</span> ${rm(b.min, b.max)}</span></span></a>`;
+	return `<a class="chip chip-link chip-2l" href="#${d.id}-budget">${icon('money')}<span class="chip-lines"><span><span class="nw">${Z('每人', 'Each')} <b>${eachText(b.min, b.max)}</b>${b.est ? Z('（估）', ' (est.)') : ''}</span> ${rm(each(b.min), each(b.max))}</span><span class="chip-sub"><span class="nw">${Z(GROUP[0], 'Group')} ${homeFirst ? money(b.min, b.max) : `${CUR.sym}${num(b.min)}–${num(b.max)}`}</span> ${rm(b.min, b.max)}</span></span></a>`;
+}
+
+// the budget chart: each day's group spend, in the trip's currency or, when the phone reads the home currency, in that
+// (its scale too). Redrawn on its own when the rate changes
+function budgetBars() {
+	const hv = (v) => (homeFirst ? v / rate : v);
+	const hn = (v) => (homeFirst ? Money.roundHome(v / rate).toLocaleString('en-US') : num(v));
+	const dayRows = DAYS.map((d) => {
+		const b = d.blocks.find((x) => x.type === 'budget');
+		return b ? { d, b } : null;
+	}).filter(Boolean);
+	const ax = Chart.axis(Math.max(0, ...dayRows.map((r) => hv(r.b.max))));
+	const maxv = ax.top;
+	return `<div class="bars">${dayRows
+		.map(({ d, b }) => {
+			const l = (hv(b.min) / maxv) * 100,
+				w = ((hv(b.max) - hv(b.min)) / maxv) * 100;
+			// the figure sits after the bar's end unless it would run past the track: the longer of its two lines (the
+			// range, and each person's share; a CJK character counts twice) flips it sooner, ~2.8% of a phone's track a character
+			const wide = (t) => [...t].reduce((n, ch) => n + (ch > '\u2e7f' ? 2 : 1), 0);
+			const chars = Math.max(wide(`${hn(b.min)}–${hn(b.max)}`), wide(`${Z('每人', '')}${hn(each(b.min))}–${hn(each(b.max))}${Z('', ' each')}`));
+			const lft = l + w > Math.min(70, 100 - chars * 2.8);
+			return `<a class="bar-row2 barlink" href="#${d.id}-budget" style="${colorVars(d.c)}"><span class="bar-lab">${+d.date.slice(8)} ${esc(L(d.dow))}<small>Day ${d.n}${b.est ? Z(' · 估', ' · est.') : ''}</small></span><div class="bar-track"><div class="bar-grid"></div><div class="bar-range ${b.est ? 'est' : ''}" style="left:${l}%;width:${w}%"></div><span class="bar-val${lft ? ' lft' : ''}" style="${lft ? `right:calc(${100 - l}% + 6px)` : `left:calc(${l + w}% + 6px)`}">${hn(b.min)}–${hn(b.max)}<span class="bar-each">${Z('每人', '')}${hn(each(b.min))}–${hn(each(b.max))}${Z('', ' each')}</span></span></div></a>`;
+		})
+		.join('')}</div>
+      ${axisHTML(ax)}`;
 }
 
 function secBudget() {
@@ -163,36 +189,22 @@ function secBudget() {
 	// every group figure here also says what it is at home: each person's share on the rows, the group's on the reserve
 	const eachRm = (a, b) => `<span data-rm="${each(a)},${each(b)}">${rmText(each(a), each(b))}</span>`;
 	const sg = numsIn(L(B.suggest));
-	const dayRows = DAYS.map((d) => {
-		const b = d.blocks.find((x) => x.type === 'budget');
-		return b ? { d, b } : null;
-	}).filter(Boolean);
-	const ax = Chart.axis(Math.max(0, ...dayRows.map((r) => r.b.max)));
-	const maxv = ax.top;
-	const bars = dayRows
-		.map(({ d, b }) => {
-			const l = (b.min / maxv) * 100,
-				w = ((b.max - b.min) / maxv) * 100;
-			return `<a class="bar-row2 barlink" href="#${d.id}-budget" style="${colorVars(d.c)}"><span class="bar-lab">${+d.date.slice(8)} ${esc(L(d.dow))}<small>Day ${d.n}${b.est ? Z(' · 估', ' · est.') : ''}</small></span><div class="bar-track"><div class="bar-grid"></div><div class="bar-range ${b.est ? 'est' : ''}" style="left:${l}%;width:${w}%"></div><span class="bar-val${l + w > 70 ? ' lft' : ''}" style="${l + w > 70 ? `right:calc(${100 - l}% + 6px)` : `left:calc(${l + w}% + 6px)`}">${num(b.min)}–${num(b.max)}<span class="bar-each">${Z('每人', '')}${num(each(b.min))}–${num(each(b.max))}${Z('', ' each')}</span></span></div></a>`;
-		})
-		.join('');
 	return `<section class="sec" id="budget" data-sec="budget">
       <h2 class="sec-title">${icon('money')}${Z(`${GROUP[0]}预算`, `Budget ${GROUP[1]}`)}</h2>
       <p class="sec-lede">${Z('不包括', 'Not included')}: ${B.excludes.map(L).map(esc).join(Z('、', ', '))}</p>
-      <div class="fx"><label for="rate">${Z('汇率', 'Rate')}: 1 ${esc(CUR.home)} =</label><input id="rate" type="number" inputmode="decimal" step="any" min="0" value="${rate}"><span>${esc(CUR.sym)}</span><span class="xsmall">${esc(L(CUR.rateNote))}</span></div>
+      <div class="fx"><label for="rate">${Z('汇率', 'Rate')}: 1 ${esc(CUR.home)} =</label><input id="rate" data-rate type="number" inputmode="decimal" step="any" min="0" value="${rate}"><span>${esc(CUR.sym)}</span><span class="xsmall">${esc(L(CUR.rateNote))}</span></div>
       <div style="margin-top:14px">${totalBox(L(B.total).replace(/^约 |^About /, ''), [Z(`主行程 · ${GROUP[0]}`, `main costs · ${GROUP[1]}`), Z(`主行程 · ${GROUP[0]}`, `main costs · ${GROUP[1]}`)], B.totalMin, B.totalMax, eachLine(B.totalMin, B.totalMax))}</div>
-      <p class="note">${fmt(B.suggest)}${sg ? ` <span data-rm="${sg.join(',')}">${rmText(...sg)}</span>` : ''}</p>
+      <p class="note">${fmt(B.suggest)}${sg && !homeFirst ? ` <span data-rm="${sg.join(',')}">${rmText(...sg)}</span>` : ''}</p>
       <p class="callout">${icon('users')}<span>${fmt(B.split)}</span></p>
-      <p class="callout">${icon('info')}<span>${fmt(B.poolText)} <span data-rm="${B.pool},${B.pool}">${rmText(B.pool, B.pool)}</span></span></p>
+      <p class="callout">${icon('info')}<span>${fmt(B.poolText)}${homeFirst ? '' : ` <span data-rm="${B.pool},${B.pool}">${rmText(B.pool, B.pool)}</span>`}</span></p>
       <h3 class="sub">${icon('list')}${Z('主要共同支出', 'Main shared costs')}</h3>
       <dl class="kv">${B.rows.map((r) => `<div><dt>${fmt(r[0])}${r[4] === 'airport' && B.airportNote ? `<span class="check-sub"><a href="#airport">${escText(L(B.airportNote))}</a></span>` : ''}</dt><dd>${fmt(r[1])}<small class="dd-each">${Z('每人', 'each')} ${eachText(r[2], r[3])} ${eachRm(r[2], r[3])}</small></dd></div>`).join('')}<div class="sum"><dt>${Z('合计', 'Total')}</dt><dd>${fmt(B.total)}<small class="dd-each">${Z('每人', 'each')} ${eachText(B.totalMin, B.totalMax)} ${eachRm(B.totalMin, B.totalMax)}</small></dd></div></dl>
-      <h3 class="sub">${icon('chart')}${Z(`每天花费（条＝${GROUP[0]}，小字＝每人，${CUR.sym}）`, `Per day (bar = all ${PAX}, small = each, ${CUR.sym})`)}</h3>
-      <div class="bars">${bars}</div>
-      ${axisHTML(ax)}
+      <h3 class="sub">${icon('chart')}${Z(`每天花费（条＝${GROUP[0]}，小字＝每人，${homeFirst ? CUR.home : CUR.sym}）`, `Per day (bar = all ${PAX}, small = each, ${homeFirst ? CUR.home : CUR.sym})`)}</h3>
+      <div id="budget-bars">${budgetBars()}</div>
       <p class="note">${esc(L(B.chartNote || ['虚线框 = 估算。', 'Dashed = estimate.']))}</p>
       <h3 class="sub">${icon('card')}${Pack.transitCard && MONEY.transitCard ? Z(`现金、信用卡和${Pack.transitCard[0]}`, `Cash, cards and ${Pack.transitCard[1]}`) : Z('现金和信用卡', 'Cash and cards')}</h3>
       <div class="tiers">
-        <div class="tier"><p class="tier-h">${icon('money')}${Z('共同现金', 'Shared cash')}</p><p class="wear-main" style="margin-top:6px">${esc(MONEY.cash.amt)}</p><p class="xsmall" data-rm="${(numsIn(MONEY.cash.amt) || [0, 0]).join(',')}">${rmText(...(numsIn(MONEY.cash.amt) || [0, 0]))}</p><p class="xsmall">${Z('每人约', 'Each ≈')} <b>${eachText(...(numsIn(MONEY.cash.amt) || [0, 0]))}</b></p>${list(MONEY.cash.uses)}</div>
+        <div class="tier"><p class="tier-h">${icon('money')}${Z('共同现金', 'Shared cash')}</p><p class="wear-main" style="margin-top:6px">${cvHtml(esc(MONEY.cash.amt), false)}</p><p class="xsmall" data-rm="${(numsIn(MONEY.cash.amt) || [0, 0]).join(',')}">${rmText(...(numsIn(MONEY.cash.amt) || [0, 0]))}</p><p class="xsmall">${Z('每人约', 'Each ≈')} <b>${eachText(...(numsIn(MONEY.cash.amt) || [0, 0]))}</b></p>${list(MONEY.cash.uses)}</div>
         <div class="tier"><p class="tier-h">${icon('card')}${Z('信用卡', 'Credit card')}</p>${list(MONEY.card)}</div>
         ${Pack.transitCard && MONEY.transitCard ? `<div class="tier"><p class="tier-h">${icon('train')}${esc(L(Pack.transitCard))}</p><p style="margin-top:6px">${fmt(MONEY.transitCard)}</p><div class="links-row"><a class="mlink" href="#transit-card">${icon('arrow')}${Z('买卡与加值', 'Buying & topping up')}</a></div></div>` : ''}
       </div>

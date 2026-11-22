@@ -702,6 +702,7 @@ const DAYS = [
 					['水晶车厢要另外排队', 'Glass-floor cabins have their own queue'],
 				],
 				places: ['zoo', 'maokong'],
+				sites: ['metro'],
 			},
 			{ type: 'wear', h: ['今天穿', 'What to wear'], main: ['短袖 + 薄外套', 'T-shirt + light jacket'], note: ['山上比较凉', 'Cooler up the hill'] },
 			{
