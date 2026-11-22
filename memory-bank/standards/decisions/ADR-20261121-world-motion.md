@@ -75,7 +75,7 @@ day, so Now and Next with their buttons stay on an iPhone's first screen. This a
   and move only by opacity and transform on `scroll(root)` (the closing scene's sun on its own view timeline), under
   `@supports (animation-timeline: scroll())` and no-preference; without them the sky is a still night. Its colours
   stay inside bounds that keep every text colour on the page paper at 4.5:1 (by day lighter than L 0.8, at night darker
-  than L 0.044); what is bright (a star at night, a flake, a candle) shows in full only in the lanes outside the text
+  than L 0.044); what is bright (a star at night, a flake) shows in full only in the lanes outside the text
   column and faintly over it, and the bright sunrise sits in the closing scene, where there are no words.
 - **The overview's scene holds no moving part.** Below 600 px it crops to a 640 × 150 strip, and to a 640 × 88 ribbon
   when the Now card shows a trip day (`:has(.now-day)`), and a crop would cut a part off where it's drawn.

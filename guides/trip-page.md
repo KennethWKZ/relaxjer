@@ -118,7 +118,7 @@ same; only the colours and the drawings change. Without one, the page is the sky
   is an ice crystal. The stop the group is on now has its candle lit (it flickers gently, unless the phone asks for
   less motion). The first time a phone opens the trip, a little snow falls once over the countdown.
 - **The sky behind the page:** in Snow Light Path, scrolling down the trip is a night passing behind the cards: dusk at
-  the top, a starry night with a faint aurora, falling snow, then dawn, with small candles standing along both edges.
+  the top, a starry night with a faint aurora, falling snow, then dawn.
   At the very end the sun comes up over snowy hills. It moves only as you scroll, never by itself, stays pale by day
   and dark at night so every word stays as readable as on plain paper, and is a calm, still night when the phone asks
   for less motion.
