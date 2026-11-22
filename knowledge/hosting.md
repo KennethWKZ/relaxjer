@@ -48,6 +48,12 @@ id> --update-key <key>` with the key read from outside the repo. Without `--pass
   `pnpm sync end` ([`sync-setup`](../.agents/skills/sync-setup/SKILL.md)). Blocking a phone in Group sync is not
   the same: the phone keeps the keys in its copy, so cutting someone off for real takes a new page password and new
   sync keys.
+- **The host scans every page before it goes live** and refuses one it judges unsafe (HTTP 422, e.g. `Scan failed:
+payment_card`). There's no option to skip it, and nothing goes live on a refusal: the old page stays. On 2026-11-22
+  every publish was refused because an SVG written inline in the theme's CSS had a path whose numbers, separated only
+  by spaces, held a Visa-shaped number passing the Luhn check (`… 400 104 540 70 640 92`). Commas between path numbers
+  draw the same; `tests/repo/host-scan.test.mjs` now checks the engine. To find a cause, publish builds with halves of
+  the change removed: a refusal costs nothing, and a pass goes live, so keep each half a working page.
 
 ## Rebuilds of a published page
 
