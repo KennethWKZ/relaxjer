@@ -94,3 +94,13 @@ pack export instead, document it in `trip-format.md`, and have the contract chec
 - With group sync, every removal goes through `mineSet` and offers Undo (`undoPutBack`), and every entry point that
   edits or removes a stop checks `canEditStop` first. Only stops are guarded: shifts, flight changes and ticks aren't
   ([ADR-20261002-sync-planners](../decisions/ADR-20261002-sync-planners.md)).
+
+## Decisions behind these rules
+
+Each rule above rests on a decision. The decision and its reasons live in its ADR; this list is only the index.
+
+- [ADR-20261007-split-follows-pushback](../decisions/ADR-20261007-split-follows-pushback.md): A split fork moves like a flexible stop: push-backs before it shift it, and its rejoin keeps its stop planned time.
+- [ADR-20261117-native-layer](../decisions/ADR-20261117-native-layer.md): A pack sets the native language and the 'please take us here' card text, and the engine reads them from the pack, never a constant.
+- [ADR-20261122-currency-switch](../decisions/ADR-20261122-currency-switch.md): Currency conversion happens while the text is drawn, in one pure function that reads each amount's own symbol, so NT$ is never read as $.
+- [ADR-20261122-day-views](../decisions/ADR-20261122-day-views.md): Each view is a section shown or hidden with data-off, and a view switch is its own history step with an #id address.
+- [ADR-20261122-place-finder-best-day](../decisions/ADR-20261122-place-finder-best-day.md): A place finder ranks each day's stops by straight-line distance to the place, counting only stops a new stop can follow.

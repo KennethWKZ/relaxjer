@@ -4,6 +4,7 @@ date: 2026-11-22
 title: 'One View per Tab, Planning Parts as Summary Buttons and Sheets, the Sections Button Always There, and a Live Sky a Trip Picks'
 domain: engine
 status: accepted
+decision: "Each tab is its own view with its own #address and Back step; a day's planning cards open as sheets from one-line summaries; TRIP.sky picks the sky."
 ---
 
 # One View per Tab, Planning Parts as Summary Buttons and Sheets, the Sections Button Always There, and a Live Sky a Trip Picks

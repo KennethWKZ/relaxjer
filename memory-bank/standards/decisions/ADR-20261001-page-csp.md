@@ -2,8 +2,9 @@
 id: ADR-20261001-page-csp
 date: 2026-10-01
 title: 'The Trip Page Carries Its Own Content-Security-Policy, and MapLibre Loads With Subresource Integrity'
-domain: security
+domain: hosting
 status: accepted
+decision: 'The build writes a strict Content-Security-Policy into each page: hashed inline scripts, no unsafe-inline, and connect-src limited to known hosts.'
 ---
 
 # The Trip Page Carries Its Own Content-Security-Policy, and MapLibre Loads With Subresource Integrity

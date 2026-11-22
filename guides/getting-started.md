@@ -109,18 +109,18 @@ what went wrong or right becomes proposed lessons for the next trip, as a change
 
 ## Every skill
 
-| Skill              | Say                                               | What it does                                                        |
-| ------------------ | ------------------------------------------------- | ------------------------------------------------------------------- |
-| `planner-setup`    | "Set up RelaxJer on my computer"                  | checks and installs the tools, builds and opens the demo            |
-| `trip-intake`      | "Plan a trip to …"                                | your words → a trip folder that passes the checks                   |
-| `trip-customize`   | "Add …", "move …", "make day 4 lighter"           | changes the plan, and says which part of the page each change lands |
-| `data-sync`        | "Refresh the data", "update the hours"            | places, hours, food and toilets nearby, transit, weather, links     |
-| `build-page`       | "Build the page"                                  | one self-contained file                                             |
-| `verify-page`      | "Check the page"                                  | tests, then a look at phone size in two browsers                    |
-| `sync-setup`       | "Share our changes across phones", "end sync"     | group sync on your own Firebase database                            |
-| `publish-htmlapp`  | "Publish it", "publish the new version"           | behind a password, after your yes, and proves the live copy is new  |
-| `destination-pack` | "We're going to Japan" (a country RelaxJer lacks) | the country's tax refund, transit, taxis and entry rules            |
-| `trip-retro`       | "The trip is over", "what did we learn?"          | lessons as a reviewed change                                        |
+| Group        | Skill              | Say                                               | What it does                                                        |
+| ------------ | ------------------ | ------------------------------------------------- | ------------------------------------------------------------------- |
+| Set up       | `planner-setup`    | "Set up RelaxJer on my computer"                  | checks and installs the tools, builds and opens the demo            |
+| Plan a trip  | `trip-intake`      | "Plan a trip to …"                                | your words → a trip folder that passes the checks                   |
+|              | `trip-customize`   | "Add …", "move …", "make day 4 lighter"           | changes the plan, and says which part of the page each change lands |
+| Data         | `data-sync`        | "Refresh the data", "update the hours"            | places, hours, food and toilets nearby, transit, weather, links     |
+|              | `destination-pack` | "We're going to Japan" (a country RelaxJer lacks) | the country's tax refund, transit, taxis and entry rules            |
+| The page     | `build-page`       | "Build the page"                                  | one self-contained file                                             |
+|              | `verify-page`      | "Check the page"                                  | tests, then a look at phone size in two browsers                    |
+|              | `sync-setup`       | "Share our changes across phones", "end sync"     | group sync on your own Firebase database                            |
+|              | `publish-htmlapp`  | "Publish it", "publish the new version"           | behind a password, after your yes, and proves the live copy is new  |
+| After a trip | `trip-retro`       | "The trip is over", "what did we learn?"          | lessons as a reviewed change                                        |
 
 In Claude Code, read-only helpers check the work: `relaxbro` (plans with you), `data-curator` (checks the trip's
 data), `ux-verifier` (checks the page in browsers), `destination-researcher` (facts for a new country) and

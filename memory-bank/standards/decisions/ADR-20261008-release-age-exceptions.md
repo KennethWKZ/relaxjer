@@ -4,6 +4,7 @@ date: 2026-10-08
 title: 'A Release Comes In Before Its Three Days Only by Exact Version, Until It Turns Three Days Old'
 domain: tooling
 status: accepted
+decision: 'The 3-day release-age gate stays; an early install is allowed only for exact name@version entries, one per package a release needs.'
 ---
 
 # A Release Comes In Before Its Three Days Only by Exact Version, Until It Turns Three Days Old

@@ -4,6 +4,7 @@ date: 2026-10-07
 title: 'Pull Requests Merge by Squash, So the Changelog Lists Each Change Once'
 domain: tooling
 status: accepted
+decision: 'Squash and merge is the only merge method: the PR title becomes the commit title, unless the branch has a single commit.'
 ---
 
 # Pull Requests Merge by Squash, So the Changelog Lists Each Change Once

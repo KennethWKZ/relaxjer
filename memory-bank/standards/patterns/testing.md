@@ -92,3 +92,10 @@ the test, and the other was a page bug a senior's slow phone would hit, which pa
 WebKit desktop flakes about once in 140 runs under full parallel load, a different test each time (story index, "Known
 issues"). A single retry in CI covers that one; the steps above are for a test that fails twice, or always the same
 test.
+
+## Decisions behind these rules
+
+Each rule above rests on a decision. The decision and its reasons live in its ADR; this list is only the index.
+
+- [ADR-20260930-test-strategy](../decisions/ADR-20260930-test-strategy.md): Tests run in tiers: fast repo and unit tests always, a browser e2e pass on the built page, and real-trip checks only on a laptop.
+- [ADR-20261002-required-ci](../decisions/ADR-20261002-required-ci.md): One ci-ok job needs every other CI job and fails unless all pass, so a single required check guards every merge.

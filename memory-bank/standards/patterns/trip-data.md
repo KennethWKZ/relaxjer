@@ -73,3 +73,12 @@ data must pass in `tests/support/trip-contract.mjs`. `examples/demo-trip/data.js
 - Add anything else that must never be published (a nickname, a booking code) to `trips/<slug>/never-publish.txt`,
   one literal per line.
 - A trip whose page is already published keeps its `TRIP.fileName` and `TRIP.storageKey`.
+
+## Decisions behind these rules
+
+Each rule above rests on a decision. The decision and its reasons live in its ADR; this list is only the index.
+
+- [ADR-20261001-day-split](../decisions/ADR-20261001-day-split.md): A day can split for part of the group: DAYS[i].split names where it forks and who goes, and the trip contract checks it.
+- [ADR-20261001-option-chips](../decisions/ADR-20261001-option-chips.md): An optional plan attaches to a stop with OPTIONAL[i].near, shown as a dashed chip on that stop, and the contract checks the stop exists.
+- [ADR-20261001-resync-cost-guard](../decisions/ADR-20261001-resync-cost-guard.md): A data refresh answers from the cache first and calls Google again only for failures that may pass on retry, never for a 404.
+- [ADR-20261007-traffic-aware-drives](../decisions/ADR-20261007-traffic-aware-drives.md): A drive leg may carry an HH:MM time, and a drive still ahead uses Google's traffic-aware estimate for that time.

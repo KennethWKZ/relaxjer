@@ -6,18 +6,18 @@ out this way: `memory-bank/standards/decisions/ADR-20261001-memory-bank-agent-co
 
 ## RelaxJer's own skills
 
-| Skill              | For                                                               |
-| ------------------ | ----------------------------------------------------------------- |
-| `planner-setup`    | a fresh clone → the tools, the install, the demo opened, the keys |
-| `trip-intake`      | requirements → a trip folder that passes the contract             |
-| `trip-customize`   | the planner's changes → the trip's data, and where each one shows |
-| `data-sync`        | refresh a trip's places, hours, weather and links (`pnpm resync`) |
-| `build-page`       | build the single-file page                                        |
-| `verify-page`      | tests, then a real-browser pass and the group's journeys          |
-| `publish-htmlapp`  | publish or republish behind a password, and prove the live copy   |
-| `sync-setup`       | group sync for a trip on the planner's own Firebase (`pnpm sync`) |
-| `destination-pack` | a new country or city: pack, pipeline steps, knowledge, tests     |
-| `trip-retro`       | lessons from a trip, proposed as a reviewed change                |
+| Group        | Skill              | For                                                               |
+| ------------ | ------------------ | ----------------------------------------------------------------- |
+| Set up       | `planner-setup`    | a fresh clone → the tools, the install, the demo opened, the keys |
+| Plan a trip  | `trip-intake`      | requirements → a trip folder that passes the contract             |
+|              | `trip-customize`   | the planner's changes → the trip's data, and where each one shows |
+| Data         | `data-sync`        | refresh a trip's places, hours, weather and links (`pnpm resync`) |
+|              | `destination-pack` | a new country or city: pack, pipeline steps, knowledge, tests     |
+| The page     | `build-page`       | build the single-file page                                        |
+|              | `verify-page`      | tests, then a real-browser pass and the group's journeys          |
+|              | `publish-htmlapp`  | publish or republish behind a password, and prove the live copy   |
+|              | `sync-setup`       | group sync for a trip on the planner's own Firebase (`pnpm sync`) |
+| After a trip | `trip-retro`       | lessons from a trip, proposed as a reviewed change                |
 
 A new skill is a folder `.agents/skills/<name>/SKILL.md` whose frontmatter `name` matches the folder, plus a link
 `.claude/skills/<name> -> ../../.agents/skills/<name>`. `tests/repo/agent-config.test.mjs` checks both.

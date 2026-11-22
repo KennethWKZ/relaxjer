@@ -4,6 +4,7 @@ date: 2026-10-02
 title: 'The Demo Trip Goes Live on GitHub Pages, Built by CI With No Key and Its Clock Set to a Day Under Way'
 domain: hosting
 status: amended
+decision: "GitHub Pages publishes site/ and the synthetic demo's single file only, never a real trip, a key or a sync setting."
 ---
 
 # The Demo Trip Goes Live on GitHub Pages, Built by CI With No Key and Its Clock Set to a Day Under Way

@@ -2,8 +2,9 @@
 id: ADR-20261001-resync-cost-guard
 date: 2026-10-01
 title: 'The Data Refresh Answers From Its Cache, and Paying Google for More Is the Planner’s Call'
-domain: data
+domain: trip-data
 status: amended
+decision: 'A data refresh answers from the cache first and calls Google again only for failures that may pass on retry, never for a 404.'
 ---
 
 # The Data Refresh Answers From Its Cache, and Paying Google for More Is the Planner’s Call

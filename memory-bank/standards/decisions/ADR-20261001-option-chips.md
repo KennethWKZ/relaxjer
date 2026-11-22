@@ -2,8 +2,10 @@
 id: ADR-20261001-option-chips
 date: 2026-10-01
 title: 'An Optional Plan Can Be Suggested at a Stop, and Opens Over the Day'
-domain: data
+domain: trip-data
 status: accepted
+decision: 'An optional plan attaches to a stop with OPTIONAL[i].near, shown as a dashed chip on that stop, and the contract checks the stop exists.'
+tags: [engine]
 ---
 
 # An Optional Plan Can Be Suggested at a Stop, and Opens Over the Day

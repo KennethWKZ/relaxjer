@@ -4,6 +4,7 @@ date: 2026-10-01
 title: "The First Trip's Live Page Is Built by RelaxJer"
 domain: hosting
 status: accepted
+decision: "The live trip page moves to RelaxJer's host only after a screen-by-screen comparison with the old build of the same data."
 ---
 
 # The First Trip's Live Page Is Built by RelaxJer

@@ -144,3 +144,14 @@ the `:root[data-world='snow']` block and the `.world-*` classes at the end of `s
 Snow has no lanterns, birds or moon: candles stand in snow in the footer and on the postcard front, and the only motion
 is the snowfall, which falls as the page scrolls and is gone under reduced motion. `tests/e2e/site.spec.mjs` checks both
 worlds, and `tests/repo/site.test.mjs` checks the season rule for all twelve months.
+
+## Decisions behind these rules
+
+Each rule above rests on a decision. The decision and its reasons live in its ADR; this list is only the index.
+
+- [ADR-20260930-name-relaxjer](../decisions/ADR-20260930-name-relaxjer.md): The product is called RelaxJer: the exact name is unclaimed, so the site can rank for it, and it carries the lowest legal risk.
+- [ADR-20261002-embed-brush-font](../decisions/ADR-20261002-embed-brush-font.md): The build embeds the brush font's glyphs the page uses as base64 woff2, so the page renders the same offline.
+- [ADR-20261002-landing-postcards](../decisions/ADR-20261002-landing-postcards.md): Each landing-page feature is a postcard: a drawn mini trip page on one spot colour, with its stamp and copy on the back.
+- [ADR-20261117-destination-themes](../decisions/ADR-20261117-destination-themes.md): A pack may name one visual world; a city's world overrides its country's, and each world is two files in engine/src/themes/.
+- [ADR-20261121-world-motion](../decisions/ADR-20261121-world-motion.md): A moving part of a picture is a top-level group with data-actor, and splitArt returns the still drawing plus each moving part as its own SVG.
+- [ADR-20261121-world-stickers](../decisions/ADR-20261121-world-stickers.md): Day colours keep text contrast at 4.5:1 or more on light paper and 3.8:1 or more on dark; tints are fixed shares of the colour.

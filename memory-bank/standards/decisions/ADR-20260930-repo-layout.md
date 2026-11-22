@@ -2,8 +2,9 @@
 id: ADR-20260930-repo-layout
 date: 2026-09-30
 title: 'Repository Layout: One Framework Repo, Destination Packs, Gitignored Trips'
-domain: layout
+domain: tooling
 status: accepted
+decision: 'One repo: engine/ builds the page, pipeline/ refreshes the data, destinations/ holds country and city packs, trips/ is git-ignored.'
 ---
 
 # Repository Layout: One Framework Repo, Destination Packs, Gitignored Trips

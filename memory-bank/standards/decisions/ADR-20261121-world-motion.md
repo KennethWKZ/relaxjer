@@ -2,8 +2,10 @@
 id: ADR-20261121-world-motion
 date: 2026-11-21
 title: "A World's Pictures May Move: Parts of the Drawing Itself, Only on Screen; Its Sky Follows the Scroll; Nothing Moves Under Reduced Motion"
-domain: engine
+domain: design
 status: amended
+decision: 'A moving part of a picture is a top-level group with data-actor, and splitArt returns the still drawing plus each moving part as its own SVG.'
+tags: [engine]
 ---
 
 # A World's Pictures May Move: Parts of the Drawing Itself, Only on Screen; Its Sky Follows the Scroll; Nothing Moves Under Reduced Motion
