@@ -69,7 +69,8 @@ planners, is in [`guides/trip-page.md`](../../guides/trip-page.md).
     anchoring the day;
   - your own added stops: a per-day button, a "+" under each timeline dot that lands right after its stop, a
     getting-there check (walk ×1.4, taxi, metro; "Use HH:MM" when too early; when to leave for the next timed stop),
-    clash and deadline checks, a caution when a day already has 4 added stops, and Undo on the toast after a removal (every page). With group sync, a link isn't
+    clash and deadline checks, a caution when a day already has 4 added stops, and Undo on the toast after a removal (every page). A place picked
+    from the add sheet's list opens first (what the page knows of it, with Add), and Back finds the list as it was. With group sync, a link isn't
     needed: they reach every phone marked with who added them. Each phone changes or removes only the stops it added,
     and "Remove the N stops I added" clears them; a planner can change any, clear one phone's, block one, and put the
     whole plan back. A phone's "Recently removed" list (30 kept, the newest 10 shown) offers Put back. Only stops are
@@ -83,7 +84,11 @@ planners, is in [`guides/trip-page.md`](../../guides/trip-page.md).
 - **Map:**
   - Google first, MapLibre as fallback;
   - Map and Directions links in Google Maps or Apple Maps, chosen per phone;
-  - categories, search, a list and sorting;
+  - categories, search, a list and sorting; Google's results stay put while the phone's location updates;
+  - a place finder: a searched place's nearest stop on each day, the day it fits best, and one tap into the add sheet,
+    from the page's own data and estimates, never a paid routing call (ADR-20261122-place-finder-best-day);
+  - one details view for any place (our photo, the day's hours, the address), with Google's rating and photos on a tap
+    when the page has the key;
   - a live location dot, asked for only from a card that says why;
   - an offline transit planner that needs no routing API;
   - live bike-share counts where the city has them.

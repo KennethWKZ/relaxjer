@@ -13,6 +13,9 @@ their phones, installs it to the home screen, and uses it offline.
   "show the driver" card with the local name and address.
 - **Near every stop:** food, drinks, rest spots and toilets with hours and the walk, plus the group's wishlist and
   optional plans that never crowd the schedule.
+- **Where a place fits:** search any place on the map (or Google, with your key) and see each day's nearest stop, the
+  day it fits best and the walk or taxi there, then add it in one tap. Every place opens to its details, with Google's
+  rating and photos on a tap.
 - **Money:** every group cost with each person's share, and totals and shares in the home currency too, at a rate you
   can change; one tap shows every figure, notes included, in the home currency first.
 - **Before and around the trip:** a checklist, the entry rules, the weather and what to wear, the airport options

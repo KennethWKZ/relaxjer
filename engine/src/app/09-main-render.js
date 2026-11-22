@@ -116,6 +116,7 @@ function render() {
 			mapFullO = null;
 		}
 	}
+	mapSearchReset(); // the map section is drawn again: its finder's Back step goes too
 	LAZY.clear();
 	LAZY_ID.clear();
 	$('#app').innerHTML =

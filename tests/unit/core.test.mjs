@@ -6,6 +6,7 @@ import * as Time from '../../engine/src/core/time.mjs';
 import * as Money from '../../engine/src/core/money.mjs';
 import * as Plan from '../../engine/src/core/plan.mjs';
 import * as Wrap from '../../engine/src/core/wrap.mjs';
+import * as Fit from '../../engine/src/core/fit.mjs';
 
 test('Time: clock parsing and formatting', () => {
 	assert.equal(Time.clockMinutes('09:05'), 545);
@@ -375,4 +376,101 @@ test("Plan: a stored route leg's times only while it still joins the same stops"
 	assert.equal(Plan.storedLeg(legs, 'd2', 0, ['a', 'b', 'transit']).min, 9);
 	assert.equal(Plan.storedLeg(legs, 'd4', 0, ['a', 'b', 'transit']), null);
 	assert.equal(Plan.storedLeg(undefined, 'd1', 0, ['a', 'b', 'walking']), null);
+});
+
+// a made-up city on a grid: 0.01° of latitude is about 1.1 km
+const at = (dLat, dLng = 0) => ({ lat: 35 + dLat, lng: 139 + dLng });
+const PLACE = at(0);
+
+test('Fit: distance bands and the room after a stop', () => {
+	assert.ok(Math.abs(Fit.distKm(at(0), at(0.01)) - 1.112) < 0.01);
+	assert.equal(Fit.band(0.5), 0); // a short walk
+	assert.equal(Fit.band(0.7), 0);
+	assert.equal(Fit.band(2), 1); // a short ride
+	assert.equal(Fit.band(7.9), 2);
+	assert.equal(Fit.band(12), Fit.BANDS.length); // far
+	// 10:00–12:00, next timed stop 14:00: two free hours
+	assert.equal(Fit.freeAfter(600, 720, [540, 600, 840]), 120);
+	// no end counts an hour; nothing timed after it runs to the evening
+	assert.equal(Fit.freeAfter(1080, null, [600, 1080]), Fit.DAY_END - 1140);
+	assert.equal(Fit.freeAfter(1290, 1320, []), 0); // already past the evening
+	assert.equal(Fit.freeAfter(null, null, [600]), null);
+});
+
+test('Fit: each day measured from its nearest stop, hotels and past stops left out', () => {
+	const days = [
+		{
+			id: 'd1',
+			stops: [
+				{ ...at(0.002), hotel: true },
+				{ ...at(0.05), name: 'far' },
+			],
+		},
+		{
+			id: 'd2',
+			stops: [
+				{ ...at(0.004), name: 'near', room: 30 },
+				{ ...at(0.02), name: 'mid' },
+			],
+		},
+		{
+			id: 'd3',
+			stops: [
+				{ ...at(0.001), past: true },
+				{ ...at(0.03), name: 'later' },
+			],
+		},
+		{ id: 'd4', stops: [{ lat: null, lng: null, name: 'no position' }] },
+	];
+	const { rows } = Fit.fitDays(PLACE, days);
+	assert.deepEqual(
+		rows.map((r) => [r.id, r.stop.name]),
+		[
+			['d2', 'near'],
+			['d3', 'later'],
+			['d1', 'far'],
+		],
+		'nearest first; a day with nothing to measure from is left out',
+	);
+});
+
+test('Fit: the best day is the nearest band, then room after the stop, then the nearer', () => {
+	const day = (id, dLat, extra = {}, stop = {}) => ({ id, stops: [{ ...at(dLat), ...stop }], ...extra });
+	// both a short walk away: the one with two free hours after its stop beats the one 200 m nearer without
+	let f = Fit.fitDays(PLACE, [day('d1', 0.002, {}, { room: 20 }), day('d2', 0.004, {}, { room: 120 })]);
+	assert.equal(f.best.id, 'd2');
+	assert.equal(f.best.roomy, true);
+	// a short walk without room still beats a ride with room
+	f = Fit.fitDays(PLACE, [day('d1', 0.003, {}, { room: 0 }), day('d2', 0.02, {}, { room: 200 })]);
+	assert.equal(f.best.id, 'd1');
+	// free time counts as room; a crowded day (four added stops) has none
+	f = Fit.fitDays(PLACE, [day('d1', 0.002, { crowded: true }, { room: 300 }), day('d2', 0.005, {}, { free: true })]);
+	assert.equal(f.best.id, 'd2');
+	// same band, same room: the nearer
+	f = Fit.fitDays(PLACE, [day('d1', 0.005), day('d2', 0.003)]);
+	assert.equal(f.best.id, 'd2');
+});
+
+test('Fit: closed, already planned and past days are listed but never suggested; far is flagged', () => {
+	const f = Fit.fitDays(PLACE, [
+		{ id: 'd1', closed: true, stops: [at(0.001)] },
+		{ id: 'd2', planned: true, stops: [at(0.002)] },
+		{ id: 'd3', over: true, stops: [at(0.003)] },
+		{ id: 'd4', stops: [at(0.1)] },
+	]);
+	assert.deepEqual(
+		f.rows.map((r) => [r.id, r.ok]),
+		[
+			['d1', false],
+			['d2', false],
+			['d3', false],
+			['d4', true],
+		],
+	);
+	assert.equal(f.best.id, 'd4');
+	assert.equal(f.far, true, '11 km from every stop it could join');
+	const none = Fit.fitDays(PLACE, [{ id: 'd1', closed: true, stops: [at(0.001)] }]);
+	assert.equal(none.best, null);
+	assert.equal(none.far, false);
+	assert.deepEqual(Fit.fitDays(PLACE, []), { rows: [], best: null, far: false });
 });

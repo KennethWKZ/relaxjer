@@ -31,14 +31,15 @@ trip if you follow the guardrails below.
 Google gives every billing account a free allowance **per product, per month**. Above it you pay per 1,000 requests.
 From [Google's price list](https://developers.google.com/maps/billing-and-pricing/pricing) (updated 2026-09-24):
 
-| What the page or the refresh does            | Google product                 | Free each month | Then, per 1,000 |
-| -------------------------------------------- | ------------------------------ | --------------- | --------------- |
-| Each time someone opens the map              | Dynamic Maps                   | 10,000          | US$7            |
-| "Rating & photos" on a place (rating, hours) | Place Details Enterprise       | 1,000           | US$20           |
-| Each photo shown                             | Place Details Photos           | 1,000           | US$7            |
-| "Search Google for …"                        | Text Search Pro                | 5,000           | US$32           |
-| The data refresh's place details             | Place Details Pro / Enterprise | 5,000 / 1,000   | US$17 / US$20   |
-| The data refresh's walking and transit legs  | Compute Routes Essentials      | 10,000          | US$5            |
+| What the page or the refresh does                                                                 | Google product                    | Free each month | Then, per 1,000 |
+| ------------------------------------------------------------------------------------------------- | --------------------------------- | --------------- | --------------- |
+| Each time someone opens the map                                                                   | Dynamic Maps                      | 10,000          | US$7            |
+| "Rating & photos" on a place (rating, hours)                                                      | Place Details Enterprise          | 1,000           | US$20           |
+| Each photo shown                                                                                  | Place Details Photos              | 1,000           | US$7            |
+| "Search Google for …"                                                                             | Text Search Pro                   | 5,000           | US$32           |
+| Finding the Google id of a place that has none, before its "Rating & photos" (checked 2026-11-22) | Text Search Essentials (IDs Only) | Unlimited       | free            |
+| The data refresh's place details                                                                  | Place Details Pro / Enterprise    | 5,000 / 1,000   | US$17 / US$20   |
+| The data refresh's walking and transit legs                                                       | Compute Routes Essentials         | 10,000          | US$5            |
 
 **The page usually costs nothing.** Eight phones opening the map 20 times a day for a week is about 1,100 map loads
 (11% of the free amount), and the group's ratings and photos stay under 1,000 each. A group that taps photos a lot

@@ -5,6 +5,9 @@
 export const country = ['日本', 'Japan'];
 export const sym = '¥';
 
+/** the Chinese Google's search and map answer in when the page reads Chinese: Simplified, as the page itself */
+export const googleZh = 'zh-CN';
+
 /**
  * the native layer: the group reads Chinese or English, so stops and places also show their Japanese, one tap to copy;
  * `ask` is "please take us here" on the driver card

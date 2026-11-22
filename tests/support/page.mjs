@@ -189,6 +189,33 @@ export async function setStored(page, entries) {
 	await expect(page.locator('#app [data-sec]').first()).toBeAttached();
 }
 
+/** The place finder (the map's search) and the add sheet's preview, as tests/e2e/place-finder.spec.mjs reaches them. */
+export const FINDER = {
+	query: '#mapq',
+	results: '#mapres',
+	result: (pid) => `#mapres [data-mres="${pid}"]`,
+	googleSearch: '#mapres [data-gsearch]',
+	googleResult: '#mapres [data-gfind]',
+	googleBack: '#mapres [data-gback]',
+	panel: '#mapfind',
+	back: '#mapfind [data-find-back]',
+	best: '#mapfind .pf-best',
+	addBest: '#mapfind .pf-best [data-fit-add]',
+	otherDays: '#mapfind .pf-day',
+	detailsBtn: '#mapfind [data-find-detail]',
+	sheet: '#placeSheet',
+	list: '[data-addfind]',
+	listRow: '[data-add-res] [data-add-peek]',
+	listAdd: '[data-add-res] [data-add]',
+	preview: '[data-addprev]',
+	previewBack: '[data-add-back]',
+	save: '[data-add-save]',
+	dayPicked: '[data-add-day][aria-pressed="true"]',
+	google: '[data-gplace]',
+	googleBox: '.gplace',
+	detailsCard: '.pdet',
+};
+
 /** The landing page's (site/) parts the e2e checks: a looping demo, its Pause, the screen it plays on, the sky's art, the theme button and the hero phone's screenshot. */
 export const SITE = {
 	demo: '[data-demo]',

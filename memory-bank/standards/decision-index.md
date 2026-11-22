@@ -1,5 +1,5 @@
 ---
-total_decisions: 29
+total_decisions: 30
 last_updated: 2026-11-22
 ---
 
@@ -45,3 +45,4 @@ merged id never changes; a new ADR that collides takes a fresh slug.
 | [ADR-20261121-world-motion](decisions/ADR-20261121-world-motion.md)                               | 2026-11-21 | A World's Pictures May Move: Parts of the Drawing Itself, Only on Screen; Its Sky Follows the Scroll; Nothing Moves Under Reduced Motion | engine   | accepted |
 | [ADR-20261121-world-stickers](decisions/ADR-20261121-world-stickers.md)                           | 2026-11-21 | Snow Light Path Is a Sticker Book: Candy Day Colours, Rounder Shapes, Die-Cut Stickers That Never Cover a Word                           | frontend | accepted |
 | [ADR-20261122-currency-switch](decisions/ADR-20261122-currency-switch.md)                         | 2026-11-22 | A Phone Can Read Every Figure in the Home Currency, Notes Included, Converted as the Page Draws                                          | engine   | accepted |
+| [ADR-20261122-place-finder-best-day](decisions/ADR-20261122-place-finder-best-day.md)             | 2026-11-22 | The Place Finder Suggests the Nearest Day With Room, From the Page’s Own Data, and Asks Google Only on a Tap                             | engine   | accepted |

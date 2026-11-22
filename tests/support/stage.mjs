@@ -50,13 +50,14 @@ export function resolveTrip(env = process.env) {
 	return { dir, demo: dir === DEMO_TRIP };
 }
 
-/** Builds engine + trip into outDir and returns the built single-file page's path. args: more build flags (--sync …). */
-export function stagePage({ engine, trip, outDir, args = [] }) {
+/** Builds engine + trip into outDir and returns the built single-file page's path. args: more build flags (--sync …);
+ *  keys: a keys file (default none). */
+export function stagePage({ engine, trip, outDir, args = [], keys = 'none' }) {
 	fs.rmSync(outDir, { recursive: true, force: true });
 	let page;
 	if (engine.kind === 'engine') {
-		// --keys none: explicit, so tests never embed a key even if the default changes
-		execFileSync(process.execPath, [path.join(engine.dir, 'build.mjs'), '--trip', trip.dir, '--out', outDir, '--keys', 'none', ...args], {
+		// --keys none: explicit, so tests never embed a real key even if the default changes (keys: a stand-in's file)
+		execFileSync(process.execPath, [path.join(engine.dir, 'build.mjs'), '--trip', trip.dir, '--out', outDir, '--keys', keys, ...args], {
 			cwd: ROOT,
 			env: BARE_ENV,
 			stdio: 'pipe',
