@@ -108,7 +108,13 @@ test('reviewer agents are read-only', () => {
 // kinds of stay, the planner's ranking) reach every agent that researches or writes a stay
 test('stay research follows knowledge/stays.md', () => {
 	const stays = read('knowledge', 'stays.md');
-	for (const must of [/## Availability for the exact dates/, /Booking\.com, Agoda and Airbnb/, /hotels, and homes/, /recommended/])
+	for (const must of [
+		/## Availability for the exact dates/,
+		/Booking\.com, Agoda and Airbnb/,
+		/hotels, and homes/,
+		/recommended/,
+		/Parking, whenever a car is an option/,
+	])
 		assert.match(stays, must, `knowledge/stays.md keeps ${must}`);
 	for (const f of [
 		['.claude', 'agents', 'relaxbro.md'],
@@ -117,6 +123,7 @@ test('stay research follows knowledge/stays.md', () => {
 	])
 		assert.match(read(...f), /knowledge\/stays\.md/, `${f.join('/')} links knowledge/stays.md`);
 	assert.match(read('knowledge', 'README.md'), /\(stays\.md\)/, 'knowledge/README.md lists it');
+	assert.match(read('.claude', 'agents', 'relaxbro.md'), /A car means parking/, 'relaxbro asks for parking on every self-drive option');
 });
 
 // `--not` negates every ref after it, the branch included: `git log --not --remotes HEAD` lists nothing, so a check

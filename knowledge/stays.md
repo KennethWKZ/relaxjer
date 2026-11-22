@@ -25,6 +25,10 @@ they link here.
   three. Name the unit you priced. A listing's "max guests" can be wrong; trust the room list.
 - **Totals for the whole group and the whole range,** with taxes, cleaning fees and the cancellation rule (refundable
   or not). Breakfast and dinner plans are often extra per person: show both prices when they differ a lot.
+- **Parking, whenever a car is an option:** free or paid (the price per night), on site or a lot nearby, whether it
+  must be booked, and a height limit for a van. In Japan a city hotel's parking can cost as much as a meal each night,
+  so it changes which stay is really cheapest: add it to the total of any option the group would drive to. Say "not
+  stated" when the site doesn't say.
 - **Bags and seniors:** a lift, stairs, and room for the group's big bags. Say "not stated" when the site doesn't say.
 - **Where it is against the plan:** the walk to the station or the first stop of each day at the group's pace
   (walking ×1.4), dinner nearby, and the drive to a day trip or ski area. Mark straight-line distances as estimates.

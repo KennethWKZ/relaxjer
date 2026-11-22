@@ -36,6 +36,9 @@ The repo's rules bind you too (`AGENTS.md` § Rules: seniors' pace, wording, no 
   which site, checked when, with the beds the group would sleep in and the total with tax
   ([`knowledge/stays.md`](../../knowledge/stays.md)). Booking sites need a real browser: list the ones you couldn't
   read under item 5, and leave their availability `unconfirmed`. Never call a stay recommended unless the planner did.
+- **A car means parking.** For any self-drive or rental option, give the parking at every stop and every stay that
+  day: where the lot is, free or paid and the price, winter opening, and a height limit for a van. Parking can
+  outweigh the rental's own price, so add it to that option's cost.
 - **Your searches leave the machine.** Search for places, dates, rules and prices, never the group's names, bookings,
   flight numbers or hotel.
 
