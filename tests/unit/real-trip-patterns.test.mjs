@@ -6,10 +6,11 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { addedByFile, findRealTrip, isProse, tokensOfTrip } from '../release/real-trip-patterns.mjs';
+import { execFileSync } from 'node:child_process';
+import { addedByFile, findRealTrip, isProse, realTripTokens, tokensOfTrip } from '../release/real-trip-patterns.mjs';
 
-function januaryTrip() {
-	const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gate-'));
+function januaryTrip(dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gate-'))) {
+	fs.mkdirSync(dir, { recursive: true });
 	const days = ['2031-01-32', '2031-01-33', '2031-01-34'].map((date, i) => ({ id: `d${i + 1}`, date }));
 	fs.writeFileSync(
 		path.join(dir, 'data.js'),
@@ -78,4 +79,43 @@ test("a diff's added lines are split per file", () => {
 		{ file: 'a.css', text: 'scale: 1.33;' },
 		{ file: 'n.md', text: 'land 1.33' },
 	]);
+});
+
+// a throwaway repo with one commit (plumbing, so no hooks run) and a linked worktree beside it, as an agent's would be
+function repoWithWorktree() {
+	const base = fs.mkdtempSync(path.join(os.tmpdir(), 'gate-wt-'));
+	const main = path.join(base, 'main');
+	const wt = path.join(base, 'wt');
+	// inside a git hook GIT_DIR and GIT_INDEX_FILE point at the real repo: none of them may reach the throwaway one
+	const clean = Object.fromEntries(Object.entries(process.env).filter(([k]) => !k.startsWith('GIT_')));
+	const env = {
+		...clean,
+		GIT_AUTHOR_NAME: 'Test',
+		GIT_AUTHOR_EMAIL: 'test@example.invalid',
+		GIT_COMMITTER_NAME: 'Test',
+		GIT_COMMITTER_EMAIL: 'test@example.invalid',
+	};
+	const git = (cwd, ...a) => execFileSync('git', a, { cwd, env, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+	fs.mkdirSync(main);
+	git(main, 'init', '-q', '-b', 'main');
+	const tree = git(main, 'hash-object', '-t', 'tree', '-w', '--stdin');
+	git(main, 'update-ref', 'refs/heads/main', git(main, 'commit-tree', tree, '-m', 'init'));
+	git(main, 'worktree', 'add', '-q', wt, '-b', 'side');
+	return { main, wt };
+}
+
+test("a worktree checks the main checkout's real trips, since it has no trips/ of its own", () => {
+	const { main, wt } = repoWithWorktree();
+	januaryTrip(path.join(main, 'trips', 'sample'));
+	const tokens = realTripTokens(wt, {});
+	assert.ok(tokens.length > 0, 'the main checkout’s trip is seen from the worktree');
+	assert.deepEqual(findRealTrip('back on 1/33', tokens, { prose: false }), ['a trip date ×1']);
+});
+
+test('a worktree with no real trips anywhere stops the gate, unless the machine says it has none', () => {
+	const { main, wt } = repoWithWorktree();
+	assert.throws(() => realTripTokens(wt, {}), /worktree.*would pass without checking anything/s);
+	assert.deepEqual(realTripTokens(wt, { RELAXJER_NO_REAL_TRIPS: '1' }), []);
+	// a plain checkout without trips (CI, a fresh clone) has nothing to leak: no tokens, no error
+	assert.deepEqual(realTripTokens(main, {}), []);
 });

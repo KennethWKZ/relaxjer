@@ -10,6 +10,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
+import { execFileSync } from 'node:child_process';
 
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -47,14 +48,49 @@ export function tokensOfTrip(dir) {
 	return out;
 }
 
-/** [what, literal] pairs for every real trip under root/trips (none on a machine without trips, e.g. CI) */
-export function realTripTokens(root) {
+/** where real trips can be: this checkout, and in a linked git worktree (an agent's, say) the main checkout too. trips/
+ *  is gitignored, so a worktree never has its own copy, and the real trips stay in the main checkout */
+export function tripRoots(root) {
+	let out;
+	try {
+		out = execFileSync('git', ['-C', root, 'rev-parse', '--path-format=absolute', '--git-dir', '--git-common-dir'], {
+			// a git hook sets GIT_DIR and friends for the repo it runs in; the question here is about root itself
+			env: Object.fromEntries(Object.entries(process.env).filter(([k]) => !k.startsWith('GIT_'))),
+			encoding: 'utf8',
+			stdio: ['ignore', 'pipe', 'ignore'],
+		});
+	} catch {
+		return { roots: [root], worktree: false }; // not a git checkout: only its own folder
+	}
+	const [gitDir, common] = out.trim().split('\n');
+	const worktree = path.resolve(gitDir) !== path.resolve(common);
+	const main = path.basename(common) === '.git' ? path.dirname(common) : null;
+	return { roots: worktree && main ? [root, main] : [root], worktree };
+}
+
+const tripDirsIn = (root) => {
 	const trips = path.join(root, 'trips');
 	if (!fs.existsSync(trips)) return [];
 	return fs
 		.readdirSync(trips, { withFileTypes: true })
 		.filter((e) => e.isDirectory() && fs.existsSync(path.join(trips, e.name, 'data.js')))
-		.flatMap((e) => tokensOfTrip(path.join(trips, e.name)));
+		.map((e) => fs.realpathSync(path.join(trips, e.name)));
+};
+
+/** [what, literal] pairs for every real trip this checkout can see. A plain checkout with no trips (CI, a fresh clone)
+ *  has nothing to leak, so it gets none. A worktree that finds none, in itself or in the main checkout, throws: there
+ *  the gate would otherwise pass without checking anything. RELAXJER_NO_REAL_TRIPS=1 says this machine has no real
+ *  trips at all. */
+export function realTripTokens(root, env = process.env) {
+	const { roots, worktree } = tripRoots(root);
+	const dirs = [...new Set(roots.flatMap(tripDirsIn))];
+	if (!dirs.length && worktree && env.RELAXJER_NO_REAL_TRIPS !== '1')
+		throw new Error(
+			`Real-trip gate: ${root} is a git worktree, and no real trip was found in it or in the main checkout ` +
+				`(${roots.slice(1).join(', ') || 'not found'}), so this check would pass without checking anything. ` +
+				'Run it from the main checkout that holds trips/, or set RELAXJER_NO_REAL_TRIPS=1 if this machine has no real trips.',
+		);
+	return dirs.flatMap(tokensOfTrip);
 }
 
 // a date like "3/13" must not match inside "13/3/130" or "2026/3/13": require a non-digit (or edge) on both sides

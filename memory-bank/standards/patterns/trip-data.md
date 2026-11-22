@@ -66,6 +66,9 @@ data must pass in `tests/support/trip-contract.mjs`. `examples/demo-trip/data.js
 - They live in `trips/<slug>/`, gitignored. Never `git add -f` one, and never paste their details into the engine,
   docs, tests or a commit message. The gate derives them locally: the commit-msg hook (`tests/release/scan-staged.mjs`)
   stops the commit before it exists, and the pre-push history scan checks every commit again.
+- **A git worktree has no `trips/` of its own** (it's gitignored), so the gate reads the main checkout's. If it finds
+  no real trip there either, it stops instead of passing without checking; `RELAXJER_NO_REAL_TRIPS=1` says the machine
+  has none. A plain checkout without trips (CI, a fresh clone) has nothing to leak, so it passes.
 - **While a trip runs, today is one of its dates.** Don't date anything you commit then: a lesson, an ADR amendment
   ("Amended later"), a "checked" note (the month alone). Write "during the first trip". The first trip's retro
   dated a lesson and an amendment with the day it was written, and the push was refused until both were reworded and
