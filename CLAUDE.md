@@ -23,7 +23,8 @@ Everything above applies. This part covers only what Claude Code adds on top.
     (an "ask" rule). Every other route to the script, the share or the publish secrets is denied, and naming them in a
     Bash command trips it too, so write such text with the Write or Edit tool;
   - a write guard blocks keys in any file, and key or env files;
-  - after a turn that changed framework files, a Stop hook runs lint, the format check and tier 0.
+  - after a turn that changed framework files, a Stop hook runs lint, the format check and tier 0, in the checkout
+    that changed: the main one, or the git worktree an agent edited.
     They add to `.husky/`; they don't replace it.
 - **Plugins:** trusting the folder offers `impeccable` and `diagram-design` (declared in `.claude/settings.json`).
   `dataviz` is built in. Load the matching one before UI work (`memory-bank/standards/patterns/frontend.md`).

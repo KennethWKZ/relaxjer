@@ -4,7 +4,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { ROOT } from '../support/stage.mjs';
 
@@ -267,3 +269,75 @@ test('every path-scoped rule still matches a file in the repo', () => {
 	}
 	assert.deepEqual(stale, [], 'these rule paths match nothing: fix them after a move');
 });
+
+// The Stop hook's checks run where the edit was: an agent building a branch in a git worktree (.claude/worktrees/<name>)
+// gets its own tree linted and tested, not the main checkout that didn't change
+// a timeout: a hook that read its stdin on import would otherwise hang the run
+test(
+	'the Stop hook checks the checkout that was edited: the main one or a worktree, never a trip, another repo or a removed tree',
+	{ timeout: 30_000 },
+	async () => {
+		const { checkoutOf } = await import(pathToFileURL(at('.claude', 'hooks', 'mark-write.mjs')).href);
+		const { CHECKS, checkoutsIn, runChecks } = await import(pathToFileURL(at('.claude', 'hooks', 'stop-checks.mjs')).href);
+		const tmp = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'rj-stop-')));
+		// a throwaway repository with one worktree; its own git hooks off, so nothing of the machine's runs in it. Every GIT_*
+		// variable is dropped: inside a git hook (pre-commit runs this test) GIT_DIR and GIT_INDEX_FILE would point these
+		// calls at the real repository instead
+		const env = Object.fromEntries(Object.entries(process.env).filter(([k]) => !k.startsWith('GIT_')));
+		const git = (cwd, ...a) =>
+			execFileSync('git', ['-C', cwd, '-c', 'core.hooksPath=/dev/null', '-c', 'user.name=t', '-c', 'user.email=t@example.invalid', ...a], {
+				env,
+				encoding: 'utf8',
+				stdio: 'pipe',
+			});
+		const root = path.join(tmp, 'repo');
+		const other = path.join(tmp, 'other');
+		try {
+			for (const r of [root, other]) {
+				fs.mkdirSync(r);
+				git(r, 'init', '-q');
+				// never add or commit anywhere but this throwaway repository
+				assert.equal(fs.realpathSync(git(r, 'rev-parse', '--show-toplevel').trim()), r, `${r} is a repository of its own`);
+				fs.writeFileSync(path.join(r, 'a.js'), '');
+				git(r, 'add', 'a.js');
+				git(r, 'commit', '-q', '-m', 'init');
+			}
+			const wt = path.join(root, '.claude', 'worktrees', 'w');
+			git(root, 'worktree', 'add', '-q', wt, '-b', 'w');
+
+			assert.equal(checkoutOf(root, 'engine/x.js'), root, 'a file in the main checkout');
+			assert.equal(checkoutOf(root, path.join(wt, 'engine', 'new', 'x.js')), wt, 'a new file in a worktree');
+			assert.equal(checkoutOf(root, 'trips/t/data.js'), '', 'a trip');
+			assert.equal(checkoutOf(root, path.join(wt, 'trips', 't', 'data.js')), '', "a worktree's trip");
+			assert.equal(checkoutOf(root, '.cache/x'), '', 'a build');
+			assert.equal(checkoutOf(root, path.join(other, 'a.js')), '', 'another repository');
+			assert.equal(checkoutOf(root, path.join(tmp, 'loose.md')), '', 'a file in no repository');
+
+			// the hook itself: an edit in the worktree flags the worktree, in this session's flag in the main checkout
+			fs.mkdirSync(path.join(root, '.claude'), { recursive: true });
+			const mark = (file) =>
+				spawnSync(process.execPath, [at('.claude', 'hooks', 'mark-write.mjs')], {
+					input: JSON.stringify({ session_id: 's1', tool_input: { file_path: file } }),
+					env: { ...env, CLAUDE_PROJECT_DIR: root },
+				}).status;
+			assert.equal(mark(path.join(wt, 'a.js')), 0);
+			assert.equal(mark(path.join(root, 'trips', 'x.js')), 0);
+			const flag = fs.readFileSync(path.join(root, '.claude', '.write-flag-s1'), 'utf8');
+			assert.equal(flag, `${wt}\n`, 'only the worktree is flagged');
+
+			// the Stop hook's side: each checkout once; an older flag's relative lines mean the main checkout; a removed tree drops
+			assert.deepEqual(checkoutsIn(root, `${wt}\n${wt}\nengine/x.js\n${path.join(tmp, 'gone')}\n`), [wt, root]);
+			fs.mkdirSync(path.join(wt, 'node_modules'));
+			const ran = [];
+			const { failed, skipped } = runChecks([wt, root], (cmd, cwd) => {
+				ran.push([cmd, cwd]);
+				throw Object.assign(new Error('lint'), { stdout: 'x.js: 1 problem' });
+			});
+			assert.deepEqual(ran, [[CHECKS, wt]], 'the checks run in the worktree, as one command');
+			assert.deepEqual(failed, [{ top: wt, out: 'x.js: 1 problem' }]);
+			assert.deepEqual(skipped, [root], 'a checkout without node_modules is named, not checked');
+		} finally {
+			fs.rmSync(tmp, { recursive: true, force: true });
+		}
+	},
+);
