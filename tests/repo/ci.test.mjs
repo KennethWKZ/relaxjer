@@ -80,3 +80,14 @@ test('the browser tests skip only when the changes job says so, and the gate kno
 	);
 	assert.doesNotMatch(wf.split(/^jobs:/m)[0], /paths(-ignore)?:/, 'no path filter on the triggers: ci-ok must always report');
 });
+
+test('a failed e2e test keeps its trace, without the screencast that made teardown time out', async () => {
+	// a page with a live sky repaints all the time: with screenshots on, every test recorded ~770 frames (~50 MB) and
+	// wrote them at teardown, which ran past the 30 s test timeout on a busy machine although the test had passed
+	const { default: config } = await import(path.join(ROOT, 'playwright.config.mjs'));
+	const { trace } = config.use;
+	assert.equal(typeof trace, 'object', 'trace is set as an object, so its screenshots can be turned off');
+	assert.equal(trace.mode, 'retain-on-failure', 'a failure keeps its trace');
+	assert.equal(trace.screenshots, false, 'the trace records no screencast');
+	for (const p of config.projects) assert.equal(p.use.trace, undefined, `project ${p.name} sets its own trace`);
+});

@@ -30,6 +30,9 @@ Tier 0 (`pnpm test`) runs on every commit, so keep it under a few seconds: no ne
   - `TRIP_DIR=trips/<slug> pnpm exec playwright test --grep-invert @demo` on a real trip (local only);
   - `pnpm test:e2e:short` on the 4-day trip made from the demo (also in CI).
 - **Set the clock from the trip's own dates** in a trip-agnostic test, not from the demo's.
+- **A failure's trace has no screencast** (`trace.screenshots: false` in `playwright.config.mjs`): the DOM snapshots,
+  the network and `error-context.md` are enough to debug, and a page with a live sky made every test write ~50 MB of
+  frames at teardown, past the test timeout on a busy machine. Read a failure in `pnpm exec playwright show-trace`.
 - **Known debt is a failing test, not a comment:** `test.fail(true, 'reason')` states the behaviour you want where the
   engine lacks it. When a change fixes it, Playwright reports "expected to fail but passed"; delete the marker in that
   change.
