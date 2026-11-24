@@ -931,10 +931,23 @@ function ownClearBtn() {
 		? `<button type="button" class="mlink reset-btn" data-mine-clear-own>${icon('x')}${Z(`删除我加的 ${n} 个行程`, `Remove the ${n} stop${n > 1 ? 's' : ''} I added`)}</button>`
 		: '';
 }
+// anything on this phone that the original plan doesn't have: added stops, flight changes, pushed-back times
+const resetAllNeeded = () =>
+	mineAll().length || store.get('fltArr', '') || store.get('fltDep', '') || Object.keys(store.get('shift', {}) || {}).length;
 const resetAllBtn = () =>
-	mineAll().length || store.get('fltArr', '') || store.get('fltDep', '') || Object.keys(store.get('shift', {}) || {}).length
+	resetAllNeeded()
 		? `<button type="button" class="mlink reset-btn" data-reset-all>${icon('x')}${Z('恢复原计划（清除我加的和改过的）', 'Back to the original plan (clear what I added or changed)')}</button>`
 		: '';
+// the same two actions as the last row of the settings (23-sections-menu.js), in red: they take away (with Undo)
+function resetRow() {
+	if (SYNC) {
+		const n = mineAll().filter(ownsStop).length;
+		return n ? actRow('is-bad', 'data-mine-clear-own', 'x', Z(`删除我加的 ${n} 个行程`, `Remove the ${n} stop${n > 1 ? 's' : ''} I added`)) : '';
+	}
+	return resetAllNeeded()
+		? actRow('is-bad', 'data-reset-all', 'x', Z('恢复原计划', 'Back to the original plan'), Z('清除我加的和改过的', 'Clears what I added or changed'))
+		: '';
+}
 function mineRerender(msg, act) {
 	const sp = spotNow();
 	render();

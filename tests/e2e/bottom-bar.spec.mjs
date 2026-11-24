@@ -3,7 +3,7 @@
 // is a step Back undoes; Days lists every day down a sheet; More holds the planning sections and the settings, the sky's
 // Pause among them; whatever floats at the bottom sits above the bar, which reserves --chrome-bottom.
 import { test, expect, openTrip } from '../support/fixtures.mjs';
-import { BAR, clickOrExplain, goToView, hasBar, overflow, settle, setStored, switchLang, viewOn } from '../support/page.mjs';
+import { BAR, clickOrExplain, goToView, hasBar, LIST, overflow, settle, setStored, switchLang, viewOn } from '../support/page.mjs';
 
 /* global DAYS -- the trip data, read inside the page */
 
@@ -107,7 +107,7 @@ test('More opens the planning sections and the settings, and a section from it o
 				.filter((id) => id !== 'top' && id !== 'map' && !document.getElementById(id).classList.contains('day')),
 		);
 	expect(secs.length).toBeGreaterThan(0);
-	for (const id of secs) await expect(toc.locator(`a.toc-sec[href="#${id}"] svg.i`), `#${id} in More`).toHaveCount(1);
+	for (const id of secs) await expect(toc.locator(`a.rl[href="#${id}"] ${LIST.tile} svg.i`), `#${id} in More, with its icon`).toHaveCount(1);
 	await expect(toc.locator('a[href="#map"]')).toHaveCount(0);
 	// the settings: the theme, which maps app, and the rest the trip has
 	const settings = toc.locator('.toc-set');
@@ -131,7 +131,7 @@ test('More opens the planning sections and the settings, and a section from it o
 	// the food section's entry reads as its heading, and the near-me action is named apart from it
 	if (await page.locator('#eat .sec-title').count()) {
 		const eat = (await page.locator('#eat .sec-title').first().textContent()).trim();
-		await expect(toc.locator('a.toc-sec[href="#eat"]')).toHaveText(eat);
+		await expect(toc.locator('a.rl[href="#eat"]')).toHaveText(eat);
 		expect((await toc.locator('.toc-near[data-near]:not(.wc)').textContent()).trim()).not.toBe(eat);
 	}
 	const from = await viewOn(page);

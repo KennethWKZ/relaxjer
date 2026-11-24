@@ -466,13 +466,14 @@ function syncState() {
 		}[s.state] || ''
 	);
 }
-// the menu row's text; the sheet already has the heading, so it shows the state alone
+// the menu row's line under its name: how it stands
 function syncLabel() {
-	return `${Z('全组同步', 'Group sync')}${Z('：', ': ')}${syncState()}`;
+	return Cap(syncState());
 }
+// a row of the settings that opens the Group sync sheet, so it ends in › like a row that goes somewhere
 function syncRow() {
 	return SYNC
-		? `<button type="button" class="toc-sec toc-sync" data-sync-open>${icon('users')}<span data-sync-label>${syncLabel()}</span></button>`
+		? `<button type="button" class="rl toc-sync" data-sync-open>${rlTile('users')}<span class="rl-t"><b>${Z('全组同步', 'Group sync')}</b><small data-sync-label>${syncLabel()}</small></span>${icon('chev-r', 'rl-ch')}</button>`
 		: '';
 }
 /* who may do what (ADR-20261002-sync-planners). Function declarations reading the saved state, so the first draw (before

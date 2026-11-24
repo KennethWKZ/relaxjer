@@ -1,6 +1,6 @@
 ---
 created: 2026-10-01
-updated: 2026-10-02
+updated: 2026-11-24
 ---
 
 # Frontend: Design and UX Rules
@@ -47,6 +47,11 @@ states and its feedback, as 25 testable rules with sources.
   a desktop keeps the rail. Nothing on a phone scrolls sideways to reach a part of the trip. Anything fixed to the foot
   of the screen sits on `--chrome-bottom` (the bar plus the home bar, `0px` without a bar; set in CSS, never measured),
   and a modal sheet opens over the bar.
+- **A list that goes somewhere is a grouped list** ([ADR-20261124-grouped-lists](../decisions/ADR-20261124-grouped-lists.md)).
+  The rail, Days, More and the Sections sheet, and the settings in them: one card per group (`.gl`), full-width rows
+  (`.rl`, 52 px or more) split by a hairline that starts where the words do, each row ending in what it does: › to go
+  somewhere, the value and ⌃⌄ for a choice that changes here, nothing for an action. Build a new one with `railRow`,
+  `pickRow` or `actRow` (`04-render-nav.js`), never a new tile.
 - **The operated layer stays plain.** Times, prices, instructions and buttons use the system sans at the existing type
   scale. The brush face is for names and wishes only.
 - **44 px tap targets at least**, and 52 px for the floating actions. Type in `rem`, so the phone's text-size setting
@@ -161,3 +166,4 @@ Each rule above rests on a decision. The decision and its reasons live in its AD
 - [ADR-20261121-world-motion](../decisions/ADR-20261121-world-motion.md): A moving part of a picture is a top-level group with data-actor, and splitArt returns the still drawing plus each moving part as its own SVG.
 - [ADR-20261121-world-stickers](../decisions/ADR-20261121-world-stickers.md): Day colours keep text contrast at 4.5:1 or more on light paper and 3.8:1 or more on dark; tints are fixed shares of the colour.
 - [ADR-20261124-bottom-app-bar](../decisions/ADR-20261124-bottom-app-bar.md): Below 1024 px a bottom bar (Today, Days, Map, More) replaces the date strip and the Sections button, and the sky’s Pause moves into More.
+- [ADR-20261124-grouped-lists](../decisions/ADR-20261124-grouped-lists.md): The rail, Days, More and the Sections sheet are grouped lists: cards of 52 px rows split by inset hairlines, each row ending in ›, a value with ⌃⌄, or nothing.

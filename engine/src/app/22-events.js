@@ -148,7 +148,7 @@ document.addEventListener('click', (e) => {
 		themePref = THEME_NEXT[themePref];
 		store.set('theme', themePref);
 		applyTheme();
-		if (t.matches('[data-theme-cycle]')) t.outerHTML = themeRow();
+		if (t.matches('[data-theme-cycle]')) rowRedraw(t, themeRow(), '[data-theme-cycle]');
 		toast(`${Z('主题', 'Theme')}：${themeName(themePref)}`);
 		return;
 	}
@@ -158,7 +158,7 @@ document.addEventListener('click', (e) => {
 		const sp = spotNow();
 		render(); // every Map and Directions link is drawn again for the chosen app
 		spotRestore(sp);
-		if (t.isConnected) t.outerHTML = mapsRow();
+		if (t.isConnected) rowRedraw(t, mapsRow(), '[data-maps-cycle]');
 		toast(`${Z('打开地图用', 'Open maps in')}：${mapsName(mapsApp)}`);
 		return;
 	}
@@ -771,7 +771,7 @@ document.addEventListener('click', (e) => {
 		closeDialog(t.closest('dialog'));
 		// a view (the bottom bar, the Days sheet, the week list, the rail, a day's previous / next) opens at its top; a
 		// place inside one lands with the highlight and the ring that holds on it (20-views.js shows its view first)
-		const nav = t.matches('.tb, .toc-sec, .toc-day, .toc-now, .toc-top, .wk, .rl, .pg');
+		const nav = t.matches('.tb, .toc-now, .wk, .rl, .pg');
 		goTo(
 			el,
 			'start',

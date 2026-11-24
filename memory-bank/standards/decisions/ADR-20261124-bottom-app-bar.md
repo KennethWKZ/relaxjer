@@ -3,7 +3,7 @@ id: ADR-20261124-bottom-app-bar
 date: 2026-11-24
 title: 'A Bottom Bar on Phones and Tablets: Today, Days, Map and More Replace the Date Strip, the Sections Button and the Header Pause'
 domain: design
-status: accepted
+status: amended
 decision: 'Below 1024 px a bottom bar (Today, Days, Map, More) replaces the date strip and the Sections button, and the sky’s Pause moves into More.'
 tags: [engine]
 ---
@@ -129,3 +129,12 @@ desktop (1024 px and up) keeps its rail, the Sections button and the header's Pa
 
 Changing how a phone or a tablet gets around the trip (the bar, Days, More), anything fixed to the foot of the screen,
 the sky's Pause, the floating buttons, the header's rows, or the breakpoint between the bar and the rail.
+
+## Amendment 2026-11-24
+
+Days and More keep what they list, but [ADR-20261124-grouped-lists](ADR-20261124-grouped-lists.md) draws them, the
+desktop's rail and its Sections sheet as one grouped list: a card per group, full-width rows of 52 px or more split by
+inset hairlines, each ending in › (goes somewhere), a value with ⌃⌄ (a choice that changes here) or nothing (an
+action). A day's row keeps its date and title on two lines, with the forecast on its right. More's planning sections
+are one column, not two. More's settings now run Theme (on a phone), the sky's Pause, which maps app and Group sync,
+then Amounts and rate on a card of its own, then Install and the reset row last.

@@ -87,7 +87,9 @@ planners, is in [`guides/trip-page.md`](../../guides/trip-page.md).
   first. A day's planning cards are summary buttons with a one-line summary, each opening a sheet that scrolls on its
   own and closes with Back; big Previous day and Next day buttons end every day. On a phone and a tablet a bottom bar
   (Today, Days, Map, More) is on every view, like an app's, and nothing needs a sideways scroll to reach; a computer has
-  the week rail and the Sections button.
+  the week rail and the Sections button. Every list that goes somewhere (Days, More, the rail, the Sections menu) is
+  one grouped list, as a phone's own settings: full-width rows of 52 px or more, each ending in › if it goes somewhere,
+  in its value and ⌃⌄ if it changes in place (ADR-20261124-grouped-lists).
 - **Map:**
   - Google first, MapLibre as fallback;
   - Map and Directions links in Google Maps or Apple Maps, chosen per phone;
