@@ -27,15 +27,17 @@ concurrency:
   group: pages
   cancel-in-progress: false
 
+# Two jobs, as GitHub's own Pages workflow has them: build uploads the site, deploy publishes it once build has finished.
+# In one job, deploy-pages looked for the artifact moments after its upload and sometimes found none ("Found 0
+# artifact(s)", four times on 2026-11-24); and a re-run of that one job uploaded a second copy, which deploy-pages
+# refuses ("Multiple artifacts named github-pages"). Split, a failed deploy re-runs alone, against the one artifact.
+# arm64 runners (free on a public repo), as ci.yml's
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: ubuntu-24.04-arm
     permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      contents: read
+      pages: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
@@ -65,5 +67,15 @@ jobs:
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: _site
+  deploy:
+    needs: build
+    runs-on: ubuntu-24.04-arm
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
