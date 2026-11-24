@@ -36,6 +36,12 @@ Tier 0 (`pnpm test`) runs on every commit, so keep it under a few seconds: no ne
 - **Known debt is a failing test, not a comment:** `test.fail(true, 'reason')` states the behaviour you want where the
   engine lacks it. When a change fixes it, Playwright reports "expected to fail but passed"; delete the marker in that
   change.
+- **A visual state gets one assertion on how it's drawn**, not only its class or text: the computed display, size or
+  border that makes it look right. A result pin's test checked its class and its name while the pin drew as a squeezed
+  sliver; it now checks the ring's grid, size and the missing border (`map-search.spec`).
+- **Measure what springs into place with `expect(() => …).toPass()`.** A spring overshoots before it rests, and "the
+  same size across two frames" can catch it moving (a sheet is moved, not resized). Retrying the measurement until it
+  holds checks where it lands without guessing a wait.
 - **Contracts with the outside world get exact tests.** The `#add=` share-link format is one: links already sent to a
   group chat must keep importing.
 - **Selectors live in the helpers.** When markup changes, change `tests/support/page.mjs`, not the invariants in the

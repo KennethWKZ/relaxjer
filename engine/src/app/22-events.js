@@ -925,20 +925,27 @@ function rateSet(v) {
 	calcLucky();
 }
 document.addEventListener('keydown', (e) => {
-	if (e.target.id === 'q' && e.key === 'Enter') {
-		e.preventDefault();
-		if (searchState.hits.length) jumpTo(0);
-		e.target.blur();
-	}
-	// the map's search: the keyboard's Search key puts the keyboard away, so the results under it show. Not while a
-	// Chinese or Japanese input method is still composing: its Enter picks the characters
-	if (e.target.id === 'mapq' && e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) {
-		e.preventDefault();
-		if (e.target.value.trim()) mapListOpen(true);
+	// every field the page types into: the keyboard's Enter (Search, Go, Done) acts and lets go of the field, so a phone
+	// puts its keyboard away and what the field found shows. A field outside a form gets nothing from Enter by itself.
+	// enterKey leaves an input method's Enter alone (02-helpers.js)
+	if (enterKey(e) && e.target.matches && e.target.matches('input[type="search"], input[type="text"], input[type="password"]')) {
+		if (e.target.id === 'q') {
+			e.preventDefault();
+			if (searchState.hits.length) jumpTo(0);
+		} else if (e.target.id === 'mapq') {
+			e.preventDefault();
+			if (e.target.value.trim()) mapListOpen(true);
+		}
+		// a name field's change saves it as it lets go (26-sync.js); the welcome name and the planner code act on their own
 		e.target.blur();
 	}
 	if (e.key === 'Escape' && !$('#search-row').hidden) closeSearch();
 	if (e.key === 'Escape' && mapFullOn && !document.querySelector('dialog[open]')) mapFull(false);
+});
+// the map's search lets go of its field (Search, the keyboard's own close, a tap on the map): once the keyboard has
+// gone, the map and its sheet are lined up again, so the sheet's last row (Google's search) isn't behind the bottom bar
+document.addEventListener('focusout', (e) => {
+	if (e.target.id === 'mapq') stageAfterKeyboard();
 });
 $('#q').addEventListener('focus', () => {
 	if (searchState.q) $('#results').dataset.state = 'open';

@@ -48,8 +48,8 @@ const paneOn = () => {
 const paneSide = (box = $('#mapbox')) => !!box && getComputedStyle(box).getPropertyValue('--pane-side').trim() === '1';
 /** the sheet's heights in px, from the map's own height: a peek shows its head and the first line, half leaves more
  *  than half the map open (and, for the finder, reaches down to its links, Directions among them: the map draws no
- *  line, so that's the way there; measured, so a photo or a bigger text size still fits, while 140 px of map stay
- *  open), full covers all but a strip */
+ *  line, so that's the way there; for a short list, all of it, so "Nothing found" shows its Google search row whole;
+ *  measured, so a photo or a bigger text size still fits, while 140 px of map stay open), full covers all but a strip */
 function paneStops() {
 	const { box, pane } = paneEls();
 	const H = box ? box.clientHeight : 0;
@@ -58,7 +58,13 @@ function paneStops() {
 	const peek = Math.min(top, head + 64);
 	const find = pane && pane.querySelector('#mapfind:not([hidden])');
 	const links = find && find.querySelector('.links-row');
-	const need = links ? Math.ceil(links.getBoundingClientRect().bottom - pane.getBoundingClientRect().top + find.scrollTop + 10) : 0;
+	const res = !find && pane && pane.querySelector('#mapres:not([hidden])');
+	const list = res ? Math.ceil(res.getBoundingClientRect().top - pane.getBoundingClientRect().top + res.scrollHeight + 10) : 0;
+	const need = links
+		? Math.ceil(links.getBoundingClientRect().bottom - pane.getBoundingClientRect().top + find.scrollTop + 10)
+		: list <= H - 140
+			? list // a long list keeps the usual half: it scrolls
+			: 0;
 	return { peek, half: Math.min(top, Math.max(peek + 52, Math.round(H * 0.42), Math.min(need, H - 140))), full: top };
 }
 /** how much of the map the pane covers: the sheet's height at its foot, or the panel's width down its left */
@@ -155,6 +161,30 @@ function stageInView() {
 	const foot = innerHeight - (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--chrome-bottom')) || 0);
 	if (r.top >= barH - 1 && r.bottom <= foot + 1) return;
 	scrollToEl(st, 'start', false);
+}
+/** the map's search let go of its field: once the phone's keyboard has gone (it moves the page while it's up, and the
+ *  page comes back lower, the sheet's foot behind the bottom bar), line the map up again and set the sheet to a height
+ *  that shows what it holds. With no keyboard (a desktop) nothing moves, and this lands at once */
+let stageKbT = 0;
+function stageAfterKeyboard() {
+	if (!paneOn()) return;
+	clearTimeout(stageKbT);
+	const settle = () => {
+		if (VV) VV.removeEventListener('resize', wait);
+		clearTimeout(stageKbT);
+		requestAnimationFrame(() => {
+			if (!paneOn() || finderAt) return; // a tapped result: the finder sets its own height and frames its place
+			stageInView();
+			paneTo(paneStop === 'peek' ? 'half' : paneStop);
+		});
+	};
+	// the keyboard slides down over a few frames, each a viewport resize: wait until they stop
+	const wait = () => {
+		clearTimeout(stageKbT);
+		stageKbT = setTimeout(settle, 120);
+	};
+	if (VV) VV.addEventListener('resize', wait);
+	stageKbT = setTimeout(settle, 450);
 }
 /** open or close the pane; it opens at its last height (never as a sliver), and keeps up with the map's size */
 function paneShow(on) {
