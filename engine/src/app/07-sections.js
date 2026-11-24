@@ -1012,7 +1012,7 @@ function secDay(d, today) {
 		lang === 'zh'
 			? `<p class="l-title"${alt(other(d.title))}>${esc(L(d.title))}</p>`
 			: `<h2 class="l-title"${alt(other(d.title))}>${esc(L(d.title))}</h2>`;
-	const meta = `<div class="l-meta"><span>Day ${d.n}</span><span>${esc(dateLabel(d.date, d.dow))}</span>${motifTag(d)}${isToday ? `<span class="flag inv">${Z('今天', 'Today')}</span>` : ''}</div>`;
+	const meta = `<div class="l-meta"><span>Day ${d.n}</span>${dateTag(d.date, d.dow)}${motifTag(d)}${isToday ? `<span class="flag inv">${Z('今天', 'Today')}</span>` : ''}</div>`;
 	// with a live sky the day's date, wish, weather and what to wear sit in the sky's band; the card keeps the rest
 	const band = sky ? bandHTML(`${meta}${wishOnly}${wxLine(d, d.wear)}`) : '';
 	const wx = sky ? '' : fcChip(d);
@@ -1062,7 +1062,7 @@ function secDay(d, today) {
         ${splitBack(d, it)}
         ${it._clash ? `<p class="warn">${icon('alert')}${esc(Z(`推迟后会撞到 ${L(it._clash.t)}「${stopName(it._clash)}」：这一项缩短或跳过`, `Now runs into the fixed ${L(it._clash.t)} ${stopName(it._clash)}: shorten or skip this`))}</p>` : ''}
         ${it.place ? `<div class="stop-drv"><button type="button" class="mlink" data-driver="${it.place}">${icon('car')}${Z('给司机看', 'Show driver')}</button></div>` : ''}
-        ${nearOpts(d, it)}${moreSheet}</div></li>`;
+        ${nearOpts(d, it, sid)}${moreSheet}</div></li>`;
 	});
 	if (d.split) {
 		// it forks after the last stop that starts by then; added stops still sort around it by time
@@ -1122,7 +1122,7 @@ function secDay(d, today) {
 	].filter(Boolean);
 	return `<section class="day" id="${d.id}" data-sec="${d.id}" style="${colorVars(d.c)}">
       ${band}
-      <div class="day-bar"><span class="sw" aria-hidden="true"></span><span class="dt">Day ${d.n} · ${esc(dateLabel(d.date, d.dow))}</span><span class="rt">${esc(L(d.title))}</span></div>
+      <div class="day-bar"><span class="sw" aria-hidden="true"></span><span class="dt">Day ${d.n} · ${dateTag(d.date, d.dow, false)}</span><span class="rt">${esc(L(d.title))}</span></div>
       <div class="lantern">
         ${worldArt(d.motif, 'day-art')}
         ${sky ? titleOnly : `${meta}${wishOnly}${titleOnly}`}

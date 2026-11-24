@@ -206,19 +206,16 @@ components:
     rounded: '{rounded.md}'
     padding: '0 12px'
     height: '44px'
-  day-tab:
-    backgroundColor: '{colors.paper-2}'
+  tab-bar:
+    backgroundColor: '{colors.glass}'
     textColor: '{colors.ink-2}'
+    typography: '{typography.label}'
+    height: '56px'
+  tab-bar-item-current:
+    backgroundColor: 'color-mix(in srgb, {colors.ink} 18%, transparent)'
+    textColor: '{colors.ink}'
     rounded: '{rounded.control}'
-    padding: '0 11px'
-    height: '44px'
-    width: '48px'
-  day-tab-current:
-    backgroundColor: '{colors.lantern-1}'
-    textColor: '{colors.lantern-1-ink}'
-  section-tab-current:
-    backgroundColor: '{colors.ink}'
-    textColor: '{colors.paper}'
+    size: '56px'
   now-card:
     backgroundColor: '{colors.paper-2}'
     textColor: '{colors.ink}'
@@ -319,13 +316,13 @@ components:
 
 Each trip day is one sky-lantern panel. The day's goal is brush-inked on lantern paper in that day's colour, and the working plan (times, transport, budget, rain rule) is printed plainly underneath on white paper, threaded on a lantern string. The world has two layers. The lantern layer (brush lettering, lantern paper, seal stamps, strings) is atmosphere and identity. The operated layer (system sans, large tabular numbers, 44 px+ targets, plain rows) is what the group actually uses on a phone, often with seniors, in bright sunlight or a dark hotel room. The operated layer never borrows the lantern layer's ornament.
 
-The page is dense but calm: one phone-first column, generous type (a 17 px body that follows the phone's text-size setting), and flat paper-grey containers. By day it is white paper. In dark mode it is a night sky, and each lantern glows from inside with a warm light rising from its base. The first viewport is a translucent sticky header (brush brand, search, theme, language switch) over a scrollable strip of day tabs in the lantern colours, then the Now/Next card with a monumental countdown, then the week as a list of small lanterns, then the days.
+The page is dense but calm: one phone-first column, generous type (a 17 px body that follows the phone's text-size setting), and flat paper-grey containers. By day it is white paper. In dark mode it is a night sky, and each lantern glows from inside with a warm light rising from its base. The first viewport is a translucent sticky header (brush brand, search, the currency and language switches) over Today: the Now/Next card with a monumental countdown, then the week as a list of small lanterns. On a phone and a tablet a glass bottom bar (Today, Days, Map, More) stands at the foot of every view, the way around the trip; a desktop has the week rail instead.
 
 It rejects the travel-app default: stock hero photo, teal accent, identical icon cards.
 
 **Key Characteristics:**
 
-- One lantern colour per trip day, cycling through seven, carried by the tab, the lantern, the string, the knots, the sticky day bar and the map pins.
+- One lantern colour per trip day, cycling through seven, carried by the Days row, the bottom bar's lit Days, the lantern, the string, the knots, the sticky day bar and the map pins.
 - Brush lettering for the brand, the day's wish and the seal glyph only; system sans for everything operated.
 - A lantern string runs down every schedule; fixed anchors are red diamond knots with a brush-lettered seal.
 - Flat paper-grey containers; shadows only on things that float and on lanterns.
@@ -341,7 +338,7 @@ White paper and near-black ink carry the operated layer; seven saturated lantern
 
 ### Secondary
 
-- **Seal Red** (`seal`; `night-seal` in dark): the vermilion of a name stamp. It marks fixed-time anchors (the diamond knot, the seal stamp and its "fixed" label) and the red today dot on a day tab. Nothing else.
+- **Seal Red** (`seal`; `night-seal` in dark): the vermilion of a name stamp. It marks fixed-time anchors (the diamond knot, the seal stamp and its "fixed" label). Nothing else.
 
 ### Tertiary
 
@@ -355,7 +352,7 @@ White paper and near-black ink carry the operated layer; seven saturated lantern
 ### Neutral
 
 - **Day Paper** (`paper`): page ground, hanging cards, tags, the Back pill.
-- **Fog Grey** (`paper-2`): the default container: Now/Next card, week rows, link-buttons, decision rows, unselected tabs.
+- **Fog Grey** (`paper-2`): the default container: Now/Next card, week rows, link-buttons, decision rows, the Days and rail rows.
 - **Mist Grey** (`paper-3`): pressed states, the search field, the segmented control's track, image placeholders.
 - **Ink** (`ink`), **Ink 2** (`ink-2`), **Ink 3** (`ink-3`): text, secondary text, tertiary labels. Ink 3 still clears 6.3:1 on Fog Grey.
 - **Rule** (`rule`): 1 px hairlines between rows and around hanging cards. It is also the sticky bar's stripe colour when no day is in view.
@@ -394,7 +391,7 @@ White paper and near-black ink carry the operated layer; seven saturated lantern
 - **Time, fixed** (750, 1.3125rem, −0.02em): the time of a fixed anchor, larger than every other time on the string.
 - **Body** (400, 1.0625rem, 1.55): running text and stop names (at 700). Section ledes cap at 38rem.
 - **Body small** (600–750, 0.9375rem): notes, chips, buttons, times, meta. This is the most used size in the system.
-- **Label** (600, 0.8125rem): compact labels only: header dates, chart axes, table heads, search counts.
+- **Label** (600, 0.8125rem): compact labels only: header dates, the bottom bar's labels, chart axes, table heads, search counts.
 
 ### Named Rules
 
@@ -406,13 +403,13 @@ White paper and near-black ink carry the operated layer; seven saturated lantern
 
 ## Layout
 
-One phone-first column, `--col` (46rem) wide, centred, with a 16 px gutter. Only the header's tab strip widens past it (to 76rem, centred) from 900 px. Sections open with 36 px above them; each day starts 40 px below the previous one; blocks inside a day sit 22 px apart (16 px on phones). Internal gaps step through 4 / 6 / 8 / 10 / 12 / 14 px. The main column reserves 88 px at the bottom so the last row scrolls clear of the floating buttons.
+One phone-first column, `--col` (46rem) wide, centred, with a 16 px gutter. Only the header spans wider (with the rail, from 1024 px). Sections open with 36 px above them; each day starts 40 px below the previous one; blocks inside a day sit 22 px apart (16 px on phones). Internal gaps step through 4 / 6 / 8 / 10 / 12 / 14 px. The main column reserves 88 px at the bottom so the last row scrolls clear of the floating buttons; below 1024 px each view's foot keeps `--chrome-bottom` (the bottom bar plus the home bar) and 76 px more, for the Back pill above the bar.
 
 The header is sticky and translucent (20 px blur, 180 % saturation) and measures its own height into `--bar-h`. Below it, each day has a sticky 40 px day bar (the day's swatch, date and route) that fades in when that day's lantern scrolls under the header. Anchored targets keep a scroll margin of `--bar-h` + 12–56 px so a jump never lands under the header.
 
 A schedule row is a three-column grid: time (4.6rem, right-aligned), the 18 px string, then the stop. Now/Next rows and fact rows are two-column key/value grids (5.25rem and 6.5rem keys). On a trip day the Now/Next card's two actions (Open today, Go to next stop) come right under the rows and share one row, a long label wrapping inside its 48 px button, so both sit on an iPhone's first screen (390 × 664); the location card and its buttons follow them.
 
-**Phone compaction (below 600 px, checked at 390 px):** secondary button labels collapse to icons and stay available to screen readers; the brush wish drops to 2.125rem; blocks tighten to 16 px and hanging cards to 12 px padding; the sections button becomes a 52 px square. From 440 px down the header drops the trip dates, and while Install shows beside the currency button, Install keeps its word but drops its icon and the brush brand steps down to 1.25rem, so a six-character brand still fits at 390 px; from 380 px down the time column narrows to 4rem. From 720 px up the wish grows to 3.25rem, photos run three to a row, travel methods go two-up and tiers three-up. A method's three facts sit side by side at every width and never split a word or a number range ("60–75 min"): a cell takes the room its longest one needs, and wraps to a full row of its own only when the three can't fit.
+**Phone compaction (below 600 px, checked at 390 px):** secondary button labels collapse to icons and stay available to screen readers; the brush wish drops to 2.125rem; blocks tighten to 16 px and hanging cards to 12 px padding; the bottom bar takes the Sections button's place (below 1024 px). From 440 px down the header drops the trip dates, and while Install shows beside the currency button, Install keeps its word but drops its icon and the brush brand steps down to 1.25rem, so a six-character brand still fits at 390 px; from 380 px down the time column narrows to 4rem. From 720 px up the wish grows to 3.25rem, photos run three to a row, travel methods go two-up and tiers three-up. A method's three facts sit side by side at every width and never split a word or a number range ("60–75 min"): a cell takes the room its longest one needs, and wraps to a full row of its own only when the three can't fit.
 
 ### Named Rules
 
@@ -427,7 +424,7 @@ Hybrid. Content is flat and tonal: Fog Grey and Mist Grey containers on white pa
 - **Glass underline** (`box-shadow: 0 1px 0 var(--glass-edge)`): the sticky header and day bar.
 - **Lantern, day** (`box-shadow: 0 10px 24px -14px color-mix(in srgb, var(--c) 80%, #000)`): every lantern panel in light mode.
 - **Lantern, night** (`box-shadow: 0 16px 40px -18px color-mix(in srgb, var(--c) 90%, transparent)`): the lantern's glow in dark mode.
-- **Float** (`box-shadow: 0 10px 28px -10px rgba(0, 0, 0, 0.45)`): the Back pill (0.55 on the sections button).
+- **Float** (`box-shadow: 0 10px 28px -10px rgba(0, 0, 0, 0.45)`): the Back pill (0.55 on a desktop's sections button). The bottom bar is glass, like the header, with a hairline on top (`0 -1px 0 var(--glass-edge)`).
 - **Toast** (`box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.4)`).
 - **Sheet** (`box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.5)`): dialogs over the scrim.
 
@@ -486,14 +483,18 @@ Every control is a plain, heavy-lettered rectangle with a 44 px floor (48–52 p
 
 ### Navigation
 
-- **Header:** translucent glass bar with the brush brand (the trip dates hidden below 440 px), an Install button with its word (安装 / Install, until the page is on the home screen), search, theme (the page follows the phone's light or dark setting until the reader picks one, and a pick is kept on that phone), a currency button and one language button, each naming what it switches to (RM while the figures are in NT$, NT$ while they are in RM; EN while reading Chinese, 中 while reading English), the two side by side on the same Mist Grey fill (a three-letter currency steps down to the extra-small size), a search row, then the tab strip. Below 600 px the theme switch leaves the header for the Sections sheet, where it has a label (主题：浅色 / Theme: Light); only conventional glyphs stay icon-only.
-- **Views:** one part of the trip on screen at a time ([ADR-20261122-day-views](memory-bank/standards/decisions/ADR-20261122-day-views.md)): the Overview, each day, and each section is a view; the others stay in the page, undrawn (`data-off`). Each view leaves 96 px plus the home bar at its foot for the floating buttons. A switch from the rail or a day's previous / next button moves the focus to the new view's heading (without a scroll), so the keys scroll the view and a screen reader says where it arrived.
-- **Day tabs:** 44 px tall, at least 48 px wide, 10 px radius, Fog Grey. The current tab is the view on screen. Each shows the date number (1rem at 750) and weekday (0.6875rem) under a short 3 px bar in the day colour. The current tab fills (a day with its lantern pair, a section with ink) and adds a second cue: 800 weight and a 3 px bar in its own ink along the bottom, so it never differs by hue alone. Tabs sit 8 px apart. The strip scrolls sideways with no visible scrollbar, so each edge with more tabs behind it fades out over 32 px.
+- **Header:** translucent glass bar with the brush brand (the trip dates hidden below 440 px), an Install button with its word (安装 / Install, until the page is on the home screen), search, theme (the page follows the phone's light or dark setting until the reader picks one, and a pick is kept on that phone), a currency button and one language button, each naming what it switches to (RM while the figures are in NT$, NT$ while they are in RM; EN while reading Chinese, 中 while reading English), the two side by side on the same Mist Grey fill (a three-letter currency steps down to the extra-small size). Search swaps the header's row for the search row while it's open. Below 600 px the theme switch leaves the header for More's settings, where it has a label (主题：浅色 / Theme: Light); a desktop's header also keeps the sky's Pause. Only conventional glyphs stay icon-only.
+- **Views:** one part of the trip on screen at a time ([ADR-20261122-day-views](memory-bank/standards/decisions/ADR-20261122-day-views.md)): Today, each day, and each section is a view; the others stay in the page, undrawn (`data-off`). A switch from the rail or a day's previous / next button moves the focus to the new view's heading (without a scroll), so the keys scroll the view and a screen reader says where it arrived.
+- **Bottom bar** (below 1024 px, phones and tablets; [ADR-20261124-bottom-app-bar](memory-bank/standards/decisions/ADR-20261124-bottom-app-bar.md)): fixed to the foot on the header's glass, with a hairline on top; four items of equal width (on a tablet 8.5rem each, kept together in the middle), each a 24 px icon in one stroke style over a Label-size word: Today (a calendar page carrying today's date at 9.5 px and 800, a part of the glyph, set in px so it never outgrows the icon), Days (a list of day tiles), Map, More (three dots). The bar is `--tabbar-h` tall (56 px at the default text size, growing with it) plus the home bar; `--chrome-bottom` on `:root` is that total, `0px` where there's no bar, and everything that floats at the foot sits on it. The lit item fills its icon's 56 × 30 px tile at 18 % (the day's lantern colour on Days while a day is on screen, ink otherwise), thickens its stroke and goes 800 in ink, the others 650 in Slate: two cues. Sheets and the full-screen map's layer open over it; the full-screen map ends at its top.
+- **Days sheet:** every day as one 60 px row, as the rail draws them: the day's mark, its short date ("3/15 周一") · Day N, a Today flag, its title and forecast; the day on screen takes the rail's lit look. It scrolls down, never sideways, and opens with the day on screen (else today) in sight.
+- **More sheet:** Food and Toilets nearby, then "Trip info" (行程资料): every planning section with its icon on a two-up grid, then "Settings" (设置): Theme (on a phone), the sky's Pause (暂停下雪 / Pause the snow, a play glyph once paused), which maps app, Amounts and rate, Group sync, the reset row and Install.
 - **Now stripe:** a 3 px stripe under the sticky header takes the colour of the day in view (`--now`), fading over 240 ms, and falls back to `rule` between days.
-- **Sections button:** a floating 52 px ink button, bottom right, that opens the sections sheet. It's there from the first screen of every view, lifted clear of the home bar (`env(safe-area-inset-bottom)`), and steps aside (fades and drops 14 px) only over the full-screen map, while search is open, and while it would cover a day's Next tile.
-- **Week rail** (1024 px and wider): the tab strip gives way to a 300 px rail, sticky beside the view: the Overview, "Every day" (56 px rows: the day's mark or number on a 30 px tile, the date, the title, the forecast and a Today flag) and "Other" (each section with its icon). The current row takes a 15 % day-colour fill, a 2 px inset ring in the day colour and 800 weight.
-- **Sections sheet:** on a trip day it opens with Now and Next rows that lead with the day's knots, as on its string: a filled knot with a 5 px halo for Now, a 12 px ring for Next (and for Today before the first stop). The knot is the day colour mixed 55 % with ink, like the landing ring, so every lantern reaches 3:1 on the Fog Grey row.
-- **Back pill:** a floating 52 px paper button, bottom left, with a hairline border and the float shadow. After a jump it returns the reader to where they were, then slides away (fades and drops 14 px).
+- **Sections button** (1024 px and wider): a floating 52 px ink button, bottom right, that opens the sections sheet. It's there from the first screen of every view, lifted clear of the home bar (`env(safe-area-inset-bottom)`), and steps aside (fades and drops 14 px) only over the full-screen map, while search is open, and while it would cover a day's Next tile.
+- **Week rail** (1024 px and wider): a 300 px rail takes the bottom bar's place, sticky beside the view: Today, "Every day" (56 px rows: the day's mark or number on a 30 px tile, the date, the title, the forecast and a Today flag) and "Other" (each section with its icon). The current row takes a 15 % day-colour fill, a 2 px inset ring in the day colour and 800 weight.
+- **Sections sheet** (a desktop's): on a trip day it opens with Now and Next rows that lead with the day's knots, as on its string: a filled knot with a 5 px halo for Now, a 12 px ring for Next (and for Today before the first stop). The knot is the day colour mixed 55 % with ink, like the landing ring, so every lantern reaches 3:1 on the Fog Grey row.
+- **Back pill:** a floating 52 px paper button with a hairline border and the float shadow, bottom left: 12 px above the bottom bar below 1024 px, above the home bar on a desktop. After a jump it returns the reader to where they were, then slides away (fades and drops 14 px). The toast rises above it while it's up.
+- **Short dates:** a day's heading and its day bar show the date short after a calendar mark (Chinese "3/15 周一"; the 周 stays, since a bare 一 reads as a dash; English is already short, "Mon 15 Mar"), the whole date for screen readers.
+- **Nearby options** (a stop's suggested optional plans): a full-width 44 px row with a dashed Slate edge, the list glyph, the count ("2 nearby options", 附近可选 2) and a chevron; closed on a phone, open from 600 px. Open, its chevron turns and it fills Fog Grey with a solid hairline, two cues; the chips follow under it.
 - **Sections sheet foot:** after the sections come Theme, Group sync (a row, on a page built with sync only) and, if the phone has something to clear, "Remove the N stops I added". Without sync that last row reads "Back to the original plan".
 
 ### Toast with Undo
@@ -607,8 +608,8 @@ A destination pack may name a world (`export const theme = '<name>'`, in `destin
 
 - **Live weather:** snow falls by itself, as the day's weather says: heavy (0.85 flakes per 1000 px², 1.4–3.8 px, 50–105 px/s, a 26 px/s wind), light (0.24; 1.1–2.5 px; 20–42 px/s), showers (0.55, in gusts), clear (a few slow glints), clear night (stars, no snow). A day with no forecast falls as light snow.
 - **Snow globe:** the snow rests in the band's foot until Shake (摇一摇) or a sideways swipe on the band swirls it; the swirl settles in about 5 s (energy halves every 1.5 s). Nothing reads the phone's motion sensors.
-- **Snow piles:** snow settles on the header's date tabs (a cap of `snow-cap` with a `snow-cap-rim` edge) and on the band's drift (`snow-drift-rim`); a tap on a tab knocks its cap off in a puff.
-- **Where it falls:** on a phone and a tablet the sky fills the header and the band; the band's words sit on their own layer above the canvas, so the snow falls behind them. From 1024 px the sky is behind the whole page (`.sky-full`), each view is a paper card on it, and the snow falls in the margins. The pause button (`#skyBtn`, 44 px, in the header beside search, on every width; a phone header too narrow for the whole brand shows the trip's short name, `TRIP.brandShort`) is remembered with `store` (`skyPaused`), and is hidden with less motion asked for, when the sky is still anyway. Under a sky, a phone's overview drops the scene above Now and Next (the band is its sky) and keeps the trip's name for screen readers, so Now and Next keep the first screen. With `'off'` the page keeps the still backdrop below.
+- **Snow piles:** snow settles on the band's drift (`snow-drift-rim`); on a desktop on the snowy ground and on the rail's and the view's cards (a cap of `snow-cap` with a `snow-cap-rim` edge).
+- **Where it falls:** on a phone and a tablet the sky fills the header and the band; the band's words sit on their own layer above the canvas, so the snow falls behind them. From 1024 px the sky is behind the whole page (`.sky-full`), each view is a paper card on it, and the snow falls in the margins. The pause (`#skyBtn`, 44 px, in a desktop's header beside search; below 1024 px a row in the bottom bar's More, `[data-sky-toggle]`, two taps from any view: [ADR-20261124-bottom-app-bar](memory-bank/standards/decisions/ADR-20261124-bottom-app-bar.md)) is remembered with `store` (`skyPaused`), and is hidden with less motion asked for, when the sky is still anyway. A phone header too narrow for the whole brand shows the trip's short name (`TRIP.brandShort`). Under a sky, a phone's Today drops the scene above Now and Next (the band is its sky) and keeps the trip's name for screen readers, so Now and Next keep the first screen. With `'off'` the page keeps the still backdrop below.
 
 | Token                                          | Light                                                                     | Dark                                                                   | Use                                                                                                           |
 | ---------------------------------------------- | ------------------------------------------------------------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
@@ -641,7 +642,7 @@ A destination pack may name a world (`export const theme = '<name>'`, in `destin
   - Shopping: the shopper at the window gives two happy hops (a 9 % and a 6 % lift with a squash on landing) every 3.4 s.
   - Snow country: the lone spruce sways from its trunk (−1.4° to 1.6°, 4.6 s), powder blows off its lit side every 4.6 s, and it snows hard: bigger flakes on the wind, three tiles down and one across per fall (24 s far, 15 s near).
   - Snow falls gently in the overview, the town and shopping too: two sheets of flakes, the far one 13 s and the near one 8 s per fall, linear.
-- **The sky behind the page follows the scroll** (with the sky off): nothing in it moves by itself (WCAG 2.2.2), so it never needs pausing. The sky over the views does move by itself, so it has its pause button, stops while the page is hidden and holds still with less motion asked for.
+- **The sky behind the page follows the scroll** (with the sky off): nothing in it moves by itself (WCAG 2.2.2), so it never needs pausing. The sky over the views does move by itself, so it has its pause (in the header on a desktop, in More below 1024 px), stops while the page is hidden and holds still with less motion asked for.
 - **The sky turns with the day:** switching views blends the band and header to the new day's weather and colour over 0.7 s (`--ease-out`); the snow changes density and speed over the same time, never by restarting.
 - **Reduced motion:** every picture holds still as drawn, every part at rest and visible, no snow falls, the sky over the views is still with no pause button, and the sky behind the page is a still night with the sun risen at the foot.
 - **Never:** snow falling over words, a backdrop that moves by itself without a pause, an animated glow, a filter or blur on the day cards, candles along the sides. The press scale and every default-world timing stay as they are; the week stickers press flat with the row.

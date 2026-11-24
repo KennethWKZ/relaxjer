@@ -1,11 +1,12 @@
 // The live sky (ADR-20261122-day-views): in a world with a sky, TRIP.sky picks it ('live', 'globe', 'pile', 'off'; the
-// world's own by default). It snows by itself, with a Pause in the header that this phone remembers; under reduced
-// motion it's still and the Pause is gone; the globe shakes and settles; the piling snow comes off a tapped tab; with
-// no sky the world keeps its scroll's night. The planner's preview panel is only in a page built with --preview.
+// world's own by default). It snows by itself, with a Pause this phone remembers: in the header on a desktop, in the
+// bottom bar's More below 1024 px (ADR-20261124-bottom-app-bar); under reduced motion it's still and the Pause is gone;
+// the globe shakes and settles; the piling snow builds up; with no sky the world keeps its scroll's night. The planner's
+// preview panel is only in a page built with --preview.
 // Pages: tests/support/global-setup.mjs builds the trip under test in Snow Light Path once per sky.
 import { test, expect } from '../support/fixtures.mjs';
 import { STORE_KEY } from '../support/store-key.mjs';
-import { goToView, VIEWS } from '../support/page.mjs';
+import { BAR, goToView, hasBar, skyPause, VIEWS } from '../support/page.mjs';
 
 /* global DAYS -- the trip data, read inside the page */
 
@@ -33,18 +34,21 @@ for (const mode of ['live', 'globe', 'pile']) {
 				return { canvas: !!cv || innerWidth >= 1024, under: !cv || z(cv) < z(col) };
 			});
 			expect(order).toEqual({ canvas: true, under: true });
-			const btn = page.locator(VIEWS.skyBtn);
+			const btn = await skyPause(page);
 			await expect(btn).toBeVisible();
 			expect((await btn.boundingBox()).width).toBeGreaterThanOrEqual(44);
+			expect((await btn.boundingBox()).height).toBeGreaterThanOrEqual(44);
 			await expect(btn).toHaveAttribute('aria-pressed', 'false');
 			await btn.click();
 			await expect(btn).toHaveAttribute('aria-pressed', 'true');
 			await expect.poll(() => snowing(page)).toBeNull();
 			expect(await page.evaluate((k) => localStorage.getItem(`${k}skyPaused`), STORE_KEY)).toBe('true');
 			await page.reload();
-			await expect(page.locator(VIEWS.skyBtn)).toHaveAttribute('aria-pressed', 'true');
+			await expect(page.locator('#app [data-sec]').first()).toBeAttached();
+			const again = await skyPause(page);
+			await expect(again).toHaveAttribute('aria-pressed', 'true');
 			expect(await snowing(page)).toBeNull();
-			await page.locator(VIEWS.skyBtn).click();
+			await again.click();
 			await expect(page.locator('html')).toHaveAttribute('data-snowing', '1');
 		});
 
@@ -55,6 +59,12 @@ for (const mode of ['live', 'globe', 'pile']) {
 			await page.waitForTimeout(400);
 			expect(await snowing(page)).toBeNull();
 			await expect(page.locator(VIEWS.skyBtn)).toBeHidden();
+			if (await hasBar(page)) {
+				await page.locator(BAR.more).click();
+				await expect(page.locator('#toc')).toBeVisible();
+				await expect(page.locator(BAR.skyRow), 'nothing moves, so More offers no Pause').toBeHidden();
+				await page.keyboard.press('Escape');
+			}
 			for (const b of await page.locator(VIEWS.shake).all()) await expect(b).toBeHidden(); // every view's band has one
 			expect((await sky(page)).running).toBe(false);
 		});
@@ -82,11 +92,13 @@ test("the sky's colour follows the view's weather and day, and stops while the p
 	await expect(page.locator('html')).toHaveAttribute('data-snowing', '1');
 });
 
-// the pause sits in the header's top row at every width; the trip's name makes the room: whole when it fits, else
-// the trip's short name (TRIP.brandShort), never a name cut off with …
-test("the pause stays in the header's top row, and the trip's name beside it is never cut", async ({ page }) => {
+// a desktop's pause sits in the header's top row; below 1024 px it's in More and the header keeps only search, the
+// currency and the language beside the name. The trip's name is whole when it fits, else the trip's short name
+// (TRIP.brandShort), never a name cut off with …
+test("the pause is in the header on a desktop and in More below 1024 px, and the trip's name is never cut", async ({ page }) => {
 	await open(page, PAGE.live);
-	await expect(page.locator(`#bar-main ${VIEWS.skyBtn}`)).toBeVisible();
+	if (await hasBar(page)) await expect(page.locator(VIEWS.skyBtn), 'not in the header').toBeHidden();
+	else await expect(page.locator(`#bar-main ${VIEWS.skyBtn}`)).toBeVisible();
 	const name = await page.locator('.brand-name').evaluate((e) => ({
 		cut: e.scrollWidth > e.clientWidth + 1,
 		shown: [...e.children].filter((c) => !c.hidden).map((c) => c.className),
@@ -108,14 +120,11 @@ test('the snow globe: Shake whirls the snow up, and it settles in about five sec
 	await expect.poll(async () => (await sky(page)).energy, { timeout: 9000, message: 'settled' }).toBeLessThan(0.05);
 });
 
-test('the piling snow builds up on the date tabs, and a tapped tab knocks it off', async ({ page }) => {
-	test.skip(!page.viewportSize() || page.viewportSize().width >= 1024, 'the tabs are a phone and tablet header');
+// a phone's and a tablet's pile on the band's drift at the top of the view; a desktop's on the snowy ground under the page
+test('the piling snow builds up where the snow lands', async ({ page }) => {
 	await open(page, PAGE.pile);
-	const tab = page.locator('#tabs .tab.day').first();
 	// it piles at the pace of the falling snow, which slows on a busy machine (the sky drops to every other frame)
-	await expect.poll(() => tab.evaluate((t) => window.RJ_SKY.capOn(t)), { timeout: 30000, message: 'snow on the tab' }).toBeGreaterThan(1.5);
-	await tab.click();
-	expect(await tab.evaluate((t) => window.RJ_SKY.capOn(t)), 'knocked off').toBeLessThan(0.5);
+	await expect.poll(() => page.evaluate(() => window.RJ_SKY.piled()), { timeout: 30000, message: 'snow piling up' }).toBeGreaterThan(1.5);
 });
 
 test('with no sky the world keeps its own night behind the page, and nothing falls', async ({ page }) => {
@@ -166,7 +175,7 @@ test('the preview panel is only in a page built with --preview, and its choices 
 	await panel.locator('input[name="pv-theme"][value="dark"]').check({ force: true });
 	await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
 	await panel.locator('input[name="pv-clock"][value="trip"]').check({ force: true });
-	await expect(page.locator('#tabs .today-dot, #rail .flag').first()).toBeAttached();
+	await expect(page.locator('#rail .flag').first()).toBeAttached();
 	await panel.locator('input[name="pv-sky"][value="off"]').check({ force: true });
 	await expect(page.locator(VIEWS.band)).toHaveCount(0);
 	// nothing it chose was saved on the phone

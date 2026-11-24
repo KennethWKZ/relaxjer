@@ -37,6 +37,9 @@
   <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3.2l2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 17l-5.4 2.9 1.1-6.1L3.2 9.6l6.1-.8z"/></symbol>
   <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3.5l9.5 16.5h-19z"/><path d="M12 10v4.2M12 17.2v.01"/></symbol>
   <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></symbol>
+  <symbol id="i-today" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="16" rx="3"/><path d="M3.5,9h17M8,2.75v3.5M16,2.75v3.5"/></symbol>
+  <symbol id="i-days" viewBox="0 0 24 24"><rect x="3.5" y="4" width="5" height="4.5" rx="1.3"/><rect x="3.5" y="9.75" width="5" height="4.5" rx="1.3"/><rect x="3.5" y="15.5" width="5" height="4.5" rx="1.3"/><path d="M11.5,6.25h9M11.5,12h9M11.5,17.75h6"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5.5" cy="12" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/><circle cx="18.5" cy="12" r="1.4" fill="currentColor"/></symbol>
   <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></symbol>
   <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
   <symbol id="i-install" viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M12 6.5v7M9 10.5l3 3 3-3M10.5 18h3"/></symbol>
@@ -74,7 +77,6 @@
     <button type="button" class="icon-btn" id="search-next" aria-label="Next / 下一个"><svg class="i" aria-hidden="true"><use href="#i-chev"/></svg></button>
     <button type="button" class="text-btn" id="searchClose">完成</button>
   </div>
-  <div class="tabs-row" id="tabsRow"><nav class="tabs" id="tabs" aria-label="Sections 目录"></nav></div>
   <p class="net-off" id="netOff" role="status" hidden></p>
   <p class="upd" id="updBar" role="status" hidden></p>
   <p class="upd" id="syncBar" role="status" hidden></p>
@@ -86,6 +88,8 @@
   <main id="app"></main>
 </div>
 <footer class="foot" id="foot"></footer>
+<!-- the bottom bar on phones and tablets (ADR-20261124-bottom-app-bar): Today, Days, Map, More; drawn by 04-render-nav.js -->
+<nav class="tabbar" id="tabbar" aria-label="行程 Trip"></nav>
 
 <div class="toast" id="toast" role="status" data-state="closed"></div>
 
@@ -109,6 +113,7 @@
 <button type="button" class="back-pill" id="backPill" data-show="0" aria-label="返回刚才的位置 Back"><svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg><span class="dlbl" id="back-lab">返回刚才</span></button>
 <dialog class="sheet psheet" id="placeSheet" aria-label="地点 Place"></dialog>
 <dialog class="sheet toc" id="toc" aria-labelledby="toc-h"><div class="sheet-in" id="toc-in"></div></dialog>
+<dialog class="sheet toc days" id="days" aria-labelledby="days-h"><div class="sheet-in" id="days-in"></div></dialog>
 <dialog class="sheet toc near" id="near" aria-labelledby="near-h"><div class="sheet-in" id="near-in"></div></dialog>
 
 <dialog class="sheet" id="copydlg" aria-label="Copy">

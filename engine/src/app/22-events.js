@@ -47,6 +47,10 @@ document.addEventListener('click', (e) => {
 		nearLocate();
 		return;
 	}
+	if (t.matches('[data-opts]')) {
+		optsToggle(t);
+		return;
+	}
 	if (t.matches('[data-fold]')) {
 		const k = t.dataset.fold;
 		if (unfolded.has(k)) unfolded.delete(k);
@@ -120,9 +124,20 @@ document.addEventListener('click', (e) => {
 		mapFull(t.dataset.mapfull === '1');
 		return;
 	}
-	if (t.id === 'tocBtn') {
-		renderToc();
+	// the desktop's Sections button, and the bottom bar's More and Days (ADR-20261124-bottom-app-bar)
+	if (t.id === 'tocBtn' || t.id === 'moreBtn') {
+		renderToc(t.id === 'moreBtn' ? 'more' : 'all');
 		openDialog($('#toc'));
+		return;
+	}
+	if (t.id === 'daysBtn') {
+		renderDays();
+		openDialog($('#days'));
+		// the day on screen (else today) in sight, in a long trip's list
+		requestAnimationFrame(() => {
+			const row = $('#days [aria-current]') || ($('#days .flag') || {}).parentElement;
+			if (row && row.closest('a')) row.closest('a').scrollIntoView({ block: 'center', behavior: 'instant' });
+		});
 		return;
 	}
 	if (t.id === 'backPill') {
@@ -742,7 +757,7 @@ document.addEventListener('click', (e) => {
 		toast(Z('已清除', 'Cleared'));
 		return;
 	}
-	if (t.matches('.tab, a[href^="#"]') && t.getAttribute('href').length > 1) {
+	if (t.matches('a[href^="#"]') && t.getAttribute('href').length > 1) {
 		const id = t.getAttribute('href').slice(1);
 		const card = !t.hasAttribute('data-go') && placeCardHTML(id);
 		if (card) {
@@ -754,9 +769,9 @@ document.addEventListener('click', (e) => {
 		if (!el) return;
 		e.preventDefault();
 		closeDialog(t.closest('dialog'));
-		// a view (a tab, the week list, the rail, a day's previous / next) opens at its top; a place inside one lands
-		// with the highlight and the ring that holds on it (20-views.js shows its view first)
-		const nav = t.matches('.tab, .toc-sec, .toc-day, .toc-now, .toc-top, .wk, .rl, .pg');
+		// a view (the bottom bar, the Days sheet, the week list, the rail, a day's previous / next) opens at its top; a
+		// place inside one lands with the highlight and the ring that holds on it (20-views.js shows its view first)
+		const nav = t.matches('.tb, .toc-sec, .toc-day, .toc-now, .toc-top, .wk, .rl, .pg');
 		goTo(
 			el,
 			'start',

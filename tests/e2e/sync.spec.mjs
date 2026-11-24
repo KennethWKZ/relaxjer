@@ -21,10 +21,11 @@ const tick = async (page, key) => {
 		await expect(page.locator(`[data-check="${key}"]`)).toBeChecked({ checked: !was, timeout: 1_000 });
 	}).toPass({ timeout: 10_000 });
 };
-// the sections menu draws when it opens: open it, then read its group-sync row (the menu button floats in only after a
-// scroll, so it's clicked directly)
+// the sections menu draws when it opens: open it (the bottom bar's More below 1024 px, the Sections button on a
+// desktop, which floats in only after a scroll, so it's clicked directly), then read its group-sync row
 const syncRow = async (page) => {
-	if (!(await page.locator('#toc').evaluate((d) => d.open))) await page.locator('#tocBtn').evaluate((el) => el.click());
+	if (!(await page.locator('#toc').evaluate((d) => d.open)))
+		await page.locator((await page.locator('#tabbar').isVisible()) ? '#moreBtn' : '#tocBtn').evaluate((el) => el.click());
 	return page.locator('#toc [data-sync-label]');
 };
 const box = (page, key) => page.locator(`[data-check="${key}"]`);

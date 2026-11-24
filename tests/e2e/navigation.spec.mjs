@@ -1,7 +1,8 @@
 // Getting around: one view at a time (ADR-20261122-day-views), Back and Forward between views with each one's place,
-// jumps that land in the right view, the Back pill, the Sections menu, site search, the offline notice.
+// jumps that land in the right view, the Back pill, the Sections menu (a desktop's; the bottom bar's are in
+// tests/e2e/bottom-bar.spec.mjs), site search, the offline notice.
 import { test, expect, openTrip } from '../support/fixtures.mjs';
-import { goToView, readingSpot, settle, setStored, viewOn } from '../support/page.mjs';
+import { BAR, goToView, hasBar, openSections, readingSpot, settle, setStored, viewOn } from '../support/page.mjs';
 
 /* global DAYS, OPTIONAL -- the trip data, read inside the page */
 
@@ -10,7 +11,7 @@ const top = (page, sel) => page.locator(sel).evaluate((e) => e.getBoundingClient
 const LANDED = { min: -5, max: 260 };
 const scrollY = (page) => page.evaluate(() => window.scrollY);
 
-test('a tab shows its view at once, at its top, lit in the strip and named in the address', async ({ page }) => {
+test('a view opens at once, at its top, lit in the bar or the rail and named in the address', async ({ page }) => {
 	await openTrip(page);
 	await expect(page.locator('html')).toHaveAttribute('data-showing', 'top');
 	const day = await page.evaluate(() => DAYS[1].id);
@@ -21,8 +22,7 @@ test('a tab shows its view at once, at its top, lit in the strip and named in th
 	await expect(page.locator(`#${day}`)).toBeVisible();
 	await expect(page.locator('#top')).toBeHidden();
 	await expect(page.locator('#app > [data-sec]:not([data-off])')).toHaveCount(1);
-	const lit = page.locator('#tabs .tab[aria-current="true"]');
-	if (await page.locator('#tabs').isVisible()) await expect(lit).toHaveAttribute('href', `#${day}`);
+	if (await hasBar(page)) await expect(page.locator(BAR.lit)).toHaveAttribute('data-tb', 'days');
 	else await expect(page.locator(`#rail [data-rail="${day}"]`)).toHaveAttribute('aria-current', 'page');
 });
 
@@ -83,10 +83,9 @@ test('the Back pill returns to the view and the place the reader was before a ju
 	await expect(pill).toHaveAttribute('data-show', '0');
 });
 
-test('the Sections menu opens a view and closes', async ({ page }) => {
+test('the Sections menu (More, below 1024 px) opens a view and closes', async ({ page }) => {
 	await openTrip(page);
-	await expect(page.locator('#tocBtn'), 'the Sections button is there from the first screen').toHaveAttribute('data-show', '1');
-	await page.locator('#tocBtn').click();
+	await openSections(page);
 	const toc = page.locator('#toc');
 	await expect(toc).toBeVisible();
 	await toc.locator('a[href="#budget"]').first().click();
@@ -109,8 +108,7 @@ for (const how of ['Escape', 'Back']) {
 		await page.keyboard.press('PageDown'); // the reader scrolls on themselves (a script's scroll didn't show it)
 		await settle(page);
 		const y = await scrollY(page);
-		await page.locator('#tocBtn').click();
-		await expect(page.locator('#toc')).toBeVisible();
+		await openSections(page);
 		if (how === 'Escape') await page.keyboard.press('Escape');
 		else await page.goBack();
 		await expect(page.locator('#toc')).toBeHidden();
@@ -180,7 +178,12 @@ test("a search jump shows the hit's view and lights it, and the search box shows
 		.evaluate((e) => e.closest('[data-sec]').id);
 	await settle(page);
 	expect(await viewOn(page)).toBe(sec);
-	if (await page.locator('#tabs').isVisible()) await expect(page.locator('.tab[aria-current="true"]').first()).toHaveAttribute('href', `#${sec}`);
+	if (await hasBar(page))
+		await expect(page.locator(BAR.lit)).toHaveAttribute(
+			'data-tb',
+			sec === 'top' ? 'top' : /^d\d+$/.test(sec) ? 'days' : sec === 'map' ? 'map' : 'more',
+		);
+	else await expect(page.locator(`#rail [data-rail="${sec}"]`)).toHaveAttribute('aria-current', 'page');
 });
 
 test('site search finds a stop and jumps to it @demo', async ({ page }) => {
@@ -256,9 +259,11 @@ for (const [kind, pre] of Object.entries(CARDS)) {
 	});
 }
 
-// any trip: on a trip day the sheet opens with Now and Next, each marked with the day's knot: filled, then a ring
+// any trip: on a trip day a desktop's Sections sheet opens with Now and Next, each marked with the day's knot: filled,
+// then a ring (below 1024 px Now and Next are Today's, and More holds the sections and the settings)
 test('on a trip day the Sections sheet leads with Now and Next, marked as on the day', async ({ page }) => {
 	await openTrip(page);
+	test.skip(await hasBar(page), "a desktop's Sections sheet; the bottom bar's Today leads with Now and Next");
 	const at = await page.evaluate(() => {
 		const d = DAYS.find((x) => x.schedule.filter((it) => /^~?\d{1,2}:\d\d/.test(String(it.t || ''))).length >= 2);
 		const m = /(\d{1,2}):(\d\d)/.exec(d.schedule.find((it) => /^~?\d{1,2}:\d\d/.test(String(it.t || ''))).t);

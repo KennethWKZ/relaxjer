@@ -1,7 +1,7 @@
-/* ───────── the lit tab + bar colour ───────── */
+/* ───────── the view on screen: the header's day colour ───────── */
 
-// which tab is lit: the view on screen (20-views.js). With one view at a time there is nothing to spy on while
-// scrolling
+// what's lit (the bottom bar's item, the rail's row) is the view on screen (20-views.js). With one view at a time there
+// is nothing to spy on while scrolling
 let spyOn = false;
 function spyNow() {
 	if (curView) setActive(curView);
@@ -46,20 +46,8 @@ let active = '';
 function setActive(id) {
 	if (id === active) return;
 	active = id;
-	$$('.tab').forEach((t) => t.setAttribute('aria-current', String(t.dataset.tab === id)));
 	const d = dayById[id];
-	const bar = $('#bar');
-	bar.style.setProperty('--now', d ? `var(--l${d.c})` : 'var(--rule)');
-	const tab = $(`.tab[data-tab="${id}"]`);
-	const strip = $('#tabs');
-	if (tab && strip) {
-		const tr = tab.getBoundingClientRect(),
-			sr = strip.getBoundingClientRect();
-		strip.scrollBy({
-			left: tr.left - sr.left - sr.width / 2 + tr.width / 2,
-			behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
-		});
-	}
+	$('#bar').style.setProperty('--now', d ? `var(--l${d.c})` : 'var(--rule)');
 }
 let barH = 100;
 /* offline: the plan, lists, costs and MRT hints all live in this file and keep working; the map, Google search and live bike-share counts need a connection */

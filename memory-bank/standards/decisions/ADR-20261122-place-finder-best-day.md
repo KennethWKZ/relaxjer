@@ -3,7 +3,7 @@ id: ADR-20261122-place-finder-best-day
 date: 2026-11-22
 title: 'The Place Finder Suggests the Nearest Day With Room, From the Page’s Own Data, and Asks Google Only on a Tap'
 domain: engine
-status: accepted
+status: amended
 decision: "A place finder ranks each day's stops by straight-line distance to the place, counting only stops a new stop can follow."
 ---
 
@@ -80,3 +80,10 @@ with no way back to the list. Google bills per call, and the page must work offl
 
 Changing the place finder, its best-day rule or its bands, the place details view, the add sheet's list and preview,
 or any Google search the page makes.
+
+## Amendment 2026-11-24
+
+The button this decision calls "Rating & photos" is named **Info** (资料), with "· hours, photos, reviews" (营业时间、照片、
+评价) beside it where there's room, and the info glyph instead of a star: on a phone, where the rest of the label folds
+away, "Rating" with a star read like "rate us". It stays apart from the finder's Details, a different action. What it
+fetches, and that it fetches only on a tap, are unchanged.

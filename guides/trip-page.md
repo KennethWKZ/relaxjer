@@ -26,8 +26,9 @@ two of them seniors.
 ## Finding your way
 
 - **The header** stays on screen: the trip's name (in brush lettering; on a phone too narrow for all of it, the trip's
-  short name) and dates, Search, the theme button (light, dark, or follow the phone, with a toast saying which; the
-  page follows the phone until someone picks, and on a phone the button sits in the Sections menu), the currency
+  short name) and dates, Search (its field takes the header's row while you search), the theme button (light, dark, or
+  follow the phone, with a toast saying which; the page follows the phone until someone picks, and on a phone the button
+  sits in More's settings), the currency
   button, the language button (it names the other
   language, and keeps your place; the browser tab's title switches with it, and in English the brush name is read out
   and shown on hover by the trip's English name), and Install.
@@ -39,31 +40,37 @@ two of them seniors.
   Figures in another currency ("USD 680"), times and distances stay as written. The choice stays on this phone (the
   rest of the group chooses for themselves), and copied text keeps the trip's currency. A trip without a home currency
   of its own has no button.
-- **The day strip** under it: Overview, one tab per day (date, weekday, a dot on today, in the day's lantern colour),
-  then Map, Airport, Entry, Optional, Wishlist, Food, Budget, Weather, Checklist and Priorities. The edges fade when
-  there are more tabs to swipe to.
-- **One part at a time.** Each tab opens its own view, from its top: the Overview, one day, the budget, the airport.
-  The lit tab is the view on screen. The phone's Back steps back through the views you opened, each where you left it,
-  and a link to a part (`#d3`, `#budget`) opens its view. At the foot of every day, big **Previous day** and **Next
-  day** buttons (the first day's goes back to the Overview); on a phone a sideways swipe across the day does the same.
-- **On a computer** (1024 px and wider) the strip gives way to a rail on the left: the Overview, every day with its
-  date, its forecast and Today, then the other sections. The view sits beside it, and sheets open as a panel on the
-  right.
-- **A day bar** slides in under the header once a day's heading scrolls away: Day N, the date, the title.
-- **The Sections menu** (the round button at the foot of the screen, there from the first screen of every view; it
-  keeps clear of the phone's home bar, and steps aside over the full-screen map, while Search is open, and where it
-  would cover a day's Next day button): on a trip day it opens on Now and
-  Next (before the trip, a countdown), then Food and Toilets nearby, every day, every section, back to the top, the
-  theme, which maps app opens, Amounts and rate, the Group sync row, and Install.
-- **Amounts and rate** (in the Sections menu): the same currency choice as the header button, and the rate (1 RM =
+- **The bottom bar** on a phone and a tablet (narrower than 1024 px), the same whether the page is on the home screen
+  or in the browser, like an app's: **Today** (its calendar shows today's date) opens Now and Next and the week;
+  **Days** opens a list of every day, each with its date and weekday, Day number, title and forecast, today flagged and
+  the day you're on lit, and a tap opens that day; **Map** opens the map; **More** opens Food and Toilets nearby, every
+  other part of the plan (Airport, Entry, Optional, Wishlist, Food, Budget, Weather, Checklist, Priorities: whatever the
+  trip has), then the settings: the theme, the snow's pause (in a look with a sky), which maps app opens, Amounts and
+  rate, the Group sync row, and Install. The item for what's on screen is lit, in the day's colour on a day.
+- **One part at a time.** Each part opens its own view, from its top: Today, one day, the budget, the airport. The
+  phone's Back steps back through the views you opened, each where you left it (a tap on the bar is a step too), and a
+  link to a part (`#d3`, `#budget`) opens its view. At the foot of every day, big **Previous day** and **Next day**
+  buttons (the first day's goes back to Today); on a phone a sideways swipe across the day does the same.
+- **On a computer** (1024 px and wider) a rail on the left takes the bar's place: Today, every day with its date, its
+  forecast and Today, then the other sections. The view sits beside it, and sheets open as a panel on the right.
+- **A day bar** slides in under the header once a day's heading scrolls away: Day N, the date, the title. A day's
+  heading shows its date short, after a calendar mark ("3/15 周一" in Chinese).
+- **The Sections menu** on a computer (the round button at the foot of the screen, there from the first screen of every
+  view; it steps aside over the full-screen map, while Search is open, and where it would cover a day's Next day
+  button): on a trip day it opens on Now and Next (before the trip, a countdown), then Food and Toilets nearby, every
+  day, every section, back to Today, the theme, which maps app opens, Amounts and rate, the Group sync row, and
+  Install. On a phone and a tablet the bottom bar's Today, Days and More hold all of it.
+- **Amounts and rate** (in More, or the Sections menu on a computer): the same currency choice as the header button, and the rate (1 RM =
   NT$…), the same value as the budget's rate field. Figures follow a new rate as you type it; a rate that isn't a
   number above 0 is outlined and ignored. Under it, the trip's own rate and its note, and "Use the trip's rate" once
   you've set your own: it forgets yours, so a rate the planner updates later reaches your phone too. Both stay on this
   phone.
 - **Jumps open their view first** (a stop on Day 3 opens Day 3, a card in a summary sheet opens that sheet), then
-  land instantly (nearby ones scroll) and ring where they landed: from Now and Next, Search, the map's pins, the
-  Sections menu and every link on the page. A **Back pill** then takes you to where you were reading, and the phone's
-  own Back closes an open sheet, dialog or full-screen map before it steps back a view.
+  land instantly (nearby ones scroll) and ring where they landed: from Now and Next, Search, the map's pins, Days and
+  More, the Sections menu and every link on the page. A **Back pill** then takes you to where you were reading (on a
+  phone it sits just above the bottom bar: a home-screen iPhone app has no Back button of its own), and the phone's own
+  Back closes an open sheet, dialog or full-screen map before it steps back a view. Whatever floats at the foot of the
+  screen (a message, the Back pill, the full-screen map's controls) sits above the bottom bar; a sheet opens over it.
 - **Search** (the magnifier) finds any stop, place, note or list item across the whole plan, grouped by section with
   today first. It finds names in the language that isn't on screen, and a Traditional character finds its Simplified
   form (臺 finds 台). Matches are highlighted on the page, with previous / next and a count; Enter jumps to the first,
@@ -75,7 +82,7 @@ two of them seniors.
   keyboard, and the field you're typing in stays in view.
 - **Copying** falls back to a "long-press to select all" box where the phone blocks the clipboard.
 
-## The Overview, and Now and Next
+## Today: Now and Next, and the week
 
 - **Before the trip:** "N days to go", the flight, the first night's hotel, up to three to-dos coming due (entry
   registrations, the week-before weather check), and buttons to the checklist and Day 1.
@@ -145,10 +152,11 @@ same; only the colours and the drawings change. Without one, the page is the sky
     snow.
   - **Snow globe:** the snow rests at the foot of the band until you press **Shake** (or swipe sideways on the sky),
     then swirls and settles in about five seconds. Nothing reads the phone's motion.
-  - **Snow piles:** snow drifts onto the date tabs and the band's foot; tap a tab and its snow falls off.
+  - **Snow piles:** snow builds up at the band's foot (on a computer, on the snowy ground and the cards).
 
-  The pause button in the header stops the snow, and the phone remembers it. When the phone asks for less motion the
-  sky holds still and the button goes; while the page is hidden nothing moves. On a phone the sky fills the header and
+  **Pause the snow** stops it, and the phone remembers it: on a phone and a tablet it's in More's settings, two taps
+  from anywhere; on a computer it's the pause button in the header. When the phone asks for less motion the sky holds
+  still and the pause goes; while the page is hidden nothing moves. On a phone the sky fills the header and
   the band, behind the words; on a computer it's behind the whole page, the snow falling in the margins. With the sky
   off, the page keeps the still backdrop below.
 
@@ -235,8 +243,10 @@ itself is the planner's: it's in the trip's data, and nobody makes one on the pa
 
 - **Optional plans** are sights and ideas that never go on the schedule. Each card has a photo, when it's worth going,
   what to know, the cost (and each person's share), the address, hours, nearest station, links and any ticket, with a
-  food list after the cards. Where one suits a stop, a "Nearby options" chip with the distance opens its card over the
-  day; it's left out on a day the place is closed.
+  food list after the cards. Where one suits a stop, the stop gets a "Nearby options" row: on a phone it shows just
+  how many ("2 nearby options", 附近可选 2) with a chevron, and a tap opens it (on a wider screen it starts open); each
+  chip, with the distance, opens its card over the day. The row stays as you left it until the page is opened again.
+  A plan is left out on a day its place is closed.
 - **Shop lists** (tea, pharmacies, gear…): each list has its own heading in Optional, with its shops ranked (area,
   when to go, hours and phone where the trip has them, the day it fits), a "before going in, check" box with ticks, a
   group in the free-time ideas, and its pins on the map.
@@ -288,7 +298,7 @@ itself is the planner's: it's in the trip's data, and nobody makes one on the pa
   Details opens the place's own view. "Back to results" (or the phone's Back) returns to the list where it was.
   Distances are in a straight line and times are estimates; nothing is asked of a paid service.
 - **Place details:** our photo, its kind, the rating the trip has (and where it's from), today's hours on a trip day,
-  the address, Map, Directions and Add. With Google, "Rating & photos" on every stop, Optional card, map card and
+  the address, Map, Directions and Add. With Google, "Info · hours, photos, reviews" (资料; on a phone just "Info") on every stop, Optional card, map card and
   place on a day's cards shows Google's live rating, reviews, opening hours (today highlighted) and photos: in the card
   itself, or for a stop in its details over the day. A place with no Google id is found by its name near its pin.
   Google is asked only on a tap, once per place per page view.
@@ -315,7 +325,7 @@ itself is the planner's: it's in the trip's data, and nobody makes one on the pa
   Maps. On a trip day it's one tap from the current and the next stop in the plan; every place also has it in its
   place sheet.
 - **Directions** links open the phone's maps app in the right mode (walk, transit, drive, bike).
-- **Google Maps or Apple Maps:** "Open maps in" in the Sections menu switches every Map and Directions link on this
+- **Google Maps or Apple Maps:** "Open maps in" in More (the Sections menu on a computer) switches every Map and Directions link on this
   phone to Apple Maps (at the place's pin, with transit, drive or walk), and back. The whole-day route stays on Google
   Maps and says so: an Apple Maps link can't carry the stops in between.
 - **The local words, one tap to copy:** where the group doesn't read the local language (Japanese in Japan), every
@@ -328,7 +338,7 @@ itself is the planner's: it's in the trip's data, and nobody makes one on the pa
 
 - **Every group cost also shows each person's share** ("≈ NT$x each", bold figures too, and never twice when the text
   already says it). Totals, each person's shares, the day's spend, the group pot, the shared cash and the airport
-  options also show in the home currency, at a rate you can change on the page (in the budget or the Sections menu;
+  options also show in the home currency, at a rate you can change on the page (in the budget or in More;
   it's remembered, and every figure follows it). The currency button turns that around: the home currency first, the
   trip's original beside or under it.
 - **The budget:** what's not included, the total and each person's share, a suggestion, which costs don't shrink with
@@ -381,7 +391,7 @@ Off unless the planner sets it up for the trip (the `sync-setup` skill). With it
   phone's, put the whole group back on the original plan, make another phone a planner, and block a stray phone: its
   stops and last changes go back to the plan, and what it writes next reaches nobody. Undo brings it all back, and
   Unblock sends what waited.
-- **The Group sync sheet** (a row in the Sections menu): what syncs, your name, the planner box, when it last synced or
+- **The Group sync sheet** (a row in More, or the Sections menu on a computer): what syncs, your name, the planner box, when it last synced or
   how many changes are waiting, Sync now (it says when it's working and when it's up to date), "The group" (each phone,
   its badges and how many stops it added), and **Recently removed** (the newest 10, with who removed each and Put
   back).
@@ -422,39 +432,39 @@ the same spot.
 Everything above that isn't listed here is on every page. The fields are in
 [`trip-format.md`](../memory-bank/standards/trip-format.md); ask your agent, with the `trip-customize` skill.
 
-| Part                                                                            | Turned on by                                                                                                                                                                                                                             |
-| ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| A short name in a narrow phone's header (instead of the long one cut with …)    | `TRIP.brandShort`                                                                                                                                                                                                                        |
-| Google's map, ratings, photos, hours, Google search                             | building with your own key (`pnpm build … --keys`, [the guide](google-maps.md))                                                                                                                                                          |
-| Rating & photos on stops and cards, Google results in the finder                | building with your own key; Google searches lean to `TRIP.destination` and answer in the country pack's `googleZh` when the page reads Chinese                                                                                           |
-| The place finder, place details, the add sheet's look first                     | on every page with `geo.json`; the best day reads the days' stops, their times, `freeFrom`, and the place's hours and `closed_dates` from the data refresh                                                                               |
-| Group sync, names, planners, Recently removed                                   | `sync-setup`, then building with `--sync`                                                                                                                                                                                                |
-| Positions, hours, route legs, food, drinks, toilets                             | the data refresh (`data-sync`)                                                                                                                                                                                                           |
-| The map and its pins                                                            | `geo.json` (from the data refresh)                                                                                                                                                                                                       |
-| The forecast                                                                    | the data refresh, for trip days within 16 days (`forecast_spots`, `forecastSpot`)                                                                                                                                                        |
-| Today's route                                                                   | `DAYS[i].route`, with the legs from the data refresh                                                                                                                                                                                     |
-| Tickets and how to book                                                         | `DAYS[i].tickets`, and `extra.json` `tickets`                                                                                                                                                                                            |
-| Where to eat, meal chips                                                        | `DAYS[i].foodSlots` and `mealAt`, and `extra.json` `food`                                                                                                                                                                                |
-| Day cards (decide, rain, budget, wear…)                                         | `DAYS[i].blocks`                                                                                                                                                                                                                         |
-| A card's one-line summary, the option chosen                                    | worked out from each card; `sum` on a card for the planner's own words, `pick` on a `decide` card for the chosen option                                                                                                                  |
-| The currency button, Amounts and rate                                           | `TRIP.currency`: a `home` currency that isn't the trip's own `sym`, and a `rate`                                                                                                                                                         |
-| Tax refund tag and rules                                                        | the country pack (`TRIP.destination`), `shops.json`, and `TAX`                                                                                                                                                                           |
-| Lucky draw, drink guide                                                         | the country pack, and `ENTRY.lucky` for the draw                                                                                                                                                                                         |
-| Metro name, transit card, taxi meter, bike share, toilet tip                    | the city pack (`TRIP.region`); the transit card also `AIRPORT.transitCard` / `MONEY.transitCard`                                                                                                                                         |
-| The local words, one tap to copy                                                | the country pack's `native`, with each place's `trad` and `roma` (a stop's own `native`, `roma`; a food, drink or wishlist entry's `name_trad`, `name_roma`)                                                                             |
-| The destination's own look, its icon and bar colour                             | the city pack's `theme` (Sapporo: Snow Light Path), from `TRIP.destination` and `TRIP.region`; the icon only when the trip has no `img/icon/`                                                                                            |
-| The sky over each view (live weather, snow globe, snow piles), its pause button | `TRIP.sky` in a look that has a sky (Snow Light Path's own is live weather); the weather from the forecast (`forecast_spots`, `forecastSpot`), light snow on a day without one; still, with no button, when less motion is asked for     |
-| The sky behind the page and the sunrise at its end                              | the look (Snow Light Path draws one) with `TRIP.sky: 'off'`; it follows the scroll where the browser can, and holds a still night with less motion asked for                                                                             |
-| The planner's preview panel (sky, weather, snow, theme, clock)                  | building with `--preview` (`pnpm build --trip … --preview`): a separate `<fileName>-preview.html` to compare looks on, never for publishing; its choices are never saved or synced                                                       |
-| The day's activity mark, its picture, and the icon's                            | `DAYS[i].motif` (one of the names in `trip-format.md`); the picture when the look has drawn that mark, moving when the look moves it (never with less motion asked for); the icon shows the one on the most days, when the look draws it |
-| The offline transit planner, station pins                                       | the city's metro data (`mrt.json`, from the data refresh)                                                                                                                                                                                |
-| Fixed times, flight-tied times                                                  | `fixed: true`, `rel` on a stop                                                                                                                                                                                                           |
-| A day that splits                                                               | `DAYS[i].split`                                                                                                                                                                                                                          |
-| Optional plans, and their chips at stops                                        | `OPTIONAL` (and `near`)                                                                                                                                                                                                                  |
-| Shop lists                                                                      | `SHOPLISTS`                                                                                                                                                                                                                              |
-| The wishlist, and its suggestions                                               | `wish-a.json` / `wish-b.json`, and `freeEvening` / `freeFrom` on a day                                                                                                                                                                   |
-| The shop box                                                                    | `shops: true` on a stop, and `shops.json`                                                                                                                                                                                                |
-| Shared checklist groups                                                         | `shared: true` on a `CHECKLIST` group, with group sync                                                                                                                                                                                   |
-| A hotel per night                                                               | `DAYS[i].hotel`                                                                                                                                                                                                                          |
-| Photos, the home-screen icon                                                    | `img/` with `img/credits.json`, and `img/icon/` (by hand, `pipeline/README.md`)                                                                                                                                                          |
-| Copy link and share links pointing at the live page                             | the `SHARE_URL` environment variable at build                                                                                                                                                                                            |
+| Part                                                                                       | Turned on by                                                                                                                                                                                                                             |
+| ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A short name in a narrow phone's header (instead of the long one cut with …)               | `TRIP.brandShort`                                                                                                                                                                                                                        |
+| Google's map, ratings, photos, hours, Google search                                        | building with your own key (`pnpm build … --keys`, [the guide](google-maps.md))                                                                                                                                                          |
+| Info (Google's hours, photos and reviews) on stops and cards, Google results in the finder | building with your own key; Google searches lean to `TRIP.destination` and answer in the country pack's `googleZh` when the page reads Chinese                                                                                           |
+| The place finder, place details, the add sheet's look first                                | on every page with `geo.json`; the best day reads the days' stops, their times, `freeFrom`, and the place's hours and `closed_dates` from the data refresh                                                                               |
+| Group sync, names, planners, Recently removed                                              | `sync-setup`, then building with `--sync`                                                                                                                                                                                                |
+| Positions, hours, route legs, food, drinks, toilets                                        | the data refresh (`data-sync`)                                                                                                                                                                                                           |
+| The map and its pins, Map in the bottom bar                                                | `geo.json` (from the data refresh)                                                                                                                                                                                                       |
+| The forecast                                                                               | the data refresh, for trip days within 16 days (`forecast_spots`, `forecastSpot`)                                                                                                                                                        |
+| Today's route                                                                              | `DAYS[i].route`, with the legs from the data refresh                                                                                                                                                                                     |
+| Tickets and how to book                                                                    | `DAYS[i].tickets`, and `extra.json` `tickets`                                                                                                                                                                                            |
+| Where to eat, meal chips                                                                   | `DAYS[i].foodSlots` and `mealAt`, and `extra.json` `food`                                                                                                                                                                                |
+| Day cards (decide, rain, budget, wear…)                                                    | `DAYS[i].blocks`                                                                                                                                                                                                                         |
+| A card's one-line summary, the option chosen                                               | worked out from each card; `sum` on a card for the planner's own words, `pick` on a `decide` card for the chosen option                                                                                                                  |
+| The currency button, Amounts and rate                                                      | `TRIP.currency`: a `home` currency that isn't the trip's own `sym`, and a `rate`                                                                                                                                                         |
+| Tax refund tag and rules                                                                   | the country pack (`TRIP.destination`), `shops.json`, and `TAX`                                                                                                                                                                           |
+| Lucky draw, drink guide                                                                    | the country pack, and `ENTRY.lucky` for the draw                                                                                                                                                                                         |
+| Metro name, transit card, taxi meter, bike share, toilet tip                               | the city pack (`TRIP.region`); the transit card also `AIRPORT.transitCard` / `MONEY.transitCard`                                                                                                                                         |
+| The local words, one tap to copy                                                           | the country pack's `native`, with each place's `trad` and `roma` (a stop's own `native`, `roma`; a food, drink or wishlist entry's `name_trad`, `name_roma`)                                                                             |
+| The destination's own look, its icon and bar colour                                        | the city pack's `theme` (Sapporo: Snow Light Path), from `TRIP.destination` and `TRIP.region`; the icon only when the trip has no `img/icon/`                                                                                            |
+| The sky over each view (live weather, snow globe, snow piles), its pause                   | `TRIP.sky` in a look that has a sky (Snow Light Path's own is live weather); the weather from the forecast (`forecast_spots`, `forecastSpot`), light snow on a day without one; still, with no pause, when less motion is asked for      |
+| The sky behind the page and the sunrise at its end                                         | the look (Snow Light Path draws one) with `TRIP.sky: 'off'`; it follows the scroll where the browser can, and holds a still night with less motion asked for                                                                             |
+| The planner's preview panel (sky, weather, snow, theme, clock)                             | building with `--preview` (`pnpm build --trip … --preview`): a separate `<fileName>-preview.html` to compare looks on, never for publishing; its choices are never saved or synced                                                       |
+| The day's activity mark, its picture, and the icon's                                       | `DAYS[i].motif` (one of the names in `trip-format.md`); the picture when the look has drawn that mark, moving when the look moves it (never with less motion asked for); the icon shows the one on the most days, when the look draws it |
+| The offline transit planner, station pins                                                  | the city's metro data (`mrt.json`, from the data refresh)                                                                                                                                                                                |
+| Fixed times, flight-tied times                                                             | `fixed: true`, `rel` on a stop                                                                                                                                                                                                           |
+| A day that splits                                                                          | `DAYS[i].split`                                                                                                                                                                                                                          |
+| Optional plans, and their chips at stops                                                   | `OPTIONAL` (and `near`)                                                                                                                                                                                                                  |
+| Shop lists                                                                                 | `SHOPLISTS`                                                                                                                                                                                                                              |
+| The wishlist, and its suggestions                                                          | `wish-a.json` / `wish-b.json`, and `freeEvening` / `freeFrom` on a day                                                                                                                                                                   |
+| The shop box                                                                               | `shops: true` on a stop, and `shops.json`                                                                                                                                                                                                |
+| Shared checklist groups                                                                    | `shared: true` on a `CHECKLIST` group, with group sync                                                                                                                                                                                   |
+| A hotel per night                                                                          | `DAYS[i].hotel`                                                                                                                                                                                                                          |
+| Photos, the home-screen icon                                                               | `img/` with `img/credits.json`, and `img/icon/` (by hand, `pipeline/README.md`)                                                                                                                                                          |
+| Copy link and share links pointing at the live page                                        | the `SHARE_URL` environment variable at build                                                                                                                                                                                            |

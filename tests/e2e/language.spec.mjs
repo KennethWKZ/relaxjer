@@ -7,7 +7,7 @@ import { goToView, readingSpot, scrollBy, switchLang } from '../support/page.mjs
 for (const tab of ['d3', 'airport', 'wish', 'budget']) {
 	test(`language switch keeps the reader in #${tab}`, async ({ page }) => {
 		await openTrip(page);
-		test.skip((await page.locator(`.tab[href="#${tab}"]`).count()) === 0, `this trip has no #${tab} section`);
+		test.skip((await page.locator(`#rail .rl[href="#${tab}"]`).count()) === 0, `this trip has no #${tab} section`);
 		await goToView(page, tab);
 		await scrollBy(page, 400);
 		const before = await readingSpot(page);

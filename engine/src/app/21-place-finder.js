@@ -422,7 +422,7 @@ function finderHTML(info) {
       ${best}
       ${others.length ? `<p class="sub-h">${Z('其他天最近的站', 'Other days, nearest stop first')}</p><ul class="pf-days">${others.map(row).join('')}</ul>` : ''}
       <p class="xsmall muted">${Z('直线距离；时间为估算（走路按长辈速度），不含塞车。', 'Straight-line distance; times are estimates (walking at the group’s pace), without traffic.')}</p>
-      <div class="links-row"><button type="button" class="mlink" data-find-detail>${icon('info')}${Z('详情', 'Details')}${gCan(info) ? `<span class="dlbl">${Z('、评分和照片', ', rating & photos')}</span>` : ''}</button>${extI(gmSearch(info.q || info.n, info.gpid), Z('地图', 'Map'), 'pin')}${extI(gmDir(info.q || info.n, 'transit', undefined, info.gpid), Z('路线', 'Directions'), 'route')}</div>
+      <div class="links-row"><button type="button" class="mlink" data-find-detail>${icon('info')}${Z('详情', 'Details')}${gCan(info) ? `<span class="dlbl">${Z(' · 营业时间、照片、评价', ' · hours, photos, reviews')}</span>` : ''}</button>${extI(gmSearch(info.q || info.n, info.gpid), Z('地图', 'Map'), 'pin')}${extI(gmDir(info.q || info.n, 'transit', undefined, info.gpid), Z('路线', 'Directions'), 'route')}</div>
     </div>`;
 }
 /** show a place in the finder, in place of the results, and on the map: its pin, or a marker of its own for a place
