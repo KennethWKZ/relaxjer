@@ -123,7 +123,7 @@ test.describe('group sync', { tag: '@demo' }, () => {
 		await tick(page, 'before-passport');
 		await b.page.waitForTimeout(2000);
 		await expect(box(b.page, 'before-passport'), 'not while offline').not.toBeChecked();
-		await expect(await syncRow(page)).toContainText('waiting');
+		await expect(await syncRow(page)).toContainText(/waiting/i);
 		await page.locator('#toc [data-close]').click();
 		await context.setOffline(false);
 		await expect(box(b.page, 'before-passport'), 'sent once back online').toBeChecked({ timeout: 15_000 });
@@ -466,7 +466,7 @@ test.describe('group sync', { tag: '@demo' }, () => {
 		await expect.poll(async () => Object.keys((await stored(request, testInfo)) || {}).length, { timeout: 15_000 }).toBeGreaterThan(0);
 		await endSync(request, testInfo);
 		await tick(page, 'before-passport');
-		await expect(await syncRow(page)).toContainText('stopped', { timeout: 15_000 });
+		await expect(await syncRow(page)).toContainText(/stopped/i, { timeout: 15_000 });
 		await page.locator('#toc [data-close]').click();
 		await expect(box(page, 'before-charter'), 'what this phone had stays').toBeChecked();
 		await expect(box(page, 'before-passport')).toBeChecked();

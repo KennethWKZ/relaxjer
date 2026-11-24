@@ -61,39 +61,64 @@ function barMark() {
 function renderRail(today) {
 	const rail = $('#rail');
 	if (!rail) return;
-	const left = dnum(TRIP.start) - dnum(tpNow().date);
+	const row = (id, mark, h, subs) => railRow(id, mark, h, subs, ` data-rail="${id}"`);
+	const days = DAYS.map((d) => dayRow(d, today, 'data-rail', esc(dateLabel(d.date, d.dow)))).join('');
+	const secs = NAV.filter((n) => !n.day && n.id !== 'top' && navDrawn(n.id))
+		.map((n) => row(n.id, rlTile(TOC_ICON[n.id] || 'arrow'), esc(L(n.label)), []))
+		.join('');
+	rail.setAttribute('aria-label', Z('行程', 'Trip'));
+	rail.innerHTML = `<div class="rail-card"><div class="gl">${row('top', rlTile('today'), esc(Z('今天', 'Today')), [esc(topSub(today))])}</div>
+      <p class="gl-h">${Z('每一天', 'Each day')}</p><div class="gl">${days}</div>
+      <p class="gl-h">${Z('其他', 'Everything else')}</p><div class="gl">${secs}</div></div>`;
+	railMark();
+}
+/** Today's line under its name: which day of the trip, else how long to go or that it's over */
+function topSub(today) {
 	const td = DAYS.find((d) => d.date === today);
-	const topSub = td
+	const left = dnum(TRIP.start) - dnum(tpNow().date);
+	return td
 		? Z(`今天是第 ${td.n} 天`, `Today is day ${td.n}`)
 		: left > 0
 			? Z(`还有 ${left} 天出发`, `${left} days to go`)
 			: Z('旅程已结束', 'Trip over');
-	const row = (id, mark, h, subs, style = '') => railRow(id, mark, h, subs, `${style} data-rail="${id}"`);
-	const days = DAYS.map((d) => dayRow(d, today, 'data-rail', esc(dateLabel(d.date, d.dow)))).join('');
-	const secs = NAV.filter((n) => !n.day && n.id !== 'top' && navDrawn(n.id))
-		.map((n) => row(n.id, `<span class="rl-sq">${icon(TOC_ICON[n.id] || 'arrow')}</span>`, esc(L(n.label)), []))
-		.join('');
-	rail.setAttribute('aria-label', Z('行程', 'Trip'));
-	rail.innerHTML = `<div class="rail-card">${row('top', `<span class="rl-sq">${icon('today')}</span>`, esc(Z('今天', 'Today')), [esc(topSub)])}
-      <p class="rail-h">${Z('每一天', 'Each day')}</p>${days}
-      <p class="rail-h">${Z('其他', 'Everything else')}</p>${secs}</div>`;
-	railMark();
 }
-/** one row of the week: the rail's on a desktop, the Days sheet's on a phone and a tablet (23-sections-menu.js) */
-const railRow = (id, mark, h, subs, attrs = '') =>
+/* ── grouped lists (style.css .gl; ADR-20261124-grouped-lists): the rail on a desktop, Days, More and the Sections sheet.
+   One card per group, one row per line. A row that goes somewhere ends in ›; a choice shows its value and ⌃⌄ (it changes
+   here); an action has neither ── */
+/** a row's icon on its tinted tile */
+const rlTile = (n) => `<span class="rl-sq">${icon(n)}</span>`;
+/** a go-to row: its mark, its name and the lines under it, an optional value on the right (html), then › */
+const railRow = (id, mark, h, subs, attrs = '', val = '') =>
 	`<a class="rl" href="#${id}"${attrs}>${mark}<span class="rl-t"><b>${h}</b>${subs
 		.filter(Boolean)
 		.map((x) => `<small>${x}</small>`)
-		.join('')}</span>${icon('chev-r', 'rl-ch')}</a>`;
-/** a day's row: its mark, its date (html, escaped by the caller), a Today flag, its title and forecast */
-function dayRow(d, today, key, date) {
+		.join('')}</span>${val}${icon('chev-r', 'rl-ch')}</a>`;
+/** a choice row: the setting's name, its value on the right and ⌃⌄; a tap moves it to the next value, here */
+const pickRow = (cls, attrs, ic, h, val) =>
+	`<button type="button" class="rl rl-pick ${cls}" ${attrs}>${rlTile(ic)}<span class="rl-t"><b>${h}</b></span><span class="rl-v"><span class="sr-only">${Z('：', ': ')}</span>${val}</span>${icon('updown', 'rl-ch')}</button>`;
+/** a choice row drawn again with its new value; the focus stays on it, so the keys can step through the values */
+function rowRedraw(row, html, sel) {
+	const had = document.activeElement === row;
+	const box = row.parentElement;
+	row.outerHTML = html;
+	const now = had && box && $(sel, box);
+	if (now) now.focus();
+}
+/** an action row: it acts here (installs, pauses, clears), so no › and no value; its words in link blue, or red (is-bad)
+ *  for one that takes something away */
+const actRow = (cls, attrs, ic, h, sub = '') =>
+	`<button type="button" class="rl rl-act ${cls}" ${attrs}>${rlTile(ic)}<span class="rl-t"><b>${h}</b>${sub ? `<small>${sub}</small>` : ''}</span></button>`;
+/** a day's row: its mark, its date (html, escaped by the caller) with a Today flag, its title under it, the forecast on
+ *  the right */
+function dayRow(d, today, key, date, attrs = '') {
 	const fc = fcOf(d);
 	return railRow(
 		d.id,
 		dayMark(d),
 		`${date}${today === d.date ? ` <span class="flag">${Z('今天', 'Today')}</span>` : ''}`,
-		[esc(L(d.title)), fc ? `${icon(fcIcon(fc.code))}${fc.tmin}–${fc.tmax}°` : ''],
-		` style="${colorVars(d.c)}" ${key}="${d.id}"`,
+		[esc(L(d.title))],
+		` style="${colorVars(d.c)}" ${key}="${d.id}"${attrs}`,
+		fc ? `<span class="rl-fc">${icon(fcIcon(fc.code))}<span>${fc.tmin}–${fc.tmax}°</span></span>` : '',
 	);
 }
 function railMark() {

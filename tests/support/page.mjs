@@ -218,6 +218,103 @@ export const BAR = {
 	skyRow: '#toc [data-sky-toggle]',
 };
 
+/* ───────── grouped lists (ADR-20261124-grouped-lists): the rail, Days, More and the Sections sheet ───────── */
+
+export const LIST = {
+	card: '.gl',
+	head: '.gl-h',
+	row: '.gl > .rl',
+	/** a row that goes somewhere: a link to a view, or Group sync's row that opens its sheet */
+	go: '.gl > a.rl, .gl > .rl.toc-sync',
+	pick: '.gl > .rl.rl-pick',
+	act: '.gl > .rl.rl-act',
+	lit: '.gl > .rl[aria-current]',
+	tile: '.rl-sq',
+	value: '.rl-v',
+	/** the mark at a row's end: › (chev-r) for one that goes somewhere, ⌃⌄ (updown) for a choice */
+	end: '.rl-ch',
+};
+
+/** What's wrong with the grouped lists under `root`, one line each: a row under 52 px, a row narrower than its card (one
+ *  column), a row whose end mark doesn't say what it does (› to go, ⌃⌄ for a choice, nothing for an action), a choice
+ *  with no value, or a hairline that is missing or doesn't start where the words do. */
+export async function auditList(page, root) {
+	// a sheet that just opened is still growing from 0.96: measure it once it has arrived
+	await page.locator(root).evaluate((r) => Promise.all(r.getAnimations({ subtree: true }).map((a) => a.finished)));
+	return page.locator(root).evaluate((r, L) => {
+		const out = [];
+		for (const card of r.querySelectorAll(L.card)) {
+			if (!card.getClientRects().length) continue;
+			const rows = [...card.children].filter((e) => e.matches('.rl') && e.getClientRects().length);
+			rows.forEach((e, i) => {
+				const b = e.getBoundingClientRect();
+				const name = e.textContent.trim().replace(/\s+/g, ' ').slice(0, 28);
+				// layout sizes (offset*), so a sheet still scaling in doesn't read as short rows
+				if (e.offsetHeight < 52) out.push(`${name}: ${e.offsetHeight} px tall`);
+				if (e.offsetLeft !== card.offsetLeft + card.clientLeft || Math.abs(e.offsetWidth - card.clientWidth) > 1)
+					out.push(`${name}: narrower than its card`);
+				const kind = e.matches(L.go.replaceAll('.gl > ', '')) ? 'go' : e.matches('.rl-pick') ? 'pick' : 'act';
+				const want = { go: '#i-chev-r', pick: '#i-updown', act: null }[kind];
+				const end = e.querySelector(`:scope > ${L.end} use`);
+				const got = end ? end.getAttribute('href') : null;
+				if (got !== want) out.push(`${name}: a ${kind} row ends in ${got}, not ${want}`);
+				if (kind === 'pick' && !(e.querySelector(L.value) || {}).textContent) out.push(`${name}: a choice with no value`);
+				if (i === 0) return;
+				const h = getComputedStyle(e, '::before');
+				const words = e.querySelector('.rl-t').getBoundingClientRect();
+				const from = b.left + parseFloat(h.left);
+				if (h.content === 'none' || parseFloat(h.height) < 1 || /rgba\(0, 0, 0, 0\)|transparent/.test(h.backgroundColor))
+					out.push(`${name}: no hairline above`);
+				else if (Math.abs(from - words.left) > 2 || from < e.firstElementChild.getBoundingClientRect().right)
+					out.push(`${name}: its hairline starts at ${Math.round(from - b.left)} px, not where the words do (${Math.round(words.left - b.left)})`);
+			});
+		}
+		return out;
+	}, LIST);
+}
+
+/** How a grouped-list row looks: its fill, ring, the weight of its name, and the ring's contrast against its card (with
+ *  `dress`, its day colours swapped for these for the measure, then put back). */
+export function rowLook(row, dress = null) {
+	return row.evaluate((e, dress) => {
+		const was = e.getAttribute('style');
+		// no transition, so the measure reads the new colours, not a step on the way (interpolated in oklab)
+		if (dress) e.setAttribute('style', `${dress};transition:none`);
+		const rgb = (s) => {
+			const m = s.match(/color\(srgb ([\d.e-]+) ([\d.e-]+) ([\d.e-]+)/);
+			if (m) return m.slice(1, 4).map((x) => +x * 255);
+			const c = s.match(/rgba?\(([^)]+)\)/);
+			if (!c) throw new Error(`a colour this measure can't read: ${s}`);
+			return c[1]
+				.split(/[ ,/]+/)
+				.slice(0, 3)
+				.map(Number);
+		};
+		const lum = (c) =>
+			c
+				.map((v) => v / 255)
+				.map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4))
+				.reduce((s, v, i) => s + v * [0.2126, 0.7152, 0.0722][i], 0);
+		const ratio = (a, b) => {
+			const [x, y] = [lum(rgb(a)), lum(rgb(b))].sort((p, q) => q - p);
+			return (x + 0.05) / (y + 0.05);
+		};
+		const st = getComputedStyle(e);
+		const card = getComputedStyle(e.parentElement).backgroundColor;
+		const look = {
+			fill: st.backgroundColor,
+			ring: st.boxShadow,
+			weight: +getComputedStyle(e.querySelector('.rl-t b')).fontWeight,
+			// against both its neighbours: the card around the row and the row's own tint
+			ringContrast: st.boxShadow === 'none' ? 0 : Math.min(ratio(st.boxShadow, card), ratio(st.boxShadow, st.backgroundColor)),
+			outlineContrast: ratio(st.outlineColor, card),
+			outlineOffset: parseFloat(st.outlineOffset),
+		};
+		if (dress) e.setAttribute('style', was || '');
+		return look;
+	}, dress);
+}
+
 /** True where the bottom bar stands (a phone, a tablet), false on a desktop. */
 export const hasBar = (page) => page.locator(BAR.bar).isVisible();
 

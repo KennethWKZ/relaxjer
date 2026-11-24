@@ -55,7 +55,7 @@ function skyBtnSync() {
 	$$('[data-sky-toggle]').forEach((r) => {
 		r.setAttribute('aria-pressed', String(paused));
 		r.querySelector('use').setAttribute('href', paused ? '#i-play' : '#i-pause');
-		r.querySelector('span').textContent = say;
+		r.querySelector('.rl-t b').textContent = say;
 	});
 }
 const skyPaused = () => (LOOK.snow != null ? !LOOK.snow : !!store.get('skyPaused', false));

@@ -45,21 +45,27 @@ two of them seniors.
   **Days** opens a list of every day, each with its date and weekday, Day number, title and forecast, today flagged and
   the day you're on lit, and a tap opens that day; **Map** opens the map; **More** opens Food and Toilets nearby, every
   other part of the plan (Airport, Entry, Optional, Wishlist, Food, Budget, Weather, Checklist, Priorities: whatever the
-  trip has), then the settings: the theme, the snow's pause (in a look with a sky), which maps app opens, Amounts and
-  rate, the Group sync row, and Install. The item for what's on screen is lit, in the day's colour on a day.
+  trip has), then the settings: the theme, the snow's pause (in a look with a sky), which maps app opens, the Group sync
+  row, Amounts and rate, Install, and the reset. The item for what's on screen is lit, in the day's colour on a day.
+- **Lists like a phone's settings.** Days, More, the rail and the Sections menu are all drawn the same way, as an
+  iPhone's Settings: rounded cards of full-width rows, one under the other. A row that opens something ends in ›; a
+  setting that changes where it is (the theme, which maps app) shows its value and ⌃⌄, and a tap moves it to the next
+  one; an action (pause the snow, Install, the reset) has neither. The part you're on is lit in its colour, with a ring
+  and heavier words.
 - **One part at a time.** Each part opens its own view, from its top: Today, one day, the budget, the airport. The
   phone's Back steps back through the views you opened, each where you left it (a tap on the bar is a step too), and a
   link to a part (`#d3`, `#budget`) opens its view. At the foot of every day, big **Previous day** and **Next day**
   buttons (the first day's goes back to Today); on a phone a sideways swipe across the day does the same.
 - **On a computer** (1024 px and wider) a rail on the left takes the bar's place: Today, every day with its date, its
-  forecast and Today, then the other sections. The view sits beside it, and sheets open as a panel on the right.
+  title, its forecast and Today, then the other sections, each group on a card of its own. The view sits beside it, and
+  sheets open as a panel on the right.
 - **A day bar** slides in under the header once a day's heading scrolls away: Day N, the date, the title. A day's
   heading shows its date short, after a calendar mark ("3/15 周一" in Chinese).
 - **The Sections menu** on a computer (the round button at the foot of the screen, there from the first screen of every
   view; it steps aside over the full-screen map, while Search is open, and where it would cover a day's Next day
-  button): on a trip day it opens on Now and Next (before the trip, a countdown), then Food and Toilets nearby, every
-  day, every section, back to Today, the theme, which maps app opens, Amounts and rate, the Group sync row, and
-  Install. On a phone and a tablet the bottom bar's Today, Days and More hold all of it.
+  button): on a trip day it opens on Now and Next (before the trip, a countdown), then Food and Toilets nearby, Today,
+  every day, every section, then the same settings as More. On a phone and a tablet the bottom bar's Today, Days and
+  More hold all of it.
 - **Amounts and rate** (in More, or the Sections menu on a computer): the same currency choice as the header button, and the rate (1 RM =
   NT$…), the same value as the budget's rate field. Figures follow a new rate as you type it; a rate that isn't a
   number above 0 is outlined and ignored. Under it, the trip's own rate and its note, and "Use the trip's rate" once

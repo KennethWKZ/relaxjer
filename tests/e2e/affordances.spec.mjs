@@ -1,7 +1,7 @@
 // Affordance rules from memory-bank/standards/patterns/affordances.md, measured on the page (rule numbers in brackets):
 // every control can be hit, looks like what it is, and shows its state.
 import { test, expect, openTrip } from '../support/fixtures.mjs';
-import { BAR, hasBar, openAllDetails, openSections, setStored, show } from '../support/page.mjs';
+import { auditList, BAR, goToView, hasBar, LIST, openAllDetails, openSections, rowLook, setStored, show } from '../support/page.mjs';
 /* global DAYS -- the trip data, read inside the page */
 
 test('every control is at least 44 px [1]', async ({ page }) => {
@@ -34,14 +34,15 @@ test('neighbouring buttons keep 8 px apart [3]', async ({ page }) => {
 });
 
 // measured, not read from CSS: the pre-departure pass found route legs, stop links, food chips, drink pills, the map's
-// filters and pin tags 4–6 px apart. A segmented control (one control in parts) and links inside a sentence are exempt.
+// filters and pin tags 4–6 px apart. A segmented control (one control in parts), links inside a sentence and the rows of a
+// grouped list (full-width rows of 52 px or more, split by a hairline: rule 3's exception) are exempt.
 test('neighbouring targets in any container sit at least 8 px apart [3]', async ({ page }) => {
 	await openTrip(page);
 	await openAllDetails(page);
 	const close = await page.evaluate(() => {
 		const T = [...document.querySelectorAll('#app a, #app button, #app summary')].filter((e) => {
 			const r = e.getBoundingClientRect();
-			return r.width > 2 && r.height > 2 && getComputedStyle(e).display !== 'inline' && !e.parentElement.closest('.seg');
+			return r.width > 2 && r.height > 2 && getComputedStyle(e).display !== 'inline' && !e.parentElement.closest('.seg') && !e.closest('.gl');
 		});
 		const out = new Set();
 		for (const a of T)
@@ -147,6 +148,84 @@ test('the lit item in the bar or the rail shows more than a colour change, and t
 	await btn.click();
 	await expect(page.locator('html')).toHaveAttribute('lang', 'zh-Hans');
 	await expect(btn).toHaveText('EN');
+});
+
+// the lists that take the reader somewhere, and the settings (ADR-20261124-grouped-lists): the rail on a desktop, Days and
+// More below 1024 px, the desktop's Sections sheet. One column of full-width rows, 52 px or more, each ending in what it
+// does (› to go somewhere, ⌃⌄ for a choice, nothing for an action), split by hairlines that start where the words do;
+// the part of the trip on screen lit with two cues, its ring 3:1 on every lantern in both themes; the focus ring inside
+// the card at 3:1; the press shows on touch-down
+test('every go-to list is one column of 52 px rows ending in ›, split by inset hairlines, the lit row with two cues [2][3][12][16][17][19]', async ({
+	page,
+}) => {
+	await openTrip(page);
+	const bar = await hasBar(page);
+	const day = await page.evaluate(() => DAYS[Math.min(1, DAYS.length - 1)].id);
+	await goToView(page, day);
+	// the list that names each day: Days below 1024 px, the rail beside the view on a desktop
+	const dayList = bar ? '#days' : '#rail';
+	if (bar) await page.locator(BAR.days).click();
+	await expect(page.locator(dayList)).toBeVisible();
+	expect(await auditList(page, dayList), `${dayList}: rows`).toEqual([]);
+	await expect(page.locator(`${dayList} ${LIST.row}`).first()).toBeVisible();
+	const lit = page.locator(`${dayList} ${LIST.lit}`);
+	await expect(lit, 'the day on screen is lit').toHaveCount(1);
+	await expect(lit).toHaveAttribute('href', `#${day}`);
+	const on = await rowLook(lit);
+	const off = await rowLook(page.locator(`${dayList} ${LIST.row}:not([aria-current])`).first());
+	expect(on.weight, 'heavier words').toBeGreaterThanOrEqual(750);
+	expect(off.weight).toBeLessThan(750);
+	expect(on.fill, 'a tint').not.toBe(off.fill);
+	// the ring on each of the seven lanterns, whatever days the trip has, in both themes: the lit row dressed in each in turn
+	for (const scheme of ['light', 'dark']) {
+		await page.emulateMedia({ colorScheme: scheme });
+		for (let k = 1; k <= 7; k++) {
+			const look = await rowLook(lit, `--c:var(--l${k});--ci:var(--l${k}-ink)`);
+			expect(look.ringContrast, `lantern ${k}, ${scheme}: the ring against its row and its card`).toBeGreaterThanOrEqual(3);
+		}
+	}
+	await page.emulateMedia({ colorScheme: 'light' });
+	// the focus ring: inside the card (a negative offset, so the card's clip never cuts it) and 3:1 on it
+	const first = page.locator(`${dayList} ${LIST.row}`).first();
+	await page.keyboard.press('Tab');
+	await first.focus();
+	const f = await rowLook(first);
+	expect(f.outlineOffset, 'the ring is drawn inside the row').toBeLessThan(0);
+	expect(f.outlineContrast).toBeGreaterThanOrEqual(3);
+	// pressed: the row greys and its mark sinks on touch-down, before any release
+	const press = page.locator(`${dayList} ${LIST.row}:not([aria-current])`).last();
+	await press.scrollIntoViewIfNeeded();
+	const pb = await press.boundingBox();
+	await page.mouse.move(pb.x + pb.width / 2, pb.y + pb.height / 2);
+	const rest = await rowLook(press);
+	await page.mouse.down();
+	const down = await press.evaluate((e) => ({ fill: getComputedStyle(e).backgroundColor, scale: getComputedStyle(e.firstElementChild).scale }));
+	await page.mouse.move(0, 0);
+	await page.mouse.up();
+	expect(down.fill, 'the row greys at once').not.toBe(rest.fill);
+	expect(down.scale, 'its mark sinks').toBe('0.9');
+
+	// the menu with the sections and the settings: More below 1024 px, the Sections sheet on a desktop
+	if (bar) await page.keyboard.press('Escape');
+	// a planning section on screen (the first the trip has), so its row is lit
+	const sec = await page
+		.locator('#rail .rl[href]')
+		.evaluateAll((as) =>
+			as
+				.map((a) => a.getAttribute('href').slice(1))
+				.find((id) => id !== 'top' && id !== 'map' && !document.getElementById(id).classList.contains('day')),
+		);
+	await goToView(page, sec);
+	await openSections(page);
+	expect(await auditList(page, '#toc'), '#toc: rows').toEqual([]);
+	await expect(page.locator(`#toc ${LIST.lit}`), 'the section on screen is lit').toHaveAttribute('href', `#${sec}`);
+	// a choice (the maps app at every width) with its value; the audit above checked each row's end mark
+	await expect(page.locator(`#toc ${LIST.pick}[data-maps-cycle] ${LIST.value}`), 'a choice shows its value').toHaveText(/Maps|地图/);
+	// the cards are one column: every card spans the same width
+	const widths = await page
+		.locator(`#toc ${LIST.card}`)
+		.evaluateAll((cs) => [...new Set(cs.filter((c) => c.getClientRects().length).map((c) => Math.round(c.getBoundingClientRect().width)))]);
+	expect(widths, 'one column of cards').toHaveLength(1);
 });
 
 test('lantern buttons are filled, and tappable chips differ from static tags [6, 8]', async ({ page }) => {

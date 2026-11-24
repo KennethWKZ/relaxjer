@@ -1,6 +1,6 @@
 ---
 created: 2026-10-01
-updated: 2026-10-01
+updated: 2026-11-24
 ---
 
 # Affordances and Signifiers
@@ -32,8 +32,12 @@ exist for them. This file extends [`frontend.md`](./frontend.md). The rules are 
 2. **Actions used while walking are 52 px or more, and 56 px where they fit:** Back, Sections, a card's main action,
    the driver card. 44 px is about 8 mm on a phone. NN/g asks for 1 cm and more when moving [5], and older adults tapped
    most accurately at 14 mm or more [18]. Save the biggest sizes for one or two actions per screen.
-3. **At least 8 px between neighbouring targets** [5][15].
-   _Check:_ the smallest gap between sibling target boxes.
+3. **At least 8 px between neighbouring targets** [5][15]. One exception: the full-width rows of a list (the grouped
+   lists: the rail, Days, More, the Sections sheet), 52 px or taller and split by a hairline, sit edge to edge, as every
+   platform's lists do [15][16]. The whole row is the target (rule 4), it is tall enough to hit while walking (rule 2),
+   and the hairline marks where one ends; a gap would break the list back into tiles. Rows shorter than 52 px, or not
+   the full width, keep the 8 px ([ADR-20261124-grouped-lists](../decisions/ADR-20261124-grouped-lists.md)).
+   _Check:_ the smallest gap between sibling target boxes, list rows aside.
 4. **The whole row is the target** for a `summary`, a list row or a card that acts [17].
    _Check:_ tapping each inner corner of the row does the same thing.
 
@@ -60,7 +64,8 @@ exist for them. This file extends [`frontend.md`](./frontend.md). The rules are 
 11. **Every `<summary>` shows a chevron that turns when it opens, plus a label saying what's inside**, with a count for
     lists [9][15][17].
     _Check:_ a `summary` without a chevron fails.
-12. **A down chevron opens in place; a right chevron goes somewhere else.** Never mix the two [9].
+12. **A down chevron opens in place; a right chevron goes somewhere else.** Never mix the two [9]. In a list, a choice
+    that changes in place shows its value and ⌃⌄ (iOS's pop-up mark), and an action shows neither [15].
 13. **Don't hide what most readers need.** Facts used every day render open; a closed `details` needs a reason [17].
 
 ### Scrollers and tabs
@@ -113,24 +118,25 @@ measured pixels: confirm each in a browser before fixing it. Each fix is an engi
 [`engine.md`](./engine.md): `pnpm test:all`, parity, and a pass at 390 px and desktop in Chromium and WebKit. The story
 index tracks them as step 6c. The "Fixed" rows landed in `b429157` and the "Strengthened" rows in `6ff9719`, all measured by `tests/e2e/affordances.spec.mjs` (rule 17's instant press-in is checked by eye).
 
-| Keep, strengthen or fix | What                                                                                                                                                                                                                                                             | Rule   |
-| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| Fixed                   | Targets under 44 px: the language switch `.seg button` (38), `.ghours summary` (36), `.plan-alt > summary` and `.flt-d > summary` (40), `.mres-seg .seg-btn` (34), `.add-sort .seg-btn` (36), `.stop-knot .knot-add` (32); 6 px gaps in `.links-row` and `.tabs` | 1, 3   |
-| Fixed                   | No `:disabled` or `[aria-busy]` styles, while the location buttons set `disabled`; `button { color: inherit }` likely hides the browser's disabled grey                                                                                                          | 18     |
-| Fixed                   | The focus ring nearly vanishes on lantern paper (about 1.2:1 on red). Inside `.lantern`, draw it in the day's ink (`var(--ci)`)                                                                                                                                  | 19     |
-| Fixed                   | The lantern buttons `.l-btn` are ghost buttons (a 40% ink border, about 2:1): give them a tint fill and a stronger border                                                                                                                                        | 6      |
-| Fixed                   | The day strip `.tabs` hides its scrollbar and has no edge cue; on Persimmon, Peach and Gold days the selected tab differs from the others by hue alone                                                                                                           | 14, 16 |
-| Fixed                   | `.plan-alt` and `.flt-d` summaries have no chevron, so they read as text, not controls                                                                                                                                                                           | 11     |
-| Fixed                   | The tappable `.tag.pinbtn` looks like a static `.tag`                                                                                                                                                                                                            | 8      |
-| Fixed                   | The segmented language switch shows its selected option as white on grey (about 1.2:1); the filter buttons invert to ink. Make them match, at 44 px                                                                                                              | 16     |
-| Strengthened            | The landing glow is weak on light lanterns (Gold about 1.5:1) and disappears under reduced motion. Use a static 3:1 outline held for 1.5–3 s instead                                                                                                             | 20     |
-| Strengthened            | Press feedback: make the press-in instant (160 ms today), and keep the scale, since the grey fill step washes out in sun                                                                                                                                         | 17, 25 |
-| Strengthened            | `prefers-contrast: more` keeps the glass translucent and the link buttons borderless: make both solid, with a 1 px border                                                                                                                                        | 23     |
-| Strengthened            | Icon-only on phones: label the Website link (a generic glyph), the theme toggle and Install; keep the Sections button's label, since it's the day strip's fallback                                                                                               | 9      |
-| Keep                    | The 44 px floor for the main controls, and the 52 px Back and Sections buttons                                                                                                                                                                                   | 1, 2   |
-| Keep                    | Link buttons: fill, icon and verb together (blue on grey is 5.7:1)                                                                                                                                                                                               | 6      |
-| Keep                    | `details.more` summaries: a 48 px full-row target with a label, a count and a turning chevron                                                                                                                                                                    | 4, 11  |
-| Keep                    | Underlined links; hover only on fine pointers; glass only on the sticky bars; reduced transparency already solid                                                                                                                                                 | 5, 22  |
+| Keep, strengthen or fix | What                                                                                                                                                                                                                                                                                                       | Rule   |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| Fixed                   | Targets under 44 px: the language switch `.seg button` (38), `.ghours summary` (36), `.plan-alt > summary` and `.flt-d > summary` (40), `.mres-seg .seg-btn` (34), `.add-sort .seg-btn` (36), `.stop-knot .knot-add` (32); 6 px gaps in `.links-row` and `.tabs`                                           | 1, 3   |
+| Fixed                   | No `:disabled` or `[aria-busy]` styles, while the location buttons set `disabled`; `button { color: inherit }` likely hides the browser's disabled grey                                                                                                                                                    | 18     |
+| Fixed                   | The focus ring nearly vanishes on lantern paper (about 1.2:1 on red). Inside `.lantern`, draw it in the day's ink (`var(--ci)`)                                                                                                                                                                            | 19     |
+| Fixed                   | The lantern buttons `.l-btn` are ghost buttons (a 40% ink border, about 2:1): give them a tint fill and a stronger border                                                                                                                                                                                  | 6      |
+| Fixed                   | The day strip `.tabs` hides its scrollbar and has no edge cue; on Persimmon, Peach and Gold days the selected tab differs from the others by hue alone                                                                                                                                                     | 14, 16 |
+| Fixed                   | `.plan-alt` and `.flt-d` summaries have no chevron, so they read as text, not controls                                                                                                                                                                                                                     | 11     |
+| Fixed                   | The tappable `.tag.pinbtn` looks like a static `.tag`                                                                                                                                                                                                                                                      | 8      |
+| Fixed                   | The segmented language switch shows its selected option as white on grey (about 1.2:1); the filter buttons invert to ink. Make them match, at 44 px                                                                                                                                                        | 16     |
+| Strengthened            | The landing glow is weak on light lanterns (Gold about 1.5:1) and disappears under reduced motion. Use a static 3:1 outline held for 1.5–3 s instead                                                                                                                                                       | 20     |
+| Strengthened            | Press feedback: make the press-in instant (160 ms today), and keep the scale, since the grey fill step washes out in sun                                                                                                                                                                                   | 17, 25 |
+| Strengthened            | `prefers-contrast: more` keeps the glass translucent and the link buttons borderless: make both solid, with a 1 px border                                                                                                                                                                                  | 23     |
+| Strengthened            | Icon-only on phones: label the Website link (a generic glyph), the theme toggle and Install; keep the Sections button's label, since it's the day strip's fallback                                                                                                                                         | 9      |
+| Fixed                   | More's and the Sections sheet's two-up pale tiles (Fog Grey on paper, no chevron) read as labels in sun, and the rail, Days and More drew one action three ways: all four are now one grouped list, each row ending in ›, a value with ⌃⌄, or nothing (`affordances.spec.mjs`, ADR-20261124-grouped-lists) | 12, 25 |
+| Keep                    | The 44 px floor for the main controls, and the 52 px Back and Sections buttons                                                                                                                                                                                                                             | 1, 2   |
+| Keep                    | Link buttons: fill, icon and verb together (blue on grey is 5.7:1)                                                                                                                                                                                                                                         | 6      |
+| Keep                    | `details.more` summaries: a 48 px full-row target with a label, a count and a turning chevron                                                                                                                                                                                                              | 4, 11  |
+| Keep                    | Underlined links; hover only on fine pointers; glass only on the sticky bars; reduced transparency already solid                                                                                                                                                                                           | 5, 22  |
 
 ## How to check a change
 

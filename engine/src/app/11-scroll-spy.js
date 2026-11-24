@@ -156,9 +156,10 @@ const isStandalone = () => matchMedia('(display-mode: standalone)').matches || n
 const isIOS = () => /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const isAndroid = () => /Android/.test(navigator.userAgent);
 const canHome = () => !isStandalone() && (installEv || isIOS() || isAndroid());
-const homeBtn = () =>
+// Install as a row of the settings (23-sections-menu.js): an action, so no ›
+const homeRow = () =>
 	canHome()
-		? `<button type="button" class="mlink home-btn" data-home>${icon('plus')}${Z('加到手机主画面（像 App 一样打开）', 'Add to the home screen (opens like an app)')}</button>`
+		? actRow('toc-home', 'data-home', 'install', Z('加到手机主画面', 'Add to the home screen'), Z('像 App 一样打开', 'Opens like an app'))
 		: '';
 // the header's install button: shown until the page runs from the home screen
 const homeSync = () => {

@@ -1741,8 +1741,10 @@
 	:root[data-world='snowlight'][data-sky-on='1'] .band-col {
 		padding-bottom: 22px;
 	}
+	/* the rail is the grouped lists' ground (ADR-20261124-grouped-lists): a card on the sky that holds the lists' own
+	   cards, so it takes the ground's colour and keeps its lift */
 	:root[data-world='snowlight'][data-sky-on='1'] .rail-card {
-		background: linear-gradient(180deg, var(--snow-card-top), var(--snow-card-low));
+		background: var(--gl-ground);
 		box-shadow: var(--card-shadow);
 	}
 	:root[data-world='snowlight'][data-sky-on='1'] .foot {

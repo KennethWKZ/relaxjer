@@ -1,5 +1,5 @@
 ---
-total_decisions: 33
+total_decisions: 34
 last_updated: 2026-11-24
 ---
 
@@ -63,15 +63,16 @@ Where the page and the demos are published, the keys they need, and the page sec
 
 How the page looks, moves and reads: type, colour, illustrations, motion, names and controls. Patterns: [frontend.md](./patterns/frontend.md), [affordances.md](./patterns/affordances.md).
 
-| ADR                                                                             | Date       | Status   | Rule                                                                                                                                          |
-| ------------------------------------------------------------------------------- | ---------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| [ADR-20260930-name-relaxjer](decisions/ADR-20260930-name-relaxjer.md)           | 2026-09-30 | accepted | The product is called RelaxJer: the exact name is unclaimed, so the site can rank for it, and it carries the lowest legal risk.               |
-| [ADR-20261002-embed-brush-font](decisions/ADR-20261002-embed-brush-font.md)     | 2026-10-02 | accepted | The build embeds the brush font's glyphs the page uses as base64 woff2, so the page renders the same offline.                                 |
-| [ADR-20261002-landing-postcards](decisions/ADR-20261002-landing-postcards.md)   | 2026-10-02 | accepted | Each landing-page feature is a postcard: a drawn mini trip page on one spot colour, with its stamp and copy on the back.                      |
-| [ADR-20261117-destination-themes](decisions/ADR-20261117-destination-themes.md) | 2026-11-17 | amended  | A pack may name one visual world; a city's world overrides its country's, and each world is two files in engine/src/themes/.                  |
-| [ADR-20261121-world-motion](decisions/ADR-20261121-world-motion.md)             | 2026-11-21 | amended  | A moving part of a picture is a top-level group with data-actor, and splitArt returns the still drawing plus each moving part as its own SVG. |
-| [ADR-20261121-world-stickers](decisions/ADR-20261121-world-stickers.md)         | 2026-11-21 | accepted | Day colours keep text contrast at 4.5:1 or more on light paper and 3.8:1 or more on dark; tints are fixed shares of the colour.               |
-| [ADR-20261124-bottom-app-bar](decisions/ADR-20261124-bottom-app-bar.md)         | 2026-11-24 | accepted | Below 1024 px a bottom bar (Today, Days, Map, More) replaces the date strip and the Sections button, and the sky’s Pause moves into More.     |
+| ADR                                                                             | Date       | Status   | Rule                                                                                                                                                            |
+| ------------------------------------------------------------------------------- | ---------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [ADR-20260930-name-relaxjer](decisions/ADR-20260930-name-relaxjer.md)           | 2026-09-30 | accepted | The product is called RelaxJer: the exact name is unclaimed, so the site can rank for it, and it carries the lowest legal risk.                                 |
+| [ADR-20261002-embed-brush-font](decisions/ADR-20261002-embed-brush-font.md)     | 2026-10-02 | accepted | The build embeds the brush font's glyphs the page uses as base64 woff2, so the page renders the same offline.                                                   |
+| [ADR-20261002-landing-postcards](decisions/ADR-20261002-landing-postcards.md)   | 2026-10-02 | accepted | Each landing-page feature is a postcard: a drawn mini trip page on one spot colour, with its stamp and copy on the back.                                        |
+| [ADR-20261117-destination-themes](decisions/ADR-20261117-destination-themes.md) | 2026-11-17 | amended  | A pack may name one visual world; a city's world overrides its country's, and each world is two files in engine/src/themes/.                                    |
+| [ADR-20261121-world-motion](decisions/ADR-20261121-world-motion.md)             | 2026-11-21 | amended  | A moving part of a picture is a top-level group with data-actor, and splitArt returns the still drawing plus each moving part as its own SVG.                   |
+| [ADR-20261121-world-stickers](decisions/ADR-20261121-world-stickers.md)         | 2026-11-21 | accepted | Day colours keep text contrast at 4.5:1 or more on light paper and 3.8:1 or more on dark; tints are fixed shares of the colour.                                 |
+| [ADR-20261124-bottom-app-bar](decisions/ADR-20261124-bottom-app-bar.md)         | 2026-11-24 | amended  | Below 1024 px a bottom bar (Today, Days, Map, More) replaces the date strip and the Sections button, and the sky’s Pause moves into More.                       |
+| [ADR-20261124-grouped-lists](decisions/ADR-20261124-grouped-lists.md)           | 2026-11-24 | accepted | The rail, Days, More and the Sections sheet are grouped lists: cards of 52 px rows split by inset hairlines, each row ending in ›, a value with ⌃⌄, or nothing. |
 
 ## tooling
 
