@@ -108,3 +108,4 @@ Each rule above rests on a decision. The decision and its reasons live in its AD
 - [ADR-20261122-currency-switch](../decisions/ADR-20261122-currency-switch.md): Currency conversion happens while the text is drawn, in one pure function that reads each amount's own symbol, so NT$ is never read as $.
 - [ADR-20261122-day-views](../decisions/ADR-20261122-day-views.md): Each view is a section shown or hidden with data-off, and a view switch is its own history step with an #id address.
 - [ADR-20261122-place-finder-best-day](../decisions/ADR-20261122-place-finder-best-day.md): A place finder ranks each day's stops by straight-line distance to the place, counting only stops a new stop can follow.
+- [ADR-20261124-finder-google-distance](../decisions/ADR-20261124-finder-google-distance.md): With a key, the finder asks Google once per place for the way from the group: metres by road and the walk at the group pace, or the ride.

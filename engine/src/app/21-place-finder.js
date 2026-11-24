@@ -304,6 +304,76 @@ async function gTextSearch(q) {
 		});
 }
 
+/* ── how far, by road (ADR-20261124-finder-google-distance): with the planner's key and a network, the finder asks
+   Google's place search once for the place, with a routing summary from where the group is (the phone near the
+   trip, else the plan's stop under way or the hotel), and says the distance and the walk at the group's pace, or the
+   ride past a 20-minute walk (Way.modeFor). One answer per place and starting point per page view; nothing is said
+   when the call fails ── */
+const wayMemo = new Map(); // `${ref}|${from}|${mode}` → { m, min, mode } (or null: Google has no such place there)
+/** where the way starts: the phone near the trip, else the plan's stop under way or the hotel, with how to name it */
+function wayFrom() {
+	if (meLL && !farAway()) return { lat: meLL.lat, lng: meLL.lng, me: true };
+	const pid = nearAnchor();
+	const ll = pid && placeLL(pid);
+	return ll ? { lat: ll.lat, lng: ll.lng, hotel: isHotel(pid), name: L(PLACES[pid].name) } : null;
+}
+async function gWay(info, from) {
+	const mode = Way.modeFor(walkMinM(km(from, info) * 1000));
+	const key = `${info.ref}|${from.lat.toFixed(4)},${from.lng.toFixed(4)}|${mode}`;
+	if (wayMemo.has(key)) return wayMemo.get(key);
+	try {
+		const r = await fetch('https://places.googleapis.com/v1/places:searchText', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-Goog-Api-Key': GM.key,
+				'X-Goog-FieldMask': 'places.id,places.location,routingSummaries',
+			},
+			body: JSON.stringify({
+				textQuery: info.q || info.n,
+				languageCode: gLang(),
+				...(gRegion() ? { regionCode: gRegion() } : {}),
+				pageSize: 5,
+				locationBias: { circle: { center: { latitude: info.lat, longitude: info.lng }, radius: 300 } },
+				routingParameters: { origin: { latitude: from.lat, longitude: from.lng }, travelMode: mode },
+			}),
+		});
+		if (!r.ok) return null; // refused (the key's limits, a quota): asked again next time
+		const leg = Way.legOf(await r.json(), info, mode, GROUP_WALK);
+		wayMemo.set(key, leg);
+		return leg;
+	} catch {
+		return null; // no network: asked again next time
+	}
+}
+/** the finder's way line, filled in once Google answers, if the finder still shows the same place */
+async function fillWay(info) {
+	if (!GM || info.lat == null) return;
+	// once per opening: a redraw of the same place repaints the answer it has, even if the phone has moved since
+	if (finderAt && finderAt.info === info && finderAt.way) return paintWay(finderAt.way.leg, finderAt.way.from);
+	if (navigator.onLine === false) return;
+	const from = wayFrom();
+	if (!from || km(from, info) < 0.05) return; // next door: no way to tell
+	const leg = await gWay(info, from);
+	if (!leg || !finderAt || finderAt.info !== info) return;
+	finderAt.way = { leg, from };
+	paintWay(leg, from);
+}
+function paintWay(leg, from) {
+	const el = $('#mapfind .pf-way');
+	if (!el) return;
+	const d = dist1(leg.m / 1000);
+	const who = from.me ? Z('从你这里', 'From you') : from.hotel ? Z('从酒店', 'From the hotel') : Z(`从「${from.name}」`, `From ${from.name}`);
+	// an hour or more reads in hours: "~2 h 4 min by car", not "~124 min"
+	const h = Math.floor(leg.min / 60);
+	const t = h
+		? Z(`${h}小时${leg.min % 60 ? `${leg.min % 60}分` : ''}`, `${h} h${leg.min % 60 ? ` ${leg.min % 60} min` : ''}`)
+		: Z(`${leg.min}分`, `${leg.min} min`);
+	const how = leg.mode === 'WALK' ? Z(`走路约${t}`, `~${t} walk`) : Z(`坐车约${t}`, `~${t} by car`);
+	el.innerHTML = `${icon('route')}<span>${esc(Z(`${who}：${d} · ${how}`, `${who}: ${d} · ${how}`))}<small>${esc(Z(' · Google 路线', ' · by road, Google'))}</small></span>`;
+	el.hidden = false;
+}
+
 /* ── the finder: a place against the plan ── */
 let finderO = null; // its history step: Back returns to the results
 let finderAt = null; // the place it shows
@@ -319,6 +389,60 @@ function legWords(a, b) {
 	const r = m.mrt != null ? Z(`${METRO[0]}约${Math.round(m.mrt)}分`, `${METRO[1]} ~${Math.round(m.mrt)} min`) : '';
 	return [t, r].filter(Boolean).join(' · ');
 }
+
+/* ── the finder's place on the map (ADR-20261124-map-first-search): the camera frames it with where the group is (the
+   phone, or without it, or far from the trip, the plan's stop under way or the hotel: nearAnchor, 24-near-me.js), and
+   its pin stands out with its name. No line and no distance on the map: a straight line isn't the way a group walks,
+   and Directions (in the finder) opens the real route ── */
+/** the other end the camera frames with the finder's place: the phone when it's near the trip, else the plan's stop
+ *  under way or the hotel; null when neither has a position */
+function frameFrom() {
+	if (meLL && !farAway()) return { lat: meLL.lat, lng: meLL.lng };
+	const pid = nearAnchor();
+	return (pid && placeLL(pid)) || null;
+}
+/** the finder's place on the map (a trip pin or a Google result's marker): bigger, ringed in ink, its name beside it
+ *  on the side nameSide picks, and one halo as it lands, played again for each landing */
+function destMark(el, name, side) {
+	if (!el) return;
+	let n = el.querySelector('.lpin-name');
+	if (!name) {
+		// a pin tapped on the map: its popup names it, so only the ring and the halo
+		if (n) n.remove();
+		delete el.dataset.name;
+	} else if (!n) {
+		n = document.createElement('span');
+		n.className = 'lpin-name';
+		n.setAttribute('aria-hidden', 'true'); // the pin's own label (or title) says it
+		el.append(n);
+	}
+	if (name) {
+		n.textContent = name;
+		el.dataset.name = side;
+	}
+	el.classList.remove('dest');
+	void el.offsetWidth; // a fresh landing: the halo plays again
+	el.classList.add('dest');
+}
+function destUnmark(el) {
+	if (!el) return;
+	el.classList.remove('dest');
+	delete el.dataset.name;
+	const n = el.querySelector('.lpin-name');
+	if (n) n.remove();
+}
+/** where the finder's pin puts its name so it stays on the map: framed with another point, the pin sits at the frame's
+ *  edge, so the name goes in from it. Further apart north–south than east–west, the pin is at the top or the foot and
+ *  its name centres under it ('s') or over it ('n'); otherwise the pin is at a side and its name runs from it back
+ *  over the map, under it ('sw', 'se') or, at the south end, over it ('nw', 'ne'). With nothing framed, under it. */
+function nameSide(from, p) {
+	if (!from || km(from, p) < 0.1) return 's';
+	const dy = p.lat - from.lat;
+	const dx = (p.lng - from.lng) * Math.cos((p.lat * Math.PI) / 180);
+	const v = dy > 0 ? 's' : 'n';
+	return Math.abs(dy) >= Math.abs(dx) ? v : v + (dx > 0 ? 'w' : 'e');
+}
+
 /** how the place sits against each trip day (Fit.fitDays), from the plan as it is on this phone now */
 function fitFor(info) {
 	const now = tpNow();
@@ -416,40 +540,69 @@ function finderHTML(info) {
 			? `<li><button type="button" class="pf-day" data-fit-add="${r.id}|${esc(r.stop.key)}" aria-label="${esc(Z(`加到 Day ${d.n}，「${r.stop.name}」之后`, `Add to Day ${d.n}, after ${r.stop.name}`))}">${body}${icon('plus', 'pf-plus')}</button></li>`
 			: `<li><div class="pf-day is-off">${body}</div></li>`;
 	};
-	return `<div class="mres-h"><button type="button" class="mlink" data-find-back>${icon('arrow', 'flip')}${Z('回到结果', 'Back to results')}</button></div>
-    <div class="pf-body">${placeHead(info, 'h3')}${hoursLine(info, date)}
+	// Directions (the real way there: the map draws no line) and the details sit right under the name, in sight at the
+	// sheet's half height on a small phone
+	return `<div class="pf-body">${placeHead(info, 'h3')}
+      <div class="links-row"><button type="button" class="mlink" data-find-detail>${icon('info')}${Z('详情', 'Details')}${gCan(info) ? `<span class="dlbl">${Z(' · 营业时间、照片、评价', ' · hours, photos, reviews')}</span>` : ''}</button>${extI(gmSearch(info.q || info.n, info.gpid), Z('地图', 'Map'), 'pin')}${extI(gmDir(info.q || info.n, 'transit', undefined, info.gpid), Z('路线', 'Directions'), 'route')}</div>
+      <p class="pf-way" hidden></p>
+      ${hoursLine(info, date)}
       ${inPlan.length ? `<p class="pf-in">${icon('calendar')}<span>${esc(Z('已在行程：', 'In the plan: '))}${inPlan.map((d) => `<a class="mlink" href="#${d.id}">Day ${d.n}</a>`).join(' ')}</span></p>` : ''}
       ${best}
       ${others.length ? `<p class="sub-h">${Z('其他天最近的站', 'Other days, nearest stop first')}</p><ul class="pf-days">${others.map(row).join('')}</ul>` : ''}
       <p class="xsmall muted">${Z('直线距离；时间为估算（走路按长辈速度），不含塞车。', 'Straight-line distance; times are estimates (walking at the group’s pace), without traffic.')}</p>
-      <div class="links-row"><button type="button" class="mlink" data-find-detail>${icon('info')}${Z('详情', 'Details')}${gCan(info) ? `<span class="dlbl">${Z(' · 营业时间、照片、评价', ' · hours, photos, reviews')}</span>` : ''}</button>${extI(gmSearch(info.q || info.n, info.gpid), Z('地图', 'Map'), 'pin')}${extI(gmDir(info.q || info.n, 'transit', undefined, info.gpid), Z('路线', 'Directions'), 'route')}</div>
     </div>`;
 }
-/** show a place in the finder, in place of the results, and on the map: its pin, or a marker of its own for a place
- *  the map has no pin for (a Google result, a shop box shop); from: the result row tapped, focused again on Back */
+/** the list pane's title: the results' count, or for the finder its way back to them (16-map.js) */
+function paneTitle(text) {
+	const t = $('#panet');
+	if (!t) return;
+	if (finderAt)
+		t.innerHTML = `<button type="button" class="mlink pane-back" data-find-back>${icon('arrow', 'flip')}${Z('回到结果', 'Back to results')}</button>`;
+	else if (text != null && (t.textContent !== text || t.firstElementChild)) t.textContent = text; // said aloud only when it changes
+}
+let finderStop = null; // the results' sheet height before the finder opened, for Back
+/** show a place in the finder, in place of the results, in the pane over the map, and on the map: its pin marked and
+ *  brought into the open part of the map, or a marker of its own for a place the map has no pin for (a Google result,
+ *  a shop box shop); from: the result row tapped, focused again on Back */
 function finderOpen(info, pin, from) {
 	const box = $('#mapfind');
 	const res = $('#mapres');
 	if (!box || !info) return;
-	if (!finderAt) finderY = res ? res.scrollTop : 0;
+	if (!finderAt) {
+		finderY = res ? res.scrollTop : 0;
+		finderStop = paneOn() ? paneStop : null;
+	}
 	finderAt = { info, pin: pin || null, from };
 	box.innerHTML = finderHTML(info);
+	fillWay(info);
 	box.hidden = false;
 	box.scrollTop = 0;
 	if (res) res.hidden = true;
 	const lb = $('[data-maplist]');
 	if (lb) lb.setAttribute('aria-expanded', 'false');
 	if (!finderO) finderO = openOverlay(() => finderShut(true));
-	// the panel's top just under the bar, so the map shows below it (held while sections above draw: holdLanding)
-	if (!mapFullOn) scrollToEl(box, 'start', false);
+	paneTitle();
+	// half height, so the place's pin shows above the sheet (the map comes into view under the bar: stageInView)
+	paneShow(true);
+	paneTo('half');
+	stageInView();
 	const h = box.querySelector('.hang-name');
 	if (h) h.focus({ preventScroll: true });
 	if (liveFailed) return; // the list and the plan still work without the live map
-	withMap(() => (pin ? map.select(pin) : map.spot && map.spot(info)));
+	// the map lets go of what was picked before, then marks this place and frames it with where the group is
+	withMap(() => {
+		if (!finderAt || finderAt.info !== info) return; // closed (or moved on) before the map came
+		if (map.unpick) map.unpick();
+		if (pin) map.select(pin, true);
+		else if (map.spot) map.spot(info);
+	});
 }
 function finderRefresh() {
 	const box = $('#mapfind');
-	if (box && !box.hidden && finderAt) box.innerHTML = finderHTML(finderAt.info);
+	if (box && !box.hidden && finderAt) {
+		box.innerHTML = finderHTML(finderAt.info);
+		fillWay(finderAt.info); // from the page view's memory: no second call for the same place and start
+	}
 }
 // the finder closes: back to the results where they were (back), or out of the way for a new search or a redraw
 function finderShut(back) {
@@ -458,12 +611,16 @@ function finderShut(back) {
 	const from = finderAt && finderAt.from;
 	finderAt = null;
 	finderO = null;
-	if (map && map.spot) map.spot(null);
+	// the map lets go of the place: its mark and its name
+	if (map && map.unpick) map.unpick();
+	else if (map && map.spot) map.spot(null);
 	if (!box) return;
 	box.hidden = true;
 	box.innerHTML = '';
 	if (!back || !res) return;
 	mapListOpen(true);
+	if (finderStop) paneTo(finderStop); // the sheet back at the height the results had
+	finderStop = null;
 	res.scrollTop = finderY;
 	const el = from && res.querySelector(from);
 	if (el) el.focus({ preventScroll: true });

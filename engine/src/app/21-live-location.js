@@ -282,7 +282,6 @@ const meHead = (el, hd) => {
 };
 function selRefresh() {
 	if (!mapSel || !map) return;
-	if (map.line) map.line(mapSel);
 	const c = $('#mapcard');
 	if (c && c.dataset.pid === mapSel.pid) showCard(mapSel);
 }
@@ -367,6 +366,8 @@ const farAway = () =>
 	HOTELS.map(placeLL)
 		.filter(Boolean)
 		.every((h) => km(meLL, h) > 60); // still at home: distances in the thousands of km help no one
+// the phone's location is on and near the trip: a tapped pin is then framed with it (pick, 18-map-google.js too)
+const meNear = () => !!meLL && !farAway();
 // every place the map's search knows: the map's pins, built from the trip's data even while the live map can't load
 const mapPool = () => (mapPins.length ? mapPins : (mapPinsOff = mapPinsOff || buildPins()));
 // and, for a search, the shop box's shops (supermarkets, pharmacies), which the map draws no pin for
@@ -407,14 +408,19 @@ function mapListSync() {
 	if (n) n.textContent = String(list.length);
 	if (box.hidden) return;
 	// Google's results stay until the person moves on: only their distances follow the phone
-	if (mapView === 'google') return gDistSync(box);
+	if (mapView === 'google') {
+		paneTitle(Z('Google 的结果', 'Google results'));
+		return gDistSync(box);
+	}
+	paneTitle(list.length ? Z(`${list.length} 个地点`, list.length === 1 ? '1 place' : `${list.length} places`) : Z('没有找到', 'Nothing found'));
 	const y = box.scrollTop;
 	const row = ({ p, k }) =>
 		`<li><button type="button" class="mres" data-mres="${esc(p.pid)}"><span class="mres-ic" aria-hidden="true">${pinSVG(p)}</span><span class="mres-b"><span class="mres-n">${esc(p.name)}</span><span class="mres-m">${esc(L(p.kind || PIN_KIND[p.type] || ['', '']))}${p.days
 			.slice(0, 2)
 			.map((d) => ` · Day ${dayById[d] ? dayById[d].n : ''}`)
 			.join('')}</span></span>${k != null ? `<span class="mres-d">${distLabel(k)}</span>` : ''}</button></li>`;
-	const head = `<div class="mres-h"><span>${list.length ? Z(`${list.length} 个地点`, `${list.length} places`) : Z('没有找到：换个字或选「全部天」', 'Nothing found: try other words or "All days"')}</span><span class="mres-seg" role="group" aria-label="${Z('排序', 'Sort')}"><button type="button" class="seg-btn" data-mapsort="type" aria-pressed="${!mapNear}">${Z('按类别', 'By type')}</button><button type="button" class="seg-btn" data-mapsort="near" aria-pressed="${mapNear}">${icon('pin')}${Z('离我最近', 'Nearest')}</button></span></div>${mapNear && farAway() ? `<p class="mres-far">${icon('info')}${Z(`你现在不在${CITY[0]}，到了${CITY[0]}再按距离排。`, `You're not in ${CITY[1]} yet; distance sort works once you're there.`)}</p>` : ''}`;
+	// the count is the pane's title (paneTitle); this head keeps the sort, and says what to try when nothing matches
+	const head = `<div class="mres-h">${list.length ? `<span class="mres-hn">${Z('排序', 'Sort')}</span><span class="mres-seg" role="group" aria-label="${Z('排序', 'Sort')}"><button type="button" class="seg-btn" data-mapsort="type" aria-pressed="${!mapNear}">${Z('按类别', 'By type')}</button><button type="button" class="seg-btn" data-mapsort="near" aria-pressed="${mapNear}">${icon('pin')}${Z('离我最近', 'Nearest')}</button></span>` : `<span class="mres-hn">${Z('换个字试试，或在日期按钮选「全部天」', 'Try other words, or “All days” on the day button')}</span>`}</div>${mapNear && farAway() ? `<p class="mres-far">${icon('info')}${Z(`你现在不在${CITY[0]}，到了${CITY[0]}再按距离排。`, `You're not in ${CITY[1]} yet; distance sort works once you're there.`)}</p>` : ''}`;
 	const gq =
 		q.length >= 2 && window.google && google.maps && google.maps.importLibrary
 			? `<button type="button" class="mres gq" data-gsearch>${icon('search')}<span class="mres-b"><span class="mres-n">${esc(Z(`在 Google 搜「${q}」`, `Search Google for "${q}"`))}</span><span class="mres-m">${Z('页面里没有的地方也能找，还能加入行程', 'Find places the page does not have, and add them to the plan')}</span></span></button>`
@@ -461,6 +467,7 @@ async function gSearch(q) {
 	if (!box) return;
 	mapView = 'google';
 	gQuery = q;
+	paneTitle(Z('Google 的结果', 'Google results'));
 	box.innerHTML = `<div class="mres-h"><span>${esc(Z(`Google：「${q}」`, `Google: "${q}"`))}</span><button type="button" class="mlink" data-gback>${icon('arrow', 'flip')}${Z('回到页面结果', 'Back to page results')}</button></div><p class="xsmall muted mres-wait">${Z('搜索中…', 'Searching…')}</p>`;
 	box.scrollTop = 0;
 	let found;
@@ -506,6 +513,8 @@ function mapListOpen(on) {
 	if (on && finderAt) finderReset(); // the list the person asked for takes the finder's place
 	box.hidden = !on;
 	if (b) b.setAttribute('aria-expanded', String(on));
+	// the results lie in the pane over the map (16-map.js); closing them closes the pane, unless the finder holds it
+	if (on || !finderAt) paneShow(on);
 	if (on) {
 		mapListSync();
 		mapListOpenYb();
@@ -646,26 +655,56 @@ function mountLive(url) {
 			x.mk = new maplibregl.Marker({ element: b, anchor: 'center' }).setLngLat([p.lng, p.lat]).addTo(m);
 			b.addEventListener('click', (ev) => {
 				ev.stopPropagation();
-				pick(p, false);
+				pick(p, false, false, true);
 			});
 			return x.mk;
 		};
-		function pick(p, fly) {
-			if (sel) sel.classList.remove('sel');
+		// the camera on a place, in the part of the map the list pane leaves open (paneAim, 16-map.js)
+		const aim = (p, zoom) => {
+			const o = paneAim();
+			m.easeTo({ center: [p.lng, p.lat], zoom: Math.max(m.getZoom(), zoom), offset: [o.x, o.y], duration: reduce ? 0 : 500 });
+		};
+		// the finder's place in view with where the group is (frameFrom): the camera fits both into the open part of the
+		// map, at street zoom at most so two points close together don't zoom absurdly; next door, or with nothing to
+		// frame it with, it aims at the place
+		const frame = (p, zoom) => {
+			const from = frameFrom();
+			if (!from || km(from, p) < 0.1) return aim(p, zoom);
+			m.fitBounds(
+				[
+					[Math.min(from.lng, p.lng), Math.min(from.lat, p.lat)],
+					[Math.max(from.lng, p.lng), Math.max(from.lat, p.lat)],
+				],
+				{ padding: framePad(), maxZoom: 17, duration: reduce ? 0 : 700 },
+			);
+		};
+		// quiet: the place finder shows the place in the pane, so its pin is marked (destMark) without a popup over the
+		// map, and the camera frames it. tapped: a pin tapped on the map (a toilet, a station) is marked the same, with its
+		// popup, and framed with the phone when its location is on near the trip; never a line (ADR-20261124-map-first-search)
+		function pick(p, fly, quiet, tapped) {
+			if (sel) {
+				sel.classList.remove('sel');
+				destUnmark(sel);
+			}
 			const mm = markers.find((x) => x.p.pid === p.pid);
 			sel = mm && mm.b;
 			if (sel) sel.classList.add('sel');
+			if (sel && quiet) destMark(sel, p.name, nameSide(frameFrom(), p));
+			else if (sel && tapped) destMark(sel); // its popup names it: the ring and the halo only
+			if (tapped && meNear()) frame(p, 17);
 			if (popup) popup.remove();
-			popup = new maplibregl.Popup({ offset: 16, maxWidth: '290px', closeButton: true, focusAfterOpen: false })
-				.setLngLat([p.lng, p.lat])
-				.setHTML(popupHTML(p))
-				.addTo(m);
-			popup.getElement().addEventListener('click', (e) => {
-				if (e.target.closest('[data-more]')) openPinSheet(p);
-			});
-			if (fly) m.easeTo({ center: [p.lng, p.lat], zoom: Math.max(m.getZoom(), 17), duration: reduce ? 0 : 500 });
+			popup = null;
+			if (!quiet) {
+				popup = new maplibregl.Popup({ offset: 16, maxWidth: '290px', closeButton: true, focusAfterOpen: false })
+					.setLngLat([p.lng, p.lat])
+					.setHTML(popupHTML(p))
+					.addTo(m);
+				popup.getElement().addEventListener('click', (e) => {
+					if (e.target.closest('[data-more]')) openPinSheet(p);
+				});
+			}
+			if (fly) (quiet ? frame : aim)(p, 17);
 			mapSel = p;
-			map.line(p);
 			showCard(p);
 		}
 		const VIEWS = { all: GEO.bbox, ...Object.fromEntries((TRIP.mapViews || []).map((v) => [v.id, v.bbox])) };
@@ -678,7 +717,7 @@ function mountLive(url) {
 					[Math.min(...lngs), Math.min(...lats)],
 					[Math.max(...lngs), Math.max(...lats)],
 				],
-				{ padding: 56, maxZoom: 15.5, duration: reduce ? 0 : 700 },
+				{ padding: panePad(56), maxZoom: 15.5, duration: reduce ? 0 : 700 },
 			);
 		};
 		map = {
@@ -690,7 +729,7 @@ function mountLive(url) {
 						[b[0], b[1]],
 						[b[2], b[3]],
 					],
-					{ padding: 24, duration: reduce ? 0 : 700 },
+					{ padding: panePad(24), duration: reduce ? 0 : 700 },
 				);
 				$$('[data-view]').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.view === k)));
 			},
@@ -708,23 +747,25 @@ function mountLive(url) {
 				});
 				$$('[data-filter]').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.filter === mapDay)));
 				$$('[data-cat]').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.cat === mapCat)));
+				mapFiltSync();
 				if (mapDay !== 'all' || mapCat !== 'all') {
 					fitTo(markers.filter((x) => show(x) && x.p.type !== 'hotel').map((x) => x.p));
 					$$('[data-view]').forEach((x) => x.setAttribute('aria-pressed', 'false'));
 				}
 			},
-			select(pid) {
+			select(pid, quiet) {
 				const x = markers.find((mm) => mm.p.pid === pid);
 				if (x) {
 					mkOf(x);
 					x.b.style.display = '';
-					pick(x.p, true);
+					pick(x.p, true, quiet);
 				}
 			},
 			refit() {
 				m.resize();
 			},
-			// a place with no pin of its own (a Google result in the finder): one marker of its own, and the map on it
+			// a place with no pin of its own (a Google result in the finder): one marker of its own, marked as the finder's
+			// place, and framed as a pin is
 			spot(p) {
 				if (spotMk) spotMk.remove();
 				spotMk = null;
@@ -735,49 +776,25 @@ function mountLive(url) {
 				el.title = p.n;
 				el.innerHTML = pinSVG({ type: 'mine', days: [] });
 				spotMk = new maplibregl.Marker({ element: el, anchor: 'center' }).setLngLat([p.lng, p.lat]).addTo(m);
-				m.easeTo({ center: [p.lng, p.lat], zoom: Math.max(m.getZoom(), 16), duration: reduce ? 0 : 500 });
+				destMark(el, p.n, nameSide(frameFrom(), p));
+				frame(p, 16);
+			},
+			// the finder closed: nothing picked, no mark
+			unpick() {
+				if (sel) {
+					sel.classList.remove('sel');
+					destUnmark(sel);
+				}
+				sel = null;
+				if (popup) popup.remove();
+				popup = null;
+				mapSel = null;
+				map.spot(null);
 			},
 			me(ll, acc, hd) {
 				if (!meMk) meMk = new maplibregl.Marker({ element: meDot() }).setLngLat([ll.lng, ll.lat]).addTo(m);
 				else meMk.setLngLat([ll.lng, ll.lat]);
 				meHead(meMk.getElement(), hd);
-				if (mapSel) map.line(mapSel);
-			},
-			line(p) {
-				const data = {
-					type: 'FeatureCollection',
-					features:
-						p && meLL && !farAway()
-							? [
-									{
-										type: 'Feature',
-										properties: {},
-										geometry: {
-											type: 'LineString',
-											coordinates: [
-												[meLL.lng, meLL.lat],
-												[p.lng, p.lat],
-											],
-										},
-									},
-								]
-							: [],
-				};
-				try {
-					const src = m.getSource('me-line');
-					if (src) src.setData(data);
-					else if (data.features.length) {
-						m.addSource('me-line', { type: 'geojson', data });
-						m.addLayer({
-							id: 'me-line',
-							type: 'line',
-							source: 'me-line',
-							paint: { 'line-color': '#1a73e8', 'line-width': 3, 'line-dasharray': [1.5, 1.5] },
-						});
-					}
-				} catch {
-					/* style still loading */
-				}
 			},
 			center() {
 				if (meLL) m.easeTo({ center: [meLL.lng, meLL.lat], zoom: Math.max(m.getZoom(), 15.5), duration: reduce ? 0 : 500 });

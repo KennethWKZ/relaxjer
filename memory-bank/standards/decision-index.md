@@ -1,5 +1,5 @@
 ---
-total_decisions: 34
+total_decisions: 36
 last_updated: 2026-11-24
 ---
 
@@ -26,6 +26,7 @@ How a trip becomes the page: the views, the sections, the day logic and the pack
 | [ADR-20261122-currency-switch](decisions/ADR-20261122-currency-switch.md)               | 2026-11-22 | accepted | Currency conversion happens while the text is drawn, in one pure function that reads each amount's own symbol, so NT$ is never read as $.            |
 | [ADR-20261122-day-views](decisions/ADR-20261122-day-views.md)                           | 2026-11-22 | amended  | Each tab is its own view with its own #address and Back step; a day's planning cards open as sheets from one-line summaries; TRIP.sky picks the sky. |
 | [ADR-20261122-place-finder-best-day](decisions/ADR-20261122-place-finder-best-day.md)   | 2026-11-22 | amended  | A place finder ranks each day's stops by straight-line distance to the place, counting only stops a new stop can follow.                             |
+| [ADR-20261124-finder-google-distance](decisions/ADR-20261124-finder-google-distance.md) | 2026-11-24 | accepted | With a key, the finder asks Google once per place for the way from the group: metres by road and the walk at the group pace, or the ride.            |
 
 ## trip-data
 
@@ -73,6 +74,7 @@ How the page looks, moves and reads: type, colour, illustrations, motion, names 
 | [ADR-20261121-world-stickers](decisions/ADR-20261121-world-stickers.md)         | 2026-11-21 | accepted | Day colours keep text contrast at 4.5:1 or more on light paper and 3.8:1 or more on dark; tints are fixed shares of the colour.                                 |
 | [ADR-20261124-bottom-app-bar](decisions/ADR-20261124-bottom-app-bar.md)         | 2026-11-24 | amended  | Below 1024 px a bottom bar (Today, Days, Map, More) replaces the date strip and the Sections button, and the sky’s Pause moves into More.                       |
 | [ADR-20261124-grouped-lists](decisions/ADR-20261124-grouped-lists.md)           | 2026-11-24 | accepted | The rail, Days, More and the Sections sheet are grouped lists: cards of 52 px rows split by inset hairlines, each row ending in ›, a value with ⌃⌄, or nothing. |
+| [ADR-20261124-map-first-search](decisions/ADR-20261124-map-first-search.md)     | 2026-11-24 | accepted | Search results and the finder lie over the map (sheet or side panel); a picked place is framed with the group and marked, no line; filters behind one button.   |
 
 ## tooling
 

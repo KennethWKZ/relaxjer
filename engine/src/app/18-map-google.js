@@ -93,25 +93,58 @@ function mountGoogle() {
 	const markers = [];
 	const iw = new g.InfoWindow({ maxWidth: 300 });
 	let sel = null;
-	function pick(p, fly) {
-		if (sel) sel.classList.remove('sel');
+	// the camera on a place, in the part of the map the list pane leaves open (paneAim, 16-map.js): Google has no offset,
+	// so it centres the place, then pans by half the pane
+	const aim = (p, low, zoom) => {
+		if (m.getZoom() < low) m.setZoom(zoom);
+		m.panTo({ lat: p.lat, lng: p.lng });
+		const o = paneAim();
+		if (o.x || o.y) g.event.addListenerOnce(m, 'idle', () => m.panBy(-o.x, -o.y));
+	};
+	// the finder's place in view with where the group is, as on the free map (21-live-location.js frame): both fitted
+	// into the open part of the map, at street zoom at most. Google's fitBounds has no maxZoom: past it the camera steps
+	// back to it and centres the two in the open part (as aim does); next door, or with nothing to frame it with, it
+	// aims at the place
+	const frame = (p, low, zoom) => {
+		const from = frameFrom();
+		if (!from || km(from, p) < 0.1) return aim(p, low, zoom);
+		m.fitBounds(bounds([Math.min(from.lng, p.lng), Math.min(from.lat, p.lat), Math.max(from.lng, p.lng), Math.max(from.lat, p.lat)]), framePad());
+		const cap = g.event.addListenerOnce(m, 'idle', () => {
+			if (m.getZoom() <= 17) return;
+			m.setZoom(17);
+			m.panTo({ lat: (from.lat + p.lat) / 2, lng: (from.lng + p.lng) / 2 });
+			const o = paneAim();
+			if (o.x || o.y) g.event.addListenerOnce(m, 'idle', () => m.panBy(-o.x, -o.y));
+		});
+		setTimeout(() => g.event.removeListener(cap), 2500); // a frame that changed nothing sends no idle: never a late jump
+	};
+	// quiet: the place finder shows the place in the pane, so its pin is marked (destMark) without a popup over the map,
+	// and the camera frames it. tapped: a pin tapped on the map is marked the same, with its popup, and framed with the
+	// phone when its location is on near the trip, as on the free map (21-live-location.js pick); never a line
+	function pick(p, fly, quiet, tapped) {
+		if (sel) {
+			sel.classList.remove('sel');
+			destUnmark(sel);
+		}
 		const mm = markers.find((x) => x.p.pid === p.pid);
 		sel = mm && mm.b;
 		if (sel) sel.classList.add('sel');
-		const box = document.createElement('div');
-		box.innerHTML = popupHTML(p);
-		box.addEventListener('click', (e) => {
-			if (e.target.closest('[data-more]')) openPinSheet(p);
-		});
-		iw.setContent(box);
-		iw.open({ map: m, anchor: mm ? mm.mk : undefined, shouldFocus: false });
-		if (!mm) iw.setPosition({ lat: p.lat, lng: p.lng });
-		if (fly) {
-			m.panTo({ lat: p.lat, lng: p.lng });
-			if (m.getZoom() < 16.5) m.setZoom(17);
+		if (sel && quiet) destMark(sel, p.name, nameSide(frameFrom(), p));
+		else if (sel && tapped) destMark(sel); // its popup names it: the ring and the halo only
+		if (tapped && meNear()) frame(p, 16.5, 17);
+		if (quiet) iw.close();
+		else {
+			const box = document.createElement('div');
+			box.innerHTML = popupHTML(p);
+			box.addEventListener('click', (e) => {
+				if (e.target.closest('[data-more]')) openPinSheet(p);
+			});
+			iw.setContent(box);
+			iw.open({ map: m, anchor: mm ? mm.mk : undefined, shouldFocus: false });
+			if (!mm) iw.setPosition({ lat: p.lat, lng: p.lng });
 		}
+		if (fly) (quiet ? frame : aim)(p, 16.5, 17);
 		mapSel = p;
-		map.line(p);
 		showCard(p);
 	}
 	pins.forEach((p) => markers.push({ p, b: null, mk: null }));
@@ -129,7 +162,7 @@ function mountGoogle() {
 		b.innerHTML = pinSVG(p);
 		x.b = b;
 		x.mk = new g.marker.AdvancedMarkerElement({ map: null, position: { lat: p.lat, lng: p.lng }, content: b, title: p.name, gmpClickable: true });
-		x.mk.addListener('gmp-click', () => pick(p, false));
+		x.mk.addListener('gmp-click', () => pick(p, false, false, true));
 		return x.mk;
 	};
 	gmDrop = () => {
@@ -150,7 +183,6 @@ function mountGoogle() {
 	});
 	let meMk = null;
 	let meCirc = null;
-	let meLine = null;
 	let rideLine = null; // a split day's route (07-sections.js splitHTML), dashed in the day's colour
 	let spotMk = null; // the finder's place without a pin
 	m.controls[g.ControlPosition.RIGHT_BOTTOM].push(loc);
@@ -160,13 +192,13 @@ function mountGoogle() {
 		if (!list.length) return;
 		const lngs = list.map((x) => x.lng),
 			lats = list.map((x) => x.lat);
-		m.fitBounds(bounds([Math.min(...lngs), Math.min(...lats), Math.max(...lngs), Math.max(...lats)]), 56);
+		m.fitBounds(bounds([Math.min(...lngs), Math.min(...lats), Math.max(...lngs), Math.max(...lats)]), panePad(56));
 		if (m.getZoom() > 15.5) m.setZoom(15.5);
 	};
 	map = {
 		view(k) {
 			iw.close();
-			m.fitBounds(bounds(VIEWS[k] || GEO.bbox), 24);
+			m.fitBounds(bounds(VIEWS[k] || GEO.bbox), panePad(24));
 			$$('[data-view]').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.view === k)));
 		},
 		filter(f) {
@@ -183,23 +215,25 @@ function mountGoogle() {
 			});
 			$$('[data-filter]').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.filter === mapDay)));
 			$$('[data-cat]').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.cat === mapCat)));
+			mapFiltSync();
 			if (mapDay !== 'all' || mapCat !== 'all') {
 				fitTo(markers.filter((x) => show(x) && x.p.type !== 'hotel').map((x) => x.p));
 				$$('[data-view]').forEach((x) => x.setAttribute('aria-pressed', 'false'));
 			}
 		},
-		select(pid) {
+		select(pid, quiet) {
 			const x = markers.find((mm) => mm.p.pid === pid);
 			if (x) {
 				const mk = mkOf(x);
 				if (!mk.map) mk.map = m;
-				pick(x.p, true);
+				pick(x.p, true, quiet);
 			}
 		},
 		refit() {
 			/* Google resizes itself */
 		},
-		// a place with no pin of its own (a Google result in the finder): one marker of its own, and the map on it
+		// a place with no pin of its own (a Google result in the finder): one marker of its own, marked as the finder's
+		// place, and framed as a pin is
 		spot(p) {
 			if (spotMk) spotMk.map = null;
 			spotMk = null;
@@ -209,8 +243,19 @@ function mountGoogle() {
 			el.className = 'lpin sel spot';
 			el.innerHTML = pinSVG({ type: 'mine', days: [] });
 			spotMk = new g.marker.AdvancedMarkerElement({ map: m, position: { lat: p.lat, lng: p.lng }, content: el, title: p.n, zIndex: 998 });
-			m.panTo({ lat: p.lat, lng: p.lng });
-			if (m.getZoom() < 15.5) m.setZoom(16);
+			destMark(el, p.n, nameSide(frameFrom(), p));
+			frame(p, 15.5, 16);
+		},
+		// the finder closed: nothing picked, no mark
+		unpick() {
+			if (sel) {
+				sel.classList.remove('sel');
+				destUnmark(sel);
+			}
+			sel = null;
+			iw.close();
+			mapSel = null;
+			map.spot(null);
 		},
 		me(ll, acc, hd) {
 			if (!meMk) {
@@ -222,24 +267,6 @@ function mountGoogle() {
 				meCirc.setRadius(acc);
 			}
 			meHead(meMk.content, hd);
-			if (mapSel) map.line(mapSel);
-		},
-		line(p) {
-			if (meLine) {
-				meLine.setMap(null);
-				meLine = null;
-			}
-			if (!p || !meLL || farAway()) return;
-			meLine = new g.Polyline({
-				map: m,
-				path: [meLL, { lat: p.lat, lng: p.lng }],
-				strokeOpacity: 0,
-				clickable: false,
-				zIndex: 5,
-				icons: [
-					{ icon: { path: 'M 0,-1 0,1', strokeOpacity: 0.85, strokeColor: '#1a73e8', strokeWeight: 3, scale: 3 }, offset: '0', repeat: '14px' },
-				],
-			});
 		},
 		center() {
 			if (!meLL) return;

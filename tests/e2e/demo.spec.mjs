@@ -73,7 +73,7 @@ test("a page without a Google key offers no Google search in the map's place sea
 	const q = await show(page, '#mapq'); // the map's view
 	await q.fill('zzqx nowhere');
 	await expect(page.locator('#mapres')).toBeVisible();
-	await expect(page.locator('#mapres')).toContainText('Nothing found');
+	await expect(page.locator('#mappane')).toContainText('Nothing found');
 	await expect(page.locator('#mapres [data-gsearch]')).toHaveCount(0);
 });
 

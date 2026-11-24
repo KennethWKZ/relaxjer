@@ -8,6 +8,7 @@ import * as Plan from '../../engine/src/core/plan.mjs';
 import * as Wrap from '../../engine/src/core/wrap.mjs';
 import * as Fit from '../../engine/src/core/fit.mjs';
 import * as Sky from '../../engine/src/core/sky.mjs';
+import * as Way from '../../engine/src/core/way.mjs';
 
 test('Time: clock parsing and formatting', () => {
 	assert.equal(Time.clockMinutes('09:05'), 545);
@@ -516,4 +517,35 @@ test('Sky: which sky a page draws, a forecast as its weather, and how much falls
 	assert.equal(Sky.fallFor('live', 'heavy'), Sky.FALL.heavy);
 	// a shake settles: its energy is under a tenth after SETTLE seconds
 	assert.ok(Math.exp(-Sky.SETTLE / Sky.TAU) < 0.1);
+});
+
+test('Way: the walk or ride Google measures to a place, in the group’s minutes', () => {
+	// a walk up to the page's 20 minutes at the group's pace; past it, a ride (taxi first for seniors)
+	assert.equal(Way.modeFor(20), 'WALK');
+	assert.equal(Way.modeFor(20.5), 'DRIVE');
+	const at = (lat, lng) => ({ latitude: lat, longitude: lng });
+	const json = {
+		places: [
+			{ id: 'g-far', location: at(43.07, 141.36) },
+			{ id: 'g-here', location: at(43.0601, 141.3501) },
+		],
+		routingSummaries: [{ legs: [{ duration: '1200s', distanceMeters: 2000 }] }, { legs: [{ duration: '600s', distanceMeters: 800 }] }],
+	};
+	// a Google result is found by its id; a trip place without one by the nearest result within 150 m of its pin
+	assert.equal(Way.pickIndex(json.places, { gpid: 'g-here' }), 1);
+	assert.equal(Way.pickIndex(json.places, { lat: 43.06, lng: 141.35 }), 1);
+	assert.equal(Way.pickIndex(json.places, { lat: 43.1, lng: 141.4 }), -1, 'nothing near the pin is the place');
+	assert.equal(Way.pickIndex(json.places, { gpid: 'g-gone' }), -1);
+	// a walk in the group's minutes (Google's 10 min × 1.4); a ride's minutes as Google gives them
+	assert.deepEqual(Way.legOf(json, { gpid: 'g-here' }, 'WALK', 1.4), { m: 800, min: 14, mode: 'WALK' });
+	assert.deepEqual(Way.legOf(json, { gpid: 'g-here' }, 'DRIVE', 1.4), { m: 800, min: 10, mode: 'DRIVE' });
+	// a place Google didn't find, a summary without a leg, or an answer without places says nothing
+	assert.equal(Way.legOf(json, { gpid: 'g-gone' }, 'WALK', 1.4), null);
+	assert.equal(Way.legOf({ places: json.places, routingSummaries: [{}, {}] }, { gpid: 'g-here' }, 'WALK', 1.4), null);
+	assert.equal(Way.legOf({}, { gpid: 'g-here' }, 'WALK', 1.4), null);
+	// next door still reads a minute, never zero
+	assert.equal(
+		Way.legOf({ places: [{ id: 'x' }], routingSummaries: [{ legs: [{ duration: '20s', distanceMeters: 15 }] }] }, { gpid: 'x' }, 'WALK', 1.4).min,
+		1,
+	);
 });

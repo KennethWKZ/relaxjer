@@ -156,13 +156,14 @@ function nearFrom(pid, why) {
 	near.label = `${L(PLACES[pid].name)}${why ? `（${why}）` : ''}`;
 	renderNear();
 }
-// no GPS: start from where the plan says we are right now (during the trip), else the hotel
-function nearFallback(why) {
+/** where the plan says the group is right now, as a place id, for distances without the phone's location: during the
+ *  trip the nearest stop (in plan order) that has a known place, else the hotel. Food near me starts from it, and the map
+ *  frames a place picked in its search with it (21-place-finder.js frameFrom) */
+function nearAnchor() {
 	const now = tpNow();
 	const day = DAYS.find((d) => d.date === now.date);
 	let k = hotelNow();
 	if (day && GEO && GEO.places) {
-		// the nearest stop (in plan order) that has a known place
 		const { cur, next } = nowNext(day, now.mins);
 		const i0 = (cur || next || { i: -1 }).i;
 		const cand = day.schedule
@@ -171,6 +172,11 @@ function nearFallback(why) {
 			.sort((a, b) => Math.abs(a.i - i0) - Math.abs(b.i - i0) || a.i - b.i);
 		if (i0 >= 0 && cand.length) k = cand[0].it.place;
 	}
+	return k;
+}
+// no GPS: start from where the plan says we are right now (during the trip), else the hotel
+function nearFallback(why) {
+	const k = nearAnchor();
 	nearFrom(k, `${why}${isHotel(k) ? Z('，先用酒店', '; using the hotel') : Z('，按行程所在地', '; using where the plan has us')}`);
 }
 function nearLocate() {
