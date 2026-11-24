@@ -37,12 +37,14 @@ From [Google's price list](https://developers.google.com/maps/billing-and-pricin
 | "Rating & photos" on a place (rating, hours)                                                      | Place Details Enterprise          | 1,000           | US$20           |
 | Each photo shown                                                                                  | Place Details Photos              | 1,000           | US$7            |
 | "Search Google for …"                                                                             | Text Search Pro                   | 5,000           | US$32           |
+| How far a place is by road, each place opened in the map's place finder (checked 2026-11-24)      | Text Search Enterprise            | 1,000           | US$35           |
 | Finding the Google id of a place that has none, before its "Rating & photos" (checked 2026-11-22) | Text Search Essentials (IDs Only) | Unlimited       | free            |
 | The data refresh's place details                                                                  | Place Details Pro / Enterprise    | 5,000 / 1,000   | US$17 / US$20   |
 | The data refresh's walking and transit legs                                                       | Compute Routes Essentials         | 10,000          | US$5            |
 
 **The page usually costs nothing.** Eight phones opening the map 20 times a day for a week is about 1,100 map loads
-(11% of the free amount), and the group's ratings and photos stay under 1,000 each. A group that taps photos a lot
+(11% of the free amount), and the group's ratings and photos stay under 1,000 each. Opening 20 places a day in the
+place finder for two weeks asks how far by road about 280 times, under its free 1,000. A group that taps photos a lot
 might pay a few dollars.
 
 **A full data refresh does cost money.** It asks Google about every place, nearby drink stand, toilet and shop the

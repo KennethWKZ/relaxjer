@@ -1,5 +1,5 @@
 ---
-total_decisions: 35
+total_decisions: 36
 last_updated: 2026-11-24
 ---
 
@@ -26,6 +26,7 @@ How a trip becomes the page: the views, the sections, the day logic and the pack
 | [ADR-20261122-currency-switch](decisions/ADR-20261122-currency-switch.md)               | 2026-11-22 | accepted | Currency conversion happens while the text is drawn, in one pure function that reads each amount's own symbol, so NT$ is never read as $.            |
 | [ADR-20261122-day-views](decisions/ADR-20261122-day-views.md)                           | 2026-11-22 | amended  | Each tab is its own view with its own #address and Back step; a day's planning cards open as sheets from one-line summaries; TRIP.sky picks the sky. |
 | [ADR-20261122-place-finder-best-day](decisions/ADR-20261122-place-finder-best-day.md)   | 2026-11-22 | amended  | A place finder ranks each day's stops by straight-line distance to the place, counting only stops a new stop can follow.                             |
+| [ADR-20261124-finder-google-distance](decisions/ADR-20261124-finder-google-distance.md) | 2026-11-24 | accepted | With a key, the finder asks Google once per place for the way from the group: metres by road and the walk at the group pace, or the ride.            |
 
 ## trip-data
 

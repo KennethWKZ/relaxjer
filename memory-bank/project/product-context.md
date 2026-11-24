@@ -100,7 +100,9 @@ planners, is in [`guides/trip-page.md`](../../guides/trip-page.md).
     its name; no line or distance on the map, since a straight line isn't the way a group walks: Directions, right
     under the place's name, opens the real route;
   - a place finder: a searched place's nearest stop on each day, the day it fits best, and one tap into the add sheet,
-    from the page's own data and estimates, never a paid routing call (ADR-20261122-place-finder-best-day);
+    from the page's own data and estimates, never a paid routing call (ADR-20261122-place-finder-best-day); with a key,
+    one line from Google says how far the place is by road from the group, the walk at the group's pace or the ride
+    (ADR-20261124-finder-google-distance);
   - one details view for any place (our photo, the day's hours, the address), with Google's rating and photos on a tap
     when the page has the key;
   - a live location dot, asked for only from a card that says why;

@@ -307,12 +307,16 @@ itself is the planner's: it's in the trip's data, and nobody makes one on the pa
   ringed, with its name beside it and one halo as it lands. The map frames it with where you are, so the two show
   together; without your location (or before you reach the trip's area) with where the plan has the group: the stop
   under way on a trip day, else the hotel. No line is drawn to it and the map gives no distance, since a straight line
-  isn't the way you walk: **Directions**, right under the place's name, opens the real route in your maps app. Then the day it fits best (the day whose stop is nearest, preferring one with free
+  isn't the way you walk: **Directions**, right under the place's name, opens the real route in your maps app. On a
+  page built with a Google key, a line under the links says how far it is by road, from you (or the plan's stop, or the
+  hotel), as Google measures it: "From the hotel: 800 m · ~14 min walk", the walk at the group's pace, or the minutes
+  by car past a 20-minute walk. Then the day it fits best (the day whose stop is nearest, preferring one with free
   time after that stop; never a day it's closed, a day that already has it, or a day that's over), how far that stop
   is and the walk or taxi there (walking ×1.4), and a warning when it's far from every day. Below, the other days'
   nearest stops, each one tap from adding. "Add to Day N" opens the add sheet on that day, right after that stop.
   Details opens the place's own view. "Back to results" (or the phone's Back) returns to the list where it was.
-  Distances are in a straight line and times are estimates; nothing is asked of a paid service.
+  The days' distances are in a straight line and their times are estimates. Only the line by road asks Google, once
+  for each place you open ([Google Maps: what it costs](google-maps.md#what-it-costs)).
 - **Place details:** our photo, its kind, the rating the trip has (and where it's from), today's hours on a trip day,
   the address, Map, Directions and Add. With Google, "Info · hours, photos, reviews" (资料; on a phone just "Info") on every stop, Optional card, map card and
   place on a day's cards shows Google's live rating, reviews, opening hours (today highlighted) and photos: in the card
@@ -454,6 +458,7 @@ Everything above that isn't listed here is on every page. The fields are in
 | A short name in a narrow phone's header (instead of the long one cut with …)               | `TRIP.brandShort`                                                                                                                                                                                                                        |
 | Google's map, ratings, photos, hours, Google search                                        | building with your own key (`pnpm build … --keys`, [the guide](google-maps.md))                                                                                                                                                          |
 | Info (Google's hours, photos and reviews) on stops and cards, Google results in the finder | building with your own key; Google searches lean to `TRIP.destination` and answer in the country pack's `googleZh` when the page reads Chinese                                                                                           |
+| The finder's distance by road                                                              | building with your own key, and a network: Google's place search is asked once for each place opened (`ADR-20261124-finder-google-distance`)                                                                                             |
 | The place finder, place details, the add sheet's look first                                | on every page with `geo.json`; the best day reads the days' stops, their times, `freeFrom`, and the place's hours and `closed_dates` from the data refresh                                                                               |
 | Group sync, names, planners, Recently removed                                              | `sync-setup`, then building with `--sync`                                                                                                                                                                                                |
 | Positions, hours, route legs, food, drinks, toilets                                        | the data refresh (`data-sync`)                                                                                                                                                                                                           |

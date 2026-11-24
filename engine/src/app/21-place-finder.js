@@ -304,6 +304,76 @@ async function gTextSearch(q) {
 		});
 }
 
+/* ── how far, by road (ADR-20261124-finder-google-distance): with the planner's key and a network, the finder asks
+   Google's place search once for the place, with a routing summary from where the group is (the phone near the
+   trip, else the plan's stop under way or the hotel), and says the distance and the walk at the group's pace, or the
+   ride past a 20-minute walk (Way.modeFor). One answer per place and starting point per page view; nothing is said
+   when the call fails ── */
+const wayMemo = new Map(); // `${ref}|${from}|${mode}` → { m, min, mode } (or null: Google has no such place there)
+/** where the way starts: the phone near the trip, else the plan's stop under way or the hotel, with how to name it */
+function wayFrom() {
+	if (meLL && !farAway()) return { lat: meLL.lat, lng: meLL.lng, me: true };
+	const pid = nearAnchor();
+	const ll = pid && placeLL(pid);
+	return ll ? { lat: ll.lat, lng: ll.lng, hotel: isHotel(pid), name: L(PLACES[pid].name) } : null;
+}
+async function gWay(info, from) {
+	const mode = Way.modeFor(walkMinM(km(from, info) * 1000));
+	const key = `${info.ref}|${from.lat.toFixed(4)},${from.lng.toFixed(4)}|${mode}`;
+	if (wayMemo.has(key)) return wayMemo.get(key);
+	try {
+		const r = await fetch('https://places.googleapis.com/v1/places:searchText', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-Goog-Api-Key': GM.key,
+				'X-Goog-FieldMask': 'places.id,places.location,routingSummaries',
+			},
+			body: JSON.stringify({
+				textQuery: info.q || info.n,
+				languageCode: gLang(),
+				...(gRegion() ? { regionCode: gRegion() } : {}),
+				pageSize: 5,
+				locationBias: { circle: { center: { latitude: info.lat, longitude: info.lng }, radius: 300 } },
+				routingParameters: { origin: { latitude: from.lat, longitude: from.lng }, travelMode: mode },
+			}),
+		});
+		if (!r.ok) return null; // refused (the key's limits, a quota): asked again next time
+		const leg = Way.legOf(await r.json(), info, mode, GROUP_WALK);
+		wayMemo.set(key, leg);
+		return leg;
+	} catch {
+		return null; // no network: asked again next time
+	}
+}
+/** the finder's way line, filled in once Google answers, if the finder still shows the same place */
+async function fillWay(info) {
+	if (!GM || info.lat == null) return;
+	// once per opening: a redraw of the same place repaints the answer it has, even if the phone has moved since
+	if (finderAt && finderAt.info === info && finderAt.way) return paintWay(finderAt.way.leg, finderAt.way.from);
+	if (navigator.onLine === false) return;
+	const from = wayFrom();
+	if (!from || km(from, info) < 0.05) return; // next door: no way to tell
+	const leg = await gWay(info, from);
+	if (!leg || !finderAt || finderAt.info !== info) return;
+	finderAt.way = { leg, from };
+	paintWay(leg, from);
+}
+function paintWay(leg, from) {
+	const el = $('#mapfind .pf-way');
+	if (!el) return;
+	const d = dist1(leg.m / 1000);
+	const who = from.me ? Z('从你这里', 'From you') : from.hotel ? Z('从酒店', 'From the hotel') : Z(`从「${from.name}」`, `From ${from.name}`);
+	// an hour or more reads in hours: "~2 h 4 min by car", not "~124 min"
+	const h = Math.floor(leg.min / 60);
+	const t = h
+		? Z(`${h}小时${leg.min % 60 ? `${leg.min % 60}分` : ''}`, `${h} h${leg.min % 60 ? ` ${leg.min % 60} min` : ''}`)
+		: Z(`${leg.min}分`, `${leg.min} min`);
+	const how = leg.mode === 'WALK' ? Z(`走路约${t}`, `~${t} walk`) : Z(`坐车约${t}`, `~${t} by car`);
+	el.innerHTML = `${icon('route')}<span>${esc(Z(`${who}：${d} · ${how}`, `${who}: ${d} · ${how}`))}<small>${esc(Z(' · Google 路线', ' · by road, Google'))}</small></span>`;
+	el.hidden = false;
+}
+
 /* ── the finder: a place against the plan ── */
 let finderO = null; // its history step: Back returns to the results
 let finderAt = null; // the place it shows
@@ -468,6 +538,7 @@ function finderHTML(info) {
 	// sheet's half height on a small phone
 	return `<div class="pf-body">${placeHead(info, 'h3')}
       <div class="links-row"><button type="button" class="mlink" data-find-detail>${icon('info')}${Z('详情', 'Details')}${gCan(info) ? `<span class="dlbl">${Z(' · 营业时间、照片、评价', ' · hours, photos, reviews')}</span>` : ''}</button>${extI(gmSearch(info.q || info.n, info.gpid), Z('地图', 'Map'), 'pin')}${extI(gmDir(info.q || info.n, 'transit', undefined, info.gpid), Z('路线', 'Directions'), 'route')}</div>
+      <p class="pf-way" hidden></p>
       ${hoursLine(info, date)}
       ${inPlan.length ? `<p class="pf-in">${icon('calendar')}<span>${esc(Z('已在行程：', 'In the plan: '))}${inPlan.map((d) => `<a class="mlink" href="#${d.id}">Day ${d.n}</a>`).join(' ')}</span></p>` : ''}
       ${best}
@@ -497,6 +568,7 @@ function finderOpen(info, pin, from) {
 	}
 	finderAt = { info, pin: pin || null, from };
 	box.innerHTML = finderHTML(info);
+	fillWay(info);
 	box.hidden = false;
 	box.scrollTop = 0;
 	if (res) res.hidden = true;
@@ -521,7 +593,10 @@ function finderOpen(info, pin, from) {
 }
 function finderRefresh() {
 	const box = $('#mapfind');
-	if (box && !box.hidden && finderAt) box.innerHTML = finderHTML(finderAt.info);
+	if (box && !box.hidden && finderAt) {
+		box.innerHTML = finderHTML(finderAt.info);
+		fillWay(finderAt.info); // from the page view's memory: no second call for the same place and start
+	}
 }
 // the finder closes: back to the results where they were (back), or out of the way for a new search or a redraw
 function finderShut(back) {

@@ -247,6 +247,63 @@ test.describe('with the planner’s key (a stand-in, Google stubbed in the page)
 		await expect(sheet.locator(`${F.preview} ${F.googleBox} .gstars`)).toContainText('4.6');
 		expect((await page.evaluate(() => window.__gCalls.fetch)).length).toBe(1);
 	});
+
+	/** Google's place search with a routing summary, answered here (page routes win over the offline guard): the place
+	 *  at the search's centre, its leg as given; each request kept in `asked`. status: a refusal instead */
+	async function stubWay(page, leg, status = 200) {
+		const asked = [];
+		await page.route('https://places.googleapis.com/v1/places:searchText', async (route) => {
+			const req = route.request();
+			const body = req.postDataJSON();
+			asked.push({ body, mask: req.headers()['x-goog-fieldmask'], keyed: !!req.headers()['x-goog-api-key'] });
+			if (status !== 200) return route.fulfill({ status, json: { error: { code: status } } });
+			const c = body.locationBias.circle.center;
+			const place = { id: 'stub-a', location: { latitude: c.latitude, longitude: c.longitude } };
+			return route.fulfill({ json: { places: [place], routingSummaries: [{ legs: [leg] }] } });
+		});
+		return asked;
+	}
+	/** the map's search for "noodles" on Google, then its first result in the finder */
+	async function findNoodles(page) {
+		const q = page.locator(F.query);
+		await show(page, q);
+		await q.fill('noodles');
+		await page.locator(F.googleSearch).click();
+		await page.locator(F.googleResult).first().click();
+		await expect(page.locator(F.panel)).toContainText('Stand-in Noodle Bar');
+	}
+
+	test('the finder says how far the place is by road, from where the plan has the group, asking Google once', async ({ page }) => {
+		const asked = await stubWay(page, { duration: '600s', distanceMeters: 800 });
+		await beforeTrip(page, '/trip-gkey.html');
+		await findNoodles(page);
+		// before the trip, with no location, the way starts at the hotel; Google's 10-minute walk is 14 at the group's pace
+		const way = page.locator('#mapfind .pf-way');
+		await expect(way).toHaveText(/^From the hotel: 800\sm · ~14 min walk · by road, Google$/);
+		expect(asked).toHaveLength(1);
+		const [req] = asked;
+		expect(req.keyed, 'the planner’s browser key goes with it').toBe(true);
+		expect(req.mask).toContain('routingSummaries');
+		expect(req.body.routingParameters.travelMode, 'a short way is a walk').toBe('WALK');
+		// from where the map's search looked: the hotel
+		const at = (await page.evaluate(() => window.__gCalls.search)).at(-1).locationBias.center;
+		expect(req.body.routingParameters.origin.latitude).toBeCloseTo(at.lat, 5);
+		expect(req.body.routingParameters.origin.longitude).toBeCloseTo(at.lng, 5);
+		// the same place again in this page view costs nothing more
+		await page.locator(F.back).click();
+		await page.locator(F.googleResult).first().click();
+		await expect(way).toHaveText(/800\sm/);
+		expect(asked).toHaveLength(1);
+	});
+
+	test('when Google refuses the way, the finder says nothing about it and still works', async ({ page }) => {
+		const asked = await stubWay(page, null, 403);
+		await beforeTrip(page, '/trip-gkey.html');
+		await findNoodles(page);
+		await expect.poll(() => asked.length).toBe(1);
+		await expect(page.locator('#mapfind .pf-way')).toBeHidden();
+		await expect(page.locator(`${F.panel} [data-find-detail]`), 'Details and Directions are still there').toBeVisible();
+	});
 });
 
 // The planner's report: "the result shows, then suddenly it's gone and says no result". Each location fix redrew the

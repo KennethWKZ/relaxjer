@@ -18,7 +18,8 @@ the map: on a narrow stage a sheet at the map's foot with three heights (peek, h
 the map's left. A tapped result marks its pin and brings it into the part of the map the pane leaves open, framed with
 where the group is (the phone, or the plan's stop or the hotel), so the two show together. The map draws no line to it
 and gives no distance: a straight line isn't the way a group walks, and the finder's Directions, right under the
-place's name, opens the real route. The day and the area move behind one button that opens a sheet, and the intro
+place's name, opens the real route. How far it is by road, the finder asks Google
+([ADR-20261124-finder-google-distance](ADR-20261124-finder-google-distance.md)). The day and the area move behind one button that opens a sheet, and the intro
 line shrinks to one short sentence. Asked for by the group's feedback on 2026-11-24, after the results and then the
 finder pushed the map below the fold on phones and on a desktop. Making the picked place "more obvious so that they
 can know what the direction, distance" was asked for the same day.
@@ -111,15 +112,17 @@ can know what the direction, distance" was asked for the same day.
 
 ## Consequences
 
-- **Security:** none. No new hosts, data or storage; the pane's height is page state, not stored. The framing is
-  worked out on the phone from the page's own data; the position never leaves it.
+- **Security:** none from this decision. No new hosts, data or storage; the pane's height is page state, not stored. The
+  framing is worked out on the phone from the page's own data. The finder's distance by road does send a start to
+  Google: [ADR-20261124-finder-google-distance](ADR-20261124-finder-google-distance.md).
 - **Operational:** the stage's height formula assumes the rows above the map are about 120 px; a new row there means
   changing the 140 px in `.map-box`. The bottom bar sets `--chrome-bottom` on `:root`; the map's
   height and the full-screen layer's foot both read it, so a change to the bar's height needs no change here. The e2e tests use a MapLibre stand-in (`tests/support/maplibre-stub.mjs`) to check the marked pin, the camera's
   aim and frame, and that no line is drawn, offline; the drawn map is still checked by eye in WebKit (`verify-page`).
   Google's map frames and marks from the same helpers, but no test can load it without a key: a change there is
   checked on the free map and mirrored in `18-map-google.js` by hand.
-- **Cost:** none. Nothing new is fetched; Google is still asked only on a tap.
+- **Cost:** none from this decision; Google is asked only on a tap. The finder's distance by road is one paid search per
+  place opened: [ADR-20261124-finder-google-distance](ADR-20261124-finder-google-distance.md).
 
 ## Read when
 

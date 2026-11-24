@@ -5309,8 +5309,26 @@ dialog.toc {
 	font-weight: 650;
 }
 .pf-in svg.i,
-.pf-none svg.i {
+.pf-none svg.i,
+.pf-way svg.i {
 	flex: none;
+}
+/* how far by road, from Google (21-place-finder.js fillWay): the figures in ink, the source quieter after them */
+.pf-way {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	margin: 0;
+	font-size: var(--fs-sm);
+	font-weight: 700;
+	color: var(--ink);
+}
+.pf-way small {
+	font-weight: 500;
+	color: var(--ink-2);
+}
+.pf-way[hidden] {
+	display: none; /* its flex outranks the browser's own [hidden] until Google answers */
 }
 /* the day it fits best: a filled panel with a check and its words (the other days are plain rows); the day's colour
    stays in its chip, where it means "this day" */
