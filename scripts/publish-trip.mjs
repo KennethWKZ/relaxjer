@@ -21,7 +21,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { maskRun, pageCardRuns } from './host-scan.mjs';
+import { maskRun, pageCardRuns, pageSsnRuns } from './host-scan.mjs';
 
 export const SECRETS_DIR = path.join(os.homedir(), '.config', 'relaxjer', 'publish');
 // lavish-axi is a devDependency, so a fresh clone has it after `pnpm install`; a global one is the fallback
@@ -38,12 +38,21 @@ export const buildId = (html) => (BUILD_RE.exec(String(html).slice(0, 8192)) || 
  */
 export function preflight(html) {
 	const runs = pageCardRuns(html);
-	if (!runs.length) return [];
-	return [
-		`the host would refuse this page ("Scan failed: payment_card"): ${runs.length} run(s) of numbers read as a card number`,
-		...runs.slice(0, 5).map((r) => `  ${maskRun(r.run)}  (at character ${r.index})`),
-		'an inline SVG path: put commas between its numbers (it draws the same); trip text: write the number another way',
-	];
+	const ssn = pageSsnRuns(html);
+	const out = [];
+	if (runs.length)
+		out.push(
+			`the host would refuse this page ("Scan failed: payment_card"): ${runs.length} run(s) of numbers read as a card number`,
+			...runs.slice(0, 5).map((r) => `  ${maskRun(r.run)}  (at character ${r.index})`),
+			'an inline SVG path: put commas between its numbers (it draws the same); trip text: write the number another way',
+		);
+	if (ssn.length)
+		out.push(
+			`the host would refuse this page ("Scan failed: ssn"): ${ssn.length} group(s) of 3, 2 and 4 digits read as a US Social Security number`,
+			...ssn.slice(0, 5).map((r) => `  ${maskRun(r.run)}  (at character ${r.index})`),
+			'often a phone number: group its digits another way ("+81 ddd ddd ddd" dials the same as "+81-ddd-dd-dddd")',
+		);
+	return out;
 }
 
 const readIf = (f) => (fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : null);
