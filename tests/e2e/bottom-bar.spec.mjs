@@ -112,6 +112,26 @@ test('More opens the planning sections and the settings, and a section from it o
 	await expect(settings).toBeVisible();
 	await expect(settings.locator('[data-maps-cycle]')).toBeVisible();
 	if (page.viewportSize().width < 600) await expect(settings.locator('[data-theme-cycle]')).toBeVisible();
+	// the settings rows share one shape: the full width, no browser-default border, one weight
+	const rows = await settings.locator(':is([data-theme-cycle], [data-maps-cycle], [data-sky-toggle]):visible').evaluateAll((bs) =>
+		bs.map((b) => {
+			const st = getComputedStyle(b);
+			return { k: b.className, w: b.getBoundingClientRect().width, border: st.borderTopWidth, weight: st.fontWeight };
+		}),
+	);
+	const full = await settings.evaluate((e) => e.clientWidth);
+	expect(rows.length).toBeGreaterThan(0);
+	for (const r of rows) {
+		expect(r.w, `${r.k} spans the row`).toBeGreaterThanOrEqual(full - 1);
+		expect(r.border, `${r.k} has no default border`).toBe('0px');
+		expect(r.weight, `${r.k} has the rows' weight`).toBe(rows[0].weight);
+	}
+	// the food section's entry reads as its heading, and the near-me action is named apart from it
+	if (await page.locator('#eat .sec-title').count()) {
+		const eat = (await page.locator('#eat .sec-title').first().textContent()).trim();
+		await expect(toc.locator('a.toc-sec[href="#eat"]')).toHaveText(eat);
+		expect((await toc.locator('.toc-near[data-near]:not(.wc)').textContent()).trim()).not.toBe(eat);
+	}
 	const from = await viewOn(page);
 	await toc.locator(`a[href="#${secs[0]}"]`).click();
 	await expect(toc).toBeHidden();

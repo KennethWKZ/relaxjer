@@ -18,7 +18,7 @@ function renderToc(mode = 'all') {
 	if (!box) return;
 	box.parentElement.dataset.mode = mode;
 	const close = `<button type="button" class="icon-btn" data-close aria-label="${Z('关闭', 'Close')}">${icon('x')}</button>`;
-	const near = `<div class="toc-near-row"><button type="button" class="toc-sec toc-near" data-near aria-label="${Z('附近吃什么（用我的位置）', 'Food near me (uses my location)')}">${icon('food')}<span>${Z('附近吃什么', 'Food nearby')}</span>${icon('pin', 'loc')}</button><button type="button" class="toc-sec toc-near wc" data-near="wc" aria-label="${Z('附近厕所（用我的位置）', 'Toilets near me (uses my location)')}">${icon('wc')}<span>${Z('附近厕所', 'Toilets nearby')}</span>${icon('pin', 'loc')}</button></div>`;
+	const near = `<div class="toc-near-row"><button type="button" class="toc-sec toc-near" data-near aria-label="${Z('找我附近吃的（用我的位置）', 'Find food near me (uses my location)')}">${icon('food')}<span>${Z('找我附近吃的', 'Find food near me')}</span>${icon('pin', 'loc')}</button><button type="button" class="toc-sec toc-near wc" data-near="wc" aria-label="${Z('附近厕所（用我的位置）', 'Toilets near me (uses my location)')}">${icon('wc')}<span>${Z('附近厕所', 'Toilets nearby')}</span>${icon('pin', 'loc')}</button></div>`;
 	if (mode === 'more') {
 		// the map has its own place in the bar; every other planning section, then the settings
 		const plan = NAV.filter((n) => !n.day && n.id !== 'top' && n.id !== 'map' && navDrawn(n.id))

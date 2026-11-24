@@ -271,7 +271,7 @@ itself is the planner's: it's in the trip's data, and nobody makes one on the pa
 - **Toilets:** the place's own (and whether it's accessible), public toilets by distance, shops that let you ask (buy
   something first), and station toilets, with the metro's tip where it has one (Taipei's free pass inside the gates).
   Cards say "has a toilet" or the nearest public one.
-- **Food nearby:** Find food near me, Drinks, Sit and rest, Toilets near me, and breakfast and late-night food near the
+- **Food & drinks:** Find food near me, Drinks, Sit and rest, Toilets near me, and breakfast and late-night food near the
   hotel. Near me picks the meal by the clock, lists what's within 2.5 km (else the nearest six), hides what's closed
   today (with a count), and gives the walk and directions. Without location it starts from the plan's current stop or
   the hotel, and "Start from somewhere else" lets you choose.
