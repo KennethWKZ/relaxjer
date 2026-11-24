@@ -303,7 +303,11 @@ itself is the planner's: it's in the trip's data, and nobody makes one on the pa
   page's own. A toilet, station or bike-share dock tapped in the list shows on the map with its popup, the list lowered
   out of its way.
 - **Place finder:** tap a sight, shop, food, drink or wishlist place in the results (or a Google result) and it shows
-  in place of the list, its pin marked on the map in the part the list leaves open (or a marker of its own): the day it fits best (the day whose stop is nearest, preferring one with free
+  in place of the list, its pin marked on the map in the part the list leaves open (or a marker of its own), bigger,
+  ringed, with its name beside it and one halo as it lands. The map frames it with where you are, so the two show
+  together; without your location (or before you reach the trip's area) with where the plan has the group: the stop
+  under way on a trip day, else the hotel. No line is drawn to it and the map gives no distance, since a straight line
+  isn't the way you walk: **Directions**, right under the place's name, opens the real route in your maps app. Then the day it fits best (the day whose stop is nearest, preferring one with free
   time after that stop; never a day it's closed, a day that already has it, or a day that's over), how far that stop
   is and the walk or taxi there (walking ×1.4), and a warning when it's far from every day. Below, the other days'
   nearest stops, each one tap from adding. "Add to Day N" opens the add sheet on that day, right after that stop.
@@ -319,7 +323,7 @@ itself is the planner's: it's in the trip's data, and nobody makes one on the pa
   live counts.
 - **Full screen**, with one-finger drag and Exit (Back closes it too); search, the filters and the list work there the
   same way. Your live location shows as a dot with an
-  accuracy circle and a heading arrow when you move, and a dashed line runs to the pin you picked.
+  accuracy circle and a heading arrow when you move,.
 - **All places**, as a list by day, each tapping to its pin.
 - **If it can't load** (offline, an ad blocker, an old phone), it says why, offers Try again and the hotel in Google
   Maps, and retries when you're back online. It starts loading just before you scroll to it.

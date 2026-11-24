@@ -319,6 +319,54 @@ function legWords(a, b) {
 	const r = m.mrt != null ? Z(`${METRO[0]}约${Math.round(m.mrt)}分`, `${METRO[1]} ~${Math.round(m.mrt)} min`) : '';
 	return [t, r].filter(Boolean).join(' · ');
 }
+
+/* ── the finder's place on the map (ADR-20261124-map-first-search): the camera frames it with where the group is (the
+   phone, or without it, or far from the trip, the plan's stop under way or the hotel: nearAnchor, 24-near-me.js), and
+   its pin stands out with its name. No line and no distance on the map: a straight line isn't the way a group walks,
+   and Directions (in the finder) opens the real route ── */
+/** the other end the camera frames with the finder's place: the phone when it's near the trip, else the plan's stop
+ *  under way or the hotel; null when neither has a position */
+function frameFrom() {
+	if (meLL && !farAway()) return { lat: meLL.lat, lng: meLL.lng };
+	const pid = nearAnchor();
+	return (pid && placeLL(pid)) || null;
+}
+/** the finder's place on the map (a trip pin or a Google result's marker): bigger, ringed in ink, its name beside it
+ *  on the side nameSide picks, and one halo as it lands, played again for each landing */
+function destMark(el, name, side) {
+	if (!el) return;
+	let n = el.querySelector('.lpin-name');
+	if (!n) {
+		n = document.createElement('span');
+		n.className = 'lpin-name';
+		n.setAttribute('aria-hidden', 'true'); // the pin's own label (or title) says it
+		el.append(n);
+	}
+	n.textContent = name;
+	el.dataset.name = side;
+	el.classList.remove('dest');
+	void el.offsetWidth; // a fresh landing: the halo plays again
+	el.classList.add('dest');
+}
+function destUnmark(el) {
+	if (!el) return;
+	el.classList.remove('dest');
+	delete el.dataset.name;
+	const n = el.querySelector('.lpin-name');
+	if (n) n.remove();
+}
+/** where the finder's pin puts its name so it stays on the map: framed with another point, the pin sits at the frame's
+ *  edge, so the name goes in from it. Further apart north–south than east–west, the pin is at the top or the foot and
+ *  its name centres under it ('s') or over it ('n'); otherwise the pin is at a side and its name runs from it back
+ *  over the map, under it ('sw', 'se') or, at the south end, over it ('nw', 'ne'). With nothing framed, under it. */
+function nameSide(from, p) {
+	if (!from || km(from, p) < 0.1) return 's';
+	const dy = p.lat - from.lat;
+	const dx = (p.lng - from.lng) * Math.cos((p.lat * Math.PI) / 180);
+	const v = dy > 0 ? 's' : 'n';
+	return Math.abs(dy) >= Math.abs(dx) ? v : v + (dx > 0 ? 'w' : 'e');
+}
+
 /** how the place sits against each trip day (Fit.fitDays), from the plan as it is on this phone now */
 function fitFor(info) {
 	const now = tpNow();
@@ -416,12 +464,15 @@ function finderHTML(info) {
 			? `<li><button type="button" class="pf-day" data-fit-add="${r.id}|${esc(r.stop.key)}" aria-label="${esc(Z(`加到 Day ${d.n}，「${r.stop.name}」之后`, `Add to Day ${d.n}, after ${r.stop.name}`))}">${body}${icon('plus', 'pf-plus')}</button></li>`
 			: `<li><div class="pf-day is-off">${body}</div></li>`;
 	};
-	return `<div class="pf-body">${placeHead(info, 'h3')}${hoursLine(info, date)}
+	// Directions (the real way there: the map draws no line) and the details sit right under the name, in sight at the
+	// sheet's half height on a small phone
+	return `<div class="pf-body">${placeHead(info, 'h3')}
+      <div class="links-row"><button type="button" class="mlink" data-find-detail>${icon('info')}${Z('详情', 'Details')}${gCan(info) ? `<span class="dlbl">${Z(' · 营业时间、照片、评价', ' · hours, photos, reviews')}</span>` : ''}</button>${extI(gmSearch(info.q || info.n, info.gpid), Z('地图', 'Map'), 'pin')}${extI(gmDir(info.q || info.n, 'transit', undefined, info.gpid), Z('路线', 'Directions'), 'route')}</div>
+      ${hoursLine(info, date)}
       ${inPlan.length ? `<p class="pf-in">${icon('calendar')}<span>${esc(Z('已在行程：', 'In the plan: '))}${inPlan.map((d) => `<a class="mlink" href="#${d.id}">Day ${d.n}</a>`).join(' ')}</span></p>` : ''}
       ${best}
       ${others.length ? `<p class="sub-h">${Z('其他天最近的站', 'Other days, nearest stop first')}</p><ul class="pf-days">${others.map(row).join('')}</ul>` : ''}
       <p class="xsmall muted">${Z('直线距离；时间为估算（走路按长辈速度），不含塞车。', 'Straight-line distance; times are estimates (walking at the group’s pace), without traffic.')}</p>
-      <div class="links-row"><button type="button" class="mlink" data-find-detail>${icon('info')}${Z('详情', 'Details')}${gCan(info) ? `<span class="dlbl">${Z(' · 营业时间、照片、评价', ' · hours, photos, reviews')}</span>` : ''}</button>${extI(gmSearch(info.q || info.n, info.gpid), Z('地图', 'Map'), 'pin')}${extI(gmDir(info.q || info.n, 'transit', undefined, info.gpid), Z('路线', 'Directions'), 'route')}</div>
     </div>`;
 }
 /** the list pane's title: the results' count, or for the finder its way back to them (16-map.js) */
@@ -460,7 +511,13 @@ function finderOpen(info, pin, from) {
 	const h = box.querySelector('.hang-name');
 	if (h) h.focus({ preventScroll: true });
 	if (liveFailed) return; // the list and the plan still work without the live map
-	withMap(() => (pin ? map.select(pin, true) : map.spot && map.spot(info)));
+	// the map lets go of what was picked before, then marks this place and frames it with where the group is
+	withMap(() => {
+		if (!finderAt || finderAt.info !== info) return; // closed (or moved on) before the map came
+		if (map.unpick) map.unpick();
+		if (pin) map.select(pin, true);
+		else if (map.spot) map.spot(info);
+	});
 }
 function finderRefresh() {
 	const box = $('#mapfind');
@@ -473,7 +530,9 @@ function finderShut(back) {
 	const from = finderAt && finderAt.from;
 	finderAt = null;
 	finderO = null;
-	if (map && map.spot) map.spot(null);
+	// the map lets go of the place: its mark and its name
+	if (map && map.unpick) map.unpick();
+	else if (map && map.spot) map.spot(null);
 	if (!box) return;
 	box.hidden = true;
 	box.innerHTML = '';

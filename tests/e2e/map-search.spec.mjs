@@ -6,8 +6,9 @@
 // stand-in (tests/support/maplibre-stub.mjs).
 import { test, expect, openTrip } from '../support/fixtures.mjs';
 import { BAR, FINDER as F, MAP, hasBar, settle, show } from '../support/page.mjs';
-import { mapStyleRoute, stubMapLibre } from '../support/maplibre-stub.mjs';
-/* global EXTRA */
+import { mapStyleRoute, stubMapLibre, stubPhoneAt } from '../support/maplibre-stub.mjs';
+import { stubGoogle } from '../support/google-stub.mjs';
+/* global EXTRA, GEO */
 
 const rect = (loc) =>
 	loc.evaluate((e) => {
@@ -15,11 +16,12 @@ const rect = (loc) =>
 		return { top: r.top, bottom: r.bottom, left: r.left, right: r.right, w: r.width, h: r.height };
 	});
 const sideways = (page) => page.locator(MAP.box).evaluate((e) => getComputedStyle(e).getPropertyValue('--pane-side').trim() === '1');
-/** a researched food place with a position: its pin id and its name as the page shows it in English */
+/** a researched food place with a position: its pin id, its name as the page shows it in English, and where it is */
 const aFoodPlace = (page) =>
 	page.evaluate(() => {
 		const i = (EXTRA.food || []).findIndex((f) => f.lat != null && f.lng != null);
-		return i < 0 ? null : { pid: `food${i}`, name: EXTRA.food[i].name_en || EXTRA.food[i].name_trad };
+		const f = EXTRA.food[i];
+		return i < 0 ? null : { pid: `food${i}`, name: f.name_en || f.name_trad, lat: +f.lat, lng: +f.lng };
 	});
 
 /** the map view, searching for the first place its own list shows */
@@ -74,6 +76,7 @@ test('a result tapped marks its pin and shows the finder, with the map in sight'
 	test.skip(!food, 'the trip has no researched food with a position');
 	await show(page, MAP.stage);
 	await expect(page.locator('.map-wrap.is-live'), 'the stand-in map is up').toBeAttached();
+	await expect(page.locator('#mapmsg'), 'and "Loading the map…" no longer covers it').toBeHidden();
 	await page.locator(F.query).fill(food.name);
 	await page.locator(F.result(food.pid)).click();
 	await expect(page.locator(F.panel)).toBeVisible();
@@ -82,11 +85,139 @@ test('a result tapped marks its pin and shows the finder, with the map in sight'
 	await expect(pin, 'its pin is marked').toHaveClass(/\bsel\b/);
 	await expect(page.locator('#livemap .maplibregl-popup'), 'the finder is its card: no popup over the map').toHaveCount(0);
 	const { map, pane } = await mapInSight(page);
-	// the camera went to the place, aimed at the middle of the map the pane leaves open
-	const ease = await page.evaluate(() => window.__ml.ease.at(-1));
-	expect(ease.center.join(',')).toBe(await pin.getAttribute('data-ll'));
-	if (await sideways(page)) expect(Math.abs(ease.offset[0] * 2 - (pane.right - map.left))).toBeLessThanOrEqual(2);
-	else expect(Math.abs(-ease.offset[1] * 2 - (map.bottom - pane.top))).toBeLessThanOrEqual(2);
+	// the camera went to the place, in the part of the map the pane leaves open: framing the way to it (here from the
+	// hotel: no location, before the trip), or aimed at it when the hotel is next door
+	const cam = await page.evaluate(() => window.__ml.moves.at(-1));
+	const ll = (await pin.getAttribute('data-ll')).split(',').map(Number);
+	const side = await sideways(page);
+	if (cam.kind === 'fit') {
+		expect(inBounds(cam.bounds, { lng: ll[0], lat: ll[1] }), 'the place is in the frame').toBe(true);
+		if (side) expect(cam.padding.left, 'clear of the panel').toBeGreaterThanOrEqual(pane.right - map.left - 1);
+		else expect(cam.padding.bottom, 'clear of the sheet').toBeGreaterThanOrEqual(map.bottom - pane.top - 1);
+	} else {
+		expect(cam.center.join(',')).toBe(ll.join(','));
+		if (side) expect(Math.abs(cam.offset[0] * 2 - (pane.right - map.left))).toBeLessThanOrEqual(2);
+		else expect(Math.abs(-cam.offset[1] * 2 - (map.bottom - pane.top))).toBeLessThanOrEqual(2);
+	}
+});
+
+/* A picked place on the map (ADR-20261124-map-first-search): the camera frames it with where the group is (the phone,
+   or without it the plan's stop or the hotel), its pin stands out with its name, and no line runs to it: a straight
+   line isn't the way a group walks, so the finder's Directions, in sight right under the name, gives the real one. */
+const inBounds = ([[w, s], [e, n]], p) => p.lng >= w - 1e-9 && p.lng <= e + 1e-9 && p.lat >= s - 1e-9 && p.lat <= n + 1e-9;
+/** a point d km from p, heading deg degrees from north */
+const away = (p, d, deg) => {
+	const r = (deg * Math.PI) / 180;
+	return { lat: p.lat + (d * Math.cos(r)) / 111.195, lng: p.lng + (d * Math.sin(r)) / (111.195 * Math.cos((p.lat * Math.PI) / 180)) };
+};
+/** the finder's Directions in sight without scrolling it: inside the pane's open part, the finder at its top */
+async function directionsInSight(page) {
+	const dir = page.locator(F.panel).getByRole('link', { name: /Directions/ });
+	await expect(dir).toBeVisible();
+	expect(await page.locator(F.panel).evaluate((e) => e.scrollTop), 'the finder is not scrolled').toBe(0);
+	const d = await rect(dir);
+	const pane = await rect(page.locator(MAP.pane));
+	const vp = page.viewportSize();
+	expect(d.bottom, 'Directions shows in the pane without scrolling it').toBeLessThanOrEqual(Math.min(pane.bottom, vp.height) + 0.5);
+	expect(d.top).toBeGreaterThanOrEqual(pane.top);
+}
+
+test('with the phone’s location, a tapped place is framed with it, its pin stands out, and no line runs to it', async ({ page }) => {
+	await page.addInitScript(stubMapLibre);
+	await page.addInitScript(stubPhoneAt);
+	await mapStyleRoute(page);
+	await openTrip(page);
+	const food = await aFoodPlace(page);
+	test.skip(!food, 'the trip has no researched food with a position');
+	await show(page, MAP.stage);
+	await expect(page.locator('.map-wrap.is-live'), 'the stand-in map is up').toBeAttached();
+	// the phone stands 600 m southwest of the place
+	const to = { lat: food.lat, lng: food.lng };
+	const here = away(to, 0.6, 225);
+	await page.evaluate((h) => (window.__here = h), here);
+	await page.locator('#livemap .ml-loc').evaluate((b) => b.click());
+	await expect(page.locator('#livemap .me-dot'), 'the phone is on the map').toBeAttached();
+	await page.locator(F.query).fill(food.name);
+	await page.locator(F.result(food.pid)).click();
+	await expect(page.locator(F.panel)).toBeVisible();
+	const { map, pane } = await mapInSight(page);
+	// the camera fits the phone and the place into the open part of the map, at street zoom at most
+	const cam = await page.evaluate(() => window.__ml.moves.at(-1));
+	expect(cam.kind).toBe('fit');
+	expect(inBounds(cam.bounds, here) && inBounds(cam.bounds, to), 'the phone and the place both in the frame').toBe(true);
+	expect(cam.maxZoom).toBeLessThanOrEqual(17);
+	if (await sideways(page)) expect(cam.padding.left).toBeGreaterThanOrEqual(pane.right - map.left - 1);
+	else expect(cam.padding.bottom).toBeGreaterThanOrEqual(map.bottom - pane.top - 1);
+	// the place's mark: bigger and ringed (dest), its name beside it, one halo as it lands
+	const pin = page.locator(MAP.pin(food.pid));
+	await expect(pin).toHaveClass(/\bdest\b/);
+	await expect(pin.locator('.lpin-name')).toHaveText(food.name);
+	const halo = await pin.evaluate((e) => getComputedStyle(e, '::after').animationName);
+	expect(halo).toBe((await page.evaluate(() => matchMedia('(prefers-reduced-motion: reduce)').matches)) ? 'none' : 'dest-land');
+	// no line from the phone, and the real way one tap away
+	expect(await page.evaluate(() => Object.keys(window.__ml.src)), 'no line drawn on the map').toEqual([]);
+	await directionsInSight(page);
+	// Back: the place's mark goes
+	await page.goBack();
+	await expect(page.locator(F.panel)).toBeHidden();
+	await expect(pin).not.toHaveClass(/\b(dest|sel)\b/);
+	await expect(pin.locator('.lpin-name')).toHaveCount(0);
+});
+
+test('without the phone’s location the place is framed with where the plan has the group: before the trip, the hotel', async ({ page }) => {
+	await page.addInitScript(stubMapLibre);
+	await mapStyleRoute(page);
+	await openTrip(page);
+	const food = await aFoodPlace(page);
+	test.skip(!food, 'the trip has no researched food with a position');
+	await show(page, MAP.stage);
+	await expect(page.locator('.map-wrap.is-live')).toBeAttached();
+	await page.locator(F.query).fill(food.name);
+	await page.locator(F.result(food.pid)).click();
+	await expect(page.locator(F.panel)).toBeVisible();
+	await directionsInSight(page);
+	const cam = await page.evaluate(() => window.__ml.moves.at(-1));
+	test.skip(cam.kind !== 'fit', 'the hotel is next door: the camera aims at the place alone');
+	// the frame's other corner is one of the trip's places, the hotel
+	const [[w, s], [e, n]] = cam.bounds;
+	const from = { lng: Math.abs(food.lng - w) < 1e-9 ? e : w, lat: Math.abs(food.lat - s) < 1e-9 ? n : s };
+	expect(inBounds(cam.bounds, food)).toBe(true);
+	expect(
+		await page.evaluate((f) => Object.values(GEO.places).some((g) => Math.abs(+g.lat - f.lat) < 1e-9 && Math.abs(+g.lng - f.lng) < 1e-9), from),
+		'framed with a place of the trip',
+	).toBe(true);
+	await expect(page.locator(MAP.pin(food.pid))).toHaveClass(/\bdest\b/);
+	expect(await page.evaluate(() => Object.keys(window.__ml.src)), 'no line drawn on the map').toEqual([]);
+	// a new search lets go of the place
+	await page.locator(F.query).fill('');
+	await expect(page.locator(MAP.pin(food.pid))).not.toHaveClass(/\bdest\b/);
+});
+
+test('a Google result’s own marker stands out the same, framed with where the search looked', async ({ page }) => {
+	await page.addInitScript(stubGoogle);
+	await page.addInitScript(stubMapLibre);
+	await mapStyleRoute(page);
+	await openTrip(page);
+	await show(page, MAP.stage);
+	await expect(page.locator('.map-wrap.is-live')).toBeAttached();
+	await page.locator(F.query).fill('noodles');
+	await page.locator(F.googleSearch).click();
+	await page.locator(F.googleResult).first().click();
+	await expect(page.locator(F.panel)).toContainText('Stand-in Noodle Bar');
+	const spot = page.locator('#livemap .lpin.spot');
+	await expect(spot).toHaveClass(/\bdest\b/);
+	await expect(spot.locator('.lpin-name')).toHaveText('Stand-in Noodle Bar');
+	// with no location the search looked near the hotel, and the camera frames the result with it; the stand-in's
+	// result is 0.003° north and 0.002° east of where it looked
+	const at = (await page.evaluate(() => window.__gCalls.search)).at(-1).locationBias.center;
+	const cam = await page.evaluate(() => window.__ml.moves.at(-1));
+	expect(cam.kind).toBe('fit');
+	expect(inBounds(cam.bounds, at) && inBounds(cam.bounds, { lat: at.lat + 0.003, lng: at.lng + 0.002 })).toBe(true);
+	expect(await page.evaluate(() => Object.keys(window.__ml.src)), 'no line drawn on the map').toEqual([]);
+	await directionsInSight(page);
+	// Back: its marker goes
+	await page.locator(F.back).click();
+	await expect(spot).toHaveCount(0);
 });
 
 // the sheet springs to a height: measure once it has settled (unchanged across two frames)

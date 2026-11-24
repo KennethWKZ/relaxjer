@@ -282,7 +282,6 @@ const meHead = (el, hd) => {
 };
 function selRefresh() {
 	if (!mapSel || !map) return;
-	if (map.line) map.line(mapSel);
 	const c = $('#mapcard');
 	if (c && c.dataset.pid === mapSel.pid) showCard(mapSel);
 }
@@ -663,12 +662,31 @@ function mountLive(url) {
 			const o = paneAim();
 			m.easeTo({ center: [p.lng, p.lat], zoom: Math.max(m.getZoom(), zoom), offset: [o.x, o.y], duration: reduce ? 0 : 500 });
 		};
-		// quiet: the place finder shows the place in the pane, so its pin is marked without a popup over the map
+		// the finder's place in view with where the group is (frameFrom): the camera fits both into the open part of the
+		// map, at street zoom at most so two points close together don't zoom absurdly; next door, or with nothing to
+		// frame it with, it aims at the place
+		const frame = (p, zoom) => {
+			const from = frameFrom();
+			if (!from || km(from, p) < 0.1) return aim(p, zoom);
+			m.fitBounds(
+				[
+					[Math.min(from.lng, p.lng), Math.min(from.lat, p.lat)],
+					[Math.max(from.lng, p.lng), Math.max(from.lat, p.lat)],
+				],
+				{ padding: framePad(), maxZoom: 17, duration: reduce ? 0 : 700 },
+			);
+		};
+		// quiet: the place finder shows the place in the pane, so its pin is marked (destMark) without a popup over the
+		// map, and the camera frames it
 		function pick(p, fly, quiet) {
-			if (sel) sel.classList.remove('sel');
+			if (sel) {
+				sel.classList.remove('sel');
+				destUnmark(sel);
+			}
 			const mm = markers.find((x) => x.p.pid === p.pid);
 			sel = mm && mm.b;
 			if (sel) sel.classList.add('sel');
+			if (sel && quiet) destMark(sel, p.name, nameSide(frameFrom(), p));
 			if (popup) popup.remove();
 			popup = null;
 			if (!quiet) {
@@ -680,9 +698,8 @@ function mountLive(url) {
 					if (e.target.closest('[data-more]')) openPinSheet(p);
 				});
 			}
-			if (fly) aim(p, 17);
+			if (fly) (quiet ? frame : aim)(p, 17);
 			mapSel = p;
-			map.line(p);
 			showCard(p);
 		}
 		const VIEWS = { all: GEO.bbox, ...Object.fromEntries((TRIP.mapViews || []).map((v) => [v.id, v.bbox])) };
@@ -742,7 +759,8 @@ function mountLive(url) {
 			refit() {
 				m.resize();
 			},
-			// a place with no pin of its own (a Google result in the finder): one marker of its own, and the map on it
+			// a place with no pin of its own (a Google result in the finder): one marker of its own, marked as the finder's
+			// place, and framed as a pin is
 			spot(p) {
 				if (spotMk) spotMk.remove();
 				spotMk = null;
@@ -753,49 +771,25 @@ function mountLive(url) {
 				el.title = p.n;
 				el.innerHTML = pinSVG({ type: 'mine', days: [] });
 				spotMk = new maplibregl.Marker({ element: el, anchor: 'center' }).setLngLat([p.lng, p.lat]).addTo(m);
-				aim(p, 16);
+				destMark(el, p.n, nameSide(frameFrom(), p));
+				frame(p, 16);
+			},
+			// the finder closed: nothing picked, no mark
+			unpick() {
+				if (sel) {
+					sel.classList.remove('sel');
+					destUnmark(sel);
+				}
+				sel = null;
+				if (popup) popup.remove();
+				popup = null;
+				mapSel = null;
+				map.spot(null);
 			},
 			me(ll, acc, hd) {
 				if (!meMk) meMk = new maplibregl.Marker({ element: meDot() }).setLngLat([ll.lng, ll.lat]).addTo(m);
 				else meMk.setLngLat([ll.lng, ll.lat]);
 				meHead(meMk.getElement(), hd);
-				if (mapSel) map.line(mapSel);
-			},
-			line(p) {
-				const data = {
-					type: 'FeatureCollection',
-					features:
-						p && meLL && !farAway()
-							? [
-									{
-										type: 'Feature',
-										properties: {},
-										geometry: {
-											type: 'LineString',
-											coordinates: [
-												[meLL.lng, meLL.lat],
-												[p.lng, p.lat],
-											],
-										},
-									},
-								]
-							: [],
-				};
-				try {
-					const src = m.getSource('me-line');
-					if (src) src.setData(data);
-					else if (data.features.length) {
-						m.addSource('me-line', { type: 'geojson', data });
-						m.addLayer({
-							id: 'me-line',
-							type: 'line',
-							source: 'me-line',
-							paint: { 'line-color': '#1a73e8', 'line-width': 3, 'line-dasharray': [1.5, 1.5] },
-						});
-					}
-				} catch {
-					/* style still loading */
-				}
 			},
 			center() {
 				if (meLL) m.easeTo({ center: [meLL.lng, meLL.lat], zoom: Math.max(m.getZoom(), 15.5), duration: reduce ? 0 : 500 });

@@ -101,12 +101,34 @@ function mountGoogle() {
 		const o = paneAim();
 		if (o.x || o.y) g.event.addListenerOnce(m, 'idle', () => m.panBy(-o.x, -o.y));
 	};
-	// quiet: the place finder shows the place in the pane, so its pin is marked without a popup over the map
+	// the finder's place in view with where the group is, as on the free map (21-live-location.js frame): both fitted
+	// into the open part of the map, at street zoom at most. Google's fitBounds has no maxZoom: past it the camera steps
+	// back to it and centres the two in the open part (as aim does); next door, or with nothing to frame it with, it
+	// aims at the place
+	const frame = (p, low, zoom) => {
+		const from = frameFrom();
+		if (!from || km(from, p) < 0.1) return aim(p, low, zoom);
+		m.fitBounds(bounds([Math.min(from.lng, p.lng), Math.min(from.lat, p.lat), Math.max(from.lng, p.lng), Math.max(from.lat, p.lat)]), framePad());
+		const cap = g.event.addListenerOnce(m, 'idle', () => {
+			if (m.getZoom() <= 17) return;
+			m.setZoom(17);
+			m.panTo({ lat: (from.lat + p.lat) / 2, lng: (from.lng + p.lng) / 2 });
+			const o = paneAim();
+			if (o.x || o.y) g.event.addListenerOnce(m, 'idle', () => m.panBy(-o.x, -o.y));
+		});
+		setTimeout(() => g.event.removeListener(cap), 2500); // a frame that changed nothing sends no idle: never a late jump
+	};
+	// quiet: the place finder shows the place in the pane, so its pin is marked (destMark) without a popup over the map,
+	// and the camera frames it
 	function pick(p, fly, quiet) {
-		if (sel) sel.classList.remove('sel');
+		if (sel) {
+			sel.classList.remove('sel');
+			destUnmark(sel);
+		}
 		const mm = markers.find((x) => x.p.pid === p.pid);
 		sel = mm && mm.b;
 		if (sel) sel.classList.add('sel');
+		if (sel && quiet) destMark(sel, p.name, nameSide(frameFrom(), p));
 		if (quiet) iw.close();
 		else {
 			const box = document.createElement('div');
@@ -118,9 +140,8 @@ function mountGoogle() {
 			iw.open({ map: m, anchor: mm ? mm.mk : undefined, shouldFocus: false });
 			if (!mm) iw.setPosition({ lat: p.lat, lng: p.lng });
 		}
-		if (fly) aim(p, 16.5, 17);
+		if (fly) (quiet ? frame : aim)(p, 16.5, 17);
 		mapSel = p;
-		map.line(p);
 		showCard(p);
 	}
 	pins.forEach((p) => markers.push({ p, b: null, mk: null }));
@@ -159,7 +180,6 @@ function mountGoogle() {
 	});
 	let meMk = null;
 	let meCirc = null;
-	let meLine = null;
 	let rideLine = null; // a split day's route (07-sections.js splitHTML), dashed in the day's colour
 	let spotMk = null; // the finder's place without a pin
 	m.controls[g.ControlPosition.RIGHT_BOTTOM].push(loc);
@@ -209,7 +229,8 @@ function mountGoogle() {
 		refit() {
 			/* Google resizes itself */
 		},
-		// a place with no pin of its own (a Google result in the finder): one marker of its own, and the map on it
+		// a place with no pin of its own (a Google result in the finder): one marker of its own, marked as the finder's
+		// place, and framed as a pin is
 		spot(p) {
 			if (spotMk) spotMk.map = null;
 			spotMk = null;
@@ -219,7 +240,19 @@ function mountGoogle() {
 			el.className = 'lpin sel spot';
 			el.innerHTML = pinSVG({ type: 'mine', days: [] });
 			spotMk = new g.marker.AdvancedMarkerElement({ map: m, position: { lat: p.lat, lng: p.lng }, content: el, title: p.n, zIndex: 998 });
-			aim(p, 15.5, 16);
+			destMark(el, p.n, nameSide(frameFrom(), p));
+			frame(p, 15.5, 16);
+		},
+		// the finder closed: nothing picked, no mark
+		unpick() {
+			if (sel) {
+				sel.classList.remove('sel');
+				destUnmark(sel);
+			}
+			sel = null;
+			iw.close();
+			mapSel = null;
+			map.spot(null);
 		},
 		me(ll, acc, hd) {
 			if (!meMk) {
@@ -231,24 +264,6 @@ function mountGoogle() {
 				meCirc.setRadius(acc);
 			}
 			meHead(meMk.content, hd);
-			if (mapSel) map.line(mapSel);
-		},
-		line(p) {
-			if (meLine) {
-				meLine.setMap(null);
-				meLine = null;
-			}
-			if (!p || !meLL || farAway()) return;
-			meLine = new g.Polyline({
-				map: m,
-				path: [meLL, { lat: p.lat, lng: p.lng }],
-				strokeOpacity: 0,
-				clickable: false,
-				zIndex: 5,
-				icons: [
-					{ icon: { path: 'M 0,-1 0,1', strokeOpacity: 0.85, strokeColor: '#1a73e8', strokeWeight: 3, scale: 3 }, offset: '0', repeat: '14px' },
-				],
-			});
 		},
 		center() {
 			if (!meLL) return;

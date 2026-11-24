@@ -2862,6 +2862,100 @@ main .map-stage {
 	outline-offset: -6px;
 	border-radius: 50%;
 }
+/* the place the map's search picked (the finder's place: a trip pin or a Google result's marker;
+   ADR-20261124-map-first-search): bigger, on a paper disc ringed in ink, so it stands out from every other pin on the
+   light and the dark map; its name beside it; one ink halo as it lands (the ring stays: the static cue under reduced
+   motion). No line runs to it: Directions in the finder gives the real way */
+.lpin.dest {
+	z-index: 4;
+}
+.is-google .lpin.dest {
+	position: relative; /* the name's box (MapLibre's marker is already positioned) */
+}
+.lpin.dest::before,
+.lpin.dest::after,
+.lpin.dest svg {
+	grid-area: 1 / 1;
+}
+.lpin.dest::before {
+	content: '';
+	width: 42px;
+	height: 42px;
+	box-sizing: border-box;
+	border-radius: 50%;
+	border: 3px solid var(--ink);
+	background: var(--paper);
+	box-shadow: 0 3px 10px -3px rgba(0, 0, 0, 0.55);
+}
+.lpin.dest svg {
+	transform: scale(1.2);
+	filter: none;
+}
+.lpin.dest::after {
+	content: '';
+	width: 42px;
+	height: 42px;
+	box-sizing: border-box;
+	border-radius: 50%;
+	border: 3px solid var(--ink);
+	pointer-events: none;
+	animation: dest-land 1.6s var(--ease-out) both;
+}
+@keyframes dest-land {
+	from {
+		transform: scale(1);
+		opacity: 0.9;
+	}
+	to {
+		transform: scale(2.6);
+		opacity: 0;
+	}
+}
+/* the name stays on the map (nameSide, 21-place-finder.js): centred under or over the pin (s, n), or under or over it
+   running from it back over the map (sw, se, nw, ne) */
+.lpin-name {
+	position: absolute;
+	left: 50%;
+	top: calc(100% + 2px);
+	transform: translateX(-50%);
+	max-width: 12rem;
+	padding: 3px 8px;
+	border-radius: var(--r-sm);
+	background: var(--paper);
+	color: var(--ink);
+	font: 800 var(--fs-xs) / 1.25 var(--font-ui);
+	text-align: center;
+	/* one line, sized to its words whichever side it hangs from (a wrapping box anchored by its right edge is sized
+	   to the room left of the pin, and its words spill over the pin); the finder has the full name */
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	box-shadow:
+		0 0 0 1px var(--rule),
+		0 4px 12px -6px rgba(0, 0, 0, 0.5);
+	pointer-events: none;
+}
+.lpin[data-name^='n'] .lpin-name {
+	top: auto;
+	bottom: calc(100% + 2px);
+}
+.lpin[data-name$='w'] .lpin-name {
+	left: auto;
+	right: 0;
+	transform: none;
+	text-align: right;
+}
+.lpin[data-name$='e'] .lpin-name {
+	left: 0;
+	transform: none;
+	text-align: left;
+}
+@media (prefers-reduced-motion: reduce) {
+	.lpin.dest::after {
+		animation: none;
+		opacity: 0;
+	}
+}
 .map-wrap .maplibregl-popup-content {
 	background: var(--paper);
 	color: var(--ink);

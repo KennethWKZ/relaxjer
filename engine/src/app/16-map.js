@@ -47,14 +47,19 @@ const paneOn = () => {
 // a side panel when the stage is wide: style.css says so on the box (--pane-side), even while the pane is closed
 const paneSide = (box = $('#mapbox')) => !!box && getComputedStyle(box).getPropertyValue('--pane-side').trim() === '1';
 /** the sheet's heights in px, from the map's own height: a peek shows its head and the first line, half leaves more
- *  than half the map open, full covers all but a strip */
+ *  than half the map open (and, for the finder, reaches down to its links, Directions among them: the map draws no
+ *  line, so that's the way there; measured, so a photo or a bigger text size still fits, while 140 px of map stay
+ *  open), full covers all but a strip */
 function paneStops() {
 	const { box, pane } = paneEls();
 	const H = box ? box.clientHeight : 0;
 	const head = pane ? pane.querySelector('.pane-head').offsetHeight : 52;
 	const top = Math.max(head, H - 12);
 	const peek = Math.min(top, head + 64);
-	return { peek, half: Math.min(top, Math.max(peek + 52, Math.round(H * 0.42))), full: top };
+	const find = pane && pane.querySelector('#mapfind:not([hidden])');
+	const links = find && find.querySelector('.links-row');
+	const need = links ? Math.ceil(links.getBoundingClientRect().bottom - pane.getBoundingClientRect().top + find.scrollTop + 10) : 0;
+	return { peek, half: Math.min(top, Math.max(peek + 52, Math.round(H * 0.42), Math.min(need, H - 140))), full: top };
 }
 /** how much of the map the pane covers: the sheet's height at its foot, or the panel's width down its left */
 function paneCover() {
@@ -79,6 +84,23 @@ function panePad(base) {
 		right: base,
 		bottom: base + (H - c.bottom > 2 * base + 120 ? c.bottom : 0),
 		left: base + (W - c.left > 2 * base + 160 ? c.left : 0),
+	};
+}
+/** framing a picked place with where the group is (both ends): room around them for the place's name, more on the
+ *  right, clear of the map's own buttons; less on a small map, but always the pane's cover, so both land in the part of
+ *  the map the pane leaves open */
+function framePad() {
+	const c = paneCover();
+	const box = $('#mapbox');
+	const W = (box ? box.clientWidth : 0) - c.left;
+	const H = (box ? box.clientHeight : 0) - c.bottom;
+	const v = Math.max(16, Math.min(72, Math.round((H - 134) / 2)));
+	const h = Math.max(16, Math.min(64, Math.round((W - 172) / 2)));
+	return {
+		top: v,
+		right: h + Math.min(32, Math.max(0, W - 2 * h - 172)), // the map's own buttons run down its right side
+		bottom: v + c.bottom,
+		left: h + c.left,
 	};
 }
 function paneHeight(h) {

@@ -4,7 +4,7 @@ date: 2026-11-24
 title: 'The Map View Is Map-First: Results and the Place Finder Lie Over the Map, a Sheet on a Phone and a Panel on a Wide Screen'
 domain: design
 status: accepted
-decision: "Map search results and the place finder lie over the map (a phone's sheet, a wide stage's side panel), never above it; day and area sit behind one button."
+decision: 'Search results and the finder lie over the map (sheet or side panel); a picked place is framed with the group and marked, no line; filters behind one button.'
 tags: [engine]
 ---
 
@@ -15,10 +15,13 @@ tags: [engine]
 Searching or listing on the Map view never hides the map. The view is the search, one row of category chips and the
 map, sized to fit between the header and the foot of the screen. The results and the place finder lie in a pane over
 the map: on a narrow stage a sheet at the map's foot with three heights (peek, half, full), on a wide one a panel down
-the map's left. A tapped result marks its pin and brings it into the part of the map the pane leaves open. The day and
-the area move behind one button that opens a sheet, and the intro line shrinks to one short sentence. Asked for by the
-group's feedback on 2026-11-24, after the results and then the finder pushed the map below the fold on phones and on a
-desktop.
+the map's left. A tapped result marks its pin and brings it into the part of the map the pane leaves open, framed with
+where the group is (the phone, or the plan's stop or the hotel), so the two show together. The map draws no line to it
+and gives no distance: a straight line isn't the way a group walks, and the finder's Directions, right under the
+place's name, opens the real route. The day and the area move behind one button that opens a sheet, and the intro
+line shrinks to one short sentence. Asked for by the group's feedback on 2026-11-24, after the results and then the
+finder pushed the map below the fold on phones and on a desktop. Making the picked place "more obvious so that they
+can know what the direction, distance" was asked for the same day.
 
 ## Context
 
@@ -31,6 +34,11 @@ desktop.
 - Map apps settled this long ago: the map fills the screen, the search sits over it, and the results live in a sheet
   (phone) or a side panel (desktop) whose camera aims past it. The group knows that pattern.
 - An app bar at the foot of the screen is being built on another branch; it exposes its height as `--chrome-bottom`.
+- A picked place landed at street zoom (16–17) with a thin dashed line from the phone's dot, which was then almost always
+  off screen: the line left the map with no direction. A line with a distance, a compass direction and a walking time
+  on it was built and dropped the same day: a straight line crosses rivers, rail lines and highways that the group
+  has to walk around, so its numbers mislead, and a real route (Google's Routes API) would cost a call per tap and a
+  key change for what Directions already gives.
 
 ## Decision
 
@@ -41,7 +49,8 @@ desktop.
 - **The pane** (`#mappane`, 16-map.js) holds the results and the finder, over the map inside its box. Its mode is a
   container query on the stage, not the screen: below 640 px a sheet, from 640 px a panel `min(360px, 50%)` wide. So a
   desktop's column, a tablet and a full-screen map each get the layout their width suits.
-- **The sheet's heights:** peek (its head and the first line), half (42 % of the map, at least a row more than peek)
+- **The sheet's heights:** peek (its head and the first line), half (42 % of the map, at least a row more than peek,
+  and for the finder down to its links, Directions among them, as long as 140 px of map stay open)
   and full (all but a 12 px strip). Its head follows a finger and settles on the nearest height with the flick carried
   over (`springTo`, 20-views.js); two chevron buttons do the same by tap and keyboard, greyed out at their ends; the
   close button shuts the pane. Every gesture has a visible tap equivalent (affordances rule 21). It opens at its last
@@ -52,6 +61,23 @@ desktop.
 - **A tapped result:** a sight, shop, food, drink or wishlist place opens the finder in the pane at half height, its pin
   marked without a popup (the finder is its card). Transport and toilets lower the sheet to a peek and open the pin's
   popup. Back returns to the list where it was and at the height it had; the finder keeps its own history step.
+- **The picked place on the map** (21-place-finder.js `frameFrom`, `destMark`, `nameSide`; both maps use them):
+  - **Framed with where the group is:** the phone when its location is known and near the trip (`meLL`, not
+    `farAway()`), else the plan's stop under way on a trip day or the hotel: `nearAnchor()` (24-near-me.js), the same
+    start Food near me takes without location. The camera fits both into the open part (`framePad`: room for the
+    place's name, more on the right where the map's buttons are, always the pane's cover), at zoom 17 at most so two
+    close points don't zoom absurdly (MapLibre's `fitBounds` `maxZoom`; Google's `fitBounds`, then back to 17 and
+    centred in the open part past it). Next door (under 100 m) or with nothing to frame it with, it aims at the place as
+    before. It frames once, on the tap; a later location fix never moves the camera.
+  - **Its mark:** its pin (or a Google result's own marker) grows onto a paper disc ringed in ink, its name beside it,
+    kept on the map (`nameSide`: the pin sits at the frame's edge, so the name goes in from it), and one ink halo rings
+    out as it lands (none under reduced motion; the ring is the static cue).
+  - **No line and no distance on the map,** not even the old dashed line from the phone to a picked pin: a straight line
+    isn't the way a group walks. **Directions** (with Details and Map) sits right under the place's name in the finder,
+    in sight at the sheet's half height on a small phone, and opens the real route in the phone's maps app. The
+    finder's own distances to each day's stops stay as they were, noted as straight-line estimates.
+  - **Cleared** when the finder closes (Back, ✕, a new search, a filter, a redraw): `map.unpick()` drops the mark and
+    the pin it had picked.
 - **The pane's head** carries its title: the count of places, "Google results", or, for the finder, Back to results.
   The results' own head keeps the sort.
 - **Filters:** one button before the categories names the day the map shows (in the day's colour) and opens a sheet with
@@ -72,19 +98,31 @@ desktop.
   it.
 - **The sheet's head as one button that taps through the heights.** One control fewer, but a target that answers to a
   tap and a drag breaks affordances rule 21. Rejected for two chevrons beside it.
+- **A line to the place labelled with its distance, compass direction and walking time** (built, then dropped on
+  2026-11-24). It answered "which way, how far" at a glance, but a straight line crosses what the group has to walk
+  around, so its distance and minutes read as a route and aren't one. Rejected: no line, and Directions for the way.
+- **A real route from Google's Routes API, drawn and labelled.** Right distances, but a paid call on every tap, the
+  browser key opened to one more API, and the page's policy opened to one more host, for what Directions already shows
+  in the maps app the group knows. Rejected for now.
+- **Keep street zoom and only mark the pin.** The place shows, but not where it is from the group. Rejected for framing
+  both.
 - **Switch modes by the screen's width.** A full-screen map on a tablet and a desktop's column differ by 600 px at the
   same screen width. Rejected for the container query.
 
 ## Consequences
 
-- **Security:** none. No new hosts, data or storage; the pane's height is page state, not stored.
+- **Security:** none. No new hosts, data or storage; the pane's height is page state, not stored. The framing is
+  worked out on the phone from the page's own data; the position never leaves it.
 - **Operational:** the stage's height formula assumes the rows above the map are about 120 px; a new row there means
   changing the 140 px in `.map-box`. The bottom bar sets `--chrome-bottom` on `:root`; the map's
-  height and the full-screen layer's foot both read it, so a change to the bar's height needs no change here. The e2e tests use a MapLibre stand-in (`tests/support/maplibre-stub.mjs`) to check the marked pin and the
-  camera's aim offline; the drawn map is still checked by eye in WebKit (`verify-page`).
+  height and the full-screen layer's foot both read it, so a change to the bar's height needs no change here. The e2e tests use a MapLibre stand-in (`tests/support/maplibre-stub.mjs`) to check the marked pin, the camera's
+  aim and frame, and that no line is drawn, offline; the drawn map is still checked by eye in WebKit (`verify-page`).
+  Google's map frames and marks from the same helpers, but no test can load it without a key: a change there is
+  checked on the free map and mirrored in `18-map-google.js` by hand.
 - **Cost:** none. Nothing new is fetched; Google is still asked only on a tap.
 
 ## Read when
 
-Changing the Map view's layout, its search, the list pane or the place finder's placement, the day and area filters,
-the full-screen map, or anything that sits at the foot of the screen over the map.
+Changing the Map view's layout, its search, the list pane or the place finder's placement, a picked place's framing or
+mark, the day and area filters, the full-screen map, or anything that sits at the foot of
+the screen over the map.
