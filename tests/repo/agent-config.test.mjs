@@ -127,6 +127,18 @@ test('stay research follows knowledge/stays.md', () => {
 	assert.match(read('.claude', 'agents', 'relaxbro.md'), /A car means parking/, 'relaxbro asks for parking on every self-drive option');
 });
 
+// "relaxed, not packed" means unhurried days, not thin ones: the travel agent once dropped stops to make a day look
+// lighter, and the planner wants free evenings filled with easy extras instead
+test('a relaxed pace keeps its places: the travel agent moves a stop before it drops one', () => {
+	const bro = read('.claude', 'agents', 'relaxbro.md');
+	assert.match(bro, /Pace first, not fewer places/, 'relaxbro names the rule');
+	assert.match(bro, /never cut only to make a day look lighter/, 'relaxbro never cuts a sight for looks');
+	assert.match(bro, /move a stop before you drop it/, 'relaxbro moves a stop first');
+	const customize = read('.agents', 'skills', 'trip-customize', 'SKILL.md');
+	assert.match(customize, /"We want it relaxed, not packed"/, 'trip-customize has the relaxed-pace row');
+	assert.match(customize, /a stop moved to another day before one is dropped/, 'trip-customize moves a stop before dropping one');
+});
+
 // `--not` negates every ref after it, the branch included: `git log --not --remotes HEAD` lists nothing, so a check
 // built on it passes over zero commits
 test('agent commands that list unpushed commits name the branch before --not', () => {
