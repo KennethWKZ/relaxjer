@@ -169,13 +169,15 @@ let stageKbT = 0;
 function stageAfterKeyboard() {
 	if (!paneOn()) return;
 	clearTimeout(stageKbT);
+	const stop = paneStop; // the height the sheet had as the field let go
 	const settle = () => {
 		if (VV) VV.removeEventListener('resize', wait);
 		clearTimeout(stageKbT);
 		requestAnimationFrame(() => {
-			if (!paneOn() || finderAt) return; // a tapped result: the finder sets its own height and frames its place
+			if (!paneOn() || finderAt || paneDrag) return; // a tapped result: the finder sets its own height and frames its place
 			stageInView();
-			paneTo(paneStop === 'peek' ? 'half' : paneStop);
+			// the same height, fitted to what the sheet now holds; one the person picked since (a chevron, a drag) stays
+			if (paneStop === stop) paneTo(stop);
 		});
 	};
 	// the keyboard slides down over a few frames, each a viewport resize: wait until they stop
