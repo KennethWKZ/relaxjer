@@ -437,9 +437,18 @@ export async function openAllDetails(page) {
 				max-width: none; height: auto; max-height: none; transform: none; opacity: 1; box-shadow: none; overflow: visible; }
 			@media (min-width: 1024px) { html.rj-audit #app dialog.bsheet { margin: 12px 0; max-width: min(500px, 42vw); } }`;
 		document.head.append(st);
-		// a stop's sheet lives in its row; drawn in place it would get the row's narrow column, so it moves to the foot
-		// of its view, where it gets a sheet's width (its ids and content stay the same)
-		document.querySelectorAll('#app dialog.ssheet').forEach((d) => d.closest('[data-sec]').append(d));
+		// a stop's sheet lives in its row, and the map's filter sheet in the map's stage; drawn in place they would get that
+		// narrow column (or a margin meant for the view's padding), so they move to the foot of their view, where they get
+		// a sheet's width (their ids and content stay the same)
+		document
+			.querySelectorAll('#app dialog.ssheet, #app dialog.bsheet')
+			.forEach((d) => d.parentElement !== d.closest('[data-sec]') && d.closest('[data-sec]').append(d));
+		// below 1024 px a sheet is drawn edge to edge, so it reaches out over its view's own side padding (16 px on most
+		// views, none on the map's)
+		if (innerWidth < 1024)
+			document.querySelectorAll('#app dialog.bsheet').forEach((d) => {
+				d.style.marginInline = `-${parseFloat(getComputedStyle(d.parentElement).paddingLeft) || 0}px`;
+			});
 		document.querySelectorAll('#app details:not([open])').forEach((d) => {
 			d.open = true;
 		});

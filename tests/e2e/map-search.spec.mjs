@@ -89,6 +89,24 @@ test('a result tapped marks its pin and shows the finder, with the map in sight'
 	else expect(Math.abs(-ease.offset[1] * 2 - (map.bottom - pane.top))).toBeLessThanOrEqual(2);
 });
 
+// the sheet springs to a height: measure once it has settled (unchanged across two frames)
+const paneStill = (page) =>
+	page.locator(MAP.pane).evaluate(
+		(p) =>
+			new Promise((done) => {
+				let last = -1;
+				const tick = () => {
+					const now = p.getBoundingClientRect().height;
+					if (now === last) done();
+					else {
+						last = now;
+						requestAnimationFrame(() => requestAnimationFrame(tick));
+					}
+				};
+				tick();
+			}),
+	);
+
 test('Back from the finder returns to the list where it was, at the height it had', async ({ page }) => {
 	await openTrip(page);
 	const food = await aFoodPlace(page);
@@ -96,7 +114,12 @@ test('Back from the finder returns to the list where it was, at the height it ha
 	await show(page, MAP.stage);
 	await page.locator(MAP.list).click();
 	const side = await sideways(page);
-	if (!side) await page.locator(MAP.up).click(); // a phone: the whole list
+	if (!side) {
+		// a phone: the whole list, measured once the sheet has reached it (mid-spring the list can scroll further than
+		// it can at full height, so a position read then is clamped away later: a slow CI runner caught 1524 → 1281)
+		await page.locator(MAP.up).click();
+		await paneStill(page);
+	}
 	const res = page.locator(F.results);
 	const row = page.locator(F.result(food.pid));
 	await row.evaluate((e) => e.scrollIntoView({ block: 'center' }));
@@ -120,23 +143,7 @@ test('the sheet’s heights answer to its buttons, the keyboard and a finger', a
 	test.skip(await sideways(page), 'a wide screen has a side panel, with no heights');
 	const pane = page.locator(MAP.pane);
 	const h = async () => (await rect(pane)).h;
-	// the sheet springs to a height: measure once it has settled (unchanged across two frames)
-	const still = () =>
-		pane.evaluate(
-			(p) =>
-				new Promise((done) => {
-					let last = -1;
-					const tick = () => {
-						const now = p.getBoundingClientRect().height;
-						if (now === last) done();
-						else {
-							last = now;
-							requestAnimationFrame(() => requestAnimationFrame(tick));
-						}
-					};
-					tick();
-				}),
-		);
+	const still = () => paneStill(page);
 	await expect(pane).toHaveAttribute('data-stop', 'half');
 	const half = await h();
 	// by keyboard: the two chevrons step it up and down, each greyed out at its end

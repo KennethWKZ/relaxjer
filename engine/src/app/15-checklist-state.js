@@ -247,5 +247,8 @@ function buildPins() {
 			bus: b,
 		}),
 	);
+	// a pin counts only the days the trip has: a food slot (d6-lunch), a shop list or a stop added on a phone can name a
+	// day a shortened or edited trip no longer has, and the map colours each pin by its first day
+	pins.forEach((p) => (p.days = p.days.filter((id) => dayById[id])));
 	return pins;
 }
