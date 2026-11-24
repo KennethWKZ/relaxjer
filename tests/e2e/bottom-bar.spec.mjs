@@ -3,7 +3,7 @@
 // is a step Back undoes; Days lists every day down a sheet; More holds the planning sections and the settings, the sky's
 // Pause among them; whatever floats at the bottom sits above the bar, which reserves --chrome-bottom.
 import { test, expect, openTrip } from '../support/fixtures.mjs';
-import { BAR, goToView, hasBar, overflow, settle, setStored, switchLang, viewOn } from '../support/page.mjs';
+import { BAR, clickOrExplain, goToView, hasBar, overflow, settle, setStored, switchLang, viewOn } from '../support/page.mjs';
 
 /* global DAYS -- the trip data, read inside the page */
 
@@ -80,7 +80,9 @@ test('Days lists every day with its date, weekday and title, today marked, and o
 	}
 	await expect(page.locator(`#days [data-day="${pick.id}"] .flag`), 'today is marked').toHaveText('Today');
 	await expect(page.locator('#days .flag')).toHaveCount(1);
-	await page.locator(`#days [data-day="${pick.id}"]`).click();
+	// it once waited 30 s for this row to hold still on webkit-390 (about 1 in 160 runs): if it does again, the report
+	// shows what moved
+	await clickOrExplain(page.locator(`#days [data-day="${pick.id}"]`));
 	await expect(sheet).toBeHidden();
 	await expect(page.locator('html')).toHaveAttribute('data-showing', pick.id);
 	await expect(page.locator(BAR.lit)).toHaveAttribute('data-tb', 'days');
