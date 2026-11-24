@@ -437,33 +437,36 @@ svg.i {
 /* scrollbars as macOS draws them: no track, a thin rounded thumb inset from the edge in the ink at --scroll-thumb, a
    little wider and darker under the pointer. In the theme's own ink, so it reads on paper and on the night theme alike.
    Chromium and Safari take the ::-webkit-scrollbar parts; Firefox, which has none, takes the standard thin, trackless
-   bar. Rows that hide their scrollbar (below) keep hiding it */
-@supports not selector(::-webkit-scrollbar) {
-	* {
-		scrollbar-width: thin;
-		scrollbar-color: var(--scroll-thumb) transparent;
+   bar. Only with a mouse or trackpad: a styled scrollbar takes layout space in WebKit, and a phone's own overlay
+   scrollbar already looks like this. Rows that hide their scrollbar (below) keep hiding it */
+@media (hover: hover) and (pointer: fine) {
+	@supports not selector(::-webkit-scrollbar) {
+		* {
+			scrollbar-width: thin;
+			scrollbar-color: var(--scroll-thumb) transparent;
+		}
 	}
-}
-::-webkit-scrollbar {
-	width: 12px;
-	height: 12px;
-	background: transparent;
-}
-::-webkit-scrollbar-track,
-::-webkit-scrollbar-corner {
-	background: transparent;
-}
-::-webkit-scrollbar-thumb {
-	min-height: 40px;
-	min-width: 40px;
-	border: 3px solid transparent;
-	border-radius: 999px;
-	background: var(--scroll-thumb) padding-box;
-}
-::-webkit-scrollbar-thumb:hover,
-::-webkit-scrollbar-thumb:active {
-	border-width: 2px;
-	background-color: var(--scroll-thumb-on);
+	::-webkit-scrollbar {
+		width: 12px;
+		height: 12px;
+		background: transparent;
+	}
+	::-webkit-scrollbar-track,
+	::-webkit-scrollbar-corner {
+		background: transparent;
+	}
+	::-webkit-scrollbar-thumb {
+		min-height: 40px;
+		min-width: 40px;
+		border: 3px solid transparent;
+		border-radius: 999px;
+		background: var(--scroll-thumb) padding-box;
+	}
+	::-webkit-scrollbar-thumb:hover,
+	::-webkit-scrollbar-thumb:active {
+		border-width: 2px;
+		background-color: var(--scroll-thumb-on);
+	}
 }
 
 /* a sideways row's scrollbar is hidden, so an edge fade on each side with more says the row scrolls: photo rows and
