@@ -251,6 +251,25 @@ test.describe('with the planner’s key (a stand-in, Google stubbed in the page)
 
 // The planner's report: "the result shows, then suddenly it's gone and says no result". Each location fix redrew the
 // results from the page's own places, which don't match a Google query.
+// CI's slower WebKit: each fix (every 150 ms here) rebuilt the whole list, so "Search Google" was swapped out under the
+// tap ("element was detached from the DOM, retrying") until the test timed out. A fix that changes nothing on the list,
+// or only its distances, keeps its rows
+test('a location fix keeps the map’s result rows, so a tap on one still lands', async ({ page }) => {
+	await page.addInitScript(stubGoogle);
+	await page.addInitScript(stubMovingGeo);
+	await beforeTrip(page);
+	const q = page.locator(F.query);
+	await show(page, q); // the map view
+	await q.fill('noodles');
+	await page.locator('#mapres [data-mapsort="near"]').click();
+	await page.waitForFunction(() => window.__fixes >= 2);
+	const button = await page.locator(F.googleSearch).elementHandle();
+	await page.waitForFunction((n) => window.__fixes >= n, (await page.evaluate(() => window.__fixes)) + 5);
+	expect(await button.evaluate((b) => b.isConnected), 'the same "Search Google" button after five more fixes').toBe(true);
+	await button.click();
+	await expect(page.locator(F.googleResult)).toHaveCount(2);
+});
+
 test('Google’s results in the map’s search stay while the phone’s location keeps updating', async ({ page }) => {
 	await page.addInitScript(stubGoogle);
 	await page.addInitScript(stubMovingGeo);

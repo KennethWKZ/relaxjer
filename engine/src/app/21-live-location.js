@@ -396,6 +396,9 @@ function mapMatches() {
 	list.sort((a, b) => (byDist ? a.k - b.k : PIN_RANK[a.p.type] - PIN_RANK[b.p.type] || a.p.name.localeCompare(b.p.name, 'zh')));
 	return { q, list };
 }
+// the results list as last drawn: its markup, the same with its distances left out, and its first element (so a list
+// another view drew over since, such as Google's results, is never taken for it)
+let resLast = null;
 function mapListSync() {
 	const box = $('#mapres');
 	const n = $('#mapn');
@@ -416,7 +419,7 @@ function mapListSync() {
 		q.length >= 2 && window.google && google.maps && google.maps.importLibrary
 			? `<button type="button" class="mres gq" data-gsearch>${icon('search')}<span class="mres-b"><span class="mres-n">${esc(Z(`在 Google 搜「${q}」`, `Search Google for "${q}"`))}</span><span class="mres-m">${Z('页面里没有的地方也能找，还能加入行程', 'Find places the page does not have, and add them to the plan')}</span></span></button>`
 			: '';
-	box.innerHTML =
+	const html =
 		head +
 		(list.length
 			? `<ul class="mres-list">${list
@@ -431,8 +434,27 @@ function mapListSync() {
 					)}</ul>${list.length > 80 ? `<p class="xsmall muted">${Z('只列前80个，输入名字缩小范围', 'First 80 shown; type to narrow')}</p>` : ''}`
 			: '') +
 		gq; // the page's own places first, Google as the fallback
+	// a location fix mostly changes nothing on the list, or only its distances: keep the rows then, so a tap in flight
+	// still lands on its button (a rebuild swapped every button out under it); rebuild when the rows themselves change
+	const shape = html.replace(/(<span class="mres-d">)[^<]*(<\/span>)/g, '$1$2');
+	if (resLast && box.firstElementChild && resLast.first === box.firstElementChild) {
+		if (resLast.html === html) return;
+		if (resLast.shape === shape) {
+			const labels = list
+				.slice(0, 80)
+				.filter((x) => x.k != null)
+				.map((x) => distLabel(x.k));
+			box.querySelectorAll('.mres-list .mres-d').forEach((el, i) => {
+				if (el.textContent !== labels[i]) el.textContent = labels[i];
+			});
+			resLast.html = html;
+			return;
+		}
+	}
+	box.innerHTML = html;
 	box.scrollTop = y;
 	ybFill(box);
+	resLast = { html, shape, first: box.firstElementChild };
 }
 async function gSearch(q) {
 	const box = $('#mapres');
