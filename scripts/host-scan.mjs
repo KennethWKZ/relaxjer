@@ -29,6 +29,19 @@ export const cardRuns = (text) =>
 // a lone % that isn't an escape (a CSS 50%) would stop decodeURIComponent, so it's escaped first
 const decoded = (s) => decodeURIComponent(s.replace(/%(?![0-9A-Fa-f]{2})/g, '%25'));
 
+// It also refuses a page it reads as carrying a US Social Security number ("Scan failed: ssn"): three, two and four
+// digits split by a dash or a space. A phone number written in that shape is enough: a Japanese number with its area
+// code, "+81-ddd-dd-dddd", was refused on 2026-11-24 for the "ddd-dd-dddd" inside it. Grouped another way it dials the
+// same ("+81 ddd ddd ddd").
+/** each SSN-shaped group: { run, index } */
+export const ssnRuns = (text) => [...String(text).matchAll(/(?<!\d)\d{3}[- ]\d{2}[- ]\d{4}(?!\d)/g)].map((m) => ({ run: m[0], index: m.index }));
+
+/** the SSN-shaped groups in a page, read as the host reads it (the text as it is and URL-decoded) */
+export const pageSsnRuns = (html) => {
+	const seen = new Set();
+	return [...ssnRuns(html), ...ssnRuns(decoded(String(html)))].filter((r) => !seen.has(r.run) && seen.add(r.run));
+};
+
 /** the runs in a page, as the host reads it: the text as it is and URL-decoded (base64 is left alone) */
 export const pageCardRuns = (html) => {
 	const seen = new Set();

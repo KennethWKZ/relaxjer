@@ -55,6 +55,10 @@ payment_card`). There's no option to skip it, and nothing goes live on a refusal
   draw the same; `tests/repo/host-scan.test.mjs` now checks the engine, and `pnpm publish:trip` checks the built page first
   and stops before uploading (`scripts/host-scan.mjs`). To find a cause, publish builds with halves of
   the change removed: a refusal costs nothing, and a pass goes live, so keep each half a working page.
+- **It also refuses a US Social Security number shape** (`Scan failed: ssn`): three, two and four digits split by a
+  dash or a space. A phone number is enough: a hotel's number written `+81-ddd-dd-dddd` was refused for the
+  `ddd-dd-dddd` inside it. Group the digits another way (`+81 ddd ddd ddd` dials the same). `pnpm publish:trip` now
+  checks for this shape too and stops before uploading.
 
 ## Rebuilds of a published page
 

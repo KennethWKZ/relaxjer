@@ -22,7 +22,7 @@ import {
 	readUpdateKey,
 	redact,
 } from '../../scripts/publish-trip.mjs';
-import { cardRuns, luhn, maskRun } from '../../scripts/host-scan.mjs';
+import { cardRuns, luhn, maskRun, ssnRuns } from '../../scripts/host-scan.mjs';
 
 const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), 'rj-publish-'));
 const KEY = 'fake-upd-1';
@@ -188,4 +188,15 @@ test('publish pre-flight: the page is read as the host reads it, and no message 
 	assert.deepEqual(preflight(page(`.x{d:path('${HILLS.replace(/(?<=\d) (?=\d)/g, ',')}')}`)), [], 'with commas the page is clear');
 	const b64 = Buffer.from(`<svg><path d="${HILLS}"/></svg>`).toString('base64');
 	assert.deepEqual(preflight(page(`.x{background:url(data:image/svg+xml;base64,${b64})}`)), [], 'base64 is left alone, as the host does');
+});
+
+test('publish pre-flight: a phone number shaped like a US Social Security number stops the publish, masked', () => {
+	assert.equal(ssnRuns('tel +81-123-45-6789').length, 1, 'the 3-2-4 group inside an international number');
+	assert.equal(ssnRuns('123 45 6789').length, 1, 'spaces count too');
+	assert.deepEqual(ssnRuns('+81 123 456 789, 2031-06-02, 0123-45-6789, 12:30'), [], 'other groupings, dates and times are clear');
+	const problems = preflight(page(`</style><p>Hotel tel: +81-123-45-6789</p><style>`));
+	assert.match(problems[0], /Scan failed: ssn/);
+	assert.match(problems.join('\n'), /group its digits another way/);
+	assert.doesNotMatch(problems.join('\n'), /123-45-6789/, 'the number is masked');
+	assert.deepEqual(preflight(page(`</style><p>Hotel tel: +81 123 456 789</p><style>`)), []);
 });
