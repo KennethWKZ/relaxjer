@@ -143,6 +143,23 @@ test('More opens the planning sections and the settings, and a section from it o
 	await expect(page.locator('html')).toHaveAttribute('data-showing', from);
 });
 
+// A redraw (a group-sync update, a settings change) rebuilt the bar's buttons, so a tap aimed at More as the redraw
+// came landed on a button no longer in the page and More never opened (sync.spec's "Remove the stops I added", on CI).
+// Switching the maps app redraws the whole page and changes nothing on the bar: its buttons must stay the same ones
+test('a redraw that changes nothing on the bar keeps its buttons, so a tap in flight still lands', async ({ page }) => {
+	await openTrip(page);
+	test.skip(!(await hasBar(page)), 'the bar is a phone and tablet layout');
+	const more = await page.locator(BAR.more).elementHandle();
+	await page.locator(BAR.more).click();
+	await page.locator('[data-maps-cycle]').click(); // render(): every Map and Directions link drawn again
+	await expect(page.locator('[data-maps-cycle]')).toContainText('Apple Maps');
+	expect(await more.evaluate((b) => b.isConnected), 'the same More button after the redraw').toBe(true);
+	await page.locator('#toc [data-close]').first().click();
+	await expect(page.locator('#toc')).toBeHidden();
+	await more.click();
+	await expect(page.locator('#toc'), 'the button held from before the redraw still opens More').toBeVisible();
+});
+
 test('Back after a bar tap returns to the view and the place the reader left', async ({ page }) => {
 	await openTrip(page);
 	test.skip(!(await hasBar(page)), 'the bar is a phone and tablet layout');

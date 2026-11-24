@@ -29,11 +29,17 @@ function renderBar() {
 	if (!bar) return;
 	bar.setAttribute('aria-label', Z('行程', 'Trip'));
 	// Today's mark is a calendar page with today's date on it, as a phone's own calendar shows it (barToday)
-	bar.innerHTML =
+	const html =
 		`<a class="tb" href="#top" data-tb="top">${tbIcon('today', '<span class="tb-num" aria-hidden="true"></span>')}<span class="tb-l">${Z('今天', 'Today')}</span></a>` +
 		`<button type="button" class="tb" id="daysBtn" data-tb="days" aria-haspopup="dialog" aria-controls="days">${tbIcon('days')}<span class="tb-l">${Z('日程', 'Days')}</span></button>` +
 		(navDrawn('map') ? `<a class="tb" href="#map" data-tb="map">${tbIcon('map')}<span class="tb-l">${Z('地图', 'Map')}</span></a>` : '') +
 		`<button type="button" class="tb" id="moreBtn" data-tb="more" aria-haspopup="dialog" aria-controls="toc">${tbIcon('more')}<span class="tb-l">${Z('更多', 'More')}</span></button>`;
+	// a redraw that changes nothing on the bar (a group-sync update, a settings change) keeps its buttons: a tap aimed at
+	// one as the redraw came still lands on a button in the page, and focus stays put. New words or a new Map item rebuild
+	if (bar.__html !== html) {
+		bar.innerHTML = html;
+		bar.__html = html;
+	}
 	barToday();
 	barMark();
 }
