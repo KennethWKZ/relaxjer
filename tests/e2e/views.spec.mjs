@@ -248,3 +248,26 @@ test('a decision the planner settled says which option, on its summary button (w
 	if (!(await btn.count())) test.skip(true, 'no decision block on this trip');
 	await expect(btn.locator('.part-pick')).toContainText(/已定|Chosen/);
 });
+
+// the map's loading box lies over the whole map until the map is up; the page then sets [hidden] on it. Its own display
+// (grid, or flex while it says the map is slow) outranks the browser's [hidden]. The standalone page adds a global
+// [hidden] rule, but the artifact build leaves that rule to its host, so the box must hide by its own CSS: the test
+// drops the page-level rule first, as a host without it would serve the page
+test('the map’s loading box goes once the map is up, slow or not, by its own CSS', async ({ page }) => {
+	await openTrip(page);
+	const msg = page.locator('#mapmsg');
+	test.skip(!(await msg.count()), 'a trip without a live map has no loading box');
+	await goToView(page, 'map');
+	await expect(msg, 'it shows while the map loads').toBeVisible();
+	await page.evaluate(() => {
+		for (const s of document.querySelectorAll('style')) s.textContent = s.textContent.replace('[hidden]{display:none!important}', '');
+	});
+	for (const slow of [false, true]) {
+		await msg.evaluate((el, s) => {
+			el.classList.toggle('slow', s);
+			el.hidden = true; // what 17-map-maplibre.js mapMsg('ok') does once the map is up
+		}, slow);
+		await expect(msg, slow ? 'the slow-map notice hides too' : 'the box hides').toBeHidden();
+		await msg.evaluate((el) => (el.hidden = false));
+	}
+});
