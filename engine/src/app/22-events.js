@@ -930,6 +930,13 @@ document.addEventListener('keydown', (e) => {
 		if (searchState.hits.length) jumpTo(0);
 		e.target.blur();
 	}
+	// the map's search: the keyboard's Search key puts the keyboard away, so the results under it show. Not while a
+	// Chinese or Japanese input method is still composing: its Enter picks the characters
+	if (e.target.id === 'mapq' && e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) {
+		e.preventDefault();
+		if (e.target.value.trim()) mapListOpen(true);
+		e.target.blur();
+	}
 	if (e.key === 'Escape' && !$('#search-row').hidden) closeSearch();
 	if (e.key === 'Escape' && mapFullOn && !document.querySelector('dialog[open]')) mapFull(false);
 });

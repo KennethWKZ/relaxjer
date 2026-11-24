@@ -68,6 +68,25 @@ test('a search lays its results over the map, and the map stays in sight', async
 	await expect(page.locator(MAP.pane)).toBeHidden();
 });
 
+test('the keyboard’s Search key puts the keyboard away and leaves the results in sight', async ({ page }) => {
+	await openTrip(page);
+	await searchFirstPlace(page);
+	const q = page.locator(F.query);
+	// the list closed while typing: Search brings it back
+	await page.locator(MAP.list).click();
+	await expect(page.locator(MAP.pane)).toBeHidden();
+	await q.focus();
+	// an input method still composing (Chinese, Japanese) keeps its Enter: the field stays, nothing opens
+	await q.dispatchEvent('keydown', { key: 'Enter', isComposing: true, bubbles: true });
+	await expect(q).toBeFocused();
+	await expect(page.locator(MAP.pane)).toBeHidden();
+	await q.press('Enter');
+	await expect(q, 'the field lets go, so a phone puts its keyboard away').not.toBeFocused();
+	await expect(page.locator('#mapres [data-mres]').first()).toBeVisible();
+	// the sheet springs up and overshoots a little before it rests: measure where it lands
+	await expect(() => mapInSight(page)).toPass({ timeout: 5_000 });
+});
+
 test('a result tapped marks its pin and shows the finder, with the map in sight', async ({ page }) => {
 	await page.addInitScript(stubMapLibre);
 	await mapStyleRoute(page);
@@ -240,9 +259,17 @@ test('a Google result’s own marker stands out the same, framed with where the 
 	await page.locator(F.googleSearch).click();
 	await page.locator(F.googleResult).first().click();
 	await expect(page.locator(F.panel)).toContainText('Stand-in Noodle Bar');
-	const spot = page.locator('#livemap .lpin.spot');
+	const spot = page.locator('#livemap .lpin.lpin-spot');
 	await expect(spot).toHaveClass(/\bdest\b/);
 	await expect(spot.locator('.lpin-name')).toHaveText('Stand-in Noodle Bar');
+	// drawn as every finder's pin is: the ring and the pin stacked on one grid cell, with no box of its own (it once
+	// shared the toilet list's .spot class, whose flex row squeezed the ring to a sliver beside a bordered card)
+	const look = await spot.evaluate((el) => {
+		const s = getComputedStyle(el);
+		const ring = getComputedStyle(el, '::before');
+		return { display: s.display, border: s.borderTopWidth, bg: s.backgroundColor, ringW: ring.width, ringH: ring.height };
+	});
+	expect(look).toEqual({ display: 'grid', border: '0px', bg: 'rgba(0, 0, 0, 0)', ringW: '42px', ringH: '42px' });
 	// with no location the search looked near the hotel, and the camera frames the result with it; the stand-in's
 	// result is 0.003° north and 0.002° east of where it looked
 	const at = (await page.evaluate(() => window.__gCalls.search)).at(-1).locationBias.center;

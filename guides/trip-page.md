@@ -297,7 +297,8 @@ itself is the planner's: it's in the trip's data, and nobody makes one on the pa
   shape (the type) and colour (the day).
 - **Search and list:** search the map, or list what's on it with a count, by type or nearest first. A search also
   finds the shop box's supermarkets and pharmacies, which have no pin of their own, and works before the map has
-  loaded (or when it can't load: the list still works). With Google,
+  loaded (or when it can't load: the list still works). The keyboard's Search key puts the keyboard away and leaves
+  the results in sight. With Google,
   "Search Google" finds places the page doesn't have, near where you are (or the hotel), in the trip's country and the
   page's language; those results stay put while your location updates, and "Back to page results" returns to the
   page's own. A toilet, station or bike-share dock tapped in the list shows on the map with its popup, the list lowered
