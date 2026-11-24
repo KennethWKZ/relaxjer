@@ -3221,7 +3221,7 @@ dialog.toc {
 	border-top: 1px solid var(--rule);
 	margin: 10px 0 8px;
 }
-/* 附近吃什么 */
+/* Find food near me: the near-me sheet */
 .toc-near {
 	background: var(--ink);
 	color: var(--paper);
@@ -5763,7 +5763,9 @@ h2.landed {
 	font-weight: 750;
 	white-space: nowrap;
 }
-.toc-theme {
+/* the settings rows in More (theme, maps app): full-width rows like the planning ones, not browser-default buttons */
+.toc-theme,
+.toc-maps {
 	width: 100%;
 	margin-top: 8px;
 	border: 0;

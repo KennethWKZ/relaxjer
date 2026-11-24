@@ -128,7 +128,7 @@ const drinkHowTo = () =>
 		: '';
 function secEat() {
 	return `<section class="sec" id="eat" data-sec="eat">
-      <h2 class="sec-title">${icon('food')}${Z('附近吃什么', 'Food nearby')}</h2>
+      <h2 class="sec-title">${icon('food')}${Z('吃喝', 'Food & drinks')}</h2>
       <p class="sec-lede">${Z('按一下，按手机位置列出附近今天有开的早餐、午餐、晚餐、宵夜、小吃。', 'One tap: nearest places open today (breakfast, lunch, dinner, late-night, snacks) by phone location.')}</p>
       <div class="links-row"><button type="button" class="go-btn" data-near>${icon('pin')}${Z('找我附近吃的', 'Find food near me')}</button><button type="button" class="go-btn ghost" data-near="drink">${icon('boba')}${Z('附近饮料', 'Drinks near me')}</button><button type="button" class="go-btn ghost" data-near="rest">${icon('coffee')}${Z('坐下歇脚', 'Sit & rest')}</button><button type="button" class="go-btn ghost" data-near="wc">${icon('wc')}${Z('附近厕所', 'Toilets near me')}</button></div>
       ${drinkHowTo()}

@@ -1,4 +1,4 @@
-/* ───────── 附近吃什么: nearest options open today for a meal, measured from the phone (location never leaves it) ───────── */
+/* ───────── Find food near me: nearest options open today for a meal, measured from the phone (location never leaves it) ───────── */
 const mealNow = () => {
 	const m = tpNow().mins;
 	return m < 300 ? 'supper' : m < 630 ? 'breakfast' : m < 900 ? 'lunch' : m < 1230 ? 'dinner' : 'supper';

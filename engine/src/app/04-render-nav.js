@@ -10,7 +10,7 @@ const NAV = [
 	{ id: 'optional', label: ['备选', 'Optional'] },
 	// a trip with no wishlist has no section (08-wishlist.js), so no row in the rail or a menu pointing at nothing either
 	...(WISH.length ? [{ id: 'wish', label: ['想去', 'Wishlist'] }] : []),
-	{ id: 'eat', label: ['附近吃', 'Food'] },
+	{ id: 'eat', label: ['吃喝', 'Food & drinks'] },
 	{ id: 'budget', label: ['预算', 'Budget'] },
 	{ id: 'weather', label: ['天气', 'Weather'] },
 	{ id: 'checklist', label: ['清单', 'Checklist'] },
