@@ -1,8 +1,57 @@
 // Page probes shared by the e2e specs, ported from the legacy Playwright (Python) suites.
-import { expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { STORE_KEY } from './store-key.mjs';
 
 /* global TRIP -- the trip data, read inside the page */
+
+/**
+ * Clicks, and if the click times out (Playwright waits for the target to be visible, enabled and still), attaches
+ * what it was waiting on before failing: the target's box over 10 frames and every animation running on the page.
+ * For a click that fails only rarely, on a slow runner, where re-running never shows why (bottom-bar's Days row).
+ */
+export async function clickOrExplain(loc, { timeout = 15_000 } = {}) {
+	try {
+		await loc.click({ timeout });
+	} catch (err) {
+		const what = await loc
+			.evaluate(
+				(el) =>
+					new Promise((done) => {
+						const name = (e) =>
+							e && e.nodeType === 1
+								? `${e.tagName.toLowerCase()}${e.id ? `#${e.id}` : ''}${[...e.classList].map((c) => `.${c}`).join('')}`
+								: String(e);
+						const box = (e) => {
+							const r = e.getBoundingClientRect();
+							return [r.x, r.y, r.width, r.height].map((v) => Math.round(v * 100) / 100);
+						};
+						const scroller = el.closest('dialog, [data-sec]');
+						const frames = [];
+						const tick = () => {
+							frames.push({ t: Math.round(performance.now()), box: box(el), scrollTop: scroller ? scroller.scrollTop : null, scrollY });
+							if (frames.length < 10) requestAnimationFrame(tick);
+							else
+								done({
+									target: name(el),
+									frames,
+									animations: document.getAnimations().map((a) => ({
+										on: name(a.effect && a.effect.target),
+										kind: a.constructor.name,
+										name: a.animationName || a.transitionProperty || '',
+										state: a.playState,
+										time: a.currentTime,
+										iterations: a.effect ? String(a.effect.getTiming().iterations) : null, // Infinity reads as null in JSON
+									})),
+								});
+						};
+						requestAnimationFrame(tick);
+					}),
+			)
+			.catch((e) => ({ unavailable: String(e) }));
+		await test.info().attach('click-diagnostics', { body: JSON.stringify(what, null, 2), contentType: 'application/json' });
+		throw err;
+	}
+}
 
 /** Waits until scrollY has not moved for 5 frames' worth of polls (legacy SETTLE). */
 export async function settle(page) {
