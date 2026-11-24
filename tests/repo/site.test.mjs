@@ -54,6 +54,20 @@ test('the night theme reads the same whether the system or the theme button asks
 		assert.match(tag, /\sdata-dark\s/, `the button can't switch ${tag}`);
 });
 
+test('a demo row lit in yellow writes its words in the dark highlight ink, in both themes, as the trip page does', () => {
+	const css = fs.readFileSync(path.join(SITE, 'assets', 'site.css'), 'utf8');
+	// the night ink is light, and light words on the yellow read at about 2:1; the trip page writes #111 on it
+	assert.match(css, /\n\t--hl-ink: #111;/, 'site.css defines --hl-ink once, on :root');
+	const steps = [...css.matchAll(/@keyframes ([\w-]+) \{([\s\S]*?)\n\}/g)].flatMap(([, name, body]) =>
+		[...body.matchAll(/\{([^{}]*)\}/g)]
+			.map((m) => ({ name, step: m[1] }))
+			.filter(({ step }) => /background: color-mix\(in srgb, var\(--hl\)/.test(step)),
+	);
+	assert.ok(steps.length > 5, 'the demos light their rows in yellow');
+	const bare = steps.filter(({ step }) => !/color: var\(--hl-ink\)/.test(step)).map(({ name }) => name);
+	assert.deepEqual(bare, [], "a yellow step with no --hl-ink keeps the night theme's light words on the yellow");
+});
+
 test('every image has alt text, and every screenshot is the synthetic demo with its provenance beside it', () => {
 	for (const [tag] of html.matchAll(/<img\b[^>]*>/g)) assert.match(tag, /\salt="/, `no alt: ${tag.slice(0, 80)}`);
 	// the home-screen icon is the logo's lantern, drawn (scripts/docs-update/site-icon.mjs), not a screenshot
