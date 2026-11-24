@@ -2,6 +2,62 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.9.0](https://github.com/KennethWKZ/relaxjer/compare/v1.8.0...v1.9.0) (2026-11-24)
+
+
+### ✨ Features
+
+* **engine:** a bottom bar on phones and tablets: Today, Days, Map and More ([#71](https://github.com/KennethWKZ/relaxjer/issues/71)) ([b121bd5](https://github.com/KennethWKZ/relaxjer/commit/b121bd594e974b7a58130b3574d0e77411a0cab6))
+* **engine:** a currency switch that shows every figure in the home currency ([ea6fb8e](https://github.com/KennethWKZ/relaxjer/commit/ea6fb8e83e0e1864980a472e04c40f6fbde47380))
+* **engine:** a place finder on the map, and one details view for every place ([ea6fb8e](https://github.com/KennethWKZ/relaxjer/commit/ea6fb8e83e0e1864980a472e04c40f6fbde47380))
+* **engine:** one view per tab, planning parts as summary sheets, and a sky a trip picks ([#63](https://github.com/KennethWKZ/relaxjer/issues/63)) ([e44c3ab](https://github.com/KennethWKZ/relaxjer/commit/e44c3aba0c64104e40141e7f75175949be1c512b))
+* **engine:** snow world pictures come alive, in bolder, cuter colours, under a scrolling sky ([ea6fb8e](https://github.com/KennethWKZ/relaxjer/commit/ea6fb8e83e0e1864980a472e04c40f6fbde47380))
+* **engine:** the page follows the phone's light or dark setting until the reader picks ([#68](https://github.com/KennethWKZ/relaxjer/issues/68)) ([4fce6f7](https://github.com/KennethWKZ/relaxjer/commit/4fce6f714224cd259bd2f0c79098e425eef307ae))
+* **engine:** the rail, days, more and the sections sheet become one grouped list ([#78](https://github.com/KennethWKZ/relaxjer/issues/78)) ([87f65af](https://github.com/KennethWKZ/relaxjer/commit/87f65afec033238149ce5041de1186e6f48dc4d5))
+* **publish:** check the page against the host's card scan before uploading ([ea6fb8e](https://github.com/KennethWKZ/relaxjer/commit/ea6fb8e83e0e1864980a472e04c40f6fbde47380))
+
+
+### 🐛 Bug Fixes
+
+* **e2e:** a failure's trace keeps no screencast, so teardown stops timing out ([#72](https://github.com/KennethWKZ/relaxjer/issues/72)) ([bf54d26](https://github.com/KennethWKZ/relaxjer/commit/bf54d2610b553c25aa9e9a210028f48cd21a170d))
+* **engine:** a drive or walk time stays when a stop before it is added or removed ([ea6fb8e](https://github.com/KennethWKZ/relaxjer/commit/ea6fb8e83e0e1864980a472e04c40f6fbde47380))
+* **engine:** a location fix keeps the map's result rows, so a tap on one still lands ([#83](https://github.com/KennethWKZ/relaxjer/issues/83)) ([58708a0](https://github.com/KennethWKZ/relaxjer/commit/58708a0c9e2e43589a82a287308f9c6f78c06fc3))
+* **engine:** a redraw that changes nothing on the bottom bar keeps its buttons ([#85](https://github.com/KennethWKZ/relaxjer/issues/85)) ([4c673ab](https://github.com/KennethWKZ/relaxjer/commit/4c673abd699ac3172bfd4aa939d64e6d7d7d3aa1))
+* **engine:** a search on the map never hides the map; results and the place finder lie over it ([#75](https://github.com/KennethWKZ/relaxjer/issues/75)) ([c7a3ab3](https://github.com/KennethWKZ/relaxjer/commit/c7a3ab31925081d011fb292191aa9123f233f3f5))
+* **engine:** no candles down the sides of the snow world's sky ([ea6fb8e](https://github.com/KennethWKZ/relaxjer/commit/ea6fb8e83e0e1864980a472e04c40f6fbde47380))
+* **engine:** scrollbars drawn as macOS draws them, a thin thumb with no track ([#74](https://github.com/KennethWKZ/relaxjer/issues/74)) ([046749c](https://github.com/KennethWKZ/relaxjer/commit/046749c0c04ad8720c98fe89a3e70d0b3ca02c5d))
+* **engine:** the food section and the near-me action get their own names; the maps row matches ([#73](https://github.com/KennethWKZ/relaxjer/issues/73)) ([3528c16](https://github.com/KennethWKZ/relaxjer/commit/3528c161b3948a8fe99284b0f68a689ef5786d55))
+* **engine:** the map's loading box hides by its own CSS, slow notice included ([#80](https://github.com/KennethWKZ/relaxjer/issues/80)) ([5a90db8](https://github.com/KennethWKZ/relaxjer/commit/5a90db838024844ae42b007577597c4b02b63234))
+* **engine:** the page passes the host's card-number scan again ([ea6fb8e](https://github.com/KennethWKZ/relaxjer/commit/ea6fb8e83e0e1864980a472e04c40f6fbde47380))
+* **engine:** the sky's pause stays in the top row; a narrow phone shows the trip's short name ([#66](https://github.com/KennethWKZ/relaxjer/issues/66)) ([2d5b943](https://github.com/KennethWKZ/relaxjer/commit/2d5b943e216c345ea3c87b2c2db873ea0b4f1810))
+* **hooks:** the Stop hook's checks run in the checkout that was edited, a worktree included ([#77](https://github.com/KennethWKZ/relaxjer/issues/77)) ([0c408af](https://github.com/KennethWKZ/relaxjer/commit/0c408af63f3b07e8450a5f6c7b716806b0ecdf5b))
+* **publish:** the pre-flight also stops a page the host would refuse as an SSN ([#69](https://github.com/KennethWKZ/relaxjer/issues/69)) ([bdc7d51](https://github.com/KennethWKZ/relaxjer/commit/bdc7d51646ec9dc5a3d51fed269efa84e2827efa))
+* **release:** in a worktree the real-trip gate reads the main checkout's trips, or stops ([#67](https://github.com/KennethWKZ/relaxjer/issues/67)) ([7cfa8e0](https://github.com/KennethWKZ/relaxjer/commit/7cfa8e0da49bbe48f796a51c62ddfb0f1e47958a))
+* **site:** the postcard sky's base is the night behind its caption ([#64](https://github.com/KennethWKZ/relaxjer/issues/64)) ([04959bd](https://github.com/KennethWKZ/relaxjer/commit/04959bd9c9c6a37430b9fa9e51708570e89f15b5))
+* **site:** the postcards draw the one-row header and the bottom bar, not the date tabs ([#82](https://github.com/KennethWKZ/relaxjer/issues/82)) ([4f6fe3a](https://github.com/KennethWKZ/relaxjer/commit/4f6fe3ab2c9b499e45275344f9e51f8c836e4292))
+* **site:** the postcards' yellow highlights write dark words at night, as the trip page does ([#81](https://github.com/KennethWKZ/relaxjer/issues/81)) ([1fe1447](https://github.com/KennethWKZ/relaxjer/commit/1fe1447826416b18c67b9a525dc6600fbc03b95e))
+* **site:** the what's-next postcard draws Today, the bottom bar and Days as a grouped list ([#79](https://github.com/KennethWKZ/relaxjer/issues/79)) ([ca6942e](https://github.com/KennethWKZ/relaxjer/commit/ca6942e1e720694fb2059cfda3c0c7168fff722c))
+
+
+### 📝 Documentation
+
+* **agents:** a relaxed pace keeps its places, and free evenings get easy extras ([#70](https://github.com/KennethWKZ/relaxjer/issues/70)) ([a1c7855](https://github.com/KennethWKZ/relaxjer/commit/a1c78553230c71b8fd84c3f97d160d1ab80d08ca))
+* **google-maps:** a blocked website also shows as Permission denied ([ea6fb8e](https://github.com/KennethWKZ/relaxjer/commit/ea6fb8e83e0e1864980a472e04c40f6fbde47380))
+* **knowledge:** how to research stays, so every option is real for its dates ([#62](https://github.com/KennethWKZ/relaxjer/issues/62)) ([2157396](https://github.com/KennethWKZ/relaxjer/commit/2157396ef939493a2eb6f655cac59693fb4ebaf6))
+* **memory-bank:** group decisions by a closed list of domains, each with its one-line rule ([#65](https://github.com/KennethWKZ/relaxjer/issues/65)) ([33db9b8](https://github.com/KennethWKZ/relaxjer/commit/33db9b8abe68d03c64d62bc636dbabc69d26864c))
+* **publish:** let the planner skip the macOS Keychain dialog ([a385d63](https://github.com/KennethWKZ/relaxjer/commit/a385d63e60fe476463576f887e3cd36ab1aa69b6))
+
+
+### ✅ Testing
+
+* **e2e:** the Days row's tap says what moved when it times out ([#76](https://github.com/KennethWKZ/relaxjer/issues/76)) ([3e63952](https://github.com/KennethWKZ/relaxjer/commit/3e63952c2487f9db81363e37c8f5a5dcf6bcbd6a))
+* **e2e:** the nearby-options toggle is read once the pointer is off it ([#84](https://github.com/KennethWKZ/relaxjer/issues/84)) ([1ac9c82](https://github.com/KennethWKZ/relaxjer/commit/1ac9c823304156f554dfc06a9a4ff7be11409083))
+
+
+### 🧑‍💻 Continuous Integrations
+
+* **pages:** build and deploy are two jobs, so deploy finds the one artifact ([#86](https://github.com/KennethWKZ/relaxjer/issues/86)) ([de7df55](https://github.com/KennethWKZ/relaxjer/commit/de7df553ff4ba72758d3a233ad0f7a63ff9c14f1))
+
 ## [1.8.0](https://github.com/KennethWKZ/relaxjer/compare/v1.7.2...v1.8.0) (2026-11-17)
 
 
