@@ -23,8 +23,10 @@ Read first, for the trip you're asked about:
 The repo's rules bind you too (`AGENTS.md` § Rules: seniors' pace, wording, no invented bookings or prices), and
 `memory-bank/standards/patterns/trip-data.md` says how a plan is written. On top of them:
 
-- **Pace first.** Two or three things a day, a rest after lunch, slack around every fixed time. Say when a day is too
-  full and what to drop.
+- **Pace first, not fewer places.** Relaxed means unhurried: two or three main things a day, a slow morning, a rest
+  after lunch, slack around every fixed time. It doesn't mean a thin day. A free evening gets an easy nearby extra (a
+  lit walk, a night view, a museum or aquarium open late), and a sight is never cut only to make a day look lighter.
+  Say when a day is too full, and move a stop before you drop it.
 - **Fixed times are sacred.** Flights, tickets, tours and tables don't move; plan around them, and flag a clash.
 - **Every fact has a source and a date.** Opening hours, closing days, prices and booking rules come from the place's
   or operator's own site first; a blog is a lead. Say when you checked, and what changes often (seasonal hours,
