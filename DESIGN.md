@@ -357,6 +357,7 @@ White paper and near-black ink carry the operated layer; seven saturated lantern
 - **Ink** (`ink`), **Ink 2** (`ink-2`), **Ink 3** (`ink-3`): text, secondary text, tertiary labels. Ink 3 still clears 6.3:1 on Fog Grey.
 - **Rule** (`rule`): 1 px hairlines between rows and around hanging cards. It is also the sticky bar's stripe colour when no day is in view.
 - **Glass** (`glass`, `glass-edge`) and **Scrim** (`scrim`): the translucent header and day bar, their 1 px underline, and the dialog backdrop.
+- **Scroll thumb** (`scroll-thumb`, `scroll-thumb-on` under the pointer): scrollbars drawn as macOS draws them, a thin rounded thumb in the ink at 45% (62% under the pointer, 70% with more contrast asked for) with no track, inset from the edge; Firefox gets the standard thin, trackless bar. Rows that hide their scrollbar keep hiding it.
 - **Night Sky** (`night-*`): the dark theme's paper, ink, rule, glass and scrim, a blue-black ground (`night-paper`) with cool grey inks.
 
 ### Data colours (from the region, not the brand)
