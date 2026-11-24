@@ -66,14 +66,18 @@ test("a stop's nearby options fold to their count and open on a tap", async ({ p
 	else await tog.click(); // a wider screen opens with them showing: close first, then open as a phone does
 	await expect(tog).toHaveAttribute('aria-expanded', 'false');
 	await expect(list).toBeHidden();
+	// the colours as the reader sees them once the finger lifts: a tap leaves the row pressed (:active, Paper 3) for a
+	// moment, and on CI's WebKit that pressed colour stood in for both the shut and the open one
+	const offRow = () => page.mouse.move(1, 1);
+	await offRow();
 	const shut = await tog.evaluate((e) => ({ bg: getComputedStyle(e).backgroundColor, turn: getComputedStyle(e.querySelector('.chev')).transform }));
 	await tog.click();
 	await expect(tog).toHaveAttribute('aria-expanded', 'true');
 	await expect(list).toBeVisible();
 	await expect(list.locator('a.eat-chip').first()).toBeVisible();
-	// two cues for open: the chevron turns and the row fills
-	const open = await tog.evaluate((e) => ({ bg: getComputedStyle(e).backgroundColor, turn: getComputedStyle(e.querySelector('.chev')).transform }));
-	expect(open.bg).not.toBe(shut.bg);
+	await offRow();
+	// two cues for open: the row fills and the chevron turns
+	await expect.poll(() => tog.evaluate((e) => getComputedStyle(e).backgroundColor), { message: 'the open row fills' }).not.toBe(shut.bg);
 	await expect.poll(() => tog.locator('.chev').evaluate((c) => getComputedStyle(c).transform)).not.toBe(shut.turn);
 	// the row's tap is the toggle's, not the stop's sheet
 	await expect(page.locator('dialog[open]')).toHaveCount(0);
