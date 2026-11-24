@@ -93,23 +93,32 @@ function mountGoogle() {
 	const markers = [];
 	const iw = new g.InfoWindow({ maxWidth: 300 });
 	let sel = null;
-	function pick(p, fly) {
+	// the camera on a place, in the part of the map the list pane leaves open (paneAim, 16-map.js): Google has no offset,
+	// so it centres the place, then pans by half the pane
+	const aim = (p, low, zoom) => {
+		if (m.getZoom() < low) m.setZoom(zoom);
+		m.panTo({ lat: p.lat, lng: p.lng });
+		const o = paneAim();
+		if (o.x || o.y) g.event.addListenerOnce(m, 'idle', () => m.panBy(-o.x, -o.y));
+	};
+	// quiet: the place finder shows the place in the pane, so its pin is marked without a popup over the map
+	function pick(p, fly, quiet) {
 		if (sel) sel.classList.remove('sel');
 		const mm = markers.find((x) => x.p.pid === p.pid);
 		sel = mm && mm.b;
 		if (sel) sel.classList.add('sel');
-		const box = document.createElement('div');
-		box.innerHTML = popupHTML(p);
-		box.addEventListener('click', (e) => {
-			if (e.target.closest('[data-more]')) openPinSheet(p);
-		});
-		iw.setContent(box);
-		iw.open({ map: m, anchor: mm ? mm.mk : undefined, shouldFocus: false });
-		if (!mm) iw.setPosition({ lat: p.lat, lng: p.lng });
-		if (fly) {
-			m.panTo({ lat: p.lat, lng: p.lng });
-			if (m.getZoom() < 16.5) m.setZoom(17);
+		if (quiet) iw.close();
+		else {
+			const box = document.createElement('div');
+			box.innerHTML = popupHTML(p);
+			box.addEventListener('click', (e) => {
+				if (e.target.closest('[data-more]')) openPinSheet(p);
+			});
+			iw.setContent(box);
+			iw.open({ map: m, anchor: mm ? mm.mk : undefined, shouldFocus: false });
+			if (!mm) iw.setPosition({ lat: p.lat, lng: p.lng });
 		}
+		if (fly) aim(p, 16.5, 17);
 		mapSel = p;
 		map.line(p);
 		showCard(p);
@@ -160,13 +169,13 @@ function mountGoogle() {
 		if (!list.length) return;
 		const lngs = list.map((x) => x.lng),
 			lats = list.map((x) => x.lat);
-		m.fitBounds(bounds([Math.min(...lngs), Math.min(...lats), Math.max(...lngs), Math.max(...lats)]), 56);
+		m.fitBounds(bounds([Math.min(...lngs), Math.min(...lats), Math.max(...lngs), Math.max(...lats)]), panePad(56));
 		if (m.getZoom() > 15.5) m.setZoom(15.5);
 	};
 	map = {
 		view(k) {
 			iw.close();
-			m.fitBounds(bounds(VIEWS[k] || GEO.bbox), 24);
+			m.fitBounds(bounds(VIEWS[k] || GEO.bbox), panePad(24));
 			$$('[data-view]').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.view === k)));
 		},
 		filter(f) {
@@ -183,17 +192,18 @@ function mountGoogle() {
 			});
 			$$('[data-filter]').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.filter === mapDay)));
 			$$('[data-cat]').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.cat === mapCat)));
+			mapFiltSync();
 			if (mapDay !== 'all' || mapCat !== 'all') {
 				fitTo(markers.filter((x) => show(x) && x.p.type !== 'hotel').map((x) => x.p));
 				$$('[data-view]').forEach((x) => x.setAttribute('aria-pressed', 'false'));
 			}
 		},
-		select(pid) {
+		select(pid, quiet) {
 			const x = markers.find((mm) => mm.p.pid === pid);
 			if (x) {
 				const mk = mkOf(x);
 				if (!mk.map) mk.map = m;
-				pick(x.p, true);
+				pick(x.p, true, quiet);
 			}
 		},
 		refit() {
@@ -209,8 +219,7 @@ function mountGoogle() {
 			el.className = 'lpin sel spot';
 			el.innerHTML = pinSVG({ type: 'mine', days: [] });
 			spotMk = new g.marker.AdvancedMarkerElement({ map: m, position: { lat: p.lat, lng: p.lng }, content: el, title: p.n, zIndex: 998 });
-			m.panTo({ lat: p.lat, lng: p.lng });
-			if (m.getZoom() < 15.5) m.setZoom(16);
+			aim(p, 15.5, 16);
 		},
 		me(ll, acc, hd) {
 			if (!meMk) {

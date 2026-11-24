@@ -416,8 +416,7 @@ function finderHTML(info) {
 			? `<li><button type="button" class="pf-day" data-fit-add="${r.id}|${esc(r.stop.key)}" aria-label="${esc(Z(`加到 Day ${d.n}，「${r.stop.name}」之后`, `Add to Day ${d.n}, after ${r.stop.name}`))}">${body}${icon('plus', 'pf-plus')}</button></li>`
 			: `<li><div class="pf-day is-off">${body}</div></li>`;
 	};
-	return `<div class="mres-h"><button type="button" class="mlink" data-find-back>${icon('arrow', 'flip')}${Z('回到结果', 'Back to results')}</button></div>
-    <div class="pf-body">${placeHead(info, 'h3')}${hoursLine(info, date)}
+	return `<div class="pf-body">${placeHead(info, 'h3')}${hoursLine(info, date)}
       ${inPlan.length ? `<p class="pf-in">${icon('calendar')}<span>${esc(Z('已在行程：', 'In the plan: '))}${inPlan.map((d) => `<a class="mlink" href="#${d.id}">Day ${d.n}</a>`).join(' ')}</span></p>` : ''}
       ${best}
       ${others.length ? `<p class="sub-h">${Z('其他天最近的站', 'Other days, nearest stop first')}</p><ul class="pf-days">${others.map(row).join('')}</ul>` : ''}
@@ -425,13 +424,26 @@ function finderHTML(info) {
       <div class="links-row"><button type="button" class="mlink" data-find-detail>${icon('info')}${Z('详情', 'Details')}${gCan(info) ? `<span class="dlbl">${Z(' · 营业时间、照片、评价', ' · hours, photos, reviews')}</span>` : ''}</button>${extI(gmSearch(info.q || info.n, info.gpid), Z('地图', 'Map'), 'pin')}${extI(gmDir(info.q || info.n, 'transit', undefined, info.gpid), Z('路线', 'Directions'), 'route')}</div>
     </div>`;
 }
-/** show a place in the finder, in place of the results, and on the map: its pin, or a marker of its own for a place
- *  the map has no pin for (a Google result, a shop box shop); from: the result row tapped, focused again on Back */
+/** the list pane's title: the results' count, or for the finder its way back to them (16-map.js) */
+function paneTitle(text) {
+	const t = $('#panet');
+	if (!t) return;
+	if (finderAt)
+		t.innerHTML = `<button type="button" class="mlink pane-back" data-find-back>${icon('arrow', 'flip')}${Z('回到结果', 'Back to results')}</button>`;
+	else if (text != null && (t.textContent !== text || t.firstElementChild)) t.textContent = text; // said aloud only when it changes
+}
+let finderStop = null; // the results' sheet height before the finder opened, for Back
+/** show a place in the finder, in place of the results, in the pane over the map, and on the map: its pin marked and
+ *  brought into the open part of the map, or a marker of its own for a place the map has no pin for (a Google result,
+ *  a shop box shop); from: the result row tapped, focused again on Back */
 function finderOpen(info, pin, from) {
 	const box = $('#mapfind');
 	const res = $('#mapres');
 	if (!box || !info) return;
-	if (!finderAt) finderY = res ? res.scrollTop : 0;
+	if (!finderAt) {
+		finderY = res ? res.scrollTop : 0;
+		finderStop = paneOn() ? paneStop : null;
+	}
 	finderAt = { info, pin: pin || null, from };
 	box.innerHTML = finderHTML(info);
 	box.hidden = false;
@@ -440,12 +452,15 @@ function finderOpen(info, pin, from) {
 	const lb = $('[data-maplist]');
 	if (lb) lb.setAttribute('aria-expanded', 'false');
 	if (!finderO) finderO = openOverlay(() => finderShut(true));
-	// the panel's top just under the bar, so the map shows below it (held while sections above draw: holdLanding)
-	if (!mapFullOn) scrollToEl(box, 'start', false);
+	paneTitle();
+	// half height, so the place's pin shows above the sheet (the map comes into view under the bar: stageInView)
+	paneShow(true);
+	paneTo('half');
+	stageInView();
 	const h = box.querySelector('.hang-name');
 	if (h) h.focus({ preventScroll: true });
 	if (liveFailed) return; // the list and the plan still work without the live map
-	withMap(() => (pin ? map.select(pin) : map.spot && map.spot(info)));
+	withMap(() => (pin ? map.select(pin, true) : map.spot && map.spot(info)));
 }
 function finderRefresh() {
 	const box = $('#mapfind');
@@ -464,6 +479,8 @@ function finderShut(back) {
 	box.innerHTML = '';
 	if (!back || !res) return;
 	mapListOpen(true);
+	if (finderStop) paneTo(finderStop); // the sheet back at the height the results had
+	finderStop = null;
 	res.scrollTop = finderY;
 	const el = from && res.querySelector(from);
 	if (el) el.focus({ preventScroll: true });

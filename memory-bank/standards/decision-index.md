@@ -1,5 +1,5 @@
 ---
-total_decisions: 34
+total_decisions: 35
 last_updated: 2026-11-24
 ---
 
@@ -73,6 +73,7 @@ How the page looks, moves and reads: type, colour, illustrations, motion, names 
 | [ADR-20261121-world-stickers](decisions/ADR-20261121-world-stickers.md)         | 2026-11-21 | accepted | Day colours keep text contrast at 4.5:1 or more on light paper and 3.8:1 or more on dark; tints are fixed shares of the colour.                                 |
 | [ADR-20261124-bottom-app-bar](decisions/ADR-20261124-bottom-app-bar.md)         | 2026-11-24 | amended  | Below 1024 px a bottom bar (Today, Days, Map, More) replaces the date strip and the Sections button, and the sky’s Pause moves into More.                       |
 | [ADR-20261124-grouped-lists](decisions/ADR-20261124-grouped-lists.md)           | 2026-11-24 | accepted | The rail, Days, More and the Sections sheet are grouped lists: cards of 52 px rows split by inset hairlines, each row ending in ›, a value with ⌃⌄, or nothing. |
+| [ADR-20261124-map-first-search](decisions/ADR-20261124-map-first-search.md)     | 2026-11-24 | accepted | Map search results and the place finder lie over the map (a phone's sheet, a wide stage's side panel), never above it; day and area sit behind one button.      |
 
 ## tooling
 

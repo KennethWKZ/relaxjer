@@ -87,3 +87,11 @@ The button this decision calls "Rating & photos" is named **Info** (资料), wit
 评价) beside it where there's room, and the info glyph instead of a star: on a phone, where the rest of the label folds
 away, "Rating" with a star read like "rate us". It stays apart from the finder's Details, a different action. What it
 fetches, and that it fetches only on a tap, are unchanged.
+
+Where the finder shows changed; the best-day rule, the bands, the details view and Google's calls did not. The finder no
+longer takes the results' place above the map: both lie in a pane over the map, a sheet at its foot on a phone (the
+finder opens at half height) and a panel down its left on a wide stage, and the camera aims the place's pin into the
+open part of the map ([ADR-20261124-map-first-search](ADR-20261124-map-first-search.md)). The alternative rejected
+above ("open the finder as a bottom sheet: it would cover the map it points at") held only while the sheet had no
+heights and the camera didn't aim past it; above the map, the list pushed the pin out of sight instead. Its Back to
+results moved into the pane's head; Back still returns to the list where it was.

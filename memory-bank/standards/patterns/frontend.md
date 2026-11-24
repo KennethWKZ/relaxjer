@@ -69,6 +69,11 @@ states and its feedback, as 25 testable rules with sources.
 - **A control never covers what it controls.** A play or pause control, a close button or a floating action sits
   beside or below the content it acts on, never over it. Where its glyph says enough (pause, play, close), it's an
   icon-only 44 px button whose words are for screen readers only.
+- **A search on the map never hides the map** ([ADR-20261124-map-first-search](../decisions/ADR-20261124-map-first-search.md)).
+  Results and the place finder lie in the pane over the map (a sheet with three heights on a narrow stage, a side panel
+  on a wide one, by a container query on the stage), the camera aims past it (`paneAim`, `panePad`), and the map's own
+  controls ride above it. Anything new on the Map view goes in the pane, the chip row or the Filters sheet, never as a
+  block between the search and the map; a new row above the map means changing the stage's height formula.
 - **The phone keyboard never hides the field being typed in.** A bottom sheet with a text field moves up to sit on the
   keyboard while it's open, and the focused field scrolls into view (`.kb-up` in `19-back-button.js`;
   `knowledge/engine-browser.md`). A new sheet with a field gets the same check in WebKit at 390 px.
@@ -167,3 +172,4 @@ Each rule above rests on a decision. The decision and its reasons live in its AD
 - [ADR-20261121-world-stickers](../decisions/ADR-20261121-world-stickers.md): Day colours keep text contrast at 4.5:1 or more on light paper and 3.8:1 or more on dark; tints are fixed shares of the colour.
 - [ADR-20261124-bottom-app-bar](../decisions/ADR-20261124-bottom-app-bar.md): Below 1024 px a bottom bar (Today, Days, Map, More) replaces the date strip and the Sections button, and the sky’s Pause moves into More.
 - [ADR-20261124-grouped-lists](../decisions/ADR-20261124-grouped-lists.md): The rail, Days, More and the Sections sheet are grouped lists: cards of 52 px rows split by inset hairlines, each row ending in ›, a value with ⌃⌄, or nothing.
+- [ADR-20261124-map-first-search](../decisions/ADR-20261124-map-first-search.md): Map search results and the place finder lie over the map (a phone's sheet, a wide stage's side panel), never above it; day and area sit behind one button.

@@ -435,7 +435,7 @@ Hybrid. Content is flat and tonal: Fog Grey and Mist Grey containers on white pa
 - **Glass underline** (`box-shadow: 0 1px 0 var(--glass-edge)`): the sticky header and day bar.
 - **Lantern, day** (`box-shadow: 0 10px 24px -14px color-mix(in srgb, var(--c) 80%, #000)`): every lantern panel in light mode.
 - **Lantern, night** (`box-shadow: 0 16px 40px -18px color-mix(in srgb, var(--c) 90%, transparent)`): the lantern's glow in dark mode.
-- **Float** (`box-shadow: 0 10px 28px -10px rgba(0, 0, 0, 0.45)`): the Back pill (0.55 on a desktop's sections button). The bottom bar is glass, like the header, with a hairline on top (`0 -1px 0 var(--glass-edge)`).
+- **Float** (`box-shadow: 0 10px 28px -10px rgba(0, 0, 0, 0.45)`): the Back pill (0.55 on a desktop's sections button), the map's side panel; cast upward (`0 -10px …`) on the map's list sheet. The bottom bar is glass, like the header, with a hairline on top (`0 -1px 0 var(--glass-edge)`).
 - **Toast** (`box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.4)`).
 - **Sheet** (`box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.5)`): dialogs over the scrim.
 
@@ -483,6 +483,7 @@ Every control is a plain, heavy-lettered rectangle with a 44 px floor (48–52 p
 - **Border:** 1 px `rule` on hanging cards; a 1.5 px dashed day-colour border on the rain plan.
 - **Internal Padding:** 12–16 px for rows and cards, 18 px for the Now/Next card, 22 px 18px 18px for lanterns.
 - **Part sheet:** a summary button's card opens in its own sheet. On a phone and a tablet it rises from the bottom, full width, 22 px top corners, up to the screen's height less 40 px, scrolling on its own (`overscroll-behavior: contain`), with a sticky head (a 40 × 5 px grip, the heading at 1.1875rem and 800, a 44 px ✕ on Fog Grey) tinted with the day colour at 8 %. From 1024 px it's a panel on the right, `min(500px, 42vw)` wide and the screen's height less 32 px, 22 px round, with the float shadow and a lighter scrim. The card's own heading is hidden inside: the head names it.
+- **Map stage and its list pane** ([ADR-20261124-map-first-search](memory-bank/standards/decisions/ADR-20261124-map-first-search.md)): the Map view is the search field with its List button, one chip row (the day and area button, then the categories scrolling sideways) and the map's box, 18 px round with a hairline, sized to end above the screen's foot (`--chrome-bottom` for an app bar) once the stage sits under the header. The results and the place finder lie in a pane over the map, never above it. On a stage under 640 px (a container query) it's a sheet at the map's foot: paper, 18 px top corners, a hairline top, the Float shadow cast upward, the part sheet's 40 × 5 px grip, a 56 px head (its title at 1.0625rem and 800, then two 44 px chevrons and a ✕ on Fog Grey), and three heights (peek, half at 42 % of the map, full less 12 px), moved by a spring. From 640 px it's a panel down the map's left, `min(360px, 50%)` wide, 10 px in from the edges, 12 px round with the Float shadow. The day and area button is a filter button with a calendar icon and a right chevron, filled with the day's pair once a day is picked; its sheet is a part sheet of wrapped filter buttons.
 
 ### Inputs / Fields
 

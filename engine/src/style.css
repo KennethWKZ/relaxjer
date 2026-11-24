@@ -2615,9 +2615,6 @@ dialog.sheet::backdrop {
 .map-ctrl::-webkit-scrollbar {
 	display: none;
 }
-.map-ctrl.days {
-	margin-top: 8px;
-}
 .seg-btn {
 	flex: none;
 	min-height: 44px;
@@ -2650,15 +2647,32 @@ dialog.sheet::backdrop {
 	color: var(--ci);
 	border-color: var(--c);
 }
-.map-wrap {
+/* map-first (ADR-20261124-map-first-search): the stage is the search, one row of chips and the map, sized so all of it
+   fits between the header and the foot of the screen (above an app bar: --chrome-bottom) once it's scrolled under the
+   header; the list pane lies over the map inside its box. The stage is the pane's container: a wide one (a desktop's
+   column, a full-screen tablet) puts the pane down the map's left, a narrow one at its foot */
+.map-stage {
+	container: mapstage / inline-size;
+}
+main .map-stage {
+	scroll-margin-top: var(--bar-h); /* under the header, the line above it out of sight */
+}
+.map-box {
+	--pane-cover: 0px;
+	--pane-left: 0px;
 	position: relative;
 	margin-top: 10px;
-	height: min(58vh, 540px);
-	min-height: 320px;
+	/* the search row, the chips and the gaps above the map are about 120 px; 20 more keep the map's foot in sight */
+	height: clamp(300px, calc(100dvh - var(--bar-h) - var(--chrome-bottom, 0px) - 140px), 760px);
 	border-radius: var(--r-lg);
 	overflow: hidden;
+	overflow-anchor: none; /* the pane's rows come and go: the page's scroll never anchors on them */
 	background: var(--paper-2);
 	border: 1px solid var(--rule);
+}
+.map-wrap {
+	position: absolute;
+	inset: 0;
 }
 .map-legend {
 	display: flex;
@@ -2789,7 +2803,7 @@ dialog.sheet::backdrop {
 }
 .map-msg {
 	position: absolute;
-	inset: 0;
+	inset: 0 0 var(--pane-cover, 0px) var(--pane-left, 0px); /* in the part of the map the list pane leaves open */
 	z-index: 2;
 	display: grid;
 	place-content: center;
@@ -2803,7 +2817,7 @@ dialog.sheet::backdrop {
 	justify-content: center;
 }
 .map-msg.slow {
-	inset: 10px 10px auto;
+	inset: 10px 10px auto calc(var(--pane-left, 0px) + 10px);
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
@@ -2914,6 +2928,14 @@ dialog.sheet::backdrop {
 .map-wrap .maplibregl-ctrl-group button {
 	width: 44px;
 	height: 44px;
+}
+/* the zoom, locate and scale controls ride above the list sheet, and clear the side panel */
+.map-wrap .maplibregl-ctrl-bottom-right,
+.map-wrap .maplibregl-ctrl-bottom-left {
+	bottom: var(--pane-cover, 0px);
+}
+.map-wrap .maplibregl-ctrl-bottom-left {
+	left: var(--pane-left, 0px);
 }
 .map-wrap .maplibregl-ctrl-group button + button {
 	border-top: 1px solid var(--rule);
@@ -3475,11 +3497,16 @@ html.map-full-on body {
 	width: 18px;
 	height: 18px;
 }
-.map-stage.is-full .map-ctrl {
+.map-stage.is-full .map-chips {
 	margin: 8px 0 0;
-	padding: 0 16px 2px;
+	padding: 0 0 0 16px;
 }
-.map-stage.is-full .map-wrap {
+.map-stage.is-full .map-chips .map-ctrl {
+	margin-right: 0;
+}
+/* the full-screen layer lies over the page (z-index 50); below 1024 px it ends at the top of the bottom bar
+   (--chrome-bottom, set with the bar), so the bar stays one tap away, and elsewhere the safe area stays clear at its foot */
+.map-stage.is-full .map-box {
 	flex: 1;
 	height: auto;
 	min-height: 0;
@@ -4409,14 +4436,195 @@ svg.i.flip {
 	background: color-mix(in srgb, var(--paper) 22%, transparent);
 	color: inherit;
 }
-.map-results {
+/* the search's one row of chips: the day and area button, then the categories scrolling sideways */
+.map-chips {
+	display: flex;
+	align-items: center;
+	gap: 8px;
 	margin-top: 8px;
-	border: 1px solid var(--rule);
-	border-radius: var(--r-md);
+}
+.map-chips .map-ctrl {
+	flex: 1;
+	min-width: 0;
+	margin: 0 -16px 0 0;
+	padding: 0 16px 2px 0;
+}
+.seg-btn.map-filt {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 0 8px 0 10px;
+	max-width: 48%;
+	white-space: nowrap;
+}
+.map-filt #mapfilt-l {
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.map-filt svg.i {
+	flex: none;
+	width: 18px;
+	height: 18px;
+}
+.map-filt .part-ch {
+	width: 16px;
+	height: 16px;
+	opacity: 0.8;
+}
+/* a day picked: the day's colour fills it, and its name says which (two cues) */
+.seg-btn.map-filt[data-on='1'] {
+	background: var(--c);
+	color: var(--ci);
+	border-color: var(--c);
+}
+/* the sheet behind it: the days and the areas, wrapped, every choice in sight */
+.map-pick {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 8px;
+}
+.map-filts .sub-h + .map-pick {
+	margin-bottom: 18px;
+}
+
+/* the list pane over the map. A narrow stage: a sheet at the map's foot whose height 16-map.js sets (peek, half,
+   full); a wide one: a panel down the map's left, the full height of the map */
+.map-pane {
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 4;
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+	height: 45%;
 	background: var(--paper);
-	max-height: min(52vh, 460px);
+	border-top: 1px solid var(--rule);
+	border-radius: var(--r-lg) var(--r-lg) 0 0;
+	box-shadow: 0 -10px 28px -10px rgba(0, 0, 0, 0.45); /* the Float shadow, cast upward */
+	animation: pane-up 240ms var(--ease-drawer);
+}
+.map-pane[hidden] {
+	display: none;
+}
+.map-pane.is-drag {
+	user-select: none;
+}
+@keyframes pane-up {
+	from {
+		transform: translateY(32px);
+		opacity: 0;
+	}
+}
+.pane-head {
+	position: relative;
+	flex: none;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	min-height: 56px;
+	padding: 12px 8px 0 14px;
+	touch-action: none;
+	user-select: none; /* a drag moves the sheet, never selects the page above it */
+	-webkit-user-select: none;
+	cursor: grab;
+}
+.map-pane.is-drag .pane-head {
+	cursor: grabbing;
+}
+.pane-grip {
+	position: absolute;
+	left: 50%;
+	top: 6px;
+	width: 40px;
+	height: 5px;
+	margin-left: -20px;
+	border-radius: 3px;
+	background: color-mix(in srgb, var(--ink-3) 55%, transparent);
+}
+.pane-t {
+	flex: 1;
+	min-width: 0;
+	font-size: var(--fs-base);
+	font-weight: 800;
+	letter-spacing: -0.01em;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.pane-t .pane-back {
+	min-height: 44px;
+	max-width: 100%;
+	cursor: pointer;
+}
+.pane-btn,
+.pane-x {
+	flex: none;
+	border: 1px solid var(--rule);
+	background: var(--paper-2);
+	color: var(--ink);
+}
+.pane-btn svg.i.up {
+	transform: rotate(180deg);
+}
+.pane-btn:disabled {
+	opacity: 0.4;
+	cursor: default;
+}
+.map-results {
+	flex: 1;
+	min-height: 0;
+	background: var(--paper);
 	overflow-y: auto;
 	overscroll-behavior: contain;
+	border-top: 1px solid var(--rule);
+}
+.map-results[hidden] {
+	display: none;
+}
+@container mapstage (min-width: 640px) {
+	.map-box {
+		--pane-side: 1;
+	}
+	.map-box.pane-open {
+		--pane-left: calc(min(360px, 50%) + 10px);
+	}
+	.map-pane {
+		top: 10px;
+		right: auto;
+		bottom: 10px;
+		left: 10px;
+		width: min(360px, 50%);
+		height: auto !important; /* the sheet's heights are a phone's; the panel is the map's */
+		border: 1px solid var(--rule);
+		border-radius: var(--r-md);
+		box-shadow: 0 10px 28px -10px rgba(0, 0, 0, 0.45); /* Float */
+		overflow: hidden;
+		animation-name: pane-side;
+	}
+	.pane-head {
+		min-height: 52px;
+		padding: 4px 4px 4px 14px;
+		touch-action: auto;
+		cursor: auto;
+	}
+	.pane-grip,
+	.pane-btn {
+		display: none;
+	}
+}
+@keyframes pane-side {
+	from {
+		transform: translateX(-16px);
+		opacity: 0;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.map-pane {
+		animation: none;
+	}
 }
 .mres-h {
 	position: sticky;
@@ -4497,10 +4705,6 @@ svg.i.flip {
 }
 .map-stage.is-full .map-find {
 	margin: 8px 16px 0;
-}
-.map-stage.is-full .map-results {
-	margin: 8px 16px 0;
-	max-height: 42vh;
 }
 .mres-h .mlink,
 .mres-sort {
@@ -4707,9 +4911,6 @@ dialog.toc {
 	color: #f2c14e;
 }
 /* map categories + sort toggle */
-.map-ctrl.cats {
-	margin-top: 8px;
-}
 .seg-btn.cat {
 	display: inline-flex;
 	align-items: center;
@@ -4749,10 +4950,6 @@ dialog.toc {
 	font-size: var(--fs-xs);
 	color: var(--ink-2);
 	background: var(--paper-2);
-}
-.map-stage.is-full .map-ctrl.cats {
-	margin: 8px 0 0;
-	padding: 0 16px 2px;
 }
 .plan.lead {
 	font-size: var(--fs-md);
@@ -4996,11 +5193,8 @@ dialog.toc {
 	flex: none;
 }
 
-/* the map's place finder (21-place-finder.js): a place against the plan, in the results' box, so it sits where the
-   thumb just was and the map stays in view below it */
-.pfind {
-	scroll-margin-top: calc(var(--bar-h) + 8px);
-}
+/* the map's place finder (21-place-finder.js): a place against the plan, in the list pane where the results were, so
+   it sits where the thumb just was and its pin shows in the open part of the map */
 .pf-body {
 	padding: 12px 12px 14px;
 }

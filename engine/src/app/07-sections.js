@@ -1159,30 +1159,46 @@ function secDay(d, today) {
 function secMap() {
 	if (!GEO) return '';
 	const views = [['all', ['全部', 'All']], ...(TRIP.mapViews || []).map((v) => [v.id, v.name])]; // the trip's map areas
+	const fd = mapFiltDay(); // the day the map shows, kept across a redraw
+	// map-first (ADR-20261124-map-first-search): the search and one row of categories over the map; the day and the area
+	// in a sheet behind one button; the results and the place finder in a pane over the map (a sheet at its foot on a
+	// phone, a panel down its left on a wide stage), so a search never pushes the map away
 	return `<section class="sec" id="map" data-sec="map">
       <h2 class="sec-title">${icon('map')}${Z('地图', 'Map')}</h2>
-      <p class="sec-lede">${Z('点地图上的点看地址和路线。右上「全屏」可单指拖动；右下按钮定位。颜色=日期，形状=类型。', 'Tap pin for address/directions. “Full screen” (top right): drag with one finger. Locate button bottom right. Colour = day, shape = type.')}</p>
+      <p class="sec-lede map-lede">${Z('颜色是日期，形状是类型。', 'Colour is the day; shape is the type.')}</p>
       <div class="map-stage" id="mapstage">
       <div class="map-top"><p class="map-top-t">${icon('map')}${Z('地图', 'Map')}</p><button type="button" class="mlink map-exit" data-mapfull="0" aria-label="${Z('退出全屏', 'Exit full screen')}">${icon('x')}<span class="dlbl">${Z('退出全屏', 'Exit full screen')}</span></button></div>
-      <div class="map-ctrl" role="group" aria-label="${Z('地图范围', 'Map area')}">${views.map(([k, l]) => `<button type="button" class="seg-btn" data-view="${k}">${esc(L(l))}</button>`).join('')}</div>
-      <div class="map-ctrl days" role="group" aria-label="${Z('按日期筛选', 'Filter by day')}"><button type="button" class="seg-btn" data-filter="all" aria-pressed="true">${Z('全部天', 'All days')}</button>${DAYS.filter(
-				(d) => d.id !== ROLE.flight,
+      <div class="map-find" role="search"><label class="map-q">${icon('search')}<input id="mapq" type="search" enterkeyhint="search" autocomplete="off" placeholder="${Z('搜地图：店名、景点、厕所、饮料…', 'Search the map: name, sight, toilet, drinks…')}" aria-label="${Z('搜地图', 'Search the map')}"></label><button type="button" class="mlink map-listbtn" data-maplist aria-expanded="false" aria-controls="mappane">${icon('list')}<span class="dlbl">${Z('列表', 'List')}</span><b id="mapn"></b></button></div>
+      <div class="map-chips"><button type="button" class="seg-btn map-filt${fd ? ' dayf' : ''}" data-mapfilters data-on="${fd ? 1 : 0}" aria-haspopup="dialog" aria-controls="mapfilt"${fd ? ` style="${colorVars(fd.c)}"` : ''}>${icon('calendar')}<span id="mapfilt-l">${esc(mapFiltLabel(fd))}</span>${icon('chev-r', 'part-ch')}</button><div class="map-ctrl cats" role="group" aria-label="${Z('分类', 'Category')}">${MAP_CATS.filter(
+				([k]) => k !== 'wish' || WISH.length,
 			)
-				.map(
-					(d) =>
-						`<button type="button" class="seg-btn dayf" data-filter="${d.id}" style="${colorVars(d.c)}">${+d.date.slice(8)} ${esc(L(d.dow))}</button>`,
-				)
-				.join('')}</div>
-      <div class="map-ctrl cats" role="group" aria-label="${Z('分类', 'Category')}">${MAP_CATS.filter(([k]) => k !== 'wish' || WISH.length)
 				.map(
 					([k, l]) =>
 						`<button type="button" class="seg-btn cat" data-cat="${k}" aria-pressed="${k === 'all'}">${k === 'all' ? '' : `<span class="cat-ic" aria-hidden="true">${pinSVG({ type: k === 'place' ? 'place' : k, days: [], wish: null })}</span>`}${esc(L(l))}</button>`,
 				)
-				.join('')}</div>
-      <div class="map-find" role="search"><label class="map-q">${icon('search')}<input id="mapq" type="search" enterkeyhint="search" autocomplete="off" placeholder="${Z('搜地图：店名、景点、厕所、饮料…', 'Search the map: name, sight, toilet, drinks…')}" aria-label="${Z('搜地图', 'Search the map')}"></label><button type="button" class="mlink map-listbtn" data-maplist aria-expanded="false" aria-controls="mapres">${icon('list')}<span class="dlbl">${Z('列表', 'List')}</span><b id="mapn"></b></button></div>
-      <div class="map-results" id="mapres" hidden></div>
-      <div class="map-results pfind" id="mapfind" role="region" aria-label="${Z('这个地方和行程', 'This place and the plan')}" hidden></div>
+				.join('')}</div></div>
+      <div class="map-box" id="mapbox">
+      <div class="map-pane" id="mappane" role="region" aria-label="${Z('地图列表', 'Map list')}" hidden>
+        <div class="pane-head"><span class="pane-grip" aria-hidden="true"></span><div class="pane-t" id="panet" aria-live="polite"></div><button type="button" class="icon-btn pane-btn" data-pane="up" aria-label="${Z('列表拉高', 'Make the list taller')}" aria-controls="mappane">${icon('chev', 'up')}</button><button type="button" class="icon-btn pane-btn" data-pane="down" aria-label="${Z('列表放低，多看地图', 'Make the list shorter, more map')}" aria-controls="mappane">${icon('chev')}</button><button type="button" class="icon-btn pane-x" data-pane="close" aria-label="${Z('关闭列表', 'Close the list')}">${icon('x')}</button></div>
+        <div class="map-results" id="mapres" hidden></div>
+        <div class="map-results pfind" id="mapfind" role="region" aria-label="${Z('这个地方和行程', 'This place and the plan')}" hidden></div>
+      </div>
       <div class="map-wrap" role="region" aria-label="${Z('行程地图', 'Trip map')}"><div class="map-msg" id="mapmsg"><p>${Z('地图载入中…', 'Loading the map…')}</p></div><button type="button" class="map-full" data-mapfull="1" aria-label="${Z('全屏看地图', 'Full-screen map')}">${icon('expand')}<span class="dlbl">${Z('全屏', 'Full screen')}</span></button></div>
+      </div>
+      <dialog class="sheet bsheet map-filts" id="mapfilt" aria-labelledby="mapfilt-h"><div class="bsheet-head"><span class="bsheet-grip" aria-hidden="true"></span><span class="part-ic" aria-hidden="true">${icon('calendar')}</span><h3 class="bsheet-h" id="mapfilt-h">${Z('哪天、哪一区', 'Day and area')}<small>${Z('选一个，地图就跟着变', 'Pick one; the map follows')}</small></h3><button type="button" class="icon-btn bsheet-x" data-close aria-label="${Z('关闭', 'Close')}">${icon('x')}</button></div>
+        <div class="bsheet-body">
+          <p class="sub-h" id="mapfilt-d">${Z('看哪一天的点', 'Show the pins of')}</p>
+          <div class="map-pick" role="group" aria-labelledby="mapfilt-d"><button type="button" class="seg-btn" data-filter="all" aria-pressed="${!fd}">${Z('全部天', 'All days')}</button>${DAYS.filter(
+						(d) => d.id !== ROLE.flight,
+					)
+						.map(
+							(d) =>
+								`<button type="button" class="seg-btn dayf" data-filter="${d.id}" style="${colorVars(d.c)}" aria-pressed="${d === fd}">Day ${d.n} · ${+d.date.slice(8)} ${esc(L(d.dow))}</button>`,
+						)
+						.join('')}</div>
+          <p class="sub-h" id="mapfilt-v">${Z('移到哪一区', 'Move the map to')}</p>
+          <div class="map-pick" role="group" aria-labelledby="mapfilt-v">${views.map(([k, l]) => `<button type="button" class="seg-btn" data-view="${k}" aria-pressed="false">${esc(L(l))}</button>`).join('')}</div>
+        </div></dialog>
       </div>
       <div class="map-legend">
         <span><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="var(--ink-2)"/></svg>${Z('景点', 'Sight')}</span>

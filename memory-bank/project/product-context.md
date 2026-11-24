@@ -94,6 +94,8 @@ planners, is in [`guides/trip-page.md`](../../guides/trip-page.md).
   - Google first, MapLibre as fallback;
   - Map and Directions links in Google Maps or Apple Maps, chosen per phone;
   - categories, search, a list and sorting; Google's results stay put while the phone's location updates;
+  - map-first: a search never hides the map; the results and the finder lie over it, a sheet on a phone and a side
+    panel on a wide screen, with the picked place's pin in the open part (ADR-20261124-map-first-search);
   - a place finder: a searched place's nearest stop on each day, the day it fits best, and one tap into the add sheet,
     from the page's own data and estimates, never a paid routing call (ADR-20261122-place-finder-best-day);
   - one details view for any place (our photo, the day's hours, the address), with Google's rating and photos on a tap

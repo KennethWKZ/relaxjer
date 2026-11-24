@@ -287,17 +287,23 @@ itself is the planner's: it's in the trip's data, and nobody makes one on the pa
 - **Google Maps** when the planner built with their own key (light and dark, Street View, a locate button), with live
   ratings, reviews, hours (today highlighted), photos and Google search. Otherwise a free MapLibre map on OpenFreeMap,
   falling back to OpenStreetMap's own tiles if that fails ([which to choose](google-maps.md)). It follows the theme.
-- **Filters:** an area button for each part of the trip, all days or one (it opens on today), and categories: sights,
-  food, wishlist, drinks, rest spots, toilets, metro, bike share and bus. A legend explains shape (the type) and colour
-  (the day).
+- **Map first:** the map fills the screen under the search and one row of categories, and searching never pushes it
+  away. On a phone the results lie in a sheet over the map's foot: drag its top, or use its arrow buttons, to see more
+  of the list (it stops at a peek, half and almost the whole map), and ✕ closes it. On a wider screen (a computer, a
+  tablet, or the map in full screen there) they sit in a panel down the map's left, with the map open beside it.
+- **Filters:** one button before the categories names the day the map shows (all days or one; it opens on today) and
+  opens a sheet with every day and an area button for each part of the trip; a tap applies it and closes the sheet.
+  The categories are sights, food, wishlist, drinks, rest spots, toilets, metro, bike share and bus. A legend explains
+  shape (the type) and colour (the day).
 - **Search and list:** search the map, or list what's on it with a count, by type or nearest first. A search also
   finds the shop box's supermarkets and pharmacies, which have no pin of their own, and works before the map has
-  loaded (or when it can't). With Google,
+  loaded (or when it can't load: the list still works). With Google,
   "Search Google" finds places the page doesn't have, near where you are (or the hotel), in the trip's country and the
   page's language; those results stay put while your location updates, and "Back to page results" returns to the
-  page's own.
+  page's own. A toilet, station or bike-share dock tapped in the list shows on the map with its popup, the list lowered
+  out of its way.
 - **Place finder:** tap a sight, shop, food, drink or wishlist place in the results (or a Google result) and it shows
-  in place of the list, on the map too (its pin, or a marker of its own): the day it fits best (the day whose stop is nearest, preferring one with free
+  in place of the list, its pin marked on the map in the part the list leaves open (or a marker of its own): the day it fits best (the day whose stop is nearest, preferring one with free
   time after that stop; never a day it's closed, a day that already has it, or a day that's over), how far that stop
   is and the walk or taxi there (walking ×1.4), and a warning when it's far from every day. Below, the other days'
   nearest stops, each one tap from adding. "Add to Day N" opens the add sheet on that day, right after that stop.
@@ -311,7 +317,8 @@ itself is the planner's: it's in the trip's data, and nobody makes one on the pa
 - **Pins:** a popup with the name, its days, the address, the nearest station and how to get there from you, then the
   full card under the map. Metro stations show their lines and the time to the trip's places; bike-share docks their
   live counts.
-- **Full screen**, with one-finger drag and Exit (Back closes it too). Your live location shows as a dot with an
+- **Full screen**, with one-finger drag and Exit (Back closes it too); search, the filters and the list work there the
+  same way. Your live location shows as a dot with an
   accuracy circle and a heading arrow when you move, and a dashed line runs to the pin you picked.
 - **All places**, as a list by day, each tapping to its pin.
 - **If it can't load** (offline, an ad blocker, an old phone), it says why, offers Try again and the hotel in Google

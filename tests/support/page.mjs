@@ -477,7 +477,8 @@ export const FINDER = {
 	googleResult: '#mapres [data-gfind]',
 	googleBack: '#mapres [data-gback]',
 	panel: '#mapfind',
-	back: '#mapfind [data-find-back]',
+	back: '#mappane [data-find-back]', // the finder's way back sits in the list pane's head
+	count: '#panet',
 	best: '#mapfind .pf-best',
 	addBest: '#mapfind .pf-best [data-fit-add]',
 	otherDays: '#mapfind .pf-day',
@@ -493,6 +494,28 @@ export const FINDER = {
 	google: '[data-gplace]',
 	googleBox: '.gplace',
 	detailsCard: '.pdet',
+};
+
+/** The map view's parts (ADR-20261124-map-first-search), as tests/e2e/map-search.spec.mjs reaches them: the stage, the
+ *  map's box, the list pane over it and its height buttons, the List button, the Filters button and its sheet. */
+export const MAP = {
+	stage: '#mapstage',
+	box: '#mapbox',
+	pane: '#mappane',
+	paneHead: '#mappane .pane-head',
+	up: '#mappane [data-pane="up"]',
+	down: '#mappane [data-pane="down"]',
+	close: '#mappane [data-pane="close"]',
+	list: '[data-maplist]',
+	filters: '[data-mapfilters]',
+	filtersLabel: '#mapfilt-l',
+	filtersSheet: '#mapfilt',
+	day: (id) => `#mapfilt [data-filter="${id}"]`,
+	area: '#mapfilt [data-view]',
+	cats: '.map-chips .map-ctrl [data-cat]',
+	pin: (pid) => `#livemap .lpin[data-pid="${pid}"]`,
+	full: '[data-mapfull="1"]',
+	exit: '.map-exit',
 };
 
 /** The landing page's (site/) parts the e2e checks: a looping demo, its Pause, the screen it plays on, the sky's art, the theme button and the hero phone's screenshot. */

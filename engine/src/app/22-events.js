@@ -230,10 +230,44 @@ document.addEventListener('click', (e) => {
 		withMap(() => map.filter(f));
 		return;
 	}
-	if (t.matches('[data-view]')) return map && map.view(t.dataset.view);
+	// the map's day and area live in a sheet behind one button (ADR-20261124-map-first-search): a pick applies and
+	// closes it, so the map shows the change at once; before the map has loaded it's remembered and applied when it is
+	if (t.matches('[data-mapfilters]')) {
+		openDialog($('#mapfilt'));
+		return;
+	}
+	if (t.matches('[data-view]')) {
+		const k = t.dataset.view;
+		closeDialog(t.closest('dialog'));
+		$$('[data-view]').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.view === k)));
+		withMap(() => map.view(k));
+		return;
+	}
 	if (t.matches('[data-filter]')) {
+		const f = t.dataset.filter;
 		mapView = 'list'; // a day the person picks: the page's places for it
-		return map && map.filter(t.dataset.filter);
+		closeDialog(t.closest('dialog'));
+		if (!map) {
+			mapDay = f;
+			$$('[data-filter]').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.filter === f)));
+			mapFiltSync();
+			mapListSync();
+		}
+		withMap(() => map.filter(f));
+		return;
+	}
+	if (t.matches('[data-pane]')) {
+		const k = t.dataset.pane;
+		if (k === 'close') {
+			if (finderAt) finderReset();
+			mapListOpen(false);
+			const q = $('#mapq');
+			if (q) q.focus({ preventScroll: true });
+			return;
+		}
+		const i = PANE_STOPS.indexOf(paneStop) + (k === 'up' ? 1 : -1);
+		paneTo(PANE_STOPS[Math.max(0, Math.min(PANE_STOPS.length - 1, i))]);
+		return;
 	}
 	if (t.matches('[data-reset-all]')) {
 		resetAll();
@@ -677,9 +711,16 @@ document.addEventListener('click', (e) => {
 			finderOpen(info, p.type === 'buy' ? null : pid, `[data-mres="${pid}"]`); // a shop box shop has no pin
 			return;
 		}
-		mapListOpen(false);
-		const w = $('.map-wrap');
-		if (!mapFullOn && w && w.getBoundingClientRect().top < 0) w.scrollIntoView({ block: 'center', behavior: 'instant' });
+		const card = $('#mapcard');
+		if (p && liveFailed && card) {
+			// no map to show it on: its card, under the map
+			showCard(p);
+			scrollToEl(card, 'center', false);
+			return;
+		}
+		// transport and toilets: the list stays, lowered to a peek on a phone, so the pin and its popup show above it
+		if (!paneSide()) paneTo('peek');
+		stageInView();
 		if (p && !map) showCard(p); // the card under the map, while the live map is still on its way (or can't come)
 		withMap(() => map.select(pid));
 		return;
