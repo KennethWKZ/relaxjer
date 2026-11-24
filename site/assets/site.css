@@ -1561,7 +1561,7 @@ svg.i {
 	font-size: 16px;
 }
 /* the bottom bar (ADR-20261124-bottom-app-bar; DESIGN.md, Bottom bar): Today, Days, Map and More, each a 24 px mark
-   over its word, on the header's glass along the screen's foot. The lit item fills its mark's 56 × 30 px tile at 18 %
+   over its word, on plain paper along the screen's foot. The lit item fills its mark's 56 × 30 px tile at 18 %
    and goes 800 in ink, two cues; the tile takes the day's colour on a day (.m-tabbar.day), ink elsewhere. Today's mark
    carries the date (data-d). Sheets, the scrim and the toast sit over the bar, as on the phone */
 .m-tabbar {
@@ -1575,9 +1575,9 @@ svg.i {
 	grid-auto-columns: minmax(0, 1fr);
 	height: var(--m-bar-h);
 	padding: 0 8px calc(var(--m-bar-h) - 56px);
-	background: color-mix(in srgb, var(--paper) 82%, transparent);
-	-webkit-backdrop-filter: blur(20px) saturate(180%);
-	backdrop-filter: blur(20px) saturate(180%);
+	/* plain paper, not the trip page's glass: a backdrop blur inside each scaled, rounded screen escapes its corners in
+	   Chromium, isn't drawn in WebKit, and on a GPU-less WebKit (CI) fourteen of them slow the page to a crawl */
+	background: var(--paper);
 	box-shadow: 0 -1px 0 var(--glass-edge);
 }
 .m-tabbar.day {
@@ -5353,11 +5353,6 @@ thead th.rec {
 		backdrop-filter: none;
 		box-shadow: 0 1px 0 var(--rule);
 	}
-	.m-tabbar {
-		background: var(--paper);
-		-webkit-backdrop-filter: none;
-		backdrop-filter: none;
-	}
 }
 @media (prefers-contrast: more) {
 	.bar {
@@ -5367,9 +5362,6 @@ thead th.rec {
 		box-shadow: 0 1px 0 var(--ink);
 	}
 	.m-tabbar {
-		background: var(--paper);
-		-webkit-backdrop-filter: none;
-		backdrop-filter: none;
 		box-shadow: 0 -1px 0 var(--ink);
 	}
 	.nav .nav-gh,
