@@ -72,6 +72,11 @@ export const dateLabel = (s, lang, dow) =>
 		? `${dow ? dow[1] + ' ' : ''}${+s.slice(8, 10)} ${MON[+s.slice(5, 7) - 1]}`
 		: `${+s.slice(5, 7)}月${+s.slice(8, 10)}日${dow ? ' 周' + dow[0] : ''}`;
 
+/** "Sat 13 Mar" / "3/13 周六": a heading's short date, where a calendar mark beside it says what it is (the full form
+ *  stays for screen readers); English is already short. The weekday keeps its 周: a bare 一 reads as a dash */
+export const compactDate = (s, lang, dow) =>
+	lang === 'en' ? dateLabel(s, lang, dow) : `${+s.slice(5, 7)}/${+s.slice(8, 10)}${dow ? ' 周' + dow[0] : ''}`;
+
 /** "19 Mar" / "3/19": the short form used in front of a next-day time */
 export const shortDate = (s, lang) => (lang === 'en' ? `${+s.slice(8, 10)} ${MON[+s.slice(5, 7) - 1]}` : `${+s.slice(5, 7)}/${+s.slice(8, 10)}`);
 

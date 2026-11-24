@@ -188,8 +188,11 @@ function nearWish(d, it) {
 		? `<div class="stop-near"><span class="sn-h">${icon('star')}${Z('附近想去', 'Nearby')}</span>${rows.map((x) => `<a class="eat-chip is-wish${x.w.must ? ' must' : ''}" href="#wish-${esc(x.w.id)}">${mustB(x.w)}${esc(wName(x.w))} <span class="eat-r">${distLabel(x.k)}</span></a>`).join('')}</div>`
 		: '';
 }
-// optional plans the trip suggests at this stop (OPTIONAL[].near): a tap opens the card over the day
-function nearOpts(d, it) {
+// optional plans the trip suggests at this stop (OPTIONAL[].near): a tap opens the card over the day. The row folds to
+// its count ("3 nearby options") behind a chevron: closed by default on a phone, where the day's string comes first,
+// open on a wider screen; a tap opens or closes it, remembered per stop for this page view only (optsOpen), never stored
+const optsOpen = new Map();
+function nearOpts(d, it, sid) {
 	if (!it.place) return '';
 	const at = placeLL(it.place);
 	const shut = (pid) => (((GEO && GEO.places && GEO.places[pid]) || {}).closed_dates || []).includes(d.date);
@@ -197,9 +200,18 @@ function nearOpts(d, it) {
 		const to = placeLL(o.place);
 		return { o, k: at && to ? km(at, to) : null };
 	});
-	return rows.length
-		? `<div class="stop-near stop-opts"><span class="sn-h">${icon('list')}${Z('顺路可选', 'Nearby options')}</span>${rows.map((x) => `<a class="eat-chip is-opt" href="#${esc(x.o.id)}">${esc(L(x.o.short || x.o.name))}${x.k != null ? ` <span class="eat-r">${distLabel(x.k)}</span>` : ''}</a>`).join('')}</div>`
-		: '';
+	if (!rows.length) return '';
+	const open = optsOpen.has(sid) ? optsOpen.get(sid) : !matchMedia('(max-width: 599px)').matches;
+	const n = rows.length;
+	return `<div class="stop-near stop-opts"><button type="button" class="sn-tog" data-opts="${sid}" aria-expanded="${open}" aria-controls="${sid}-opts">${icon('list')}<span class="sn-h">${Z(`附近可选 ${n}`, `${n} nearby option${n > 1 ? 's' : ''}`)}</span>${icon('chev', 'chev')}</button><div class="sn-list" id="${sid}-opts"${open ? '' : ' hidden'}>${rows.map((x) => `<a class="eat-chip is-opt" href="#${esc(x.o.id)}">${esc(L(x.o.short || x.o.name))}${x.k != null ? ` <span class="eat-r">${distLabel(x.k)}</span>` : ''}</a>`).join('')}</div></div>`;
+}
+/** opens or closes a stop's nearby options (the toggle's own tap) */
+function optsToggle(b) {
+	const open = b.getAttribute('aria-expanded') !== 'true';
+	optsOpen.set(b.dataset.opts, open);
+	b.setAttribute('aria-expanded', String(open));
+	const list = document.getElementById(b.getAttribute('aria-controls'));
+	if (list) list.hidden = !open;
 }
 function nearDrinks(d, it) {
 	// a drink within a few minutes' walk: best rated first
@@ -351,11 +363,12 @@ function mealEats(d, it) {
 }
 
 const placeMemo = new Map(); // this page view only; ratings/photos are never stored
-// Google's rating and photos on a tap (only with the planner's key): by the place's Google id, or by its ref
-// (21-place-finder.js), which can look the id up near its pin
+// Google's hours, photos and reviews on a tap (only with the planner's key): by the place's Google id, or by its ref
+// (21-place-finder.js), which can look the id up near its pin. Named Info, not Rating: on a phone, where the rest of
+// the label folds away, "Rating" with a star read like "rate us"; and not Details, which is the finder's own action
 const gBtn = (id, ref) =>
 	GM && (id || ref)
-		? `<button type="button" class="mlink gbtn" data-gplace="${esc(id || '')}"${ref ? ` data-gref="${esc(ref)}"` : ''}>${icon('star')}<span>${Z('评分', 'Rating')}</span><span class="dlbl">${Z('和照片', ' & photos')}</span></button>`
+		? `<button type="button" class="mlink gbtn" data-gplace="${esc(id || '')}"${ref ? ` data-gref="${esc(ref)}"` : ''}>${icon('info')}<span>${Z('资料', 'Info')}</span><span class="dlbl">${Z(' · 营业时间、照片、评价', ' · hours, photos, reviews')}</span></button>`
 		: '';
 const gBox = (id) => (GM && id ? '<div class="gplace" hidden></div>' : '');
 async function loadPlace(id, box) {

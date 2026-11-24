@@ -3,10 +3,10 @@ import { test, expect, openTrip } from '../support/fixtures.mjs';
 import { fillAll, show } from '../support/page.mjs';
 
 const TABS = ['map', 'airport', 'entry', 'optional', 'wish', 'eat', 'budget', 'weather', 'checklist', 'rules'];
-// the wishlist is optional trip data: a trip without one has no section and no tab
+// the wishlist is optional trip data: a trip without one has no section and no way to it
 const tabsOf = (page) =>
 	page.evaluate((tabs) => tabs.filter((t) => t !== 'wish' || (window.WISH || []).some((w) => w && w.branches && w.branches.length)), TABS);
-// every day of the trip gets a section and a tab
+// every day of the trip gets a section and a row in the week
 const daySections = (page) =>
 	page.evaluate(() => {
 		/* global DAYS */
@@ -23,11 +23,12 @@ test('renders every section with no outside network', async ({ page, blocked }) 
 	test.info().annotations.push({ type: 'blocked hosts', description: [...new Set(blocked)].sort().join(', ') || 'none' });
 });
 
-test('each tab points at a section that exists', async ({ page }) => {
+// the week rail lists every view (a desktop shows it; the bottom bar's Days and More reach the same views)
+test('each view in the week points at a section that exists', async ({ page }) => {
 	await openTrip(page);
-	const targets = await page.locator('.tab[href^="#"]').evaluateAll((as) => as.map((a) => a.getAttribute('href').slice(1)));
+	const targets = await page.locator('#rail .rl[href^="#"]').evaluateAll((as) => as.map((a) => a.getAttribute('href').slice(1)));
 	expect(targets.length).toBeGreaterThanOrEqual((await tabsOf(page)).length + (await daySections(page)).length);
-	for (const id of targets) await expect(page.locator(`[id="${id}"]`), `tab target #${id}`).toBeAttached();
+	for (const id of targets) await expect(page.locator(`[id="${id}"]`), `the week's #${id}`).toBeAttached();
 });
 
 test('closed lists are not built until opened', async ({ page }) => {

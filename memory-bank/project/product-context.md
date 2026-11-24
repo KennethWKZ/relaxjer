@@ -85,8 +85,9 @@ planners, is in [`guides/trip-page.md`](../../guides/trip-page.md).
   so a long trip never becomes one long page: a day fits in a few phone screens. Back steps through the views and
   restores each one's scroll; every jump (Now and Next, search, the map, the Sections menu, a link) opens its view
   first. A day's planning cards are summary buttons with a one-line summary, each opening a sheet that scrolls on its
-  own and closes with Back; big Previous day and Next day buttons end every day. The Sections button is there from the
-  first screen of every view.
+  own and closes with Back; big Previous day and Next day buttons end every day. On a phone and a tablet a bottom bar
+  (Today, Days, Map, More) is on every view, like an app's, and nothing needs a sideways scroll to reach; a computer has
+  the week rail and the Sections button.
 - **Map:**
   - Google first, MapLibre as fallback;
   - Map and Directions links in Google Maps or Apple Maps, chosen per phone;
@@ -118,8 +119,9 @@ planners, is in [`guides/trip-page.md`](../../guides/trip-page.md).
   - an offline notice;
   - a home-screen install button, with the iPhone steps as a guide;
   - an update bar when a newer build is live (never while offline);
-  - site search, the Sections menu (Now and Next at the top on a trip day), a Back pill, instant tab jumps with a
-    landing glow; on a computer a week rail beside the view and sheets as a side panel;
+  - site search, the bottom bar on a phone and a tablet (Today, Days, Map, More, with the settings and the sky's pause
+    in More), a Back pill above it, instant jumps with a landing glow; on a computer a week rail beside the view, the
+    Sections menu (Now and Next at the top on a trip day) and sheets as a side panel;
   - with group sync, a phone's first open asks once for a name in a welcome sheet (Not now is fine), and until it has
     one a bar under the header asks again (Add name, or Later, which hides it for a day). Group sync itself stays a row
     in the Sections menu;

@@ -68,7 +68,8 @@ exist for them. This file extends [`frontend.md`](./frontend.md). The rules are 
 14. **A sideways scroller shows that there's more**, on each side where there is: the next item clipped by at least a
     quarter, or an edge fade. A hidden scrollbar needs a substitute [10][11][19].
     _Check:_ at 390 and 360 px, and at the start, middle and end of the scroll, every side with more has a cue.
-15. **Nothing is reachable only by scrolling sideways or dragging.** The Sections sheet repeats the day strip. Keep
+15. **Nothing is reachable only by scrolling sideways or dragging.** Below 1024 px the bottom bar's Days lists every day
+    down its sheet, and More every section; nothing in the header scrolls sideways. Keep
     `overscroll-behavior-x: contain`, because an edge swipe means Back [11][14].
 16. **A selected state uses two cues** (fill plus weight, an underline or an icon), and selected against unselected is
     at least 3:1 or carries a non-colour cue [14][15].

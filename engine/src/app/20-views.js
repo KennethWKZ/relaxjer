@@ -1,9 +1,9 @@
 /* ───────── views: one part of the trip on screen at a time (ADR-20261122-day-views) ─────────
-   Every tab is a view: the overview, each day, and each section the tabs list. A view is its <section data-sec> in
-   #app; the others stay in the page (search, copy, the map and every jump read them) but aren't drawn ([data-off]).
-   The address names the view (#d3, #budget…) or a place inside one (#d3-s2), and every way in (a tab, the week list,
-   the rail, the day's previous / next buttons, the Sections menu, search, the Now card, a map pin's list link) shows
-   that view first. Each history step remembers its own place, so Back and Forward return to the same view at the same
+   Every part of the trip is a view: Today (the overview), each day, and each section. A view is its <section data-sec>
+   in #app; the others stay in the page (search, copy, the map and every jump read them) but aren't drawn ([data-off]).
+   The address names the view (#d3, #budget…) or a place inside one (#d3-s2), and every way in (the bottom bar and its
+   Days and More sheets, the week list, the rail, the day's previous / next buttons, the Sections menu, search, the Now
+   card, a map pin's list link) shows that view first. Each history step remembers its own place, so Back and Forward return to the same view at the same
    scroll (the back-navigation rules in memory-bank/standards/patterns/frontend.md). The page restores every step
    itself, so the browser's own restoration is off for good. */
 let curView = '';
@@ -38,11 +38,11 @@ function cardFromHash(h = location.hash) {
 	if (card) openSheet(card, id);
 	return !!card;
 }
-// the views in tab order, as drawn (a trip without a live map draws no map view)
+// the views in the trip's order, as drawn (a trip without a live map draws no map view)
 const viewIds = () => viewSecs().map((s) => s.id);
 const viewIdx = (id) => viewIds().indexOf(id);
 
-/** shows one view: the others aren't drawn, the tab and the rail light it, the sky takes its weather. y: scroll to */
+/** shows one view: the others aren't drawn, the bar and the rail light it, the sky takes its weather. y: scroll to */
 function showView(id, y) {
 	const secs = viewSecs();
 	if (!secs.length) return;
@@ -54,6 +54,7 @@ function showView(id, y) {
 	active = ''; // relight even when the redraw left the same id lit
 	setActive(id);
 	railMark();
+	barMark();
 	skyView(id);
 	if (y != null) window.scrollTo({ top: y, behavior: 'instant' });
 	lastY = window.scrollY;
@@ -107,7 +108,7 @@ function goView(id, replace) {
 // a click in the rail leaves the focus in the rail, which scrolls on its own (Safari, which doesn't focus a clicked
 // link, scrolls the area last clicked), and a day's previous / next button leaves with its view: Page Down and Space
 // then moved the rail, or nothing. The new view's heading takes the focus instead (a screen reader says where it
-// arrived), without a scroll. A tab in the strip keeps it: the strip only scrolls sideways
+// arrived), without a scroll. An item in the bottom bar keeps it: the bar doesn't scroll
 function focusView(id) {
 	const a = document.activeElement;
 	if (a && a !== document.body && !a.closest('#rail, #app > [data-off]')) return;
@@ -323,12 +324,12 @@ function pagerHTML(d) {
 		const x = dayById[id];
 		const n = NAV.find((m) => m.id === id);
 		const h = x ? (dir === 'prev' ? Z('上一天', 'Previous day') : Z('下一天', 'Next day')) : L(n.label);
-		const sub = x ? `${dateLabel(x.date, x.dow)} · ${L(x.title)}` : id === 'top' ? Z('整个行程', 'The whole trip') : '';
+		const sub = x ? `${dateLabel(x.date, x.dow)} · ${L(x.title)}` : id === 'top' ? Z('现在、接下来和这一周', 'Now, next and the week') : '';
 		return `<a class="pg ${dir}" href="#${id}" data-pager="${dir}"${x ? ` style="${colorVars(x.c)}"` : ''}><b>${dir === 'prev' ? icon('arrow-l') : ''}<span>${esc(h)}</span>${dir === 'next' ? icon('arrow') : ''}</b>${sub ? `<small>${esc(sub)}</small>` : ''}</a>`;
 	};
 	return `<nav class="pager" aria-label="${Z('换一天', 'Other days')}">${card(ids[i - 1], 'prev')}${card(ids[i + 1], 'next')}</nav>`;
 }
-// a section the tabs list is drawn unless it has nothing to show (the map without positions)
+// a section is drawn unless it has nothing to show (the map without positions)
 const navDrawn = (id) => (id === 'map' ? !!GEO : true);
 (() => {
 	let t0 = null;
@@ -336,7 +337,7 @@ const navDrawn = (id) => (id === 'map' ? !!GEO : true);
 	app.addEventListener(
 		'touchstart',
 		(e) => {
-			const skip = '.tabs, .photos, .tbl-wrap, .map-wrap, .scroll-x, .route-line, .parts, input, textarea, [data-noswipe]';
+			const skip = '.photos, .tbl-wrap, .map-wrap, .scroll-x, .route-line, .parts, input, textarea, [data-noswipe]';
 			// in the snow globe a sideways swipe on the sky is the globe's (24-sky.js)
 			const globe = skyMode() === 'globe' && e.target.closest('[data-band]');
 			if (!dayById[curView] || e.touches.length > 1 || globe || e.target.closest(skip)) {

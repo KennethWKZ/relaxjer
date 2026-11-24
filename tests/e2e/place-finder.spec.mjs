@@ -202,7 +202,7 @@ test.describe('with the planner’s key (a stand-in, Google stubbed in the page)
 		await page.addInitScript(stubGoogle);
 	});
 
-	test('a stop’s Rating & photos opens its details, found by name near its pin, with Google’s rating, hours and photo', async ({ page }) => {
+	test('a stop’s Info opens its details, found by name near its pin, with Google’s rating, hours and photo', async ({ page }) => {
 		await beforeTrip(page, '/trip-gkey.html');
 		const btn = page.locator(`.stop-links ${F.google}`).first();
 		await show(page, btn); // its stop's sheet

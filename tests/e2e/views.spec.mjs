@@ -2,7 +2,7 @@
 // buttons that open sheets, a stop's own sheet, the Sections button's rules, jumps that land in the right view, the
 // desktop's week rail and side panel, and nothing wider than a phone in either language. Any trip.
 import { test, expect, openTrip } from '../support/fixtures.mjs';
-import { goToView, openPart, overflow, settle, setStored, switchLang, VIEWS, viewOn } from '../support/page.mjs';
+import { BAR, goToView, hasBar, openPart, overflow, settle, setStored, switchLang, VIEWS, viewOn } from '../support/page.mjs';
 
 /* global DAYS -- the trip data, read inside the page */
 
@@ -98,6 +98,7 @@ test("a link into a part's sheet opens its view and the sheet at that place", as
 
 test('the Sections button is there on every view, and steps aside for search, the map and the day buttons', async ({ page }) => {
 	await openTrip(page);
+	test.skip(await hasBar(page), "a desktop's: below 1024 px the bottom bar's Days and More take its place");
 	const fab = page.locator('#tocBtn');
 	await expect(fab).toHaveAttribute('data-show', '1');
 	// safe-area inset: it sits 16 px above the bottom edge or the phone's home bar (once it has risen into place)
@@ -178,11 +179,11 @@ test('a sideways swipe on a day steps to the next day and back (a bonus: the but
 	await expect(page.locator('html')).toHaveAttribute('data-showing', a);
 });
 
-test('a desktop gets the week rail instead of the tab strip, and the sheets open as a side panel', async ({ page }) => {
+test('a desktop gets the week rail instead of the bottom bar, and the sheets open as a side panel', async ({ page }) => {
 	test.skip(!page.viewportSize() || page.viewportSize().width < 1024, 'desktop only');
 	await openTrip(page);
 	await expect(page.locator('#rail')).toBeVisible();
-	await expect(page.locator('#tabs')).toBeHidden();
+	await expect(page.locator(BAR.bar)).toBeHidden();
 	await expect(page.locator('#rail [data-rail="top"]')).toHaveAttribute('aria-current', 'page');
 	const day = await page.evaluate(() => (DAYS.find((d) => d.blocks.length) || DAYS[0]).id);
 	await goToView(page, day);

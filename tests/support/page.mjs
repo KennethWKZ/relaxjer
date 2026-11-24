@@ -44,7 +44,7 @@ export function overflow(page) {
 		const out = [];
 		const de = document.documentElement;
 		if (de.scrollWidth > de.clientWidth + 1) out.push(`page scrolls sideways: ${de.scrollWidth} > ${de.clientWidth}`);
-		const SCROLLERS = '.tabs,.map-ctrl,.tbl-wrap,.scroll-x,.maplibregl-map,.week';
+		const SCROLLERS = '.map-ctrl,.tbl-wrap,.scroll-x,.maplibregl-map,.week';
 		for (const sec of document.querySelectorAll('#app > section')) {
 			const s = sec.getBoundingClientRect();
 			for (const e of sec.querySelectorAll('*')) {
@@ -153,11 +153,43 @@ export function tripAmounts(page, all = false) {
 /** The header's currency button: it names the currency the figures would switch to. */
 export const curBtn = (page) => page.locator('#bar #curBtn');
 
-/** Opens the Sections menu the way a reader does: its round button, there from the first screen of every view. */
+/* ───────── the bottom bar (ADR-20261124-bottom-app-bar): below 1024 px Today, Days, Map and More; a desktop keeps the
+   rail and the Sections button ───────── */
+
+export const BAR = {
+	bar: '#tabbar',
+	item: '#tabbar .tb',
+	today: '#tabbar [data-tb="top"]',
+	days: '#daysBtn',
+	map: '#tabbar [data-tb="map"]',
+	more: '#moreBtn',
+	daysSheet: '#days',
+	dayRow: '#days [data-day]',
+	lit: '#tabbar .tb[aria-current]',
+	skyRow: '#toc [data-sky-toggle]',
+};
+
+/** True where the bottom bar stands (a phone, a tablet), false on a desktop. */
+export const hasBar = (page) => page.locator(BAR.bar).isVisible();
+
+/** Opens the menu with the sections and the settings the way a reader does: the bar's More on a phone and a tablet, the
+ *  round Sections button on a desktop (there from the first screen of every view). */
 export async function openSections(page) {
-	await expect(page.locator('#tocBtn')).toHaveAttribute('data-show', '1');
-	await page.locator('#tocBtn').click();
+	if (await hasBar(page)) await page.locator(BAR.more).click();
+	else {
+		await expect(page.locator('#tocBtn')).toHaveAttribute('data-show', '1');
+		await page.locator('#tocBtn').click();
+	}
 	await expect(page.locator('#toc')).toBeVisible();
+}
+
+/** The sky's Pause where a reader finds it: in the header on a desktop; in the bar's More on a phone and a tablet (this
+ *  opens More when it's closed). */
+export async function skyPause(page) {
+	if (!(await hasBar(page))) return page.locator('#skyBtn');
+	if (!(await page.locator('#toc').evaluate((d) => d.open))) await page.locator(BAR.more).click();
+	await expect(page.locator('#toc')).toBeVisible();
+	return page.locator(BAR.skyRow);
 }
 
 /* ───────── views (ADR-20261122-day-views): one part of the trip on screen at a time ───────── */
@@ -169,11 +201,20 @@ export const viewOn = (page) => page.locator('html').getAttribute('data-showing'
  *  (06-render-blocks.js), so a check that reads the whole page fills them first. */
 export const fillAll = (page) => page.evaluate(() => window.RJ_FILL && window.RJ_FILL());
 
-/** Shows a view the way a reader does (its tab on a phone and a tablet, the week rail on a desktop) and waits for it. */
+/** Shows a view the way a reader does and waits for it: on a phone and a tablet the bottom bar (Today and the map
+ *  straight from it, a day from Days, any other section from More); on a desktop the week rail. */
 export async function goToView(page, id) {
-	const tab = page.locator(`#tabs .tab[href="#${id}"]`);
-	if (await tab.isVisible()) await tab.click();
-	else await page.locator(`#rail [data-rail="${id}"]`).click();
+	if (await hasBar(page)) {
+		const direct = page.locator(`${BAR.bar} a[href="#${id}"]`);
+		if (await direct.count()) await direct.click();
+		else if (await page.locator(`#app > #${id}.day`).count()) {
+			await page.locator(BAR.days).click();
+			await page.locator(`#days [data-day="${id}"]`).click();
+		} else {
+			await page.locator(BAR.more).click();
+			await page.locator(`#toc a[href="#${id}"]`).first().click();
+		}
+	} else await page.locator(`#rail [data-rail="${id}"]`).click();
 	await expect(page.locator('html')).toHaveAttribute('data-showing', id);
 	await settle(page);
 }

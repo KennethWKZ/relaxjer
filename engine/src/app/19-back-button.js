@@ -152,7 +152,7 @@ function scrollToEl(el, block, smooth) {
 }
 const noMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 function goTo(el, block = 'start', after, instant) {
-	// a whole view (a tab, the week list, the rail, a day's previous / next): that view, as its own step (20-views.js)
+	// a whole view (the bottom bar, the week list, the rail, a day's previous / next): that view, as its own step (20-views.js)
 	if (el.matches('#app > [data-sec]')) {
 		goView(el.id);
 		return;

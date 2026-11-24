@@ -156,3 +156,12 @@ the room instead of the pause moving to the end of the date tabs. A new optional
 the header's room changes; `brandFit` in `09-main-render.js`), and a header under 380 px with Install and the currency
 steps the brush down once more, so a three-character short name stays whole at 360 px. The page title and the
 home-screen name keep the whole brand.
+
+## Amendment 2026-11-24
+
+Below 1024 px, [ADR-20261124-bottom-app-bar](ADR-20261124-bottom-app-bar.md) replaces this decision's ways around: the
+header's date tabs give way to a bottom bar (Today, Days, Map, More); the Sections button stays only on a desktop; the
+sky's Pause leaves the header (and the top row the first amendment kept it in) for a row in More's settings, while a
+desktop keeps it in the header; the piling snow builds up on the band's drift, with no date tabs left to catch it; and
+the overview is named Today. A stop's suggested optional plans stay on the string, folded to their count on a phone.
+The views, their addresses and history steps, the planning sheets and the skies stand as decided here.

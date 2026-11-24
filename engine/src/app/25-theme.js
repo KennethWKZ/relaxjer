@@ -54,6 +54,7 @@ function worldHello() {
 setInterval(() => {
 	renderNow();
 	markToday();
+	barToday();
 }, 60000);
 geoWatch(); // on a trip day, follow the phone if location is already allowed (never asks by itself)
 

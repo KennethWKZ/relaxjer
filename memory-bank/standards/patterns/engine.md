@@ -42,13 +42,17 @@ pack export instead, document it in `trip-format.md`, and have the contract chec
   section stays in `#app`, the others carry `data-off`. Anything that takes the reader somewhere goes through the views:
   `goView(id)` for a whole view, `goTo` / `landOn(el)` for a place inside one (its view first, then its sheet when it
   sits in a `dialog.bsheet`, then the scroll). Never `scrollIntoView` an element in another view, and never set
-  `history.scrollRestoration` back to `auto`: each history step keeps its own view and scroll.
+  `history.scrollRestoration` back to `auto`: each history step keeps its own view and scroll. Below 1024 px the bottom
+  bar (`renderBar`, `barMark` in `04-render-nav.js`; [ADR-20261124-bottom-app-bar](../decisions/ADR-20261124-bottom-app-bar.md))
+  is the way in: Today and Map are links to their views, Days and More open sheets (`renderDays`, `renderToc('more')`),
+  so every tap is a step Back undoes.
 - A planning part is a summary button plus a sheet (`partsHTML` in `06-render-blocks.js`). Its summary is read from
   the data, generic (never a trip's names); a block's own `sum` replaces it. A part's sheet is a closed list: it's
   built the first time it opens, or when search or a jump needs it (`lazyFill`, `lazyFor`), so code that reads inside
   a sheet must not assume it's drawn, and the page-wide e2e audits fill them first (`fillAll`).
 - A world's sky (`24-sky.js`, `core/sky.mjs`) reads the mode from `html[data-sky]` (the build's `TRIP.sky` or the
-  world's own) and never draws when it is `off`. The preview build's choices go through `LOOK` (`01-storage.js`), never
+  world's own) and never draws when it is `off`. Its Pause is the header's `#skyBtn` on a desktop and More's
+  `[data-sky-toggle]` row below 1024 px; `skyBtnSync` keeps both in step. The preview build's choices go through `LOOK` (`01-storage.js`), never
   through `store`.
 
 ## Core modules and packs

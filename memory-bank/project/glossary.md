@@ -49,29 +49,31 @@ Use these words, as written, in code, tests, docs and commit messages, so names 
 | getting-there check     | The add sheet working out the trip from the stop before (or the phone): walk ×1.4, taxi and metro minutes, "Use HH:MM" when too early, and when to leave for the next timed stop                                                                                                 |
 | Copy for chat           | A day's plan as text for the group chat: times, notes, each person's budget, the rain plan and the link                                                                                                                                                                          |
 | driver card             | "Show the driver": a full-screen card with a place's local name, address and phone, for a taxi                                                                                                                                                                                   |
-| countdown               | The Overview before the trip: days to go, the flight, the first night, and the to-dos coming due                                                                                                                                                                                 |
+| countdown               | Today before the trip: days to go, the flight, the first night, and the to-dos coming due                                                                                                                                                                                        |
 | day split               | `DAYS[i].split`: part of the group takes its own plan for a few hours, hung at a dashed knot where the day's string forks (ADR-20261001-day-split)                                                                                                                               |
 | rejoin stop             | The stop of a split day where the group comes back together; it says `Rejoining here: <who> (<plans>)`                                                                                                                                                                           |
 
 ## Engine and packs
 
-| Term             | Meaning                                                                                                                                                     |
-| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| engine           | `engine/`: the page's sections, styles, shell and the single-file build                                                                                     |
-| section (engine) | One fragment `engine/src/app/NN-*.js`. The build joins them in order into one script, so they share one scope                                               |
-| core module      | `engine/src/core/*.mjs`: pure logic (time, money, plan) with no DOM and no trip globals, unit-tested                                                        |
-| destination pack | `destinations/<cc>/pack.mjs`: what the page knows about a country (currency symbol, tax refund, visitor programmes)                                         |
-| region pack      | `destinations/<cc>/regions/<city>/pack.mjs`: a city (its metro's name, taxi meter, bike share)                                                              |
-| `Pack`           | The merged pack the page reads: the region over the country                                                                                                 |
-| native layer     | The destination's own language for place names, menus, signs and "show the driver" text, with romanization (story step 4)                                   |
-| UI languages     | The two languages the group reads the page in, today fixed to Chinese + English (`Z(zh, en)`)                                                               |
-| build            | `pnpm build --trip <dir>` → `<fileName>-standalone.html` (the page to publish), `<fileName>.html` and the My Maps KML                                       |
-| build id         | `<meta name="relaxjer-build">`, 12 hex characters. The page compares it with the live copy's to offer an update, and a publish is verified by it            |
-| page policy      | The Content-Security-Policy the build writes into the page: inline scripts by hash, only the hosts it uses, MapLibre with integrity (ADR-20261001-page-csp) |
-| storage key      | `TRIP.storageKey`: the prefix the page saves the reader's state under. A published page keeps its prefix, or readers lose what they saved                   |
-| section skipping | `content-visibility: auto` on sections, in Chromium-family browsers only (WebKit claims scroll anchoring but doesn't hold it)                               |
-| landing glow     | The one-time ring on a heading or lantern after a jump, so the reader sees where they arrived                                                               |
-| Back pill        | The floating button that returns the reader to where they were before a jump                                                                                |
+| Term              | Meaning                                                                                                                                                     |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| engine            | `engine/`: the page's sections, styles, shell and the single-file build                                                                                     |
+| section (engine)  | One fragment `engine/src/app/NN-*.js`. The build joins them in order into one script, so they share one scope                                               |
+| core module       | `engine/src/core/*.mjs`: pure logic (time, money, plan) with no DOM and no trip globals, unit-tested                                                        |
+| destination pack  | `destinations/<cc>/pack.mjs`: what the page knows about a country (currency symbol, tax refund, visitor programmes)                                         |
+| region pack       | `destinations/<cc>/regions/<city>/pack.mjs`: a city (its metro's name, taxi meter, bike share)                                                              |
+| `Pack`            | The merged pack the page reads: the region over the country                                                                                                 |
+| native layer      | The destination's own language for place names, menus, signs and "show the driver" text, with romanization (story step 4)                                   |
+| UI languages      | The two languages the group reads the page in, today fixed to Chinese + English (`Z(zh, en)`)                                                               |
+| build             | `pnpm build --trip <dir>` → `<fileName>-standalone.html` (the page to publish), `<fileName>.html` and the My Maps KML                                       |
+| build id          | `<meta name="relaxjer-build">`, 12 hex characters. The page compares it with the live copy's to offer an update, and a publish is verified by it            |
+| page policy       | The Content-Security-Policy the build writes into the page: inline scripts by hash, only the hosts it uses, MapLibre with integrity (ADR-20261001-page-csp) |
+| storage key       | `TRIP.storageKey`: the prefix the page saves the reader's state under. A published page keeps its prefix, or readers lose what they saved                   |
+| section skipping  | `content-visibility: auto` on sections, in Chromium-family browsers only (WebKit claims scroll anchoring but doesn't hold it)                               |
+| landing glow      | The one-time ring on a heading or lantern after a jump, so the reader sees where they arrived                                                               |
+| Back pill         | The floating button that returns the reader to where they were before a jump                                                                                |
+| bottom bar        | Below 1024 px: Today, Days, Map and More at the foot of the screen (ADR-20261124-bottom-app-bar); a desktop has the rail                                    |
+| `--chrome-bottom` | What the bottom bar takes from the foot of the screen (home bar included), `0px` without one; what floats sits on it                                        |
 
 ## Tests and release
 

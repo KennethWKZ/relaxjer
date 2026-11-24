@@ -1,11 +1,11 @@
 /* ───────── the live sky (ADR-20261122-day-views) ─────────
    A world with a sky (Snow Light Path: `sky` in its .mjs) draws one: TRIP.sky picks which ('live': the day's own
-   weather falling by itself; 'globe': a snow globe to shake; 'pile': snow that piles on the drift and the date tabs;
-   'off'), else the world's. On a phone and a tablet the sky is the sticky header and a band at the top of each view,
+   weather falling by itself; 'globe': a snow globe to shake; 'pile': snow that piles on the band's drift, and on a
+   desktop on the ground, the rail and the view's card; 'off'), else the world's. On a phone and a tablet the sky is the sticky header and a band at the top of each view,
    the snow behind the words; from 1024 px it's behind the whole page, the snow in the margins. Its colour blends to
    the view's own weather and day when the view changes, and what falls follows the day's forecast (core/sky.mjs).
-   A Pause in the header, remembered on this phone (store `skyPaused`); under reduced motion it's still and the Pause
-   is gone; it stops while the page is hidden; an older phone gets 30 frames a second. The page's other worlds keep
+   A Pause, remembered on this phone (store `skyPaused`): in the header on a desktop, in the bottom bar's More below
+   1024 px (ADR-20261124-bottom-app-bar); under reduced motion it's still and the Pause is gone; it stops while the page is hidden; an older phone gets 30 frames a second. The page's other worlds keep
    their own backdrop, and a trip with no sky draws none of this. */
 function skyMode() {
 	return LOOK.sky || document.documentElement.dataset.sky || 'off';
@@ -40,14 +40,23 @@ function skyView(id) {
 	skyFx.view(sec && sec.querySelector(':scope > [data-band]'), kind);
 	skyBtnSync();
 }
+// the header's Pause (a desktop) and More's row (a phone, a tablet) say the same: pressed while paused, named for what a
+// tap does next
 function skyBtnSync() {
-	const b = $('#skyBtn');
-	if (!b) return;
 	const paused = skyPaused();
-	b.setAttribute('aria-pressed', String(paused));
-	b.setAttribute('aria-label', paused ? Z('继续下雪', 'Let it snow') : Z('暂停下雪', 'Pause the snow'));
-	b.title = b.getAttribute('aria-label');
-	b.querySelector('use').setAttribute('href', paused ? '#i-play' : '#i-pause');
+	const say = paused ? Z('继续下雪', 'Let it snow') : Z('暂停下雪', 'Pause the snow');
+	const b = $('#skyBtn');
+	if (b) {
+		b.setAttribute('aria-pressed', String(paused));
+		b.setAttribute('aria-label', say);
+		b.title = say;
+		b.querySelector('use').setAttribute('href', paused ? '#i-play' : '#i-pause');
+	}
+	$$('[data-sky-toggle]').forEach((r) => {
+		r.setAttribute('aria-pressed', String(paused));
+		r.querySelector('use').setAttribute('href', paused ? '#i-play' : '#i-pause');
+		r.querySelector('span').textContent = say;
+	});
 }
 const skyPaused = () => (LOOK.snow != null ? !LOOK.snow : !!store.get('skyPaused', false));
 /** the other views' band of sky (the overview and the days draw their own): the view's title moves into it, with
@@ -87,7 +96,7 @@ const skyFx = (() => {
 	let G = null;
 	let col = {};
 	let sprite = null;
-	const caps = { drift: null, ground: null, tabs: new Map(), cards: new Map() };
+	const caps = { drift: null, ground: null, cards: new Map() };
 	const rand = (a, b) => a + Math.random() * (b - a);
 	const driftBase = (x) => 17 + 5 * Math.sin(x * 0.013 + 0.6) + 3 * Math.sin(x * 0.037 + 2.1);
 	const groundBase = (x) => 30 + 12 * Math.sin(x * 0.0042 + 1) + 6 * Math.sin(x * 0.011 + 0.3);
@@ -212,23 +221,7 @@ const skyFx = (() => {
 		for (let i = 0; i < n; i++) flakes.push(spawn({}, G, P, spread));
 		makeStars(G);
 	}
-	// sky 3: the date tabs in the header, and on a desktop the rail's card and the view's card, catch snow
-	function tabSurfaces() {
-		if (st.full || st.mode !== 'pile') return [];
-		const strip = $('#tabs').getBoundingClientRect();
-		return $$('#tabs .tab')
-			.map((el) => {
-				const r = el.getBoundingClientRect();
-				if (r.right < strip.left + 8 || r.left > strip.right - 8) return null;
-				let c = caps.tabs.get(el);
-				if (!c || c.w !== Math.round(r.width)) {
-					c = newCap(0, Math.round(r.width), 6);
-					caps.tabs.set(el, c);
-				}
-				return { el, c, l: r.left, r: r.right, top: r.top };
-			})
-			.filter(Boolean);
-	}
+	// sky 3: on a desktop the rail's card and the view's card catch snow (a phone's piles on the band's drift)
 	function cardSurfaces() {
 		if (!st.full || st.mode !== 'pile') return [];
 		const view = curView && document.getElementById(curView);
@@ -277,7 +270,7 @@ const skyFx = (() => {
 			}
 		}
 		for (const f of flakes) if (f.kind !== P.kind && f.fade >= 1) f.fade = 0.999;
-		const surfaces = [...tabSurfaces(), ...cardSurfaces()];
+		const surfaces = cardSurfaces();
 		const e = st.energy;
 		const drag = 2.3 * (1 - Math.min(0.8, e * 0.55));
 		const swirl = e * 2.4;
@@ -341,7 +334,7 @@ const skyFx = (() => {
 		smoothT += dt;
 		if (smoothT > 0.35) {
 			smoothT = 0;
-			[caps.drift, caps.ground, ...caps.tabs.values(), ...caps.cards.values()].forEach((c) => c && smoothCap(c));
+			[caps.drift, caps.ground, ...caps.cards.values()].forEach((c) => c && smoothCap(c));
 		}
 	}
 	function size(cv, w, h, d) {
@@ -439,7 +432,6 @@ const skyFx = (() => {
 				c.stroke();
 				for (const s of cardSurfaces()) drawCap(c, s, 22);
 			}
-			if (cv === barCv) for (const s of tabSurfaces()) drawCap(c, s, 10);
 		}
 	}
 	function tick(now) {
@@ -638,29 +630,9 @@ const skyFx = (() => {
 				flakes.push(f);
 			}
 		},
-		/** sky 3: a tapped date tab knocks its snow off */
-		puff(tab) {
-			const c = caps.tabs.get(tab);
-			if (!c || !moving()) return;
-			const r = tab.getBoundingClientRect();
-			const amount = c.h.reduce((s, v) => s + v, 0);
-			const n = Math.min(26, Math.round(amount / 6));
-			for (let i = 0; i < n; i++) {
-				const f = spawn({}, G || geom(), Sky.FALL.light, false);
-				f.x = rand(r.left + 4, r.right - 4);
-				f.y = r.top - rand(0, 4);
-				f.vx = rand(-90, 90);
-				f.vy = -rand(40, 140);
-				f.extra = true;
-				f.kind = 'snow';
-				f.r = rand(1, 2.2);
-				flakes.push(f);
-			}
-			c.h.fill(0);
-		},
-		/** how much snow sits on a tab (tests and the preview) */
-		capOn(tab) {
-			const c = caps.tabs.get(tab);
+		/** how much snow has piled up (sky 3): on the band's drift on a phone and a tablet, on the ground on a desktop */
+		piled() {
+			const c = st.full ? caps.ground : caps.drift;
 			return c ? c.h.reduce((s, v) => s + v, 0) : 0;
 		},
 		state: () => ({ mode: st.mode, kind: st.kind, running: st.running, flakes: flakes.length, energy: st.energy, half }),
@@ -669,7 +641,7 @@ const skyFx = (() => {
 document.addEventListener('click', (e) => {
 	const t = e.target.closest('button, a');
 	if (!t) return;
-	if (t.id === 'skyBtn') {
+	if (t.id === 'skyBtn' || t.matches('[data-sky-toggle]')) {
 		store.set('skyPaused', !skyPaused());
 		LOOK.snow = null;
 		skyBtnSync();
@@ -680,7 +652,6 @@ document.addEventListener('click', (e) => {
 		skyFx.shake();
 		return;
 	}
-	if (t.matches('#tabs .tab') && skyMode() === 'pile') skyFx.puff(t);
 });
 // for the tests and the preview panel: what the sky is doing, without reaching into it
-window.RJ_SKY = { state: () => skyFx.state(), capOn: (el) => skyFx.capOn(el) };
+window.RJ_SKY = { state: () => skyFx.state(), piled: () => skyFx.piled() };

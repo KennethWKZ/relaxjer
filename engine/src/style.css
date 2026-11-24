@@ -90,6 +90,12 @@
 	--r-lg: 18px;
 
 	--bar-h: 100px;
+	/* the bottom bar (ADR-20261124-bottom-app-bar): its own height grows with the phone's text size (its label is in rem);
+	   --chrome-bottom is all it takes from the screen's foot, the home bar included, and 0px where there is no bar. Set
+	   here and by the media query below, never measured: whatever floats at the bottom (the toast, the Back pill, the
+	   map's sheets) sits on it */
+	--tabbar-h: calc(41px + 0.9375rem);
+	--chrome-bottom: 0px;
 	--col: 46rem;
 	--ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 	--ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
@@ -97,6 +103,14 @@
 	--now: var(--rule);
 	--ctrl-filter: none; /* map library's dark icons */
 	color-scheme: light;
+}
+
+@media (max-width: 1023px) {
+	:root {
+		--chrome-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px));
+		/* what's brought into view (a focused control, a row scrolled to) stops above the bar, not under it */
+		scroll-padding-bottom: var(--chrome-bottom);
+	}
 }
 
 @media (prefers-color-scheme: dark) {
@@ -360,6 +374,12 @@ svg.i {
 	padding: 6px 12px 2px 16px;
 	min-height: 52px;
 }
+/* the header shows its top row or, while searching, the search row: a flex box outranks the browser's own [hidden],
+   so both stood on every screen and the search button changed nothing */
+.bar-row[hidden],
+.search-row[hidden] {
+	display: none;
+}
 .search-field {
 	flex: 1;
 	min-width: 0;
@@ -411,118 +431,19 @@ svg.i {
 	background: var(--paper-3);
 }
 
-/* the date tabs */
-.tabs-row {
-	display: flex;
-	align-items: center;
-	max-width: var(--col);
-	margin: 0 auto;
-}
-.tabs-row > .tabs {
-	flex: 1;
-	min-width: 0;
-	max-width: none;
-	margin: 0;
-}
-.tabs {
-	max-width: var(--col);
-	margin: 0 auto;
-	display: flex;
-	gap: 8px;
-	overflow-x: auto;
-	overscroll-behavior-x: contain;
-	padding: 4px 16px 8px;
-	scrollbar-width: none;
-	scroll-padding-inline: 16px;
-}
-.tabs::-webkit-scrollbar {
-	display: none;
-}
-/* the scrollbar is hidden, so an edge fade on each side with more says the row scrolls: the day tabs, photo rows and
+/* a sideways row's scrollbar is hidden, so an edge fade on each side with more says the row scrolls: photo rows and
    the map's filters (04-render-nav.js edgeCue) */
-:is(.tabs, .photos, .map-ctrl).more-r {
+:is(.photos, .map-ctrl).more-r {
 	-webkit-mask-image: linear-gradient(to left, transparent, #000 32px);
 	mask-image: linear-gradient(to left, transparent, #000 32px);
 }
-:is(.tabs, .photos, .map-ctrl).more-l {
+:is(.photos, .map-ctrl).more-l {
 	-webkit-mask-image: linear-gradient(to right, transparent, #000 32px);
 	mask-image: linear-gradient(to right, transparent, #000 32px);
 }
-:is(.tabs, .photos, .map-ctrl).more-l.more-r {
+:is(.photos, .map-ctrl).more-l.more-r {
 	-webkit-mask-image: linear-gradient(to right, transparent, #000 32px, #000 calc(100% - 32px), transparent);
 	mask-image: linear-gradient(to right, transparent, #000 32px, #000 calc(100% - 32px), transparent);
-}
-.tab {
-	flex: none;
-	display: inline-flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	min-width: 48px;
-	height: 44px;
-	padding: 0 11px;
-	border-radius: 10px;
-	color: var(--ink-2);
-	text-decoration: none;
-	font-size: var(--fs-sm);
-	font-weight: 650;
-	line-height: 1.1;
-	background: var(--paper-2);
-	position: relative;
-	transition:
-		background-color 200ms ease,
-		color 200ms ease,
-		transform 160ms var(--ease-out);
-}
-.tab:active {
-	transform: scale(0.96);
-}
-.tab.day {
-	padding-top: 3px;
-}
-.tab.day::before {
-	content: '';
-	position: absolute;
-	top: 5px;
-	left: 50%;
-	width: 18px;
-	height: 3px;
-	margin-left: -9px;
-	border-radius: 2px;
-	background: var(--c);
-}
-.tab-num {
-	font-size: 1rem;
-	font-weight: 750;
-}
-.tab-dow {
-	font-size: 0.6875rem;
-	font-weight: 650;
-	opacity: 0.85;
-}
-.tab[aria-current='true'] {
-	background: var(--ink);
-	color: var(--paper);
-	font-weight: 800;
-	box-shadow: inset 0 -3px 0 currentColor;
-}
-.tab.day[aria-current='true'] {
-	background: var(--c);
-	color: var(--ci);
-}
-.tab.day[aria-current='true']::before {
-	background: currentColor;
-	opacity: 0.5;
-}
-.tab .today-dot {
-	position: absolute;
-	top: 4px;
-	right: 5px;
-	width: 7px;
-	height: 7px;
-	border-radius: 50%;
-	background: var(--seal);
-	box-shadow: 0 0 0 2px var(--paper-2);
 }
 
 /* search results sheet */
@@ -531,7 +452,7 @@ svg.i {
 	left: 0;
 	right: 0;
 	top: 100%;
-	max-height: min(62vh, 520px);
+	max-height: min(62vh, 520px, calc(100dvh - var(--bar-h) - var(--chrome-bottom) - 8px));
 	overflow-y: auto;
 	overscroll-behavior: contain;
 	background: var(--paper);
@@ -2249,15 +2170,6 @@ dialog.sheet::backdrop {
 		display: none;
 	}
 }
-@media (min-width: 900px) {
-	.tabs {
-		max-width: 76rem;
-		justify-content: safe center;
-	}
-	.tabs-row {
-		max-width: 76rem;
-	}
-}
 @media (max-width: 380px) {
 	.stop {
 		grid-template-columns: 4rem 18px minmax(0, 1fr);
@@ -2270,15 +2182,6 @@ dialog.sheet::backdrop {
 	}
 }
 @media (hover: hover) and (pointer: fine) {
-	.tab:hover {
-		background: var(--paper-3);
-	}
-	.tab[aria-current='true']:hover {
-		background: var(--ink);
-	}
-	.tab.day[aria-current='true']:hover {
-		background: var(--c);
-	}
 	.mlink:hover {
 		background: var(--paper-3);
 	}
@@ -2307,6 +2210,7 @@ dialog.sheet::backdrop {
 }
 @media (prefers-reduced-transparency: reduce) {
 	.bar,
+	.tabbar,
 	.day-bar {
 		background: var(--paper);
 		-webkit-backdrop-filter: none;
@@ -2315,6 +2219,7 @@ dialog.sheet::backdrop {
 }
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
 	.bar,
+	.tabbar,
 	.day-bar {
 		background: var(--paper);
 	}
@@ -2324,17 +2229,20 @@ dialog.sheet::backdrop {
 		--rule: #8a8f99;
 		--ink-3: #464a53;
 	}
-	/* no glass, and every link button and tab gets an edge */
+	/* no glass, and every link button gets an edge */
 	.bar,
+	.tabbar,
 	.day-bar {
 		background: var(--paper);
 		-webkit-backdrop-filter: none;
 		backdrop-filter: none;
 		border-bottom: 1px solid var(--ink-3);
 	}
-	.mlink,
-	.tab {
+	.mlink {
 		box-shadow: inset 0 0 0 1px var(--ink-3);
+	}
+	.tabbar {
+		border-top: 1px solid var(--ink-3);
 	}
 }
 
@@ -3080,7 +2988,7 @@ details.wgroup > summary .chev {
 		display: none;
 	}
 }
-/* a small Android (360 px) with the sky's pause too: one more step, so a three-character short name stays whole */
+/* a small Android (360 px): one more step, so a three-character short name stays whole */
 @media (max-width: 379px) {
 	.bar-row:has(#curBtn:not([hidden])):has(#homeBtn:not([hidden])) .brand-name {
 		font-size: 1.0625rem;
@@ -4096,6 +4004,54 @@ body {
 	margin-left: auto;
 	flex: none;
 	padding-left: 6px;
+}
+/* a stop's nearby options fold to their count: the whole row is the toggle (44 px), its chevron turns, and open it
+   takes the Fog Grey fill too, two cues (affordances rules 11 and 16) */
+.sn-tog {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	width: 100%;
+	min-height: 44px;
+	padding: 0 10px;
+	border: 1px dashed var(--ink-3);
+	border-radius: 10px;
+	background: var(--paper);
+	color: var(--ink-2);
+	font: inherit;
+	text-align: start;
+	cursor: pointer;
+	transition: background-color 160ms ease;
+}
+.sn-tog .sn-h {
+	flex: 1;
+}
+.sn-tog > svg.i {
+	width: 16px;
+	height: 16px;
+	flex: none;
+}
+.sn-tog .chev {
+	color: var(--ink-3);
+	transition: transform 200ms var(--ease-out);
+}
+.sn-tog[aria-expanded='true'] {
+	background: var(--paper-2);
+	border-style: solid;
+	border-color: var(--rule);
+}
+.sn-tog[aria-expanded='true'] .chev {
+	transform: rotate(180deg);
+}
+.sn-tog:active {
+	background: var(--paper-3);
+}
+.sn-list {
+	display: grid;
+	gap: 8px;
+}
+.sn-list[hidden] {
+	display: none;
 }
 @media (max-width: 599px) {
 	.stop-near {
@@ -6126,6 +6082,206 @@ input[data-rate][aria-invalid='true'] {
 #app > section.sec {
 	padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
 }
+/* with the bottom bar: room above it for the Back pill (12 + 52 + 12 px) */
+@media (max-width: 1023px) {
+	#app > section.day,
+	#app > section.sec {
+		padding-bottom: calc(var(--chrome-bottom) + 76px);
+	}
+	footer.foot {
+		padding-bottom: calc(var(--chrome-bottom) + 76px);
+	}
+}
+
+/* ───────── the bottom bar (ADR-20261124-bottom-app-bar) ─────────
+   Below 1024 px, phones and tablets alike: Today, Days, Map and More, an icon over a short label, on the header's glass.
+   The lit item fills its icon's tile (the day's lantern colour on a day, ink elsewhere) and goes bold: two cues.
+   Each item is a quarter of the width and the bar's whole height, so every target is far over 52 px. It sits under the
+   full-screen map's layer and every sheet: they open over it, as a phone's own sheets cover its tab bar. */
+.tabbar {
+	display: none;
+}
+@media (max-width: 1023px) {
+	.tabbar {
+		position: fixed;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		z-index: 44;
+		display: grid;
+		grid-auto-flow: column;
+		grid-auto-columns: minmax(0, 1fr);
+		justify-content: center;
+		height: var(--chrome-bottom);
+		padding: 0 max(8px, env(safe-area-inset-right, 0px)) env(safe-area-inset-bottom, 0px) max(8px, env(safe-area-inset-left, 0px));
+		background: var(--glass);
+		-webkit-backdrop-filter: blur(20px) saturate(180%);
+		backdrop-filter: blur(20px) saturate(180%);
+		box-shadow: 0 -1px 0 var(--glass-edge);
+	}
+	/* a tablet: the four items stay together under the reading column, not spread across a wide screen */
+	@media (min-width: 600px) {
+		.tabbar {
+			grid-auto-columns: minmax(0, 8.5rem);
+		}
+	}
+}
+.tb {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 2px;
+	min-width: 0;
+	height: var(--tabbar-h);
+	padding: 5px 2px 6px;
+	border: 0;
+	border-radius: 12px;
+	background: none;
+	color: var(--ink-2);
+	font: inherit;
+	font-size: var(--fs-2xs);
+	font-weight: 650;
+	line-height: 1.15;
+	text-decoration: none;
+	cursor: pointer;
+	-webkit-tap-highlight-color: transparent;
+}
+.tb-ic {
+	position: relative;
+	display: grid;
+	place-items: center;
+	width: 56px;
+	height: 30px;
+	border-radius: 10px;
+	transition:
+		background-color 200ms ease,
+		transform 160ms var(--ease-out);
+}
+.tb-ic svg.i {
+	width: 24px;
+	height: 24px;
+}
+/* Today's calendar page carries today's date, in the glyph's own ink */
+.tb-num {
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 12px;
+	font-size: 9.5px;
+	font-weight: 800;
+	line-height: 1;
+	letter-spacing: -0.02em;
+	text-align: center;
+}
+.tb-l {
+	max-width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.tb[aria-current] {
+	color: var(--ink);
+	font-weight: 800;
+}
+.tb[aria-current] .tb-ic {
+	background: color-mix(in srgb, var(--c, var(--ink)) 18%, transparent);
+}
+.tb[aria-current] .tb-ic svg.i {
+	stroke-width: 2.2;
+}
+.tb:active .tb-ic {
+	transform: scale(0.92);
+	background: var(--paper-3);
+}
+.tb:focus-visible {
+	outline: 3px solid var(--focus);
+	outline-offset: -3px;
+}
+@media (hover: hover) and (pointer: fine) {
+	.tb:hover .tb-ic {
+		background: var(--paper-3);
+	}
+}
+
+/* the Days sheet: every day as one row, as the rail draws them on a desktop */
+.days-list {
+	display: grid;
+	gap: 6px;
+}
+.days-list .rl + .rl {
+	margin-top: 0;
+}
+.days-list .rl {
+	min-height: 60px;
+}
+/* a heading's date: a calendar mark and the short date ("3/15 一") */
+.dtag {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	white-space: nowrap;
+}
+.dtag svg.i {
+	width: 1em;
+	height: 1em;
+}
+/* the sky's Pause in More (a phone, a tablet); a desktop's is in the header. Nothing moves under reduced motion, so
+   there's nothing to pause */
+.toc-sky {
+	display: none;
+	width: 100%;
+	margin-top: 8px;
+	border: 0;
+	font: inherit;
+	font-weight: 700;
+	cursor: pointer;
+}
+@media (max-width: 1023px) and (prefers-reduced-motion: no-preference) {
+	:root[data-sky-on='1'] .toc-sky {
+		display: flex;
+	}
+}
+@media (max-width: 1023px) {
+	:root[data-sky-on] .bar .sky-btn,
+	.toc-fab {
+		display: none;
+	}
+	/* the Back pill sits just above the bar, where the thumb is; the toast above the bar too, and above the pill while
+	   the pill is up */
+	.back-pill {
+		bottom: calc(var(--chrome-bottom) + 12px);
+	}
+	.toast,
+	.toast:has(.toast-act) {
+		bottom: calc(var(--chrome-bottom) + 12px);
+	}
+	:root:has(#backPill[data-show='1']) :is(.toast, .toast:has(.toast-act)) {
+		bottom: calc(var(--chrome-bottom) + 12px + 52px + 10px);
+	}
+	/* the full-screen map ends at the bar, so its controls sit above it and the bar stays one tap away */
+	.map-stage.is-full {
+		bottom: var(--chrome-bottom);
+		padding-bottom: 0;
+	}
+}
+/* a phone: the menus opened from the bar come up from the bottom, as the other sheets do */
+@media (max-width: 599px) {
+	dialog.toc {
+		width: 100%;
+		max-width: none;
+		margin: auto 0 0;
+		max-height: 86dvh;
+		border-radius: 20px 20px 0 0;
+		padding-bottom: env(safe-area-inset-bottom, 0px);
+	}
+	@starting-style {
+		dialog.toc[open] {
+			opacity: 0;
+			transform: translateY(40px);
+		}
+	}
+}
 .day {
 	padding-top: 16px;
 }
@@ -6527,7 +6683,7 @@ dialog.bsheet :is([id], li, p, td, figure, .block) {
 	text-align: right;
 }
 
-/* the week rail: on a desktop it takes the tab strip's place, beside the view */
+/* the week rail: on a desktop it takes the bottom bar's place, beside the view */
 .rail {
 	display: none;
 }
@@ -6622,9 +6778,6 @@ dialog.bsheet :is([id], li, p, td, figure, .block) {
 		width: 100%;
 		max-width: none;
 		margin: 0;
-	}
-	.bar .tabs {
-		display: none;
 	}
 	/* the header (and the live demo's strip) spans the rail and the column below it */
 	.bar-row,

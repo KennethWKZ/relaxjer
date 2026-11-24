@@ -63,7 +63,7 @@ function demoStrip() {
 }
 
 // the header's brand: the whole name when it fits beside the buttons, else the trip's short name (TRIP.brandShort), so a
-// phone with Install, the sky's pause, search, the currency and the language shows a whole word, not "北海道雪…".
+// phone with Install, search, the currency and the language shows a whole word, not "北海道雪…".
 // Without a short name the long one is cut with an ellipsis, as before. Checked again whenever the header's room changes
 function brandFit() {
 	const n = $('.brand-name');
@@ -129,7 +129,7 @@ function render() {
 	$('#searchClose').textContent = Z('完成', 'Done');
 	$('#foot').innerHTML = esc(L(TRIP.footer));
 	demoStrip();
-	renderTabs(now.date);
+	renderNav(now.date);
 	if (mapFullOn) {
 		mapFullOn = false;
 		document.documentElement.classList.remove('map-full-on');

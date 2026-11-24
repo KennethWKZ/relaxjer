@@ -1,7 +1,7 @@
 // Affordance rules from memory-bank/standards/patterns/affordances.md, measured on the page (rule numbers in brackets):
 // every control can be hit, looks like what it is, and shows its state.
 import { test, expect, openTrip } from '../support/fixtures.mjs';
-import { openAllDetails, setStored, show } from '../support/page.mjs';
+import { BAR, hasBar, openAllDetails, openSections, setStored, show } from '../support/page.mjs';
 /* global DAYS -- the trip data, read inside the page */
 
 test('every control is at least 44 px [1]', async ({ page }) => {
@@ -25,10 +25,10 @@ test('every control is at least 44 px [1]', async ({ page }) => {
 	expect(small).toEqual([]);
 });
 
-test('neighbouring buttons and tabs keep 8 px apart [3]', async ({ page }) => {
+test('neighbouring buttons keep 8 px apart [3]', async ({ page }) => {
 	await openTrip(page);
 	const gaps = await page.evaluate(() =>
-		[...document.querySelectorAll('.links-row, .tabs')].map((e) => parseFloat(getComputedStyle(e).columnGap) || 0).filter((g) => g < 8),
+		[...document.querySelectorAll('.links-row')].map((e) => parseFloat(getComputedStyle(e).columnGap) || 0).filter((g) => g < 8),
 	);
 	expect(gaps).toEqual([]);
 });
@@ -70,20 +70,23 @@ test('every disclosure shows a chevron [11]', async ({ page }) => {
 	expect(bare).toEqual([]);
 });
 
-test('the day strip fades the edge that has more days [14]', async ({ page }) => {
+// the day strip scrolled sideways, and the group didn't see the days behind its edge: below 1024 px the bar's Days lists
+// every day as a row of its own, down the sheet, and nothing in the header scrolls sideways
+test('every day is reachable without scrolling sideways [14][15]', async ({ page }) => {
 	await openTrip(page);
-	const tabs = page.locator('#tabs');
-	const cue = () =>
-		tabs.evaluate((t) => ({ more: t.scrollWidth > t.clientWidth + 2, l: t.classList.contains('more-l'), r: t.classList.contains('more-r') }));
-	await tabs.evaluate((t) => t.scrollTo({ left: 0, behavior: 'instant' }));
-	const start = await cue();
-	if (!start.more) {
-		expect(start, 'everything fits: no fade').toEqual({ more: false, l: false, r: false });
-		return;
-	}
-	await expect.poll(cue).toEqual({ more: true, l: false, r: true });
-	await tabs.evaluate((t) => t.scrollTo({ left: t.scrollWidth, behavior: 'instant' }));
-	await expect.poll(cue).toEqual({ more: true, l: true, r: false });
+	test.skip(!(await hasBar(page)), "a desktop's rail lists every day down the page");
+	await page.locator(BAR.days).click();
+	const rows = page.locator(BAR.dayRow);
+	await expect(rows).toHaveCount(await page.evaluate(() => DAYS.length));
+	const sideways = await page.evaluate(
+		() =>
+			[...document.querySelectorAll('#bar *, #days *')].filter(
+				(e) => e.scrollWidth > e.clientWidth + 2 && /auto|scroll/.test(getComputedStyle(e).overflowX),
+			).length,
+	);
+	expect(sideways, 'no sideways scroller in the header or the Days sheet').toBe(0);
+	for (const r of await rows.all())
+		expect((await r.boundingBox()).width, "each row the sheet's width").toBeGreaterThan(page.viewportSize().width * 0.8);
 });
 
 // the photo rows and the map's filters scroll sideways too, and had no cue at all
@@ -119,14 +122,26 @@ test('every other sideways row fades the edge that has more [14]', async ({ page
 	test.skip(!checked, 'nothing scrolls sideways at this width');
 });
 
-test('the selected tab shows more than a colour change, and the language button names the other language [16]', async ({ page }) => {
+test('the lit item in the bar or the rail shows more than a colour change, and the language button names the other language [16]', async ({
+	page,
+}) => {
 	await openTrip(page);
-	const tab = await page
-		.locator('.tab[aria-current="true"]')
-		.first()
-		.evaluate((e) => ({ w: +getComputedStyle(e).fontWeight, shadow: getComputedStyle(e).boxShadow }));
-	expect(tab.w).toBeGreaterThanOrEqual(750);
-	expect(tab.shadow).not.toBe('none');
+	if (await hasBar(page)) {
+		// the lit item: bold, and its icon's tile filled; the others neither
+		const look = (sel) =>
+			page.locator(sel).evaluate((e) => ({ w: +getComputedStyle(e).fontWeight, fill: getComputedStyle(e.querySelector('.tb-ic')).backgroundColor }));
+		const on = await look(BAR.lit);
+		const off = await look(`${BAR.item}:not([aria-current]) >> nth=0`);
+		expect(on.w).toBeGreaterThanOrEqual(750);
+		expect(off.w).toBeLessThan(750);
+		expect(on.fill).not.toBe(off.fill);
+	} else {
+		const row = await page
+			.locator('#rail .rl[aria-current="page"]')
+			.evaluate((e) => ({ w: +getComputedStyle(e.querySelector('b')).fontWeight, ring: getComputedStyle(e).boxShadow }));
+		expect(row.w).toBeGreaterThanOrEqual(750);
+		expect(row.ring).not.toBe('none');
+	}
 	const btn = page.locator('#langBtn');
 	await expect(btn, 'reading English: the button offers 中').toHaveText('中');
 	await btn.click();
@@ -223,8 +238,7 @@ test('a website link keeps its word, and phones switch the theme from the Sectio
 	expect(bare, 'website links with no visible word').toBe(0);
 	if ((page.viewportSize()?.width || 0) >= 600) return;
 	await expect(page.locator('#themeBtn')).toBeHidden();
-	await expect(page.locator('#tocBtn'), 'the Sections button is there from the first screen').toHaveAttribute('data-show', '1');
-	await page.locator('#tocBtn').click();
+	await openSections(page);
 	const row = page.locator('[data-theme-cycle]');
 	await expect(row).toContainText('Theme');
 	const before = await row.textContent();

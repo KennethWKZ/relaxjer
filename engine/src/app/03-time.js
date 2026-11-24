@@ -10,6 +10,13 @@ function tpNow() {
 }
 const dnum = Time.dayNumber;
 const dateLabel = (s, dow) => Time.dateLabel(s, lang, dow);
+/** a heading's date: the short form ("3/15 一") after a calendar mark (mark: false where a day mark leads the row),
+ *  the whole date for screen readers */
+function dateTag(s, dow, mark = true) {
+	const short = Time.compactDate(s, lang, dow);
+	const full = dateLabel(s, dow);
+	return `<span class="dtag">${mark ? icon('calendar') : ''}${short === full ? esc(full) : `<span aria-hidden="true">${esc(short)}</span><span class="sr-only">${esc(full)}</span>`}</span>`;
+}
 const parseT = (t) => Time.timesIn(L(t));
 function nowNext(day, mins) {
 	const items = day.schedule.map((it, i) => ({ it, i, ...parseT(it.t || '') })).filter((x) => x.s != null);

@@ -28,6 +28,9 @@ test('Time: dates and labels', () => {
 	assert.equal(Time.dateLabel('2027-03-13', 'zh', ['六', 'Sat']), '3月13日 周六');
 	assert.equal(Time.dateLabel('2027-03-18', 'en'), '18 Mar');
 	assert.equal(Time.shortDate('2027-03-19', 'en'), '19 Mar');
+	assert.equal(Time.compactDate('2027-03-13', 'zh', ['六', 'Sat']), '3/13 周六');
+	assert.equal(Time.compactDate('2027-03-13', 'en', ['六', 'Sat']), 'Sat 13 Mar');
+	assert.equal(Time.compactDate('2027-11-07', 'zh'), '11/7');
 	assert.equal(Time.shortDate('2027-03-19', 'zh'), '3/19');
 	assert.equal(Time.rangeLabel('2027-03-13', '2027-03-19', 'en'), '13–19 Mar');
 	assert.equal(Time.rangeLabel('2027-03-13', '2027-03-19', 'zh'), '3.13–3.19');

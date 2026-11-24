@@ -48,8 +48,10 @@ offline on a tired phone, and doesn't split every cost per person.
 
 Every part of the page, and what turns it on, is in `guides/trip-page.md`. The ones that shape the design:
 
-- A sticky header that stays visible while scrolling; quick jumps between days; text search across the whole plan, in
-  both languages; a theme switch (light, dark, follow the phone; it follows the phone until someone picks); a Sections menu that leads with Now and Next.
+- A sticky header that stays visible while scrolling; on a phone and a tablet an app's bottom bar (Today, Days, Map,
+  More) on every view, nothing reached by a sideways scroll, and a computer's week rail and Sections menu instead; text
+  search across the whole plan, in both languages; a theme switch (light, dark, follow the phone; it follows the phone
+  until someone picks); Today leads with Now and Next.
 - Now and Next on a trip day, and before it a countdown with the to-dos coming due.
 - Fixed times never move; everything else can be re-planned, but only as a suggestion.
 - Every group cost also shows a per-person share, in the destination's currency and the group's home currency.
