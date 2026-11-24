@@ -240,7 +240,7 @@ function mountGoogle() {
 			if (!p) return;
 			iw.close();
 			const el = document.createElement('div'); // a div, not a button: the marker is the control (Google's rule)
-			el.className = 'lpin sel spot';
+			el.className = 'lpin sel lpin-spot'; // not .spot: that's the toilet and drink list's row, a flex box with a border
 			el.innerHTML = pinSVG({ type: 'mine', days: [] });
 			spotMk = new g.marker.AdvancedMarkerElement({ map: m, position: { lat: p.lat, lng: p.lng }, content: el, title: p.n, zIndex: 998 });
 			destMark(el, p.n, nameSide(frameFrom(), p));

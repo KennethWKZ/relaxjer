@@ -772,7 +772,7 @@ function mountLive(url) {
 				if (!p) return;
 				if (popup) popup.remove();
 				const el = document.createElement('div');
-				el.className = 'lpin sel spot';
+				el.className = 'lpin sel lpin-spot'; // not .spot: that's the toilet and drink list's row, a flex box with a border
 				el.title = p.n;
 				el.innerHTML = pinSVG({ type: 'mine', days: [] });
 				spotMk = new maplibregl.Marker({ element: el, anchor: 'center' }).setLngLat([p.lng, p.lat]).addTo(m);
