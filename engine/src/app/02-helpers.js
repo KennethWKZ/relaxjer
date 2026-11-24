@@ -22,6 +22,9 @@ const altX = (shown, ...xs) => alt(...xs.filter((x) => x && String(x).trim().toL
 const L0 = (x, fb) => (Array.isArray(x) ? x[0] : fb);
 const L1 = (x, fb) => (Array.isArray(x) ? x[1] : fb);
 const other = (x) => (Array.isArray(x) ? x[lang === 'en' ? 0 : 1] : '');
+/** the keyboard's Enter as an action. Not while a Chinese or Japanese input method is still composing: its Enter picks
+ *  the characters (isComposing; Safari reports that last Enter as keyCode 229, after composition has ended) */
+const enterKey = (e) => e.key === 'Enter' && !e.isComposing && e.keyCode !== 229;
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 /* the group may split up, so every group figure also shows a rough share each (÷ group size, to the nearest 10) */
 const GROUP = Money.groupWord(PAX); // how the data marks a group figure: ["五人", "for 5"]

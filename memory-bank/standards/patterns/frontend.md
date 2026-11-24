@@ -74,11 +74,21 @@ states and its feedback, as 25 testable rules with sources.
   on a wide one, by a container query on the stage), the camera aims past it (`paneAim`, `panePad`, and `framePad` when
   it frames a picked place with where the group is), and the map's own controls ride above it. A picked place is
   framed and marked by both maps from the same helpers (`frameFrom`, `destMark`, `nameSide` in 21-place-finder.js),
-  and no line or distance is drawn to it: the finder's Directions gives the real way. Anything new on the Map view goes in the pane, the chip row or the Filters sheet, never as a
+  and no line or distance is drawn to it: the finder's Directions gives the real way. The sheet's half height fits a
+  short list whole (Nothing found and its Google row included), and once the keyboard goes the map is lined up again
+  (`stageAfterKeyboard`). Anything new on the Map view goes in the pane, the chip row or the Filters sheet, never as a
   block between the search and the map; a new row above the map means changing the stage's height formula.
 - **The phone keyboard never hides the field being typed in.** A bottom sheet with a text field moves up to sit on the
   keyboard while it's open, and the focused field scrolls into view (`.kb-up` in `19-back-button.js`;
   `knowledge/engine-browser.md`). A new sheet with a field gets the same check in WebKit at 390 px.
+- **A typing field's Enter key acts.** Every text, search or password field says what its key does (`enterkeyhint`),
+  and Enter does it, then lets go of the field so the phone's keyboard goes down (22-events.js). Never while an input
+  method is composing: every Enter goes through `enterKey` (02-helpers.js). `tests/repo/engine-fields.test.mjs` checks
+  both.
+- **A class names one component.** A new element never borrows another component's class: it brings that component's
+  styles with it (a map result's pin took the toilet list's `.spot`, a bordered flex row, and drew as a squeezed ring
+  beside a card). A map pin's classes stay `lpin`, `lpin-*` and the states `sel` and `dest`; the same test checks it.
+  Look up a name in `style.css` before using it.
 - **Commas between the numbers of an inline SVG path** (`M0,120C60,96,130,84…`), in CSS, JS and HTML alike. Space-only
   runs can read as a payment card number to the host's scan, which then refuses every publish
   ([`knowledge/hosting.md`](../../../knowledge/hosting.md)); commas draw the same. `tests/repo/host-scan.test.mjs`

@@ -378,6 +378,39 @@ test.describe('group sync', { tag: '@demo' }, () => {
 		await expect(sheet(b.page).locator('.sync-role'), 'and planners').toContainText('planner');
 	});
 
+	test('a name field’s Enter saves the name and puts the keyboard away, but not while an input method is composing', async ({
+		browser,
+		tripNow,
+		tripLang,
+	}, testInfo) => {
+		const c = await secondPhone(browser, testInfo, { now: tripNow, lang: tripLang, welcome: true });
+		await openSync(c.page);
+		const welcome = c.page.locator('#placeSheet [data-sync-welcome]');
+		await expect(welcome, 'after the page has drawn').toBeVisible({ timeout: 5_000 });
+		const inp = welcome.locator('[data-welcome-name]');
+		await inp.fill('Mei');
+		// a Chinese name half typed: the input method's Enter picks characters, and saves nothing
+		await inp.evaluate((el) => {
+			el.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', isComposing: true, bubbles: true, cancelable: true }));
+			el.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', keyCode: 229, bubbles: true, cancelable: true }));
+		});
+		await expect(c.page.locator('#placeSheet'), 'still asking').toHaveAttribute('open', '');
+		await expect(inp).toBeFocused();
+		await inp.press('Enter');
+		await expect(c.page.locator('#toast')).toContainText('Name saved');
+		await expect(c.page.locator('#placeSheet')).not.toHaveAttribute('open', '');
+
+		// the Group sync sheet's name: its Enter ("done") saves it and lets go of the field
+		await openSyncSheet(c.page);
+		const name = sheet(c.page).locator('[data-sync-name]');
+		await name.fill('Mei Lin');
+		await name.press('Enter');
+		await expect(name, 'Enter lets go of the field').not.toBeFocused();
+		await expect(c.page.locator('#toast')).toContainText('Name saved');
+		expect(c.errors).toEqual([]);
+		await c.context.close();
+	});
+
 	test('a phone’s first open asks for its name once, after the page shows; Not now leaves the bar', async ({
 		browser,
 		tripNow,

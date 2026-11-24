@@ -248,6 +248,33 @@ test('without the phone’s location the place is framed with where the plan has
 	await expect(page.locator(MAP.pin(food.pid))).not.toHaveClass(/\bdest\b/);
 });
 
+test('nothing found: once the keyboard has gone, the Google search row shows whole, clear of the bottom bar', async ({ page }) => {
+	await page.addInitScript(stubGoogle);
+	await page.addInitScript(stubMapLibre);
+	await mapStyleRoute(page);
+	await openTrip(page);
+	await show(page, MAP.stage);
+	await expect(page.locator('.map-wrap.is-live')).toBeAttached();
+	const q = page.locator(F.query);
+	await q.fill('zzqx nowhere');
+	const gq = page.locator(F.googleSearch);
+	await expect(gq).toBeVisible();
+	test.skip(await sideways(page), 'a wide stage has a side panel, not a sheet over a bottom bar');
+	// a phone's keyboard moves the page while it's up, and the page comes back lower once it goes: the map's foot (and the
+	// sheet's last row) behind the bottom bar, as a phone showed it
+	await page.evaluate(() => window.scrollTo({ top: Math.max(0, scrollY - 160), behavior: 'instant' }));
+	await q.press('Enter');
+	await expect(q).not.toBeFocused();
+	await expect(async () => {
+		const row = await rect(gq);
+		const pane = await rect(page.locator(MAP.pane));
+		const foot = (await hasBar(page)) ? (await rect(page.locator(BAR.bar))).top : page.viewportSize().height;
+		expect(row.bottom, 'the Google row ends above the bottom bar').toBeLessThanOrEqual(foot + 1);
+		expect(row.bottom, 'inside the sheet, not cut off by it').toBeLessThanOrEqual(pane.bottom + 1);
+		expect(row.top).toBeGreaterThanOrEqual(pane.top);
+	}).toPass({ timeout: 5_000 });
+});
+
 test('a Google result’s own marker stands out the same, framed with where the search looked', async ({ page }) => {
 	await page.addInitScript(stubGoogle);
 	await page.addInitScript(stubMapLibre);

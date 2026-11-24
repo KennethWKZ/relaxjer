@@ -63,6 +63,20 @@ What the first trip taught about the page in real browsers. Each lesson is backe
   A `position: fixed` child of a dialog with a `transform` is placed by the dialog, not the screen. Not
   `interactive-widget=resizes-content` in the viewport tag: it gives Android a second, untested path, and WebKit logs
   that it doesn't know the key (it failed every WebKit test on CI, 2026-10-02).
+- **A field outside a form gets nothing from Enter.** A phone keyboard's Search, Go or Done key sends Enter; with no form
+  and no handler, nothing happens, and the keyboard stays over what the field found (a live trip's map search). Every
+  typing field now says what its key does (`enterkeyhint`), and Enter acts, then lets go of the field so the keyboard goes
+  down (22-events.js; a name field's change saves it as it lets go). `tests/repo/engine-fields.test.mjs` keeps every
+  field's `enterkeyhint`; `tests/e2e/keyboard.spec.mjs`, `map-search.spec` and `sync.spec` press it.
+- **The page comes back lower once the keyboard goes.** iPhone Safari moves the page while its keyboard is up and puts
+  it back as it closes, so a map lined up under the header while typing ended with its foot, and the results sheet's
+  last row ("Search Google"), behind the bottom bar. When the map's search lets go of its field, the page waits for the
+  viewport's resizes to stop, then lines the map up again (`stageAfterKeyboard`, 16-map.js). The map-search test moves
+  the page down first, as the phone did.
+- **An input method's Enter picks characters.** While a Chinese or Japanese input method is composing, Enter belongs
+  to it. Chromium says so with `isComposing`; Safari sends that Enter just after composition ends, with `keyCode` 229.
+  A handler that read `key === 'Enter'` alone saved a half-typed name or jumped a search, so every Enter goes through
+  `enterKey` (02-helpers.js), and the tier-0 test refuses a bare one.
 - **Closing a sheet after a tab jump threw the reader back to the jumped-to heading** (2026-10-07, both engines, Esc,
   ✕, outside tap and Back). A sheet's close steps back through history, and the browser restores the scroll position it
   saved for the jump's step, not where the reader had scrolled to since. An overlay now remembers `scrollY` and puts it
@@ -82,6 +96,9 @@ What the first trip taught about the page in real browsers. Each lesson is backe
 
 - **Playwright's WebKit is close to iOS Safari, not identical.** Scroll, jump and install behaviour still get a pass on
   a real iPhone.
+- **Playwright has no on-screen keyboard.** A test can show that a field lets go (it loses focus) and that a composing
+  Enter is left alone, not that the phone's keyboard goes down or where the page sits once it has. Those get a look on
+  a real phone.
 - **WebKit desktop flakes about once in 140 runs** under full parallel load, a different test each time. A test that
   fails twice, or is always the same test, isn't that: a pass alone doesn't clear it
   (`memory-bank/standards/patterns/testing.md`, "When a test fails only sometimes").

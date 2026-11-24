@@ -209,8 +209,8 @@ same; only the colours and the drawings change. Without one, the page is the sky
   after that stop, at a time that fits. There's no "+" where nothing can go (under the closing "back to the hotel" row,
   the flight home, or a stop the next one starts with), and none on a day that holds only the early flight home.
 - **Find it:** search the page's places, all or one of six categories, sorted nearest to the stop before or top
-  rated; the first 25 show. A place closed that day is flagged and listed last, and shops with a tax refund are tagged. With Google, search
-  Google for more. A ＋ on any food, drink, wishlist, map or idea card adds that place too.
+  rated; the first 25 show. A place closed that day is flagged and listed last, and shops with a tax refund are tagged. The keyboard's
+  Search key puts the keyboard away and leaves the list. With Google, search Google for more. A ＋ on any food, drink, wishlist, map or idea card adds that place too.
 - **A look first:** tapping a place in the list (its name or its ＋) opens it over the list: our photo, its kind and
   rating, its hours on the day picked (or "closed" that day), the address, and with Google its rating, reviews and
   photos, then the day, the time, getting there and Add, which stays at the foot of the sheet. "Back to the list" (or
@@ -298,7 +298,8 @@ itself is the planner's: it's in the trip's data, and nobody makes one on the pa
 - **Search and list:** search the map, or list what's on it with a count, by type or nearest first. A search also
   finds the shop box's supermarkets and pharmacies, which have no pin of their own, and works before the map has
   loaded (or when it can't load: the list still works). The keyboard's Search key puts the keyboard away and leaves
-  the results in sight. With Google,
+  the results in sight; a short list opens tall enough to show all of it, so "Nothing found" shows its "Search Google"
+  row whole. With Google,
   "Search Google" finds places the page doesn't have, near where you are (or the hotel), in the trip's country and the
   page's language; those results stay put while your location updates, and "Back to page results" returns to the
   page's own. A toilet, station or bike-share dock tapped in the list shows on the map with its popup, the list lowered
@@ -405,7 +406,8 @@ Off unless the planner sets it up for the trip (the `sync-setup` skill). With it
 - **What's shared:** added stops, pushed-back times, flight changes and ticks in shared lists reach every phone. The
   rest (the language, the theme, personal ticks, which split plan a phone shows) stays on each phone.
 - **Your name.** The first open asks for a name once, a moment after the page shows (Not now is fine); until then a bar
-  under the header asks again, and Later hides it for a day. The add-stop sheet asks too. A name given later goes onto
+  under the header asks again, and Later hides it for a day. The add-stop sheet asks too. The keyboard's Done key saves
+  the name (while a Chinese input method is still picking characters, its Enter is left to it). A name given later goes onto
   the stops you already added, on every phone. A planner's name can't be taken.
 - **Who can change what.** Each phone changes or removes only the stops it added ("only the person who added it, or a
   planner"), and "Remove the N stops I added" clears them. Pushed-back times, flight changes and ticks stay open to

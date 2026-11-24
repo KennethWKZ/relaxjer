@@ -378,7 +378,7 @@ function groupSync() {
 		if (e.target.closest('[data-planner-ok]')) tryClaim();
 	});
 	document.addEventListener('keydown', (e) => {
-		if (e.key === 'Enter' && e.target.closest('[data-planner-code]')) tryClaim();
+		if (enterKey(e) && e.target.closest('[data-planner-code]')) tryClaim();
 	});
 
 	function status(state) {
@@ -438,7 +438,7 @@ function syncWelcomeSave() {
 	if (m && m.name === inp.value.trim().slice(0, 24)) closeDialog($('#placeSheet'));
 }
 document.addEventListener('keydown', (e) => {
-	if (e.key === 'Enter' && e.target.closest('[data-welcome-name]')) {
+	if (enterKey(e) && e.target.closest('[data-welcome-name]')) {
 		e.preventDefault();
 		syncWelcomeSave();
 	}
