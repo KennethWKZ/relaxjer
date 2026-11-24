@@ -164,6 +164,42 @@ test('with the phone’s location, a tapped place is framed with it, its pin sta
 	await expect(pin.locator('.lpin-name')).toHaveCount(0);
 });
 
+test('a pin tapped on the map is ringed, its popup naming it; with the phone’s location it is framed with it, and no line runs to it', async ({
+	page,
+}) => {
+	await page.addInitScript(stubMapLibre);
+	await page.addInitScript(stubPhoneAt);
+	await mapStyleRoute(page);
+	await openTrip(page);
+	const food = await aFoodPlace(page);
+	test.skip(!food, 'the trip has no researched food with a position');
+	await show(page, MAP.stage);
+	await expect(page.locator('.map-wrap.is-live'), 'the stand-in map is up').toBeAttached();
+	const pin = page.locator(MAP.pin(food.pid));
+	// without the phone's location: the pin is ringed (dest) with no name beside it, since its popup names it, and the
+	// camera stays put (no jump to the hotel on every tap while the group browses the map)
+	const moves = await page.evaluate(() => window.__ml.moves.length);
+	await pin.evaluate((b) => b.click());
+	await expect(pin).toHaveClass(/\bdest\b/);
+	await expect(pin.locator('.lpin-name'), 'no name beside it: the popup says it').toHaveCount(0);
+	await expect(page.locator('.maplibregl-popup'), 'its popup opens as before').toContainText(food.name);
+	expect(await page.evaluate(() => window.__ml.moves.length), 'a plain tap leaves the camera where it was').toBe(moves);
+	// with the phone 600 m southwest: a tap frames the two together, at street zoom at most
+	const to = { lat: food.lat, lng: food.lng };
+	const here = away(to, 0.6, 225);
+	await page.evaluate((h) => (window.__here = h), here);
+	await page.locator('#livemap .ml-loc').evaluate((b) => b.click());
+	await expect(page.locator('#livemap .me-dot'), 'the phone is on the map').toBeAttached();
+	await pin.evaluate((b) => b.click());
+	const cam = await page.evaluate(() => window.__ml.moves.at(-1));
+	expect(cam.kind).toBe('fit');
+	expect(inBounds(cam.bounds, here) && inBounds(cam.bounds, to), 'the phone and the pin both in the frame').toBe(true);
+	expect(cam.maxZoom).toBeLessThanOrEqual(17);
+	await expect(pin).toHaveClass(/\bdest\b/);
+	// no line from the phone: the old dashed line is gone for tapped pins too
+	expect(await page.evaluate(() => Object.keys(window.__ml.src)), 'no line drawn on the map').toEqual([]);
+});
+
 test('without the phone’s location the place is framed with where the plan has the group: before the trip, the hotel', async ({ page }) => {
 	await page.addInitScript(stubMapLibre);
 	await mapStyleRoute(page);

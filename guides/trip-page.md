@@ -322,8 +322,9 @@ itself is the planner's: it's in the trip's data, and nobody makes one on the pa
   place on a day's cards shows Google's live rating, reviews, opening hours (today highlighted) and photos: in the card
   itself, or for a stop in its details over the day. A place with no Google id is found by its name near its pin.
   Google is asked only on a tap, once per place per page view.
-- **Pins:** a popup with the name, its days, the address, the nearest station and how to get there from you, then the
-  full card under the map. Metro stations show their lines and the time to the trip's places; bike-share docks their
+- **Pins:** a tapped pin stands out, ringed, the way a searched place does; with your location on, the map also frames
+  it with you (no line is drawn to it). A popup with the name, its days, the address, the
+  nearest station and how to get there from you, then the full card under the map. Metro stations show their lines and the time to the trip's places; bike-share docks their
   live counts.
 - **Full screen**, with one-finger drag and Exit (Back closes it too); search, the filters and the list work there the
   same way. Your live location shows as a dot with an

@@ -406,14 +406,20 @@ function frameFrom() {
 function destMark(el, name, side) {
 	if (!el) return;
 	let n = el.querySelector('.lpin-name');
-	if (!n) {
+	if (!name) {
+		// a pin tapped on the map: its popup names it, so only the ring and the halo
+		if (n) n.remove();
+		delete el.dataset.name;
+	} else if (!n) {
 		n = document.createElement('span');
 		n.className = 'lpin-name';
 		n.setAttribute('aria-hidden', 'true'); // the pin's own label (or title) says it
 		el.append(n);
 	}
-	n.textContent = name;
-	el.dataset.name = side;
+	if (name) {
+		n.textContent = name;
+		el.dataset.name = side;
+	}
 	el.classList.remove('dest');
 	void el.offsetWidth; // a fresh landing: the halo plays again
 	el.classList.add('dest');

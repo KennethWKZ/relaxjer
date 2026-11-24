@@ -119,8 +119,9 @@ function mountGoogle() {
 		setTimeout(() => g.event.removeListener(cap), 2500); // a frame that changed nothing sends no idle: never a late jump
 	};
 	// quiet: the place finder shows the place in the pane, so its pin is marked (destMark) without a popup over the map,
-	// and the camera frames it
-	function pick(p, fly, quiet) {
+	// and the camera frames it. tapped: a pin tapped on the map is marked the same, with its popup, and framed with the
+	// phone when its location is on near the trip, as on the free map (21-live-location.js pick); never a line
+	function pick(p, fly, quiet, tapped) {
 		if (sel) {
 			sel.classList.remove('sel');
 			destUnmark(sel);
@@ -129,6 +130,8 @@ function mountGoogle() {
 		sel = mm && mm.b;
 		if (sel) sel.classList.add('sel');
 		if (sel && quiet) destMark(sel, p.name, nameSide(frameFrom(), p));
+		else if (sel && tapped) destMark(sel); // its popup names it: the ring and the halo only
+		if (tapped && meNear()) frame(p, 16.5, 17);
 		if (quiet) iw.close();
 		else {
 			const box = document.createElement('div');
@@ -159,7 +162,7 @@ function mountGoogle() {
 		b.innerHTML = pinSVG(p);
 		x.b = b;
 		x.mk = new g.marker.AdvancedMarkerElement({ map: null, position: { lat: p.lat, lng: p.lng }, content: b, title: p.name, gmpClickable: true });
-		x.mk.addListener('gmp-click', () => pick(p, false));
+		x.mk.addListener('gmp-click', () => pick(p, false, false, true));
 		return x.mk;
 	};
 	gmDrop = () => {

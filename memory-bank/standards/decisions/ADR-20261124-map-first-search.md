@@ -79,6 +79,13 @@ can know what the direction, distance" was asked for the same day.
     finder's own distances to each day's stops stay as they were, noted as straight-line estimates.
   - **Cleared** when the finder closes (Back, ✕, a new search, a filter, a redraw): `map.unpick()` drops the mark and
     the pin it had picked.
+  - **A pin tapped on the map** (a toilet, a station, any pin, outside the finder) gets the ring and the halo, with its
+    popup as before. No name beside it: the popup names it, and a label beside the pin covered the popup's buttons or
+    ran off the map's edge. It is framed with the phone only when the phone's location is on and near the trip (`meNear`); without
+    it the camera stays put, so browsing pins never jumps the map to the hotel on every tap. Never a line, for the
+    same reason as above: the old dashed line from the phone to a tapped pin is gone too (asked for on the same day,
+    after "will a line for toilets and stations but not for search results confuse the group?": the same place
+    would have behaved two ways, and blue dashes read as a walking route).
 - **The pane's head** carries its title: the count of places, "Google results", or, for the finder, Back to results.
   The results' own head keeps the sort.
 - **Filters:** one button before the categories names the day the map shows (in the day's colour) and opens a sheet with

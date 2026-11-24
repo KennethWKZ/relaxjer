@@ -366,6 +366,8 @@ const farAway = () =>
 	HOTELS.map(placeLL)
 		.filter(Boolean)
 		.every((h) => km(meLL, h) > 60); // still at home: distances in the thousands of km help no one
+// the phone's location is on and near the trip: a tapped pin is then framed with it (pick, 18-map-google.js too)
+const meNear = () => !!meLL && !farAway();
 // every place the map's search knows: the map's pins, built from the trip's data even while the live map can't load
 const mapPool = () => (mapPins.length ? mapPins : (mapPinsOff = mapPinsOff || buildPins()));
 // and, for a search, the shop box's shops (supermarkets, pharmacies), which the map draws no pin for
@@ -653,7 +655,7 @@ function mountLive(url) {
 			x.mk = new maplibregl.Marker({ element: b, anchor: 'center' }).setLngLat([p.lng, p.lat]).addTo(m);
 			b.addEventListener('click', (ev) => {
 				ev.stopPropagation();
-				pick(p, false);
+				pick(p, false, false, true);
 			});
 			return x.mk;
 		};
@@ -677,8 +679,9 @@ function mountLive(url) {
 			);
 		};
 		// quiet: the place finder shows the place in the pane, so its pin is marked (destMark) without a popup over the
-		// map, and the camera frames it
-		function pick(p, fly, quiet) {
+		// map, and the camera frames it. tapped: a pin tapped on the map (a toilet, a station) is marked the same, with its
+		// popup, and framed with the phone when its location is on near the trip; never a line (ADR-20261124-map-first-search)
+		function pick(p, fly, quiet, tapped) {
 			if (sel) {
 				sel.classList.remove('sel');
 				destUnmark(sel);
@@ -687,6 +690,8 @@ function mountLive(url) {
 			sel = mm && mm.b;
 			if (sel) sel.classList.add('sel');
 			if (sel && quiet) destMark(sel, p.name, nameSide(frameFrom(), p));
+			else if (sel && tapped) destMark(sel); // its popup names it: the ring and the halo only
+			if (tapped && meNear()) frame(p, 17);
 			if (popup) popup.remove();
 			popup = null;
 			if (!quiet) {
