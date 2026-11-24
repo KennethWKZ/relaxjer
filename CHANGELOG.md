@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.9.1](https://github.com/KennethWKZ/relaxjer/compare/v1.9.0...v1.9.1) (2026-11-24)
+
+
+### 🐛 Bug Fixes
+
+* **engine:** the map search's Search key closes the keyboard; a Google result's pin draws as a ring ([#87](https://github.com/KennethWKZ/relaxjer/issues/87)) ([1b62363](https://github.com/KennethWKZ/relaxjer/commit/1b6236384cc547f936e1739580cac0ca9cd623c6))
+
 ## [1.9.0](https://github.com/KennethWKZ/relaxjer/compare/v1.8.0...v1.9.0) (2026-11-24)
 
 
