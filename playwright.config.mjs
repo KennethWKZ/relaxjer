@@ -20,7 +20,10 @@ export default defineConfig({
 		baseURL: `http://127.0.0.1:${PORT}`,
 		timezoneId: 'Asia/Taipei',
 		serviceWorkers: 'block',
-		trace: 'retain-on-failure',
+		// a trace on failure keeps the DOM snapshots and the network, not the screencast: a page with a live sky repaints
+		// all the time, so every test recorded ~770 frames (~50 MB) and wrote them at teardown, which ran past the test
+		// timeout on a busy machine even when the test had passed
+		trace: { mode: 'retain-on-failure', screenshots: false },
 	},
 	webServer: {
 		command: `node tests/support/serve.mjs .cache/pages ${PORT}`,
