@@ -703,7 +703,9 @@ the system and the button stays hidden. The items below are the only deviations 
   lanterns instead of daylight panels.
 - **Phones.** An ink device frame (black at night, with a 1 px light edge): 6 px padding, 26 / 20 px radii
   (frame / screen) around the hero's real 390 px capture. A card's demo is a drawn mini trip page (`.m`: the page's
-  390 × 760 layout scaled by `--k`, 0.5 to 0.64), with radii scaled from 44 px. The hero phone lies across its
+  390 × 760 layout scaled by `--k`, 0.5 to 0.64), with radii scaled from 44 px. Its chrome is the phone's: the one-row
+  header over the Now stripe (`.m-hd`, `--now`) and the bottom bar (`.m-tabbar`, its items `.m-tb`), the item for the
+  view on screen lit, in the day's colour on a day (`.m-tabbar.day`). The hero phone lies across its
   postcard at 9°. Don't carry these radii or the device shadow into components.
 - **Pause.** Every looping demo has one: a 44 px round disc of stock under the phone's right edge, in the card's
   bottom margin, never over the screen it controls. It shows only its glyph, has an accessible name, and turns into a
