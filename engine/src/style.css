@@ -2817,6 +2817,9 @@ dialog.sheet::backdrop {
 .map-msg.slow p {
 	margin: 0;
 }
+.map-msg[hidden] {
+	display: none; /* after .map-msg.slow: its grid, or flex while slow, outranks the browser's own [hidden], and the box must not cover the map once it's up */
+}
 .lpin {
 	width: 44px;
 	height: 44px;
