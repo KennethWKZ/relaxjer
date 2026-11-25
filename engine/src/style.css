@@ -2129,6 +2129,17 @@ dialog.sheet {
 dialog.sheet::backdrop {
 	background: var(--scrim);
 }
+/* an open sheet holds the page still: a sheet shorter than the screen has nothing of its own to scroll, so a swipe on it
+   went through to the page behind (Food near me on Breakfast, iPhone). The page keeps its place; the gutter stays so a
+   desktop scrollbar going away doesn't shift the page sideways. A long sheet scrolls inside and stops at its ends. */
+html:has(dialog.sheet:modal),
+html:has(dialog.sheet:modal) body {
+	overflow: hidden;
+	scrollbar-gutter: stable;
+}
+dialog.sheet {
+	overscroll-behavior: contain;
+}
 /* the phone keyboard is up over an open sheet (19-back-button.js): the sheet sits on top of it, in what's left */
 .kb-up dialog.sheet[open] {
 	margin-bottom: var(--kb);
