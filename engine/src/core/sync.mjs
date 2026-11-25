@@ -1,17 +1,19 @@
 // Group sync's rules (ADR-20261001-group-sync). Pure; wrapped as `Sync` inside the page script.
 //  - What a phone shares is a set of records: an added stop, a day's pushed-back times, a changed flight time, a tick in
-//    a shared checklist group, the name a phone goes by, and who the planners are (ADR-20261002-sync-planners).
+//    a shared checklist group, the name a phone goes by, what kind of device it is, and who the planners are
+//    (ADR-20261002-sync-planners).
 //    Everything else (the language, the packing list, the rate…) stays on the phone.
 //  - A change is one record's new value, or null when it's gone. Every phone keeps the newest version of each record:
 //    the later edit, and on a tie the larger device id, so all phones pick the same one.
 //  - What comes from another phone is checked like a pasted share link: the wrong shape is dropped, long text is cut.
 
 /** the saved-state keys that hold shared records */
-export const KEYS = ['mine', 'shift', 'fltArr', 'fltDep', 'checks', 'people', 'roles', 'blocks'];
+export const KEYS = ['mine', 'shift', 'fltArr', 'fltDep', 'checks', 'people', 'roles', 'blocks', 'kits'];
 
 /**
  * The records a phone's state shares, by record id. state = { mine, shift, fltArr, fltDep, checks, people, roles } as
- * the page saves them (people = { device id: name }, roles = { device id: 'planner' }, blocks = { device id: true });
+ * the page saves them (people = { device id: name }, roles = { device id: 'planner' }, blocks = { device id: true },
+ * kits = { device id: 'iphone/app' }, see deviceKind);
  * shared(key) says whether a
  * checklist key is in a shared group.
  */
@@ -25,6 +27,7 @@ export function recordsOf(state, shared) {
 	for (const [dev, name] of Object.entries(state.people || {})) if (name) out[`who:${dev}`] = name;
 	for (const [dev, role] of Object.entries(state.roles || {})) if (role === 'planner') out[`role:${dev}`] = role;
 	for (const [dev, on] of Object.entries(state.blocks || {})) if (on === true) out[`block:${dev}`] = true;
+	for (const [dev, kit] of Object.entries(state.kits || {})) if (KIT.test(String(kit))) out[`kit:${dev}`] = kit;
 	return out;
 }
 
@@ -49,6 +52,10 @@ export function changes(before, after) {
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const DEV = /^[A-Za-z0-9_-]{6,24}$/;
+/** the kinds of device a phone can say it is: the system, then how the page is open (deviceKind) */
+export const KIT_OS = ['iphone', 'ipad', 'android', 'huawei', 'mac', 'windows', 'chromebook', 'linux', 'other'];
+export const KIT_APP = ['app', 'safari', 'chrome', 'firefox', 'edge', 'samsung', 'huawei', 'oppo', 'xiaomi', 'vivo', 'wechat', 'other'];
+const KIT = new RegExp(`^(${KIT_OS.join('|')})/(${KIT_APP.join('|')})$`);
 const CLOCK = /^\d{1,2}:\d{2}$/;
 const text = (s, n) => String(s ?? '').slice(0, n);
 const num = (x) => (typeof x === 'number' && Number.isFinite(x) ? x : null);
@@ -87,6 +94,7 @@ export function cleanRecord(rid, v) {
 	if (kind === 'who') return DEV.test(id) && typeof v === 'string' && v.trim() ? text(v.trim(), 24) : undefined;
 	if (kind === 'role') return DEV.test(id) && v === 'planner' ? v : undefined;
 	if (kind === 'block') return DEV.test(id) && v === true ? true : undefined;
+	if (kind === 'kit') return DEV.test(id) && typeof v === 'string' && KIT.test(v) ? v : undefined;
 	return undefined;
 }
 
@@ -104,6 +112,7 @@ export function applyRecords(state, recs, shared) {
 		people: { ...(state.people || {}) },
 		roles: { ...(state.roles || {}) },
 		blocks: { ...(state.blocks || {}) },
+		kits: { ...(state.kits || {}) },
 	};
 	for (const [rid, v] of recs) {
 		const [kind, ...rest] = String(rid).split(':');
@@ -119,8 +128,8 @@ export function applyRecords(state, recs, shared) {
 		} else if (kind === 'tick' && shared(id)) {
 			if (v) next.checks[id] = true;
 			else delete next.checks[id];
-		} else if (kind === 'who' || kind === 'role' || kind === 'block') {
-			const box = kind === 'who' ? next.people : kind === 'role' ? next.roles : next.blocks;
+		} else if (kind === 'who' || kind === 'role' || kind === 'block' || kind === 'kit') {
+			const box = { who: next.people, role: next.roles, block: next.blocks, kit: next.kits }[kind];
 			if (v) box[id] = v;
 			else delete box[id];
 		}
@@ -222,4 +231,79 @@ export function dropBlocked(remote, blocks) {
 	const kept = {};
 	for (const [rid, r] of Object.entries(remote || {})) if (r && !b[r.d]) kept[rid] = r;
 	return { remote: kept, blocks: b };
+}
+
+/**
+ * What kind of device the page runs on, as 'system/how it is open' (KIT_OS/KIT_APP), so the group can tell one
+ * person's phone, tablet and laptop apart. Only the kind, never the browser's full description. nav = { ua, standalone
+ * (opened from the home screen), touch (navigator.maxTouchPoints) }.
+ */
+export function deviceKind({ ua = '', standalone = false, touch = 0 } = {}) {
+	const u = String(ua);
+	const os =
+		/iPad/.test(u) || (/Macintosh/.test(u) && touch > 1)
+			? 'ipad'
+			: /iPhone|iPod/.test(u)
+				? 'iphone'
+				: /OpenHarmony|HarmonyOS|HUAWEI|Huawei/.test(u) // HarmonyOS NEXT says OpenHarmony; older Huawei phones say Android too
+					? 'huawei'
+					: /Android/.test(u)
+						? 'android'
+						: /CrOS/.test(u)
+							? 'chromebook'
+							: /Macintosh|Mac OS X/.test(u)
+								? 'mac'
+								: /Windows/.test(u)
+									? 'windows'
+									: /Linux/.test(u)
+										? 'linux'
+										: 'other';
+	const ios = os === 'iphone' || os === 'ipad';
+	// the first that matches: an app inside another (WeChat) or the home screen, then browsers that also say Chrome or
+	// Safari (a phone maker's own, Edge, Firefox), then Chrome, then Safari
+	const APPS = [
+		[/MicroMessenger/, 'wechat'],
+		[() => standalone, 'app'],
+		[/SamsungBrowser/, 'samsung'],
+		[/HuaweiBrowser/, 'huawei'],
+		[/HeyTapBrowser|OppoBrowser/, 'oppo'],
+		[/MiuiBrowser|XiaoMi\//, 'xiaomi'],
+		[/VivoBrowser/, 'vivo'],
+		[/EdgiOS|EdgA|Edg\//, 'edge'],
+		[/FxiOS|Firefox\//, 'firefox'],
+		[/CriOS/, 'chrome'],
+		[() => !ios && /Chrome\//.test(u) && !/OPR\//.test(u), 'chrome'],
+		[() => (ios || os === 'mac') && /Safari\//.test(u), 'safari'],
+	];
+	const hit = APPS.find(([t]) => (typeof t === 'function' ? t() : t.test(u)));
+	const app = hit ? hit[1] : 'other';
+	return `${os}/${app}`;
+}
+
+/**
+ * "The group", one entry per person: devices that go by the same name (nameKey) are one person's, the way the group
+ * reads it; devices with no name stay one each. A blocked device leaves its person and goes on the blocked list.
+ * Roles and blocks stay per device (a name proves nothing). devs = device ids in the order to show; people = { device
+ * id: name }; me = this device. Returns { people: [{ key, name, devs }], blocked: [device id] }; this device's person
+ * comes first, this device first among its person's, and a person goes by the name on their first device.
+ */
+export function byPerson(devs, people = {}, blocks = {}, me = null) {
+	const out = new Map();
+	const blocked = [];
+	for (const dev of devs || []) {
+		if (blocks[dev]) {
+			blocked.push(dev);
+			continue;
+		}
+		const name = people[dev] || '';
+		const key = nameKey(name) || `dev:${dev}`;
+		const p = out.get(key) || { key, name, devs: [] };
+		p.devs.push(dev);
+		if (dev === me) p.devs.unshift(p.devs.pop()); // this device first among its person's
+		out.set(key, p);
+	}
+	const list = [...out.values()].map((p) => ({ ...p, name: String(people[p.devs[0]] || '').trim() }));
+	const mine = list.findIndex((p) => p.devs.includes(me));
+	if (mine > 0) list.unshift(...list.splice(mine, 1));
+	return { people: list, blocked };
 }

@@ -3,7 +3,7 @@ id: ADR-20261002-sync-planners
 date: 2026-10-02
 title: 'Group Sync Gets Planners, Own-Stop Edits, Undo and a Recently Removed List'
 domain: sync
-status: accepted
+status: amended
 decision: 'A role belongs to a phone, not a name: planner changes are per device, and the undo toast and busy-day caution ship on every page.'
 ---
 
@@ -105,4 +105,27 @@ day ship on every page, sync or not.
 ## Read when
 
 You're changing who may change or remove what with group sync on, the planner code, Undo or the Recently removed
-list, or how the page asks a phone for its name.
+list, how the page asks a phone for its name, or how "The group" lists people and their devices.
+
+## Amendment 2026-11-25
+
+One person often uses a phone, a tablet and a laptop, and each browser (an iPhone's Safari and its home-screen copy
+included) is its own device to sync. "The group" filled up with the same name, and a planner blocked their own
+devices to tidy it.
+
+- **A device says what kind it is.** A new record kind, `kit:<device>`, holds a kind from a fixed list
+  (`Sync.deviceKind`): the system (iPhone, iPad, Android, Huawei, Mac, Windows, Chromebook, Linux) and how the page is
+  open (the home-screen app, Safari, Chrome, Firefox, Edge, Samsung Internet, Huawei, OPPO, Xiaomi or vivo Browser,
+  WeChat). Never the browser's own description. A device sends it with its name or with a change, never on its own, so a
+  device that only reads stays off the list.
+- **One name is one person in the list, nothing more.** "The group" shows one entry per name (`Sync.byPerson`), with
+  each of that person's devices under it by its kind and its last change. Roles, blocks and stops stay per device:
+  a name proves nothing, so a device under a planner's name isn't a planner until it gives the code.
+- **A planner's devices share the planner's name.** A device that is a planner may take a name another planner goes
+  by. Any other device still can't, and the page says to give the planner code first if the name is theirs.
+- **Blocked devices fold away** under "Blocked phones (N)" at the end of "The group", with Unblock inside. Blocking is
+  for strays; a person's own other device is listed under their name, not blocked.
+- **Consequences.** Security: the kind is sealed like every record; it tells the group what kind of device each person
+  uses, which they could see across a table anyway. Any device can claim any kind, so the kind identifies nothing.
+  Operational: no migration; phones on an older build ignore `kit:` records, and a device's kind arrives with its next
+  name or change. Cost: one small record per device.
