@@ -2,7 +2,7 @@
 // jumps that land in the right view, the Back pill, the Sections menu (a desktop's; the bottom bar's are in
 // tests/e2e/bottom-bar.spec.mjs), site search, the offline notice.
 import { test, expect, openTrip } from '../support/fixtures.mjs';
-import { BAR, goToView, hasBar, openSections, readingSpot, settle, setStored, viewOn } from '../support/page.mjs';
+import { BAR, goToView, hasBar, openSections, readingSpot, settle, setStored, show, viewOn } from '../support/page.mjs';
 
 /* global DAYS, OPTIONAL -- the trip data, read inside the page */
 
@@ -115,6 +115,56 @@ for (const how of ['Escape', 'Back']) {
 		await settle(page);
 		await expect(page.locator('html')).toHaveAttribute('data-showing', day);
 		expect(Math.abs((await scrollY(page)) - y)).toBeLessThan(40);
+	});
+}
+
+// A sheet shorter than the screen has nothing of its own to scroll, so a swipe on it scrolled the page behind instead
+// (Food near me on Breakfast, and a place's Info, on an iPhone). An open sheet now holds the page still. Playwright can't
+// swipe, so the wheel stands in for the finger; the screen is tall enough that the sheet fits on any trip.
+const SHEETS = {
+	'Food near me': async (page) => {
+		await goToView(page, await page.evaluate(() => DAYS[0].id));
+		return async () => {
+			await openSections(page);
+			await page.locator('#toc [data-near]').first().click();
+			return page.locator('#near');
+		};
+	},
+	'a place (Info, Add)': async (page, browserName) => {
+		const gap = await show(page, '[data-add-gap]');
+		await settle(page);
+		return async () => {
+			// WebKit under load can stop drawing frames, and a click then waits on "stable" forever (frontend.md): press it
+			if (browserName === 'webkit') await gap.press('Enter');
+			else await gap.click();
+			return page.locator('#placeSheet');
+		};
+	},
+};
+for (const [what, ready] of Object.entries(SHEETS)) {
+	test(`a swipe on an open sheet (${what}) never scrolls the page behind it`, async ({ page, browserName, isMobile }) => {
+		await page.setViewportSize({ width: page.viewportSize().width, height: 1400 });
+		await openTrip(page);
+		const open = await ready(page, browserName);
+		const y = await scrollY(page);
+		const room = await page.evaluate(() => document.documentElement.scrollHeight - innerHeight - scrollY);
+		expect(room, 'the page behind has room to scroll').toBeGreaterThan(100);
+		const sheet = await open();
+		await expect(sheet).toBeVisible();
+		await expect(page.locator('html'), 'the page is held while the sheet is open').toHaveCSS('overflow-y', 'hidden');
+		// Playwright has no wheel in a phone's WebKit; the held page above is what stops the swipe there
+		if (!(browserName === 'webkit' && isMobile)) {
+			const box = await sheet.boundingBox();
+			await page.mouse.move(box.x + box.width / 2, box.y + 30);
+			await page.mouse.wheel(0, 600);
+			await page.waitForTimeout(300);
+			expect(Math.abs((await scrollY(page)) - y), 'the page behind stays put').toBeLessThan(2);
+		}
+		await page.keyboard.press('Escape');
+		await expect(sheet).toBeHidden();
+		await settle(page);
+		expect(Math.abs((await scrollY(page)) - y), 'and is where it was once the sheet closes').toBeLessThan(40);
+		await expect(page.locator('html'), 'and scrolls again').not.toHaveCSS('overflow-y', 'hidden');
 	});
 }
 

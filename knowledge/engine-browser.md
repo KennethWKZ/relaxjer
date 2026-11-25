@@ -77,6 +77,12 @@ What the first trip taught about the page in real browsers. Each lesson is backe
   to it. Chromium says so with `isComposing`; Safari sends that Enter just after composition ends, with `keyCode` 229.
   A handler that read `key === 'Enter'` alone saved a half-typed name or jumped a search, so every Enter goes through
   `enterKey` (02-helpers.js), and the tier-0 test refuses a bare one.
+- **A swipe on a short sheet scrolled the page behind it** (2026-11-25, iPhone: Food near me on Breakfast, a place's
+  Info). A modal `<dialog>` makes the page inert to taps, not to scrolling: a sheet shorter than the screen has nothing
+  of its own to scroll, so the swipe went through to the page, and `overscroll-behavior: contain` doesn't help an element
+  that can't scroll. A longer sheet (Lunch, Dinner) scrolled itself and hid it. Fix: while any `dialog.sheet` is open,
+  `html` and `body` are `overflow: hidden` (with `scrollbar-gutter: stable`, so desktop doesn't shift); the page keeps
+  its place. (`tests/e2e/navigation.spec.mjs`)
 - **Closing a sheet after a tab jump threw the reader back to the jumped-to heading** (2026-10-07, both engines, Esc,
   ✕, outside tap and Back). A sheet's close steps back through history, and the browser restores the scroll position it
   saved for the jump's step, not where the reader had scrolled to since. An overlay now remembers `scrollY` and puts it
