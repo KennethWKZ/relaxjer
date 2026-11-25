@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.10.0](https://github.com/KennethWKZ/relaxjer/compare/v1.9.1...v1.10.0) (2026-11-25)
+
+
+### ✨ Features
+
+* **engine:** group sync lists each person once, devices by kind; blocked phones fold away ([#92](https://github.com/KennethWKZ/relaxjer/issues/92)) ([4f3d7b1](https://github.com/KennethWKZ/relaxjer/commit/4f3d7b11facc273b898f6ae2e4f4709298786f59))
+
+
+### 🐛 Bug Fixes
+
+* **engine:** an open sheet holds the page still, so a swipe on it never scrolls the page behind ([#91](https://github.com/KennethWKZ/relaxjer/issues/91)) ([51e11ea](https://github.com/KennethWKZ/relaxjer/commit/51e11ea2a0ff2064a193e83011d036a8a911cb14))
+* **engine:** every field acts on Enter once an input method is done; Nothing found shows Google ([#89](https://github.com/KennethWKZ/relaxjer/issues/89)) ([db46cc5](https://github.com/KennethWKZ/relaxjer/commit/db46cc57e5065890c4a2aa024543ed67589a415f))
+
 ## [1.9.1](https://github.com/KennethWKZ/relaxjer/compare/v1.9.0...v1.9.1) (2026-11-24)
 
 
