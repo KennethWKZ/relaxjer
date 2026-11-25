@@ -91,7 +91,12 @@ function groupSync() {
 		people: store.get('people', {}) || {},
 		roles: store.get('roles', {}) || {},
 		blocks: store.get('blocks', {}) || {},
+		kits: store.get('kits', {}) || {},
 	});
+	// what kind of device this is (iPhone · home-screen app, Mac · Chrome), so the group can tell one person's devices
+	// apart. Told with this device's name or its changes, never on its own: a device that only reads stays unlisted
+	const KIND = Sync.deviceKind({ ua: navigator.userAgent, standalone: isStandalone(), touch: navigator.maxTouchPoints || 0 });
+	const kitOff = () => ((store.get('kits', {}) || {})[meta.dev] || '') !== KIND;
 	let prev = Sync.recordsOf(stateNow(), sharedTick);
 	let quiet = false;
 	let remoteWho = null;
@@ -108,7 +113,11 @@ function groupSync() {
 	};
 	let soonT = 0;
 	function noteLocal() {
-		const next = Sync.recordsOf(stateNow(), sharedTick);
+		let next = Sync.recordsOf(stateNow(), sharedTick);
+		if (Sync.changes(prev, next).length && kitOff()) {
+			rawSet('kits', { ...(store.get('kits', {}) || {}), [meta.dev]: KIND });
+			next = Sync.recordsOf(stateNow(), sharedTick);
+		}
 		const u = Date.now();
 		for (const [rid, v] of Sync.changes(prev, next)) meta.pending[rid] = { v, u, d: meta.dev };
 		prev = next;
@@ -120,8 +129,8 @@ function groupSync() {
 
 	// what came from the group goes into the saved state in one go, quietly (it isn't sent back), then one redraw
 	function applyRemote(list) {
-		// a phone telling its name isn't news worth a toast
-		const theirs = list.filter(([rid, , ver]) => ver.d !== meta.dev && !rid.startsWith('who:'));
+		// a phone telling its name or what kind of device it is isn't news worth a toast
+		const theirs = list.filter(([rid, , ver]) => ver.d !== meta.dev && !rid.startsWith('who:') && !rid.startsWith('kit:'));
 		const note = theirs.length ? syncNote(theirs) : '';
 		const next = Sync.applyRecords(
 			stateNow(),
@@ -141,6 +150,7 @@ function groupSync() {
 			store.set('people', next.people);
 			store.set('roles', next.roles);
 			store.set('blocks', next.blocks);
+			store.set('kits', next.kits);
 			checks = next.checks;
 		} finally {
 			quiet = false;
@@ -287,11 +297,11 @@ function groupSync() {
 		if (!document.hidden && Object.keys(meta.pending).length) push();
 		else syncPaint(); // "synced 2 min ago" keeps counting
 	}, 30000);
-	// the name: kept as it's typed (a phone that closes the sheet without a "change" still has it), and once it's
-	// settled, put on the stops this phone added before it had one (or had another), so everyone sees who added them
 	// the name: kept as it's typed, and once settled, shared as this phone's (`who:` record) and put on the stops it
-	// added, so everyone sees who added them. A planner's name isn't for another phone to take
+	// added, so everyone sees who added them. A planner's name isn't for another phone to take, unless that phone is a
+	// planner too: one planner's phone, tablet and laptop go by one name
 	const takenByPlanner = (v) => {
+		if (syncIsPlanner()) return false;
 		const k = Sync.nameKey(v);
 		const people = store.get('people', {}) || {};
 		const roles = store.get('roles', {}) || {};
@@ -307,6 +317,7 @@ function groupSync() {
 	});
 	let namedAs = meta.name;
 	function announce() {
+		if (meta.name && kitOff()) store.set('kits', { ...(store.get('kits', {}) || {}), [meta.dev]: KIND });
 		const people = { ...(store.get('people', {}) || {}) };
 		if ((people[meta.dev] || '') === meta.name) return;
 		if (meta.name) people[meta.dev] = meta.name;
@@ -336,7 +347,12 @@ function groupSync() {
 			meta.name = namedAs;
 			save();
 			inp.value = namedAs;
-			toast(Z(`「${v}」是一位规划人的名字，换一个吧`, `“${v}” is a planner’s name: pick another`));
+			toast(
+				Z(
+					`「${v}」是一位规划人的名字。是你的话，先在「我是规划人」输入规划人密码；不是的话换一个吧`,
+					`“${v}” is a planner’s name. If it’s yours, give the planner code under “I’m a planner” first; if not, pick another`,
+				),
+			);
 			return;
 		}
 		if (v === namedAs) return; // nothing new (a redrawn sheet's field can fire change again)
@@ -448,7 +464,11 @@ document.addEventListener('keydown', (e) => {
    are function declarations: the menu's first draw runs before this file does */
 function syncAgo(at) {
 	const m = Math.round((Date.now() - at) / 60000);
-	return m < 1 ? Z('刚刚', 'just now') : m < 60 ? Z(`${m} 分钟前`, `${m} min ago`) : Z(`${Math.round(m / 60)} 小时前`, `${Math.round(m / 60)} h ago`);
+	if (m < 1) return Z('刚刚', 'just now');
+	if (m < 60) return Z(`${m} 分钟前`, `${m} min ago`);
+	if (m < 1440) return Z(`${Math.round(m / 60)} 小时前`, `${Math.round(m / 60)} h ago`);
+	const d = Math.round(m / 1440);
+	return Z(`${d} 天前`, `${d} day${d > 1 ? 's' : ''} ago`);
 }
 // how it stands, as a phrase: "synced 2 min ago", "3 changes waiting for a connection"
 function syncState() {
@@ -535,15 +555,54 @@ function syncSheet() {
       <p class="small muted">${Z('改动会自动同步；这个按钮只是马上再查一次。', 'Changes sync by themselves; this checks again right away.')}</p>
       ${syncGroupHTML(m, lead)}${syncGoneHTML()}${reset}</div>`;
 }
-// the group: each phone by its name, the stops it added and whether it's a planner. Everyone can clear their own
-// stops; a planner can clear anyone's, and make a phone a planner or not
+// what kind of device a phone said it is, as the group reads it: "iPhone · home-screen app", "Mac · Chrome"
+function kitLabel(kit) {
+	const [os, app] = String(kit || '').split('/');
+	const OS = {
+		iphone: 'iPhone',
+		ipad: 'iPad',
+		android: Z('安卓', 'Android'),
+		huawei: Z('华为', 'Huawei'),
+		mac: 'Mac',
+		windows: 'Windows',
+		chromebook: 'Chromebook',
+		linux: 'Linux',
+	};
+	const APP = {
+		app: Z('主画面 App', 'home-screen app'),
+		safari: 'Safari',
+		chrome: 'Chrome',
+		firefox: 'Firefox',
+		edge: 'Edge',
+		samsung: Z('三星浏览器', 'Samsung Internet'),
+		huawei: Z('华为浏览器', 'Huawei Browser'),
+		oppo: Z('OPPO 浏览器', 'OPPO Browser'),
+		xiaomi: Z('小米浏览器', 'Xiaomi Browser'),
+		vivo: Z('vivo 浏览器', 'vivo Browser'),
+		wechat: Z('微信', 'WeChat'),
+	};
+	const o = OS[os] || '';
+	const a = APP[app] || '';
+	return o && a.startsWith(o) ? a : [o, a].filter(Boolean).join(' · '); // "Huawei Browser", not "Huawei · Huawei Browser"
+}
+// the group, one entry per person (Sync.byPerson): a name on a phone, a tablet and a laptop is one person, with each
+// device under it by its kind and when it last changed something. Roles, blocks and stops stay per device: everyone can
+// clear their own stops; a planner can clear anyone's, make a device a planner or not, and block one. Blocked devices
+// fold away at the end, out of the way
 function syncGroupHTML(m, lead) {
 	const people = store.get('people', {}) || {};
 	const roles = syncRoles();
 	const blocks = store.get('blocks', {}) || {};
+	const kits = store.get('kits', {}) || {};
 	const groups = Sync.byPhone(mineAll(), (id) => stopVer(m, id), m.dev || null, people);
-	// every phone heard from, named or not, so a planner can block one that never gave a name
-	const heard = Object.values(m.known || {}).map((v) => v && v.d);
+	// every device heard from, named or not, so a planner can block one that never gave a name; and when it last wrote
+	const last = {};
+	const heard = new Set();
+	for (const v of [...Object.values(m.known || {}), ...Object.values(m.pending || {})]) {
+		if (!v || !v.d) continue;
+		heard.add(v.d);
+		if (v.u > 1 && !(last[v.d] >= v.u)) last[v.d] = v.u; // 1: what a phone held before it joined, not a change
+	}
 	const devs = [
 		...new Set([
 			...(m.dev && people[m.dev] ? [m.dev] : []),
@@ -555,14 +614,24 @@ function syncGroupHTML(m, lead) {
 		]),
 	].filter((d) => d && /^[A-Za-z0-9_-]{6,24}$/.test(d));
 	if (!devs.length) return '';
-	const rows = devs.map((dev) => {
-		const g = groups.find((x) => x.dev === dev) || { ids: [], by: '' };
+	const { people: list, blocked } = Sync.byPerson(devs, people, blocks, m.dev || null);
+	const nameOf = (dev) => {
+		const g = groups.find((x) => x.dev === dev);
+		const name = people[dev] || (g && g.by) || '';
+		return dev === m.dev ? (name ? Z(`你（${name}）`, `You (${name})`) : Z('你', 'You')) : name || Z('没写名字的人', 'Someone with no name');
+	};
+	// one device: its stops, its kind and last change under the label, and what can be done with it here
+	const row = (dev, label) => {
+		const g = groups.find((x) => x.dev === dev) || { ids: [] };
 		const n = g.ids.length;
-		const name = people[dev] || g.by;
 		const mine = dev === m.dev;
 		const planner = roles[dev] === 'planner';
-		const blocked = !!blocks[dev];
-		const who = mine ? (name ? Z(`你（${name}）`, `You (${name})`) : Z('你', 'You')) : name || Z('没写名字的人', 'Someone with no name');
+		const isBlocked = !!blocks[dev];
+		const sub = [
+			label.kit ? kitLabel(kits[dev]) : '',
+			n ? Z(`加了 ${n} 个行程`, `${n} added stop${n > 1 ? 's' : ''}`) : Z('没有加行程', 'no added stops'),
+			last[dev] ? Z(`上次改动 ${syncAgo(last[dev])}`, `last change ${syncAgo(last[dev])}`) : '',
+		].filter(Boolean);
 		const acts = [
 			n && mine
 				? `<button type="button" class="mlink danger" data-mine-clear-own>${icon('x')}${Z(`删除我的 ${n} 个`, `Remove my ${n}`)}</button>`
@@ -570,18 +639,27 @@ function syncGroupHTML(m, lead) {
 			n && !mine && lead
 				? `<button type="button" class="mlink danger" data-mine-clear-dev="${esc(dev)}">${icon('x')}${Z(`删除这 ${n} 个`, `Remove these ${n}`)}</button>`
 				: '',
-			lead && !planner && !blocked
+			lead && !planner && !isBlocked
 				? `<button type="button" class="mlink" data-role-set="${esc(dev)}">${icon('users')}${Z('设为规划人', 'Make planner')}</button>`
 				: '',
 			lead && planner && !mine ? `<button type="button" class="mlink" data-role-drop="${esc(dev)}">${Z('取消规划人', 'Not a planner')}</button>` : '',
-			lead && !mine && !blocked
+			lead && !mine && !isBlocked
 				? `<button type="button" class="mlink danger" data-block-set="${esc(dev)}">${icon('x')}${Z('停用这台手机', 'Block this phone')}</button>`
 				: '',
-			lead && blocked ? `<button type="button" class="mlink" data-block-drop="${esc(dev)}">${Z('恢复这台手机', 'Unblock')}</button>` : '',
+			lead && isBlocked ? `<button type="button" class="mlink" data-block-drop="${esc(dev)}">${Z('恢复这台手机', 'Unblock')}</button>` : '',
 		].join('');
-		return `<li class="sync-row"><span><b>${esc(who)}</b>${planner ? `<span class="sync-badge">${Z('规划人', 'Planner')}</span>` : ''}${blocked ? `<span class="sync-badge is-blocked">${Z('已停用', 'Blocked')}</span>` : ''}<span class="xsmall muted sync-row-sub">${n ? Z(`加了 ${n} 个行程`, `${n} added stop${n > 1 ? 's' : ''}`) : Z('没有加行程', 'no added stops')}</span></span>${acts ? `<span class="sync-acts">${acts}</span>` : ''}</li>`;
+		return `<li class="sync-row" data-sync-dev="${esc(dev)}"><span><b>${esc(label.text)}</b>${label.me ? `<span class="sync-badge is-me">${Z('这台', 'This one')}</span>` : ''}${planner ? `<span class="sync-badge">${Z('规划人', 'Planner')}</span>` : ''}${isBlocked ? `<span class="sync-badge is-blocked">${Z('已停用', 'Blocked')}</span>` : ''}<span class="xsmall muted sync-row-sub">${esc(sub.join(' · '))}</span></span>${acts ? `<span class="sync-acts">${acts}</span>` : ''}</li>`;
+	};
+	const items = list.map((p) => {
+		if (p.devs.length === 1) return row(p.devs[0], { text: nameOf(p.devs[0]), kit: true });
+		const devRows = p.devs.map((dev) => row(dev, { text: kitLabel(kits[dev]) || Z('一台设备', 'A device'), me: dev === m.dev })).join('');
+		const k = p.devs.length;
+		return `<li class="sync-person"><p class="sync-person-h"><b>${esc(nameOf(p.devs[0]))}</b><span class="xsmall muted"> · ${Z(`${k} 台设备`, `${k} devices`)}</span></p><ul class="sync-list sync-devs">${devRows}</ul></li>`;
 	});
-	return `<div class="sync-part"><p class="sub-h">${Z('全组', 'The group')}</p><ul class="sync-list">${rows.join('')}</ul></div>`;
+	const fold = blocked.length
+		? `<details class="sync-code sync-blocked" data-fold="blocked"><summary>${icon('x')}${Z(`已停用的手机（${blocked.length}）`, `Blocked phones (${blocked.length})`)}${icon('chev', 'chev')}</summary><ul class="sync-list">${blocked.map((dev) => row(dev, { text: nameOf(dev), kit: true })).join('')}</ul></details>`
+		: '';
+	return `<div class="sync-part"><p class="sub-h">${Z('全组', 'The group')}</p><ul class="sync-list">${items.join('')}</ul>${fold}</div>`;
 }
 // "recently removed": kept on this phone, from anyone, so a stop removed by mistake can be put back
 function syncGoneHTML() {
@@ -605,6 +683,9 @@ function syncSheetRefresh() {
 		if (box.contains(document.activeElement) && document.activeElement.matches('input')) return; // mid-typing: keep it
 		const next = document.createElement('div');
 		next.innerHTML = syncSheet();
+		// a fold the reader opened (the blocked phones) stays open across the redraw
+		const open = [...box.querySelectorAll('details[data-fold][open]')].map((d) => d.dataset.fold);
+		for (const f of open) next.querySelector(`details[data-fold="${f}"]`)?.setAttribute('open', '');
 		box.replaceWith(next.firstElementChild);
 	});
 }
@@ -706,6 +787,7 @@ function syncNote(list) {
 	}
 	if (kind === 'role') {
 		const name = (store.get('people', {}) || {})[id] || Z('一台手机', 'a phone');
+		if (v && list[0][2] && list[0][2].d === id) return Z(`${name}现在是规划人`, `${name} is a planner now`); // gave the code
 		return v
 			? Z(`${who}把${name}设为规划人`, `${who} made ${name} a planner`)
 			: Z(`${who}取消了${name}的规划人`, `${who} made ${name} no longer a planner`);

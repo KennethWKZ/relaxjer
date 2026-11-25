@@ -222,3 +222,96 @@ test('Sync: a planner can block a phone; what a blocked phone writes is dropped,
 	assert.deepEqual(self.blocks, { phoneB2: true });
 	assert.deepEqual(Sync.dropBlocked({ 'block:phoneB2': { v: null, u: 9, d: 'phoneA1' } }, { phoneB2: true }).blocks, {}, 'a planner can');
 });
+
+test('Sync: a device says what kind it is, as a kind from a short list, never the browser’s own description', () => {
+	const kind = (ua, more = {}) => Sync.deviceKind({ ua, ...more });
+	const iphone =
+		'Mozilla/5.0 (iPhone; CPU iPhone OS 26_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.1 Mobile/15E148 Safari/604.1';
+	assert.equal(kind(iphone), 'iphone/safari');
+	assert.equal(kind(iphone, { standalone: true }), 'iphone/app', 'opened from the home screen');
+	assert.equal(kind(iphone.replace('Version/26.1', 'CriOS/140.0.0.0')), 'iphone/chrome');
+	assert.equal(kind(`${iphone} MicroMessenger/8.0.50`), 'iphone/wechat');
+	const mac = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.1 Safari/605.1.15';
+	assert.equal(kind(mac), 'mac/safari');
+	assert.equal(kind(mac, { touch: 5 }), 'ipad/safari', 'an iPad asks for the desktop page and says Macintosh');
+	const chromeMac = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36';
+	assert.equal(kind(chromeMac), 'mac/chrome');
+	assert.equal(kind(`${chromeMac} Edg/142.0.0.0`), 'mac/edge');
+	assert.equal(
+		kind('Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36'),
+		'android/chrome',
+	);
+	assert.equal(
+		kind(
+			'Mozilla/5.0 (Linux; Android 15; SM-S921B) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/28.0 Chrome/130.0.0.0 Mobile Safari/537.36',
+		),
+		'android/samsung',
+	);
+	assert.equal(
+		kind(
+			'Mozilla/5.0 (Phone; OpenHarmony 5.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 ArkWeb/4.1.6.1 Mobile HuaweiBrowser/5.0.3.300',
+		),
+		'huawei/huawei',
+		'HarmonyOS NEXT',
+	);
+	assert.equal(
+		kind(
+			'Mozilla/5.0 (Linux; Android 12; HarmonyOS; NOH-AN00; HMSCore 6.13.0.302) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 HuaweiBrowser/15.0.4.312 Mobile Safari/537.36',
+		),
+		'huawei/huawei',
+		'an older Huawei phone, which says Android too',
+	);
+	// an OPPO (ColorOS), Xiaomi or vivo phone is Android; their own browsers say who they are, Chrome doesn't
+	const android = 'Mozilla/5.0 (Linux; Android 16; PLK110) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.6998.135 Mobile Safari/537.36';
+	assert.equal(kind(`${android} HeyTapBrowser/40.10.6.1`), 'android/oppo');
+	assert.equal(kind(`${android} XiaoMi/MiuiBrowser/19.2.11`), 'android/xiaomi');
+	assert.equal(kind(`${android} VivoBrowser/24.5.10.0`), 'android/vivo');
+	assert.equal(kind(android), 'android/chrome');
+	assert.equal(kind('Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:145.0) Gecko/20100101 Firefox/145.0'), 'windows/firefox');
+	assert.equal(
+		kind('Mozilla/5.0 (X11; CrOS x86_64 16000.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36'),
+		'chromebook/chrome',
+	);
+	assert.equal(kind(''), 'other/other');
+	for (const ua of [iphone, mac, chromeMac, '']) assert.ok(Sync.cleanRecord('kit:phoneA1', kind(ua)), `${kind(ua)} passes the record check`);
+});
+
+test('Sync: a device kind travels as its own record, checked against the list', () => {
+	assert.deepEqual(Sync.recordsOf({ kits: { phoneA1: 'mac/chrome', phoneB2: 'toaster' } }, shared), { 'kit:phoneA1': 'mac/chrome' });
+	assert.equal(Sync.cleanRecord('kit:phoneA1', 'ipad/app'), 'ipad/app');
+	assert.equal(Sync.cleanRecord('kit:phoneA1', 'Mozilla/5.0 (iPhone)'), undefined, 'never a browser description');
+	assert.equal(Sync.cleanRecord('kit:x', 'mac/chrome'), undefined, 'a device id that isn’t one');
+	assert.equal(Sync.cleanRecord('kit:phoneA1', null), null);
+	const next = Sync.applyRecords(
+		{ kits: { phoneB2: 'iphone/app' } },
+		[
+			['kit:phoneA1', 'mac/chrome'],
+			['kit:phoneB2', null],
+		],
+		shared,
+	);
+	assert.deepEqual(next.kits, { phoneA1: 'mac/chrome' });
+	assert.ok(Sync.KEYS.includes('kits'));
+});
+
+test('Sync: the group is one entry per person; one name on a phone, a tablet and a laptop is one person', () => {
+	const people = { phoneA1: 'Ken', laptopA2: ' ken ', tabletA3: 'KEN', phoneB1: 'Ana', strayC1: 'Ken' };
+	const { people: list, blocked } = Sync.byPerson(
+		['phoneB1', 'laptopA2', 'phoneA1', 'noname1', 'tabletA3', 'noname2', 'strayC1'],
+		people,
+		{ strayC1: true },
+		'phoneA1',
+	);
+	assert.deepEqual(
+		list.map((p) => [p.name.trim(), p.devs]),
+		[
+			['Ken', ['phoneA1', 'laptopA2', 'tabletA3']],
+			['Ana', ['phoneB1']],
+			['', ['noname1']],
+			['', ['noname2']],
+		],
+		'this device’s person first, this device first in it; devices with no name stay one each',
+	);
+	assert.deepEqual(blocked, ['strayC1'], 'a blocked device leaves its person, whatever name it gives');
+	assert.deepEqual(Sync.byPerson([], {}, {}, 'me').people, []);
+});

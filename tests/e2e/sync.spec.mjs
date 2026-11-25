@@ -267,6 +267,10 @@ test.describe('group sync', { tag: '@demo' }, () => {
 		await row.locator('[data-block-set]').click();
 		await expect(page.locator('#toast')).toContainText('Blocked Ana');
 		await expect(sheet(page).locator('.sync-row', { hasText: 'Ana' }).locator('.sync-badge')).toHaveText('Blocked');
+		// a blocked phone folds away at the end of The group, out of the people using the trip
+		const fold = sheet(page).locator('[data-fold="blocked"]');
+		await expect(fold.locator('summary')).toContainText('Blocked phones (1)');
+		await expect(sheet(page).locator('.sync-row', { hasText: 'Ana' }), 'folded until opened').toBeHidden();
 		await sheet(page).locator('[data-close]').click();
 		await expect(box(page, 'before-charter'), 'its last tick goes back').not.toBeChecked();
 		await expect(page.locator('#d3 .stop.mine', { hasText: 'Demo Tester Stop' })).toHaveCount(0);
@@ -282,6 +286,7 @@ test.describe('group sync', { tag: '@demo' }, () => {
 		await expect(box(page, 'before-passport')).not.toBeChecked();
 
 		await openSyncSheet(page);
+		await sheet(page).locator('[data-fold="blocked"] > summary').click();
 		await sheet(page).locator('.sync-row', { hasText: 'Ana' }).locator('[data-block-drop]').click();
 		await expect(page.locator('#toast')).toContainText('Unblocked Ana');
 		await sheet(page).locator('[data-close]').click();
@@ -301,6 +306,48 @@ test.describe('group sync', { tag: '@demo' }, () => {
 		await inp.dispatchEvent('change');
 		await expect(page.locator('#toast')).toContainText('planner’s name');
 		await expect(inp).toHaveValue('');
+	});
+
+	// one person often has a phone, a tablet and a laptop: one name is one entry in The group, each device under it by
+	// its kind. A planner's name stays theirs: another device takes it only once it has given the planner code too
+	test('one person on two devices is one entry in The group, each device by its kind', async ({ page }) => {
+		await openSync(b.page);
+		await openSync(page);
+		await setName(page, 'Ana');
+		await claimPlanner(page);
+		await expect(sheet(page).locator('.sync-role')).toContainText('planner');
+		await sheet(page).locator('[data-close]').click();
+
+		await openSyncSheet(b.page);
+		// Ana's planner role has reached this phone; a toast from the group can still cover the answer, so ask until it shows
+		await expect(sheet(b.page).locator('.sync-row', { hasText: 'Ana' }).locator('.sync-badge')).toHaveText('Planner', { timeout: 15_000 });
+		const inp = sheet(b.page).locator('[data-sync-name]');
+		await expect(async () => {
+			await inp.fill('Ana');
+			await inp.dispatchEvent('change');
+			await expect(b.page.locator('#toast'), 'not yet: it says how').toContainText('If it’s yours, give the planner code', { timeout: 2_000 });
+		}).toPass({ timeout: 15_000 });
+		await expect(inp, 'the name stays free').toHaveValue('');
+		await sheet(b.page).locator('[data-close]').click();
+		await claimPlanner(b.page);
+		await expect(sheet(b.page).locator('.sync-role')).toContainText('planner');
+		await sheet(b.page).locator('[data-sync-name]').fill('Ana');
+		await sheet(b.page).locator('[data-sync-name]').dispatchEvent('change');
+		await expect(b.page.locator('#toast')).toContainText('Name saved');
+		await sheet(b.page).locator('[data-close]').click();
+
+		await openSyncSheet(page);
+		const ana = sheet(page).locator('.sync-person');
+		await expect(ana, 'one entry for both devices').toHaveCount(1, { timeout: 15_000 });
+		await expect(ana.locator('.sync-person-h')).toContainText('You (Ana)');
+		await expect(ana.locator('.sync-person-h')).toContainText('2 devices');
+		const devs = ana.locator('.sync-devs > .sync-row');
+		await expect(devs).toHaveCount(2);
+		await expect(devs.first().locator('.sync-badge.is-me'), 'this device first, and marked').toHaveText('This one');
+		await expect(devs.nth(1)).toContainText(/iPhone|iPad|Android|Mac|Windows|Linux|Chromebook/);
+		await expect(devs.nth(1).locator('.sync-badge')).toHaveText('Planner');
+		await expect(devs.nth(1)).toContainText('last change');
+		await expect(sheet(page).locator('[data-sync-dev]'), 'nobody else in the group').toHaveCount(2);
 	});
 
 	test('a removal can be undone from the toast, and put back later from Recently removed', async ({ page }) => {

@@ -408,7 +408,8 @@ Off unless the planner sets it up for the trip (the `sync-setup` skill). With it
 - **Your name.** The first open asks for a name once, a moment after the page shows (Not now is fine); until then a bar
   under the header asks again, and Later hides it for a day. The add-stop sheet asks too. The keyboard's Done key saves
   the name (while a Chinese input method is still picking characters, its Enter is left to it). A name given later goes onto
-  the stops you already added, on every phone. A planner's name can't be taken.
+  the stops you already added, on every phone. A planner's name can't be taken, except by another of that planner's
+  devices once it has given the planner code.
 - **Who can change what.** Each phone changes or removes only the stops it added ("only the person who added it, or a
   planner"), and "Remove the N stops I added" clears them. Pushed-back times, flight changes and ticks stay open to
   everyone.
@@ -417,9 +418,13 @@ Off unless the planner sets it up for the trip (the `sync-setup` skill). With it
   stops and last changes go back to the plan, and what it writes next reaches nobody. Undo brings it all back, and
   Unblock sends what waited.
 - **The Group sync sheet** (a row in More, or the Sections menu on a computer): what syncs, your name, the planner box, when it last synced or
-  how many changes are waiting, Sync now (it says when it's working and when it's up to date), "The group" (each phone,
-  its badges and how many stops it added), and **Recently removed** (the newest 10, with who removed each and Put
-  back).
+  how many changes are waiting, Sync now (it says when it's working and when it's up to date), "The group", and
+  **Recently removed** (the newest 10, with who removed each and Put back).
+- **The group** lists each person once. Someone on a phone, a tablet and a laptop under one name shows that name with
+  each device under it: what kind it is ("iPhone · home-screen app", "Mac · Chrome", "Android · OPPO Browser"), its
+  badges (This one, Planner), how many stops it added and when it last changed something. Every browser is its own
+  device: an iPhone's Safari and its home-screen copy are two. Blocked devices fold away under **Blocked phones (N)**
+  at the end, with Unblock inside.
 - **Others' changes** show as a toast: "Ana added … · Day 3 19:30", a push-back, a new landing time, a tick.
 - **Offline is fine.** Changes wait on the phone and go when it's back online. Every record is encrypted on the phone
   before it leaves, on the planner's own Firebase database.

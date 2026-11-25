@@ -6301,6 +6301,34 @@ input[data-rate][aria-invalid='true'] {
 .sync-row .mlink {
 	flex: none;
 }
+/* one person on several devices (a phone, a tablet, a laptop): their name once, each device under it */
+.sync-person {
+	padding: 6px 0 2px;
+}
+.sync-list > li + li {
+	border-top: 1px solid color-mix(in srgb, var(--rule) 60%, transparent);
+}
+.sync-person-h {
+	margin: 0;
+	font-size: var(--fs-sm);
+}
+.sync-devs {
+	margin: 2px 0 0;
+	padding-left: 12px;
+	border-left: 2px solid var(--rule);
+}
+.sync-badge.is-me {
+	background: color-mix(in srgb, var(--link) 12%, transparent);
+	color: var(--link);
+}
+/* blocked phones: folded away at the end of The group, each with Unblock inside */
+.sync-blocked {
+	margin: 10px 0 0;
+	background: var(--paper-2);
+}
+.sync-blocked > summary {
+	color: var(--ink-2);
+}
 @media (max-width: 420px) {
 	.sync-row:has(.sync-acts) {
 		flex-wrap: wrap;
