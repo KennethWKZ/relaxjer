@@ -82,7 +82,13 @@ if '--no-google' not in args:
         r = subprocess.run([PY, script(name)] + (['--write'] if WRITE and name != 'fetch' else []), env=env, capture_output=True, text=True)
         report, err = new_calls(r.stderr)
         out = r.stdout.strip().splitlines()
-        if name == 'apply': print('\n'.join(out[:3])); print(f'  … {max(0, len(out) - 6)} more change lines …' if len(out) > 6 else ''); print('\n'.join(out[-3:]))
+        if name == 'apply':
+            keep = ('  drive ', '  untimed ')  # every drive's roads and every leg with no Google time, always shown: the planner's to see
+            drives = [l for l in out if l.startswith(keep[0])]; untimed = [l for l in out if l.startswith(keep[1])]
+            out = [l for l in out if not l.startswith(keep)]
+            print('\n'.join(out[:3])); print(f'  … {max(0, len(out) - 6)} more change lines …' if len(out) > 6 else ''); print('\n'.join(out[-3:]))
+            if drives: print('drives and their roads:'); print('\n'.join(drives))
+            if untimed: print('legs Google gave no time:'); print('\n'.join(untimed))
         elif name == 'fetch': print(r.stdout.strip() or err[-800:])
         else: print('\n'.join(out[-TAIL.get(name, 4):]) or err[-800:])
         if report:  # a step that never asked Google (apply) has no report

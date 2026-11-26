@@ -21,12 +21,35 @@ class Trip(unittest.TestCase):
     def test_a_stored_leg_knows_which_stops_it_joins(self):
         legs_def = {'d3': [['station', 'market', 'walking'], ['market', 'canal', 'walking', '12:00']]}
         self.assertEqual(trip.leg_ends(legs_def, 'd3:1'), ('market', 'canal', 'walking'))  # an 'HH:MM' start isn't an end
+        self.assertEqual(trip.leg_ends({'d3': [['station', 'airport', 'transit', '11:40', 37]]}, 'd3:0'), ('station', 'airport', 'transit'))
+
+    def test_a_leg_may_carry_its_own_time_and_the_trips_own_minutes(self):
+        self.assertEqual(trip.leg_parts(['a', 'b', 'transit']), ('a', 'b', 'transit', None, None))
+        self.assertEqual(trip.leg_parts(['a', 'b', 'transit', 90]), ('a', 'b', 'transit', None, 90))
+        self.assertEqual(trip.leg_parts(['a', 'b', 'transit', '10:00', 90]), ('a', 'b', 'transit', '10:00', 90))
+        self.assertEqual(trip.leg_parts(['a', 'b', 'driving', '16:55']), ('a', 'b', 'driving', '16:55', None))
+
+    def test_google_is_never_asked_for_transit_where_it_has_none(self):
+        self.assertIn('JP', google.NO_TRANSIT)  # Google's coverage FAQ: every transit partner "except those in Japan"
+        self.assertNotIn('TW', google.NO_TRANSIT)
 
     def test_a_leg_sets_off_at_its_own_time_or_a_plausible_one(self):
         self.assertEqual(trip.leg_time('2027-03-15', 1, 3, '18:00'), '2027-03-15T10:00:00Z')  # the leg's own 'HH:MM' wins
         self.assertEqual(trip.leg_time('2027-03-15', 0, 3), '2027-03-15T01:30:00Z')  # first leg 09:30
         self.assertEqual(trip.leg_time('2027-03-15', 1, 3), '2027-03-15T05:30:00Z')  # between 13:30
         self.assertEqual(trip.leg_time('2027-03-15', 2, 3), '2027-03-15T12:30:00Z')  # last leg 20:30
+
+    def test_a_drive_without_its_own_time_sets_off_when_the_schedule_says(self):
+        day = {'route': [['hotel', 'hill', 'driving'], ['hill', 'lake', 'driving'], ['lake', 'valley', 'driving'], ['valley', 'inn', 'driving'], ['inn', 'pier', 'driving']],
+               'schedule': [{'t': '09:00', 'place': 'hotel'}, {'t': '10:15', 'place': 'hill'}, {'t': '12:15', 'place': 'lake'},
+                            {'t': '14:30', 'place': 'lake'}, {'t': '~15:30–16:00', 'place': 'valley'}, {'t': '16:15', 'place': 'inn'},
+                            {'t': ['晚上', 'Evening'], 'place': 'inn'}, {'t': '19:30', 'place': 'valley'}]}
+        # the stop just before the destination's: check-out, the visit it leaves from, the 'Drive to …' row, a range's end;
+        # a destination the schedule never reaches has no time, so the plausible hour stays
+        self.assertEqual(trip.leg_departures(day), ['09:00', '10:15', '14:30', '16:00', None])
+        self.assertEqual(trip.leg_departures({'route': [['a', 'b', 'driving']], 'schedule': [{'t': ['晚上', 'Evening'], 'place': 'x'}, {'t': '20:00', 'place': 'b'}]}), [None])
+        self.assertEqual(trip.stop_clock('~9:05–18:15'), '18:15')
+        self.assertIsNone(trip.stop_clock(['晚上', 'Evening']))
 
 class Hours(unittest.TestCase):
     WEEK = ['星期一: 休息', '星期二: 11:00 – 20:00', '星期三: 11:00 – 20:00', '星期四: 11:00 – 20:00', '星期五: 11:00 – 20:00', '星期六: 10:00 – 14:00, 17:00 – 21:00', '星期日: 24 小時營業']
@@ -134,6 +157,27 @@ class Google(unittest.TestCase):
         key = lambda body: 'route|' + json.dumps(body, sort_keys=True, ensure_ascii=False) + '|' + url + '|' + mask
         self.assertAlmostEqual(google.cost(key(traffic)), 10 / 1000)  # Compute Routes Pro
         self.assertAlmostEqual(google.cost(key(plain)), 5 / 1000)  # Compute Routes Essentials
+
+    def test_only_a_drive_asks_which_roads_it_takes_and_the_price_stays(self):
+        seen = []
+        fake = lambda tag, url, body=None, mask='', method='POST', fresh=False: seen.append((url, mask)) or {}
+        with mock.patch.object(google, 'call', fake):
+            google.route((25.0, 121.5), (25.1, 121.6), 'DRIVE', '2027-03-15T10:00:00Z', 'BEST_GUESS')
+            google.route((25.0, 121.5), (25.1, 121.6), 'WALK', None)
+        (url, drive), (_, walk) = seen
+        for f in ('routes.description', 'routes.warnings', 'routes.legs.steps.navigationInstruction.instructions'):
+            self.assertIn(f, drive)
+            self.assertNotIn(f, walk)  # a walk's request, and the cache key of every past answer, stay as they were
+        self.assertAlmostEqual(google.cost('route|{"routingPreference": "TRAFFIC_AWARE_OPTIMAL"}|' + url + '|' + drive), 10 / 1000)
+
+    def test_a_drive_keeps_its_roads_long_stretches_and_warnings(self):
+        rt = {'description': 'Route 453', 'warnings': ['A road on this route closes in some seasons.'],
+              'legs': [{'steps': [{'distanceMeters': 300, 'navigationInstruction': {'instructions': 'Turn left'}},
+                                  {'distanceMeters': 3213, 'navigationInstruction': {'instructions': 'Continue on Road 350\nmay close in some seasons'}},
+                                  {'distanceMeters': 5000}]}]}
+        self.assertEqual(google.drive_roads(rt), {'via': 'Route 453', 'warnings': ['A road on this route closes in some seasons.'],
+                                                  'roads': [[3.2, 'Continue on Road 350 may close in some seasons']]})
+        self.assertEqual(google.drive_roads({'legs': [{'steps': [{'distanceMeters': 900, 'travelMode': 'WALK'}]}]}), {})  # a walk keeps no road list
 
     def test_fresh_drives_asks_again_only_a_drive_with_traffic_once_and_counts_what_it_cost(self):
         a_, b_, when = (25.031, 121.561), (25.041, 121.571), '2027-03-15T10:00:00Z'

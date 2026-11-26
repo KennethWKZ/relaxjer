@@ -1,8 +1,8 @@
 // Timeline rules: fixed times never move; flight-tied times follow the flight; a push-back only suggests and stops at
 // the next fixed item.
 import { test, expect, openTrip } from '../support/fixtures.mjs';
-import { fillAll, setStored, show } from '../support/page.mjs';
-/* global DAYS, SITES */
+import { fillAll, goToView, setStored, show } from '../support/page.mjs';
+/* global DAYS, GEO, SITES */
 
 // tagged @demo: stop ids, times and dates are the demo trip's
 test.describe('timeline rules', { tag: '@demo' }, () => {
@@ -99,4 +99,25 @@ test("a day card's site links show, on its cards and on each option of a choice"
 	test.skip(!want.length, 'no day card on this trip links a site');
 	await fillAll(page); // the day cards' sheets are built on first open
 	for (const { day, url } of want) await expect(page.locator(`#${day} a[href="${url}"]`).first(), `${day}: ${url}`).toBeAttached();
+});
+
+// Google has no public-transit route in Japan (ADR-20261126-own-leg-minutes): a leg it can't time shows the minutes the
+// trip gives it, and a leg with neither shows none rather than a guess
+test("a route leg Google can't time shows the trip's own minutes", async ({ page }) => {
+	await openTrip(page);
+	const own = await page.evaluate(() => {
+		const legs = (typeof GEO !== 'undefined' && GEO && GEO.legs) || {};
+		for (const d of DAYS)
+			for (const [i, l] of (d.route || []).entries()) {
+				const min = l.slice(3).find((x) => typeof x === 'number');
+				const stored = Object.entries(legs).some(([k, o]) => k.startsWith(`${d.id}:`) && o.from === l[0] && o.to === l[1] && o.mode === l[2]);
+				if (min && !stored && !legs[`${d.id}:${i}`]) return { day: d.id, i, min };
+			}
+		return null;
+	});
+	test.skip(!own, 'this trip has no leg with its own minutes and no Google time');
+	await goToView(page, own.day);
+	const leg = page.locator(`#${own.day}-route .rl-m`).nth(own.i);
+	await expect(leg.locator('small')).toHaveText(`${own.min}′`);
+	await expect(leg).toHaveAttribute('aria-label', new RegExp(`${own.min}`));
 });

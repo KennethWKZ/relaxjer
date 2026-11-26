@@ -5,7 +5,7 @@ import json, os, re, sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ['RESYNC_FRESH'] = '0'  # apply reads what fetch just fetched, even in a --fresh run
 import opencc; T2S = opencc.OpenCC('t2s').convert
-from lib.trip import S, PLACES, HOTEL_OF, ROLES, TODAY, cfg, leg_ends
+from lib.trip import S, PLACES, HOTEL_OF, ROLES, TODAY, cfg, leg_ends, leg_parts
 from lib import google as F
 from lib.hours import parse_hours, fmt_hours, closed_on_trip, clean_addr, merge_addr
 o = json.load(open(F.OUT))
@@ -121,6 +121,7 @@ for k, r in o['legs'].items():
                'rides': [{'line': T2S(x['transitLine'].get('name') or x['transitLine'].get('nameShort', '')), 'line_en': x['transitLine'].get('nameShort', ''), 'from': T2S(x['stopDetails']['departureStop']['name']), 'to': T2S(x['stopDetails']['arrivalStop']['name']), 'stops': x.get('stopCount'), 'kind': x['transitLine'].get('vehicle', {}).get('type', '')} for x in rides]}
     if r.get('_asWalk'): legs[k]['asWalk'] = True
     if r.get('_bad'): legs[k]['bad'] = round(int(r['_bad'][:-1]) / 60)  # the same drive in heavy traffic (Google's pessimistic prediction)
+    legs[k].update(F.drive_roads(rt))  # a drive's roads: via, roads, warnings
     # which leg this was, so the page drops it once the day's stops are reordered (Plan.storedLeg) instead of showing it on another
     if o.get('_legs_def'): legs[k].update(zip(('from', 'to', 'mode'), leg_ends(o['_legs_def'], k)))
 geo['legs'] = legs; geo['legs_checked'] = TODAY
@@ -131,4 +132,11 @@ if '--write' in sys.argv:
 print(f'{len(log)} changed | removed closed food: {dead}')
 for l in log: print(' ', l[:170])
 print('legs:', {k: (v['min'], [x['line'] for x in v['rides']]) for k, v in list(legs.items())[:8]})
+for k, v in legs.items():  # every drive and the roads it takes: a mountain pass or a closed road shows up here
+    if v.get('via') or v.get('roads'): print(f"  drive {k} {v.get('from', '')}→{v.get('to', '')} {v['min']} min, {v['km']} km via {v.get('via', '?')}: " + ' / '.join(t for _, t in v.get('roads', [])) + (f" | warnings: {' '.join(v['warnings'])}" if v.get('warnings') else ''))
+for k, r in o['legs'].items():  # a leg Google gave no time: the page shows the trip's own minutes, or none
+    if k in legs or not o.get('_legs_def'): continue
+    a, b, m, _, own = leg_parts(o['_legs_def'][k.split(':')[0]][int(k.split(':')[1])])
+    why = f'Google has no transit in {F.REGION}' if r.get('_noTransit') else 'Google found no route'
+    print(f"  untimed {k} {a}→{b} {m}: {why}; " + (f"the trip's own {own} min" if own else "no time on the page: give the leg its own minutes (trip-format.md, route)"))
 print('place mrt:', {k: (p.get('mrt') or {}).get('zh') for k, p in list(geo['places'].items())[:12]})

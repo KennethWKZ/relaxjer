@@ -3,7 +3,7 @@ id: ADR-20261007-traffic-aware-drives
 date: 2026-10-07
 title: 'A Drive Still Ahead Gets Google’s Typical and Heavy-Traffic Times, at the Hour the Leg Sets Off'
 domain: trip-data
-status: accepted
+status: amended
 decision: "A drive leg may carry an HH:MM time, and a drive still ahead uses Google's traffic-aware estimate for that time."
 ---
 
@@ -63,3 +63,14 @@ chartered van's evening drive against the end of its hours.
 
 You're touching a route leg's request in `pipeline/lib/google.py` or `pipeline/steps/fetch.py`, a day's `route` in the
 trip format, or checking a timed drive (a charter, an airport run) against a deadline.
+
+## Amendment 2026-11-26
+
+A drive leg with no `HH:MM` of its own no longer falls back to 09:30, 13:30 or 20:30 by its place in the route: it
+sets off at the time of the schedule stop just before its destination's stop, a range's end (`leg_departures` in
+`pipeline/lib/trip.py`), and only a drive the schedule doesn't reach keeps the plausible hour. A planned afternoon
+drive had been asked at 20:30 because it was the day's last leg. Every drive also asks Google which roads it takes
+(`routes.description`, `routes.warnings`, each step's instruction), stored as `via`, `roads` and `warnings` on the leg (Google warns of a road closed in some seasons) and
+printed by the refresh, so a planner sees a pass or a toll road. The fields don't change the SKU, but the new field
+list and departure times are new cache keys: the next refresh asks every drive again once (two calls each while it is
+still ahead).

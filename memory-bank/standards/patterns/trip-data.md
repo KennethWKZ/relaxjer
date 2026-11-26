@@ -24,6 +24,16 @@ data must pass in `tests/support/trip-contract.mjs`. `examples/demo-trip/data.js
   with the deadline. On the first trip Google gave an evening van leg 45 min with no traffic, 60 typical and 86 heavy
   at its real hour
   ([ADR-20261007-traffic-aware-drives](../decisions/ADR-20261007-traffic-aware-drives.md)).
+- **Every drive sets off when the schedule says.** A drive leg with no time of its own is asked for at the time of the
+  schedule stop just before its destination's stop (a range's end). That's right when the day has a "Drive to …" row
+  at the leg's start place, or a check-out; when the stop before is the visit the drive leaves from, that's the visit's
+  start, so give the leg its own time. Read the road list a refresh prints for every drive (`via`, `roads`,
+  `warnings` in `geo.json`): a mountain pass or a road closed in some seasons shows there.
+- **A leg Google can't time gets the trip's own minutes.** Google gives no public-transit route in Japan, so a refresh
+  doesn't ask for one there and lists every leg without a time ("legs Google gave no time"). End such a leg with its
+  door-to-door minutes from the operator's timetable, `['station', 'airport', 'transit', 37]`, and put the line, fare
+  and source in the stop's note
+  ([ADR-20261126-own-leg-minutes](../decisions/ADR-20261126-own-leg-minutes.md)).
 - **An errand with a closing time goes on a short day**, in daylight, not after a long day out, and it gets a fallback:
   a split option for who fetches it, or the shop delivering. The first trip moved a bike pickup off its day-trip
   evening once the traffic times came back.
@@ -85,3 +95,4 @@ Each rule above rests on a decision. The decision and its reasons live in its AD
 - [ADR-20261001-option-chips](../decisions/ADR-20261001-option-chips.md): An optional plan attaches to a stop with OPTIONAL[i].near, shown as a dashed chip on that stop, and the contract checks the stop exists.
 - [ADR-20261001-resync-cost-guard](../decisions/ADR-20261001-resync-cost-guard.md): A data refresh answers from the cache first and calls Google again only for failures that may pass on retry, never for a 404.
 - [ADR-20261007-traffic-aware-drives](../decisions/ADR-20261007-traffic-aware-drives.md): A drive leg may carry an HH:MM time, and a drive still ahead uses Google's traffic-aware estimate for that time.
+- [ADR-20261126-own-leg-minutes](../decisions/ADR-20261126-own-leg-minutes.md): A route leg may end with the trip's own minutes, shown only when Google has no time for it; Japan's transit is never asked.

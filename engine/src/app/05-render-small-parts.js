@@ -538,8 +538,9 @@ function routeLine(day, legs, nm) {
 	const LT = (GEO && GEO.legs) || {};
 	const end = (pid) => (isHotel(pid) ? Z('酒店', 'hotel') : nm(pid));
 	const items = legs
-		.map(([a, b, m], li) => {
-			const t = Plan.storedLeg(LT, day.id, li, [a, b, m]);
+		.map((leg, li) => {
+			const [a, b, m] = leg;
+			const t = Plan.storedLeg(LT, day.id, li, leg);
 			const min = t ? (m === 'walking' ? Math.round(t.min * GROUP_WALK) : t.min) : null;
 			const how = `${Z(MODES[m][0], MODES[m][1])}${min ? Z(` 约 ${min} 分钟`, `, ~${min} min`) : ''}`;
 			return `${li ? '' : `<li class="rl-p">${esc(end(a))}</li>`}<li class="rl-m" aria-label="${esc(how)}">${icon(MODES[m][2])}${min ? `<small aria-hidden="true">${min}′</small>` : ''}</li><li class="rl-p">${esc(end(b))}</li>`;

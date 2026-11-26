@@ -25,6 +25,10 @@ MAX_NEW = 200  # new calls one step may make without the planner's go: about US$
 CACHE = json.load(open(CF)) if os.path.exists(CF) and not FRESH else {}
 LOCK = threading.Lock()
 LANG, REGION = cfg('google', {}).get('language', 'zh-TW'), cfg('google', {}).get('region', 'TW')
+# where Google's APIs give no public-transit route at all (Directions, Distance Matrix and Routes alike: "all Google
+# Transit partners, except those in Japan", Google's coverage FAQ; every transit call on a Japan trip came back empty,
+# 2026-11-26). A transit leg there is not asked: the trip gives its own minutes (trip-format.md, route)
+NO_TRANSIT = {'JP'}
 _key = None
 NEW = [0]  # calls made this run (not answered from the cache)
 ASKED = [0]  # calls started this run, counted before they go out, so threads can't overshoot MAX_NEW
@@ -141,5 +145,19 @@ def route(o, d, mode, when, traffic=None):
     b = {'origin': {'location': {'latLng': {'latitude': o[0], 'longitude': o[1]}}}, 'destination': {'location': {'latLng': {'latitude': d[0], 'longitude': d[1]}}}, 'travelMode': mode, 'languageCode': LANG}
     if mode == 'TRANSIT': b['departureTime'] = when
     if mode == 'DRIVE' and traffic: b.update(departureTime=when, routingPreference='TRAFFIC_AWARE_OPTIMAL', trafficModel=traffic)
-    return call('route', 'https://routes.googleapis.com/directions/v2:computeRoutes', b, fresh=FRESH_DRIVES and mode == 'DRIVE' and bool(traffic), mask='routes.duration,routes.distanceMeters,routes.legs.steps.travelMode,routes.legs.steps.staticDuration,routes.legs.steps.distanceMeters,routes.legs.steps.transitDetails.transitLine.name,routes.legs.steps.transitDetails.transitLine.nameShort,routes.legs.steps.transitDetails.stopCount,routes.legs.steps.transitDetails.headsign,routes.legs.steps.transitDetails.stopDetails.departureStop.name,routes.legs.steps.transitDetails.stopDetails.arrivalStop.name,routes.legs.steps.transitDetails.transitLine.vehicle.type')
+    # a drive also asks which roads it takes (Google's summary, its warnings, each step's instruction), so a planner sees a
+    # pass or a toll road; the fields don't change the SKU (billed by features: traffic-aware is Pro)
+    roads = 'routes.description,routes.warnings,routes.legs.steps.navigationInstruction.instructions,' if mode == 'DRIVE' else ''
+    return call('route', 'https://routes.googleapis.com/directions/v2:computeRoutes', b, fresh=FRESH_DRIVES and mode == 'DRIVE' and bool(traffic), mask=roads + 'routes.duration,routes.distanceMeters,routes.legs.steps.travelMode,routes.legs.steps.staticDuration,routes.legs.steps.distanceMeters,routes.legs.steps.transitDetails.transitLine.name,routes.legs.steps.transitDetails.transitLine.nameShort,routes.legs.steps.transitDetails.stopCount,routes.legs.steps.transitDetails.headsign,routes.legs.steps.transitDetails.stopDetails.departureStop.name,routes.legs.steps.transitDetails.stopDetails.arrivalStop.name,routes.legs.steps.transitDetails.transitLine.vehicle.type')
+def drive_roads(rt):
+    """what a drive's route says about its roads, in the pipeline's language: Google's summary (via), each stretch of 2 km
+    or more as [km, instruction] (roads), and its warnings (tolls, a road closed in some seasons); empty for a walk"""
+    out = {}
+    if rt.get('description'): out['via'] = rt['description']
+    if rt.get('warnings'): out['warnings'] = rt['warnings']
+    roads = [[round(s.get('distanceMeters', 0) / 1000, 1), s['navigationInstruction']['instructions'].replace('\n', ' ')]
+             for l in rt.get('legs', [])[:1] for s in l.get('steps', [])
+             if s.get('distanceMeters', 0) >= 2000 and (s.get('navigationInstruction') or {}).get('instructions')]
+    if roads: out['roads'] = roads
+    return out
 def dist(a, b): return 6371000 * math.hypot(math.radians(b[1]-a[1]) * math.cos(math.radians((a[0]+b[0])/2)), math.radians(b[0]-a[0]))

@@ -1,6 +1,6 @@
 ---
-total_decisions: 36
-last_updated: 2026-11-24
+total_decisions: 37
+last_updated: 2026-11-26
 ---
 
 # Decision Index
@@ -38,7 +38,8 @@ A trip's data and the pipeline that refreshes it: the fields, the contract and t
 | [ADR-20261001-day-split](decisions/ADR-20261001-day-split.md)                       | 2026-10-01 | amended  | A day can split for part of the group: DAYS[i].split names where it forks and who goes, and the trip contract checks it.                 |
 | [ADR-20261001-option-chips](decisions/ADR-20261001-option-chips.md)                 | 2026-10-01 | accepted | An optional plan attaches to a stop with OPTIONAL[i].near, shown as a dashed chip on that stop, and the contract checks the stop exists. |
 | [ADR-20261001-resync-cost-guard](decisions/ADR-20261001-resync-cost-guard.md)       | 2026-10-01 | amended  | A data refresh answers from the cache first and calls Google again only for failures that may pass on retry, never for a 404.            |
-| [ADR-20261007-traffic-aware-drives](decisions/ADR-20261007-traffic-aware-drives.md) | 2026-10-07 | accepted | A drive leg may carry an HH:MM time, and a drive still ahead uses Google's traffic-aware estimate for that time.                         |
+| [ADR-20261007-traffic-aware-drives](decisions/ADR-20261007-traffic-aware-drives.md) | 2026-10-07 | amended  | A drive leg may carry an HH:MM time, and a drive still ahead uses Google's traffic-aware estimate for that time.                         |
+| [ADR-20261126-own-leg-minutes](decisions/ADR-20261126-own-leg-minutes.md)           | 2026-11-26 | accepted | A route leg may end with the trip's own minutes, shown only when Google has no time for it; Japan's transit is never asked.              |
 
 ## sync
 
