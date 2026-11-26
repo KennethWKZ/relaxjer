@@ -2,7 +2,7 @@
 // jumps that land in the right view, the Back pill, the Sections menu (a desktop's; the bottom bar's are in
 // tests/e2e/bottom-bar.spec.mjs), site search, the offline notice.
 import { test, expect, openTrip } from '../support/fixtures.mjs';
-import { BAR, goToView, hasBar, openSections, readingSpot, settle, setStored, show, viewOn } from '../support/page.mjs';
+import { BAR, fillAll, goToView, hasBar, openSections, readingSpot, settle, setStored, show, viewOn } from '../support/page.mjs';
 
 /* global DAYS, OPTIONAL -- the trip data, read inside the page */
 
@@ -69,10 +69,13 @@ test('the Back pill returns to the view and the place the reader was before a ju
 	const before = await scrollY(page);
 	// a search hit in another day is a jump: its view first, then the place
 	const other = await page.evaluate(() => DAYS[DAYS.length > 2 ? 2 : DAYS.length - 1]);
-	const name = (await page.locator(`#${other.id}-s0 .stop-name`).textContent()).trim().slice(0, 6);
+	// the stop's whole name, and its own result: a few letters of it can match a sheet first on another trip (a day's
+	// costs list the same subway ride), and a jump into a sheet hides the pill until the sheet closes, by design
+	const name = (await page.locator(`#${other.id}-s0 .stop-name`).textContent()).replace(/\s+/g, ' ').trim();
 	await page.locator('#searchBtn').click();
 	await page.locator('#q').fill(name);
-	await page.locator('#results-inner .result[data-hit]').first().click();
+	const own = new RegExp(`^${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`);
+	await page.locator('#results-inner .result[data-hit]').filter({ hasText: own }).first().click();
 	await settle(page);
 	const pill = page.locator('#backPill');
 	await expect(pill).toHaveAttribute('data-show', '1');
@@ -343,6 +346,7 @@ test('on a trip day the Sections sheet leads with Now and Next, marked as on the
 
 test("a stop's link that names a site opens that site's address @demo", async ({ page }) => {
 	await openTrip(page);
+	await fillAll(page); // the link sits in the stop's sheet, built the first time it opens
 	// the demo's concert stop links the SITES key "concert"; the page must resolve it, not use the key as the address
 	await expect(page.locator('.stop-links a.mlink[href="https://npac-ntch.org/"]')).toHaveCount(1);
 	await expect(page.locator('.stop-links a.mlink[href="concert"]')).toHaveCount(0);

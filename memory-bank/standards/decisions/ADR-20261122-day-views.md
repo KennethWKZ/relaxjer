@@ -165,3 +165,11 @@ sky's Pause leaves the header (and the top row the first amendment kept it in) f
 desktop keeps it in the header; the piling snow builds up on the band's drift, with no date tabs left to catch it; and
 the overview is named Today. A stop's suggested optional plans stay on the string, folded to their count on a phone.
 The views, their addresses and history steps, the planning sheets and the skies stand as decided here.
+
+## Amendment 2026-11-26
+
+A stop's sheet is now built the first time it opens too, the same way as a part's sheet (`lazyKey` in `secDay`,
+`07-sections.js`). The first trip had grown to about 9,400 nodes at first paint, over the 9,000 budget in
+`tests/e2e/boot.spec.mjs`, and its stop sheets held about 2,900 of them; with them lazy, it paints about 6,600. Search,
+a jump and the page-wide e2e audits fill them first (`lazyAll`, `lazyFor`, `fillAll`), and `pnpm parity` fills every
+lazy list before it compares, so a sheet not built yet never reads as missing text.

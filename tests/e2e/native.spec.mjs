@@ -1,7 +1,7 @@
 // The native layer (ADR-20261117-native-layer): when the trip's country pack names a local language the group doesn't
 // read, each stop and place shows its local words under its name, one tap copies them. A trip without it shows none.
 import { test, expect, openTrip } from '../support/fixtures.mjs';
-import { openAllDetails, show, switchLang } from '../support/page.mjs';
+import { fillAll, openAllDetails, show, switchLang } from '../support/page.mjs';
 /* global DAYS, PLACES -- the trip data, read inside the page */
 
 test('the demo (Taiwan) has no native layer: nothing new under its stops @demo', async ({ page }) => {
@@ -12,6 +12,7 @@ test('the demo (Taiwan) has no native layer: nothing new under its stops @demo',
 
 test('the native layer: local words under each named stop, in their language, one tap to copy', async ({ page }) => {
 	await openTrip(page);
+	await fillAll(page); // a stop's words sit in its sheet, built the first time it opens
 	const chips = page.locator('.stop .mlink.native');
 	test.skip((await page.locator('.mlink.native').count()) === 0, "this trip's pack has no native layer");
 
@@ -55,6 +56,7 @@ test('the native layer: local words under each named stop, in their language, on
 
 test('the native layer fits a phone: no chip runs past its card', async ({ page }) => {
 	await openTrip(page);
+	await fillAll(page);
 	test.skip((await page.locator('.mlink.native').count()) === 0, "this trip's pack has no native layer");
 	await openAllDetails(page); // every view and every stop's sheet drawn, at a sheet's width
 	const over = await page.evaluate(() =>
