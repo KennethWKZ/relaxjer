@@ -24,7 +24,9 @@ database never sees what's in the plan. RelaxJer runs nothing for it.
    opens a browser; the agent never sees the credentials.
 4. **The rules:** `pnpm sync rules --db <database url>`. Run it again after `scripts/sync/database.rules.json` changes
    (rules from before approval refuse every approval trip: deploy them again first).
-5. **Anonymous sign-in** (Build → Authentication → Sign-in method → Anonymous → Enable), and the **web API key**
+5. **Anonymous sign-in** (Build → Authentication → Sign-in method → Anonymous → Enable; leave **automatic clean-up**
+   off: it deletes anonymous accounts after 30 days, so a device approved weeks before the trip would lose its place
+   and have to ask again, mid-trip), and the **web API key**
    (Project settings → General → Web API key; register a web app there if none is listed). Each device signs in
    anonymously with it, so a planner can let it in. The key names the project and isn't a secret, but restrict it in
    Google Cloud → APIs & Services → Credentials: only the Identity Toolkit and Token Service APIs, and only the
