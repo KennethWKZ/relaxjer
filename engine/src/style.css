@@ -303,21 +303,27 @@ svg.i {
 	background: var(--now);
 	transition: background-color 240ms ease;
 }
+/* the header row: its 44 px buttons get 8 px above and below, so the pills never sit on the Now stripe (the landing
+   page's phone screens draw it the same way) */
 .bar-row {
 	max-width: var(--col);
 	margin: 0 auto;
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	padding: 6px 16px 2px;
-	min-height: 52px;
+	padding: 8px 16px;
+	min-height: 60px;
 }
+/* the brand: its tap target is 44 px, with no padding of its own, so the row is the buttons' 44 px plus 8 px each side
+   whatever the name's size; a grid centres the line and keeps the name and the dates on one baseline */
 .brand {
-	display: flex;
+	display: grid;
+	grid-auto-flow: column;
+	justify-content: start;
+	align-content: center;
 	align-items: baseline;
-	gap: 10px;
+	column-gap: 10px;
 	min-height: 44px;
-	padding-block: 10px;
 	text-decoration: none;
 	color: var(--ink);
 	min-width: 0;
@@ -394,8 +400,8 @@ svg.i {
 	display: flex;
 	align-items: center;
 	gap: 6px;
-	padding: 6px 12px 2px 16px;
-	min-height: 52px;
+	padding: 8px 12px 8px 16px; /* the header row's height, so opening search doesn't move the page */
+	min-height: 60px;
 }
 /* the header shows its top row or, while searching, the search row: a flex box outranks the browser's own [hidden],
    so both stood on every screen and the search button changed nothing */
