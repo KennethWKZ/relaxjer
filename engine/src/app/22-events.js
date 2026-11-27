@@ -527,6 +527,8 @@ document.addEventListener('click', (e) => {
 		if (on) roles[dev] = 'planner';
 		else delete roles[dev];
 		store.set('roles', roles);
+		// an approval trip: the database keeps who's a planner (ADR-20261127-sync-approval)
+		if (SYNC_GATE && syncApi) syncApi.gate([['planner', { dev, on }]]);
 		whenSettled(() =>
 			mineRerender(on ? Z(`${name}现在是规划人`, `${name} is a planner now`) : Z(`${name}不再是规划人`, `${name} is no longer a planner`)),
 		);
@@ -543,6 +545,7 @@ document.addEventListener('click', (e) => {
 			const b = { ...(store.get('blocks', {}) || {}) };
 			delete b[dev];
 			store.set('blocks', b);
+			if (SYNC_GATE && syncApi) syncApi.gate([['unblock', { dev }]]);
 			whenSettled(() => mineRerender(Z(`已恢复${name}`, `Unblocked ${name}`)));
 			syncSheetRefresh();
 			return;
@@ -573,6 +576,8 @@ document.addEventListener('click', (e) => {
 		delete roles[dev];
 		store.set('roles', roles);
 		store.set('blocks', { ...(store.get('blocks', {}) || {}), [dev]: true });
+		// an approval trip: the database now refuses the device too, and its planner role goes (ADR-20261127-sync-approval)
+		if (SYNC_GATE && syncApi) syncApi.gate([['block', { dev }]]);
 		if (theirs.length) mineSet(mineAll().filter((x) => stopOwner(x) !== dev));
 		if (shifts.length) {
 			const sh = { ...was.shift };
@@ -593,6 +598,7 @@ document.addEventListener('click', (e) => {
 				delete b[dev];
 				store.set('blocks', b);
 				if (was.roles[dev]) store.set('roles', { ...(store.get('roles', {}) || {}), [dev]: was.roles[dev] });
+				if (SYNC_GATE && syncApi) syncApi.gate([['unblock', { dev }], ...(was.roles[dev] ? [['planner', { dev, on: true }]] : [])]);
 				if (shifts.length)
 					store.set('shift', { ...(store.get('shift', {}) || {}), ...Object.fromEntries(shifts.map((d) => [d, was.shift[d]]).filter(([, v]) => v)) });
 				for (const f of flts) store.set(f === 'flt:arr' ? 'fltArr' : 'fltDep', f === 'flt:arr' ? was.fltArr : was.fltDep);

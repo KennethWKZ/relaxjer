@@ -435,7 +435,33 @@ Off unless the planner sets it up for the trip (the `sync-setup` skill). With it
   before it leaves, on the planner's own Firebase database.
 - **After the trip** the planner ends sync; each page says so and keeps its own copy.
 
-A guard against slips, not a lock: the page's password is what keeps the plan to your group.
+On a token trip that's a guard against slips, not a lock: the page's password is what keeps the plan to your group.
+
+### Joining with a planner's approval
+
+A trip set up since approval came in is an **approval trip**: the database itself lets in only the devices a planner
+approved (ADR-20261127-sync-approval). Trips already syncing keep the older way until they're over.
+
+- **Asking to join.** Each device signs in on its own (nothing to type) the first time it opens with sync on. The name
+  you give in the welcome sheet or Group sync is your **join request**, with the kind of device and a 4-digit **join
+  code**.
+- **While you wait,** the page works as usual and keeps your added stops and ticks on this device; they reach the group
+  once you're in. You see none of the group's changes yet, and a bar under the header says "Waiting for a planner to let
+  this device into the group's changes", with the join code; Details opens Group sync, where the code shows too and
+  you can still fix your name.
+- **The first planner** gives the planner code under "I'm a planner" on their own device: it lets itself in as a planner
+  at once.
+- **Approving.** A planner's Group sync lists **Join requests** as "Mei · iPad · Safari", with each one's join code and
+  when it asked. **Approve** takes the name as typed, as someone new. When the name matches someone already in the
+  group, **Same person as Mei (iPhone)** puts the device under them. **Edit the name or pick a person**
+  changes the name first, or picks any person. **Block** keeps the device out.
+- **Once in,** a device's name is fixed: Group sync shows "Your name in the group", and only a planner can change it.
+  Under each device in The group a planner has **Change the name or person**: rename the person (on all their devices),
+  move the device to another person, or make it a person of its own.
+- **Blocking** works as above, and the database now refuses the blocked device too: it can't read the group's changes
+  or send its own. Unblock lets it back in, and what waited on it goes.
+- **Who can see what.** Someone with the page's password but no approval still sees the trip as published, and nothing
+  the group changes after it. Names are sealed with the trip's key before they reach the database, like everything else.
 
 ## Location
 
@@ -474,7 +500,7 @@ Everything above that isn't listed here is on every page. The fields are in
 | Info (Google's hours, photos and reviews) on stops and cards, Google results in the finder | building with your own key; Google searches lean to `TRIP.destination` and answer in the country pack's `googleZh` when the page reads Chinese                                                                                           |
 | The finder's distance by road                                                              | building with your own key, and a network: Google's place search is asked once for each place opened (`ADR-20261124-finder-google-distance`)                                                                                             |
 | The place finder, place details, the add sheet's look first                                | on every page with `geo.json`; the best day reads the days' stops, their times, `freeFrom`, and the place's hours and `closed_dates` from the data refresh                                                                               |
-| Group sync, names, planners, Recently removed                                              | `sync-setup`, then building with `--sync`                                                                                                                                                                                                |
+| Group sync, names, planners, Recently removed, join requests                               | `sync-setup`, then building with `--sync`; an approval trip also needs anonymous sign-in and the web API key                                                                                                                             |
 | Positions, hours, route legs, food, drinks, toilets                                        | the data refresh (`data-sync`)                                                                                                                                                                                                           |
 | The map and its pins, Map in the bottom bar                                                | `geo.json` (from the data refresh)                                                                                                                                                                                                       |
 | The forecast                                                                               | the data refresh, for trip days within 16 days (`forecast_spots`, `forecastSpot`)                                                                                                                                                        |

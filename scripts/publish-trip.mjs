@@ -308,7 +308,9 @@ async function audit(sec, localFile, candidateFile) {
 			if (!sections) problems.push(`${name}: didn't render at the live address`);
 			if (seen.csp.length) problems.push(`${name}: the Content-Security-Policy refused ${seen.csp.length} thing(s)`);
 			if (map === 'none') problems.push(`${name}: no live map within 30 s`);
-			if (sync && !/synced|已同步/.test(sync)) problems.push(`${name}: group sync didn't reach the database (${sync})`);
+			// an approval trip's fresh device signs in and reads its own entry, then asks for a name or waits for a planner:
+			// that too means the page reached the sign-in and the database (ADR-20261127-sync-approval)
+			if (sync && !/synced|已同步|a planner|规划人/.test(sync)) problems.push(`${name}: group sync didn't reach the database (${sync})`);
 		} finally {
 			for (const c of browser.contexts()) for (const p of c.pages()) await p.unrouteAll({ behavior: 'ignoreErrors' }).catch(() => {});
 			await browser.close();

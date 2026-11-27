@@ -6,7 +6,22 @@ import { test, expect } from '../support/fixtures.mjs';
 import { show } from '../support/page.mjs';
 import { TEST_PLANNER_CODE } from '../support/global-setup.mjs';
 import { STORE_KEY } from '../support/store-key.mjs';
-import { endSync, freshDatabase, hasSyncPage, joinSpace, openSync, secondPhone, skipWelcome, stored } from '../support/sync.mjs';
+import {
+	approvalAdminSet,
+	approvalConfig,
+	approvalStored,
+	endSync,
+	freshApproval,
+	freshDatabase,
+	hasApprovalPage,
+	hasSyncPage,
+	joinSpace,
+	openApproval,
+	openSync,
+	secondPhone,
+	skipWelcome,
+	stored,
+} from '../support/sync.mjs';
 
 const stopLink = (name) => {
 	const pack = [['d3', '16:00', name, 25.1366, 121.5069, '', 'Beitou (demo)']];
@@ -55,10 +70,10 @@ const claimPlanner = async (page, code = TEST_PLANNER_CODE) => {
 	await sheet(page).locator('[data-planner-ok]').click();
 };
 // adds a stop from a share link (a fresh load: the link is read on load)
-const addByLink = async (page, name, day = 'd3', t = '16:00') => {
+const addByLink = async (page, name, day = 'd3', t = '16:00', open = openSync) => {
 	await page.goto('about:blank');
 	const pack = [[day, t, name, 25.1366, 121.5069, '', '']];
-	await openSync(page, `#add=${Buffer.from(JSON.stringify(pack)).toString('base64url')}`);
+	await open(page, `#add=${Buffer.from(JSON.stringify(pack)).toString('base64url')}`);
 	await sheet(page).locator('[data-mine-import]').click();
 	await expect(page.locator(`#${day} .stop.mine`, { hasText: name })).toBeAttached(); // in its day's view
 };
@@ -596,5 +611,226 @@ test.describe('group sync', { tag: '@demo' }, () => {
 		await page.locator('#toc [data-close]').click();
 		await expect(box(page, 'before-charter'), 'what this phone had stays').toBeChecked();
 		await expect(box(page, 'before-passport')).toBeChecked();
+	});
+});
+
+// An approval trip (ADR-20261127-sync-approval): each device signs in on the stand-in's sign-in, asks to join with its
+// name, and reads or writes the group's changes only once a planner let it in; the stand-in refuses everything else,
+// as the rules do. Tagged @demo for the same reason as above.
+const bar = (page) => page.locator('#syncBar');
+const WAITING = 'Waiting for a planner to let this device into the group’s changes';
+// the device's user id, as its storage keeps its anonymous account
+const uidOn = (page) => page.evaluate((k) => JSON.parse(localStorage.getItem(`${k}syncAuth`) || '{}').uid || '', STORE_KEY);
+// opens the approval page and asks to join with a name; it then waits with the bar and its join code
+const askToJoin = async (page, name) => {
+	await openApproval(page);
+	await setName(page, name);
+	await expect(bar(page)).toContainText(WAITING, { timeout: 15_000 });
+	return (await bar(page).locator('b').last().textContent()).trim();
+};
+// what `pnpm sync approve --code … [--planner]` writes from the planner's laptop
+const letInFromLaptop = async (request, testInfo, page, { planner = false } = {}) => {
+	const uid = await uidOn(page);
+	await approvalAdminSet(request, testInfo, {
+		[`devices/${uid}/state`]: 'approved',
+		[`devices/${uid}/person`]: uid.slice(0, 24),
+		...(planner ? { [`planners/${uid}`]: true } : {}),
+	});
+	await expect(bar(page), 'let in: the bar goes').toBeHidden({ timeout: 15_000 });
+};
+
+test.describe('group sync with approval', { tag: '@demo' }, () => {
+	test.slow();
+	test.skip(() => !hasApprovalPage(), 'the legacy engine has no group sync');
+	let b;
+	test.beforeEach(async ({ browser, request, tripNow, tripLang, page, context }, testInfo) => {
+		await freshApproval(request, testInfo);
+		await joinSpace(context, testInfo);
+		await skipWelcome(context);
+		page.on('dialog', (d) => d.accept());
+		b = await secondPhone(browser, testInfo, { now: tripNow, lang: tripLang });
+		b.page.on('dialog', (d) => d.accept());
+	});
+	test.afterEach(async () => {
+		expect(b.errors, 'the second device threw or logged errors').toEqual([]);
+		await b.context.close();
+	});
+
+	test('a device asks to join, waits with a bar, and once a planner lets it in, changes flow both ways', async ({ page }) => {
+		// the planner's device lets itself in with the planner code: no laptop step
+		await askToJoin(page, 'Ana');
+		await claimPlanner(page);
+		await expect(sheet(page).locator('.sync-role')).toContainText('planner', { timeout: 15_000 });
+		await sheet(page).locator('[data-close]').click();
+		await expect(bar(page)).toBeHidden();
+		await openApproval(page, '#checklist');
+		await tick(page, 'before-charter');
+
+		// another device: its own stop stays on it while it waits, and it sees nothing of the group's
+		await addByLink(b.page, 'Demo Waiting Stop', 'd3', '16:00', openApproval);
+		const code = await askToJoin(b.page, 'Mei');
+		expect(code).toMatch(/^\d{4}$/);
+		await openApproval(b.page, '#checklist');
+		await expect(bar(b.page)).toContainText(code);
+		await b.page.waitForTimeout(1500);
+		await expect(box(b.page, 'before-charter'), 'no group changes while it waits').not.toBeChecked();
+		await expect(page.locator('#d3 .stop.mine', { hasText: 'Demo Waiting Stop' })).toHaveCount(0);
+
+		// the planner sees the request by name, kind and the same join code, and approves it as typed
+		await openSyncSheet(page);
+		const ask = sheet(page).locator('[data-sync-ask]');
+		await expect(ask).toHaveCount(1, { timeout: 15_000 });
+		await expect(ask.locator('b').first()).toHaveText(/^Mei · .+/);
+		await expect(ask).toContainText(`join code ${code}`);
+		await ask.locator('[data-ask-ok]').click();
+		// (no toast check: Mei's waiting stop arrives at once, and its toast takes the place of "Mei is in the group now")
+		await expect(sheet(page).locator('[data-sync-ask]')).toHaveCount(0, { timeout: 15_000 });
+		await expect(sheet(page).locator('.sync-row > span > b', { hasText: /^Mei$/ })).toBeAttached();
+		await sheet(page).locator('[data-close]').click();
+
+		// let in: the bar goes, what waited on it reaches the group, and the group's changes reach it
+		await expect(bar(b.page)).toBeHidden({ timeout: 15_000 });
+		await expect(box(b.page, 'before-charter'), 'the group’s tick arrives').toBeChecked({ timeout: 15_000 });
+		await expect(page.locator('#d3 .stop.mine', { hasText: 'Demo Waiting Stop' }), 'its own stop went to the group').toBeAttached({
+			timeout: 15_000,
+		});
+		await tick(b.page, 'before-passport');
+		await openApproval(page, '#checklist');
+		await expect(box(page, 'before-passport'), 'and back the other way').toBeChecked({ timeout: 15_000 });
+		// once in, its name is the planner's to change
+		await openSyncSheet(b.page);
+		await expect(sheet(b.page).locator('[data-sync-name]')).toHaveCount(0);
+		await expect(sheet(b.page).locator('.sync-name-set')).toContainText('Mei');
+	});
+
+	test('a planner edits a request’s name, or puts a device under a person already in the group', async ({
+		browser,
+		page,
+		request,
+		tripNow,
+		tripLang,
+	}, testInfo) => {
+		await askToJoin(page, 'Ana');
+		await letInFromLaptop(request, testInfo, page, { planner: true }); // the laptop's recovery path
+		await askToJoin(b.page, 'Mei');
+		await openSyncSheet(page);
+		await sheet(page).locator('[data-sync-ask] [data-ask-ok]').click();
+		await expect(page.locator('#toast')).toContainText('Mei is in the group now');
+		await sheet(page).locator('[data-close]').click();
+
+		// Mei's tablet, typed in lower case: the request offers "Same person as Mei (…)"
+		const c = await secondPhone(browser, testInfo, { now: tripNow, lang: tripLang });
+		try {
+			await askToJoin(c.page, 'mei');
+			await openSyncSheet(page);
+			const same = sheet(page).locator('[data-sync-ask] [data-person]', { hasText: /^Same person as Mei \(/ });
+			await expect(same).toHaveCount(1, { timeout: 15_000 });
+			await same.click();
+			await expect(page.locator('#toast')).toContainText('Another device of Mei is in the group now');
+			const mei = sheet(page).locator('.sync-person', { hasText: 'Mei' });
+			await expect(mei.locator('.sync-person-h')).toContainText('2 devices');
+			await sheet(page).locator('[data-close]').click();
+			await expect(bar(c.page)).toBeHidden({ timeout: 15_000 });
+			await openSyncSheet(c.page);
+			await expect(sheet(c.page).locator('.sync-name-set b'), 'it goes by the person’s name').toHaveText('Mei');
+			expect(c.errors).toEqual([]);
+		} finally {
+			await c.context.close();
+		}
+
+		// a request whose name the planner fixes before approving
+		const d = await secondPhone(browser, testInfo, { now: tripNow, lang: tripLang });
+		try {
+			await askToJoin(d.page, 'Kenny boy');
+			await openSyncSheet(page);
+			const ask = sheet(page).locator('[data-sync-ask]', { hasText: 'Kenny boy' });
+			await ask.locator('.sync-ask-more > summary').click();
+			await ask.locator('[data-ask-name]').fill('Ken');
+			await ask.locator('[data-ask-named]').click();
+			await expect(page.locator('#toast')).toContainText('Ken is in the group now');
+			await expect(bar(d.page)).toBeHidden({ timeout: 15_000 });
+			await openSyncSheet(d.page);
+			await expect(sheet(d.page).locator('.sync-name-set b')).toHaveText('Ken', { timeout: 15_000 });
+			expect(d.errors).toEqual([]);
+		} finally {
+			await d.context.close();
+		}
+	});
+
+	test('someone with the page who isn’t let in reads nothing and writes nothing', async ({ page, request }, testInfo) => {
+		await askToJoin(page, 'Ana');
+		await letInFromLaptop(request, testInfo, page, { planner: true });
+		await addByLink(page, 'Demo Group Stop', 'd3', '16:00', openApproval);
+		await expect.poll(async () => Object.keys((await approvalStored(request, testInfo)) || {}).length, { timeout: 15_000 }).toBeGreaterThan(0);
+
+		// a stranger opens the page: it signs in and asks, but sees none of the group's changes, and sends none of its own
+		await addByLink(b.page, 'Demo Stranger Stop', 'd3', '17:00', openApproval);
+		await askToJoin(b.page, 'Stranger');
+		await b.page.reload();
+		await expect(b.page.locator('#app [data-sec]').first()).toBeAttached();
+		await b.page.waitForTimeout(1500);
+		await expect(b.page.locator('#d3 .stop.mine', { hasText: 'Demo Group Stop' })).toHaveCount(0);
+		await expect(page.locator('#d3 .stop.mine', { hasText: 'Demo Stranger Stop' })).toHaveCount(0);
+		const strangerDev = (await uidOn(b.page)).slice(0, 24);
+		const recs = Object.values((await approvalStored(request, testInfo)) || {});
+		expect(
+			recs.filter((x) => x.d === strangerDev),
+			'nothing from it in the database',
+		).toEqual([]);
+		// the database itself refuses it: with its own sign-in, and with none at all
+		const ns = (await b.context.cookies()).find((x) => x.name === 'rtdb_ns').value;
+		const token = await b.page.evaluate((k) => JSON.parse(localStorage.getItem(`${k}syncAuth`) || '{}').id || '', STORE_KEY);
+		const at = (p, auth = '') => `/__rtdb/trips/${approvalConfig().trip}/${p}.json?ns=${ns}${auth ? `&auth=${auth}` : ''}`;
+		const rec = { ['x'.repeat(22)]: { c: 'aaaa.bbbb', u: Date.now(), d: strangerDev } };
+		for (const auth of [token, '']) {
+			const who = auth ? 'signed in' : 'signed out';
+			expect((await request.get(at('r', auth))).status(), `${who}: no reading the records`).toBe(401);
+			expect((await request.get(at('devices', auth))).status(), `${who}: nor the devices`).toBe(401);
+			expect((await request.patch(at('r', auth), { data: JSON.stringify(rec) })).status(), `${who}: no writing a record`).toBe(401);
+		}
+	});
+
+	test('a blocked device is refused by the database, and its bar says so', async ({ page, request }, testInfo) => {
+		await askToJoin(page, 'Ana');
+		await letInFromLaptop(request, testInfo, page, { planner: true });
+		await askToJoin(b.page, 'Tester');
+		await letInFromLaptop(request, testInfo, b.page);
+		await addByLink(b.page, 'Demo Tester Stop', 'd3', '16:00', openApproval);
+		await expect(page.locator('#d3 .stop.mine', { hasText: 'Demo Tester Stop' })).toBeAttached({ timeout: 15_000 });
+
+		await openSyncSheet(page);
+		await sheet(page).locator('.sync-row', { hasText: 'Tester' }).locator('[data-block-set]').click();
+		await expect(page.locator('#toast')).toContainText('Blocked Tester');
+		await sheet(page).locator('[data-close]').click();
+		await expect(page.locator('#d3 .stop.mine', { hasText: 'Demo Tester Stop' }), 'its stop goes back for everyone').toHaveCount(0);
+		const uid = await uidOn(b.page);
+		await expect.poll(async () => (await approvalStored(request, testInfo, `devices/${uid}`))?.state, { timeout: 15_000 }).toBe('blocked');
+
+		await expect(bar(b.page), 'the blocked device is told').toContainText('This phone is blocked', { timeout: 15_000 });
+		// what it does next waits on it; the database takes nothing from it
+		const before = Object.keys((await approvalStored(request, testInfo)) || {}).length;
+		await openApproval(b.page, '#checklist');
+		await tick(b.page, 'before-passport');
+		await b.page.evaluate(() => new Promise((r) => setTimeout(r, 600)));
+		expect(Object.keys((await approvalStored(request, testInfo)) || {}).length).toBe(before);
+
+		// unblocked: what waited goes
+		await openSyncSheet(page);
+		await sheet(page).locator('[data-fold="blocked"] > summary').click();
+		await sheet(page).locator('.sync-row', { hasText: 'Tester' }).locator('[data-block-drop]').click();
+		await expect(page.locator('#toast')).toContainText('Unblocked Tester');
+		await sheet(page).locator('[data-close]').click();
+		await openApproval(page, '#checklist');
+		await expect(box(page, 'before-passport'), 'unblocked: what waited arrives').toBeChecked({ timeout: 20_000 });
+	});
+
+	test('without the proof in the database, the planner code lets no device in', async ({ page, request }, testInfo) => {
+		await freshApproval(request, testInfo, { proof: false });
+		await askToJoin(page, 'Ana');
+		await claimPlanner(page);
+		await expect(page.locator('#toast')).toContainText('The database didn’t take the planner code', { timeout: 15_000 });
+		await expect(sheet(page).locator('.sync-role')).toHaveCount(0);
+		await sheet(page).locator('[data-close]').click();
+		await expect(bar(page)).toContainText(WAITING);
 	});
 });

@@ -132,17 +132,30 @@ const sync = (() => {
 	// a real database is a Firebase Realtime Database root; the tests' stand-in is the local test server
 	const local = u && u.protocol === 'http:' && /^(127\.0\.0\.1|localhost)$/.test(u.hostname);
 	const firebase = u && u.protocol === 'https:' && /\.(firebasedatabase\.app|firebaseio\.com)$/.test(u.hostname) && u.pathname === '/';
+	// an approval trip (ADR-20261127-sync-approval) has no write token: each device signs in anonymously with the
+	// project's web API key and asks a planner to let it in
+	const approval = s.approval === true;
+	const salt = (x) => /^[A-Za-z0-9_-]{22}$/.test(x || '');
 	const bad = [
 		!(local || firebase) && 'url (https://<name>.<region>.firebasedatabase.app)',
 		!/^[A-Za-z0-9_-]{22}$/.test(s.trip || '') && 'trip',
-		!/^[A-Za-z0-9_-]{32,}$/.test(s.writeToken || '') && 'writeToken',
+		!approval && !/^[A-Za-z0-9_-]{32,}$/.test(s.writeToken || '') && 'writeToken',
+		approval && !/^[A-Za-z0-9_-]{30,60}$/.test(s.apiKey || '') && 'apiKey',
 		!/^[A-Za-z0-9_-]{43}$/.test(s.syncKey || '') && 'syncKey',
-		// the planner code (`pnpm sync planner`, ADR-20261002-sync-planners): a salt and the code's hash, never the code
-		!(s.planner == null || (/^[A-Za-z0-9_-]{22}$/.test(s.planner.salt || '') && /^[A-Za-z0-9_-]{43}$/.test(s.planner.hash || ''))) && 'planner',
+		// the planner code (`pnpm sync planner`, ADR-20261002-sync-planners): a salt and the code's hash, never the code; on
+		// an approval trip also the salt of the proof the database checks (the proof itself is only in the database)
+		!(s.planner == null || (salt(s.planner.salt) && /^[A-Za-z0-9_-]{43}$/.test(s.planner.hash || '') && (!approval || salt(s.planner.proofSalt)))) &&
+			'planner',
 	].filter(Boolean);
 	if (bad.length) throw new Error(`--sync ${syncFile}: bad ${bad.join(', ')}`);
-	const planner = s.planner ? { salt: s.planner.salt, hash: s.planner.hash } : null;
-	return { url: u.href.replace(/\/$/, ''), trip: s.trip, token: s.writeToken, key: s.syncKey, planner };
+	const planner = s.planner ? { salt: s.planner.salt, hash: s.planner.hash, ...(approval ? { proofSalt: s.planner.proofSalt } : {}) } : null;
+	const url = u.href.replace(/\/$/, '');
+	if (!approval) return { url, trip: s.trip, token: s.writeToken, key: s.syncKey, planner };
+	// Firebase's sign-in endpoints; the tests' stand-in answers them on the local test server
+	const auth = local
+		? { signUp: `${u.origin}/__auth/v1/accounts:signUp`, token: `${u.origin}/__auth/v1/token` }
+		: { signUp: 'https://identitytoolkit.googleapis.com/v1/accounts:signUp', token: 'https://securetoken.googleapis.com/v1/token' };
+	return { url, trip: s.trip, key: s.syncKey, planner, approval: { apiKey: s.apiKey, ...auth } };
 })();
 
 // credits: keep only photos whose files exist
@@ -260,7 +273,16 @@ function contentSecurityPolicy(html) {
 		'style-src': ["'unsafe-inline'", ...MAP_CDNS, ...(gmaps ? ['https://fonts.googleapis.com'] : [])],
 		'font-src': ['data:', ...(gmaps ? ['https://fonts.gstatic.com'] : [])],
 		'img-src': ["'self'", 'data:', 'blob:', ...MAP_TILES, ...g],
-		'connect-src': ["'self'", ...MAP_TILES, ...packHosts, ...(sync ? [new URL(sync.url).origin] : []), ...g, ...(gmaps ? ['data:', 'blob:'] : [])],
+		// group sync: the trip's database, and on an approval trip Firebase's two sign-in endpoints (ADR-20261127-sync-approval)
+		'connect-src': [
+			"'self'",
+			...MAP_TILES,
+			...packHosts,
+			...(sync ? [new URL(sync.url).origin] : []),
+			...(sync && sync.approval ? [new URL(sync.approval.signUp).origin, new URL(sync.approval.token).origin] : []),
+			...g,
+			...(gmaps ? ['data:', 'blob:'] : []),
+		],
 		'worker-src': ['blob:'],
 		'child-src': ['blob:'],
 		'frame-src': gmaps ? ['https://*.google.com'] : ["'none'"],
@@ -448,7 +470,7 @@ ${scripts(imgMap, kmlB64)}
 };
 const { artifact, standalone, kb } = writePages('');
 console.log(
-	`${preview ? 'PREVIEW (not for publishing) · ' : ''}google key ${gmaps ? 'yes' : 'no'} · group sync ${sync ? `yes (planner code ${sync.planner ? 'set' : 'not set'})` : 'no'}${demoClock ? ` · demo clock ${demoClock}` : ''}${skyMode !== 'off' ? ` · sky ${skyMode}` : ''} · artifact ${kb(artifact)} · standalone ${kb(standalone)} · photos ${credits.length} · geo ${geo ? 'yes' : 'no'} · food ${extra.food?.length || 0} · tickets ${extra.tickets?.length || 0} · wish ${wish.length} · brush glyphs ${brush.size} (${fontCSS ? 'font in the page' : 'system Kaiti'})${drawnIcon.size ? ` · icon drawn (${world.name}${iconMark ? ` + ${iconMark}` : ''})` : ''}`,
+	`${preview ? 'PREVIEW (not for publishing) · ' : ''}google key ${gmaps ? 'yes' : 'no'} · group sync ${sync ? `yes (${sync.approval ? 'approval, ' : ''}planner code ${sync.planner ? 'set' : 'not set'})` : 'no'}${demoClock ? ` · demo clock ${demoClock}` : ''}${skyMode !== 'off' ? ` · sky ${skyMode}` : ''} · artifact ${kb(artifact)} · standalone ${kb(standalone)} · photos ${credits.length} · geo ${geo ? 'yes' : 'no'} · food ${extra.food?.length || 0} · tickets ${extra.tickets?.length || 0} · wish ${wish.length} · brush glyphs ${brush.size} (${fontCSS ? 'font in the page' : 'system Kaiti'})${drawnIcon.size ? ` · icon drawn (${world.name}${iconMark ? ` + ${iconMark}` : ''})` : ''}`,
 );
 
 // 3) Google My Maps export (KML): one combined file + one file per layer

@@ -6,18 +6,52 @@
 			".read": false,
 			".write": false
 		},
+		"gates": {
+			".read": false,
+			".write": false
+		},
 		"trips": {
 			"$trip": {
-				".read": "root.child('keys').child($trip).exists()",
+				".read": "root.child('keys').child($trip).exists() && !root.child('gates').child($trip).exists()",
 				"r": {
+					".read": "auth != null && root.child('gates').child($trip).child('approval').val() === true && root.child('trips').child($trip).child('devices').child(auth.uid).child('state').val() === 'approved'",
 					"$rid": {
-						".write": "newData.exists() && root.child('keys').child($trip).val() === newData.child('k').val() && (!data.exists() || newData.child('u').val() > data.child('u').val() || (newData.child('u').val() === data.child('u').val() && newData.child('d').val() > data.child('d').val()))",
-						".validate": "$rid.matches(/^[A-Za-z0-9_-]{22}$/) && newData.hasChildren(['c', 'u', 'd', 'k'])",
+						".write": "newData.exists() && ((root.child('keys').child($trip).exists() && !root.child('gates').child($trip).exists() && root.child('keys').child($trip).val() === newData.child('k').val()) || (auth != null && root.child('gates').child($trip).child('approval').val() === true && root.child('trips').child($trip).child('devices').child(auth.uid).child('state').val() === 'approved' && newData.child('d').val() === root.child('trips').child($trip).child('devices').child(auth.uid).child('dev').val())) && (!data.exists() || newData.child('u').val() > data.child('u').val() || (newData.child('u').val() === data.child('u').val() && newData.child('d').val() > data.child('d').val()))",
+						".validate": "$rid.matches(/^[A-Za-z0-9_-]{22}$/) && newData.hasChildren(['c', 'u', 'd'])",
 						"c": { ".validate": "newData.isString() && newData.val().length <= 4096" },
 						"u": { ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() <= now + 86400000" },
 						"d": { ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z0-9_-]{6,24}$/)" },
-						"k": { ".validate": "newData.isString()" },
+						"k": { ".validate": "newData.isString() && !root.child('gates').child($trip).exists()" },
 						"$other": { ".validate": false }
+					}
+				},
+				"devices": {
+					".read": "auth != null && root.child('gates').child($trip).child('approval').val() === true && root.child('trips').child($trip).child('devices').child(auth.uid).child('state').val() === 'approved'",
+					"$uid": {
+						".read": "auth != null && auth.uid === $uid && root.child('gates').child($trip).child('approval').val() === true",
+						".write": "auth != null && root.child('gates').child($trip).child('approval').val() === true && ((data.exists() && root.child('trips').child($trip).child('devices').child(auth.uid).child('state').val() === 'approved' && root.child('trips').child($trip).child('planners').child(auth.uid).val() === true) || (auth.uid === $uid && !data.exists() && newData.child('state').val() === 'pending' && !newData.child('person').exists() && auth.uid.beginsWith(newData.child('dev').val()) && newData.child('dev').val().length >= 20) || (auth.uid === $uid && data.child('state').val() === 'pending' && newData.child('state').val() === 'pending' && !newData.child('person').exists() && newData.child('kind').val() === data.child('kind').val() && newData.child('code').val() === data.child('code').val() && newData.child('at').val() === data.child('at').val()) || (auth.uid === $uid && data.child('state').val() === 'pending' && newData.child('state').val() === 'approved' && newData.child('kind').val() === data.child('kind').val() && newData.parent().parent().child('planners').child(auth.uid).val() === true && root.child('gates').child($trip).child('proof').isString() && newData.parent().parent().child('claims').child(auth.uid).val() === root.child('gates').child($trip).child('proof').val()))",
+						".validate": "newData.hasChildren(['name', 'kind', 'dev', 'code', 'state'])",
+						"name": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 400" },
+						"kind": { ".validate": "newData.isString() && newData.val().matches(/^[a-z]{2,12}\\/[a-z]{2,12}$/)" },
+						"dev": { ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z0-9_-]{6,24}$/) && (!data.exists() || newData.val() === data.val())" },
+						"code": { ".validate": "newData.isString() && newData.val().matches(/^[0-9]{4,8}$/)" },
+						"state": { ".validate": "newData.val() === 'pending' || newData.val() === 'approved' || newData.val() === 'blocked'" },
+						"person": { ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z0-9_-]{6,24}$/)" },
+						"at": { ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() <= now + 86400000" },
+						"$other": { ".validate": false }
+					}
+				},
+				"planners": {
+					".read": "auth != null && root.child('gates').child($trip).child('approval').val() === true && root.child('trips').child($trip).child('devices').child(auth.uid).child('state').val() === 'approved'",
+					"$uid": {
+						".read": "auth != null && auth.uid === $uid && root.child('gates').child($trip).child('approval').val() === true",
+						".write": "auth != null && root.child('gates').child($trip).child('approval').val() === true && ((root.child('trips').child($trip).child('devices').child(auth.uid).child('state').val() === 'approved' && root.child('trips').child($trip).child('planners').child(auth.uid).val() === true) || (auth.uid === $uid && newData.val() === true && root.child('gates').child($trip).child('proof').isString() && newData.parent().parent().child('claims').child(auth.uid).val() === root.child('gates').child($trip).child('proof').val()))",
+						".validate": "newData.val() === true && newData.parent().parent().child('devices').child($uid).child('state').val() === 'approved'"
+					}
+				},
+				"claims": {
+					"$uid": {
+						".write": "auth != null && auth.uid === $uid && root.child('gates').child($trip).child('approval').val() === true && root.child('gates').child($trip).child('proof').isString() && newData.val() === root.child('gates').child($trip).child('proof').val()"
 					}
 				}
 			}

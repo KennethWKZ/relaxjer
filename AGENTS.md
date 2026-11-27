@@ -107,7 +107,7 @@ pnpm build --trip trips/<slug> --keys ~/.config/relaxjer/google.json   # a real 
 pnpm resync --trip trips/<slug> [--write]   # refresh a trip's data from its cache; paying for more is the planner's call (data-sync)
 pnpm test:pipeline               # the pipeline's offline tests (needs uv)
 pnpm test:release                # the push gate: no real trip's details in anything published
-pnpm sync init --trip trips/<slug> --db <url>   # group sync for a trip (rules|init|planner|end|status), see the sync-setup skill
+pnpm sync init --trip trips/<slug> --db <url> --api-key <key>   # group sync for a trip (rules|init|planner|approve|end|status), see the sync-setup skill
 pnpm test:sync-rules             # the group-sync database rules on Firebase's emulator (local, needs Java)
 pnpm publish:trip trips/<slug>   # republish to the same link and prove it (--dry-run, --check, --audit): the planner approves each run (publish-htmlapp)
 pnpm parity --ref <commit> --trip trips/<slug>      # renders the same as an earlier commit? (--live <repo>: maintainer only)
