@@ -986,9 +986,12 @@ function syncAsksHTML() {
 	const rows = asks.map((a) => {
 		const same = Sync.samePerson(a.name, group);
 		const title = [a.name || Z('没写名字', 'No name'), kitLabel(a.kind)].filter(Boolean).join(' · ');
-		const sub = [a.code ? Z(`加入码 ${a.code}`, `join code ${a.code}`) : '', a.at ? Z(`${syncAgo(a.at)}请求`, `asked ${syncAgo(a.at)}`) : '']
-			.filter(Boolean)
-			.join(' · ');
+		// the join code is what the planner compares with the device's screen, so it stands out: big bold figures, as the
+		// waiting device shows them; no fill, so it never looks like the tappable fold below (affordances rule 8)
+		const chip = a.code
+			? `<span class="join-chip"><span class="join-chip-l">${Z('加入码', 'join code')}</span> <b class="sync-join-code">${esc(a.code)}</b></span>`
+			: '';
+		const sub = a.at ? Z(`${syncAgo(a.at)}请求`, `asked ${syncAgo(a.at)}`) : '';
 		const sameBtns = same
 			.map(
 				(p) =>
@@ -1001,7 +1004,7 @@ function syncAsksHTML() {
 					`<button type="button" class="mlink" data-ask-person="${esc(a.uid)}" data-person="${esc(p.person)}" data-person-name="${esc(p.name)}">${icon('users')}${esc(who(p))}</button>`,
 			)
 			.join('');
-		return `<li class="sync-row sync-ask" data-sync-ask="${esc(a.uid)}"><span><b>${esc(title)}</b><span class="xsmall muted sync-row-sub">${esc(sub)}</span></span>
+		return `<li class="sync-row sync-ask" data-sync-ask="${esc(a.uid)}"><span><b>${esc(title)}</b>${chip}${sub ? `<span class="xsmall muted sync-row-sub">${esc(sub)}</span>` : ''}</span>
         <span class="sync-acts">${sameBtns}<button type="button" class="mlink" data-ask-ok="${esc(a.uid)}">${icon('check')}${same.length ? Z('作为新的一个人同意', 'Approve as someone new') : Z('同意', 'Approve')}</button><button type="button" class="mlink danger" data-ask-block="${esc(a.uid)}">${icon('x')}${Z('停用', 'Block')}</button></span>
         <details class="sync-code sync-ask-more" data-fold="ask-${esc(a.uid)}"><summary>${icon('users')}${Z('改名字或选一个人', 'Edit the name or pick a person')}${icon('chev', 'chev')}</summary>
           <label class="sync-name">${Z('名字', 'Name')}<input type="text" data-ask-name="${esc(a.uid)}" maxlength="24" value="${esc(a.name)}" autocomplete="off" enterkeyhint="done"></label>

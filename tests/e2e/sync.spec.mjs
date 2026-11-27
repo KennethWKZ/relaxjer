@@ -682,6 +682,7 @@ test.describe('group sync with approval', { tag: '@demo' }, () => {
 		await expect(ask).toHaveCount(1, { timeout: 15_000 });
 		await expect(ask.locator('b').first()).toHaveText(/^Mei · .+/);
 		await expect(ask).toContainText(`join code ${code}`);
+		await expect(ask.locator('.join-chip .sync-join-code'), 'the code stands out as a chip').toHaveText(code);
 		await ask.locator('[data-ask-ok]').click();
 		// (no toast check: Mei's waiting stop arrives at once, and its toast takes the place of "Mei is in the group now")
 		await expect(sheet(page).locator('[data-sync-ask]')).toHaveCount(0, { timeout: 15_000 });
