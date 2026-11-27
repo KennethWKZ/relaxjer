@@ -4178,16 +4178,33 @@ body {
 	color: var(--ink-3);
 	transition: transform 200ms var(--ease-out);
 }
-.sn-tog[aria-expanded='true'] {
+.sn-tog[aria-expanded='true'],
+.stop-detail[open] > .sn-tog {
 	background: var(--paper-2);
 	border-style: solid;
 	border-color: var(--rule);
 }
-.sn-tog[aria-expanded='true'] .chev {
+.sn-tog[aria-expanded='true'] .chev,
+.stop-detail[open] > .sn-tog .chev {
 	transform: rotate(180deg);
 }
 .sn-tog:active {
 	background: var(--paper-3);
+}
+/* a stop's longer note folds under its short one (schedule[].detail): the same row as the nearby options, a native
+   summary, in the note's column so a photo beside the stop keeps its place */
+.stop-detail {
+	grid-column: 1;
+	min-width: 0;
+}
+.stop-detail > summary {
+	list-style: none;
+}
+.stop-detail > summary::-webkit-details-marker {
+	display: none;
+}
+.stop-detail > .stop-note {
+	margin-top: 6px;
 }
 .sn-list {
 	display: grid;

@@ -115,7 +115,7 @@ two of them seniors.
   in Japan) shows the minutes the planner gave it.
 - **Copy for chat** puts the day as text (times, notes, each person's budget, the rain plan, the link) on the
   clipboard; **Copy link** copies the day's address; **Map** opens the map full screen on that day.
-- **The timeline:** each stop with its time and a note. A stop with more to it has a › button: tap it, or the stop,
+- **The timeline:** each stop with its time and a note. A stop with more to say keeps its note short and folds the rest under **More details**: shut on a phone, open on a wider screen, a tap either way, and search still finds what's inside (a stop's `detail`). A stop with more to it has a › button: tap it, or the stop,
   for its sheet with Map, Directions, the website and Details, the local words, a photo where there is one, the shop
   box, and the food, drinks, rest spots and toilets near it. On the stop under way and the next one, **Show driver**
   stays on the row, so it's one tap in a taxi. A **fixed

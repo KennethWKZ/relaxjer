@@ -42,6 +42,9 @@ states and its feedback, as 25 testable rules with sources.
   section is a view a few phone screens long; what the group plans or reads rarely (a decision, a table, a budget, the
   rules) goes behind a summary button whose one line says what's inside, and opens in a sheet that scrolls on its own
   and closes with Back. Back returns to the exact view and place; a new jump opens its view first.
+- **A stop's note is one short line; the rest folds** ([ADR-20261127-stop-detail-fold](../decisions/ADR-20261127-stop-detail-fold.md)).
+  What everyone needs at the stop goes in `note`; directions, phrases and backups go in `detail`, a native fold shut
+  below 600 px and open above, a tap either way. Never fold the note itself.
 - **A phone and a tablet get around by the bottom bar** ([ADR-20261124-bottom-app-bar](../decisions/ADR-20261124-bottom-app-bar.md)).
   Below 1024 px, Today, Days, Map and More (an icon over a short label) replace the date strip and the Sections button;
   a desktop keeps the rail. Nothing on a phone scrolls sideways to reach a part of the trip. Anything fixed to the foot
@@ -185,3 +188,4 @@ Each rule above rests on a decision. The decision and its reasons live in its AD
 - [ADR-20261124-bottom-app-bar](../decisions/ADR-20261124-bottom-app-bar.md): Below 1024 px a bottom bar (Today, Days, Map, More) replaces the date strip and the Sections button, and the sky’s Pause moves into More.
 - [ADR-20261124-grouped-lists](../decisions/ADR-20261124-grouped-lists.md): The rail, Days, More and the Sections sheet are grouped lists: cards of 52 px rows split by inset hairlines, each row ending in ›, a value with ⌃⌄, or nothing.
 - [ADR-20261124-map-first-search](../decisions/ADR-20261124-map-first-search.md): Search results and the finder lie over the map (sheet or side panel); a picked place is framed with the group and marked, no line; filters behind one button.
+- [ADR-20261127-stop-detail-fold](../decisions/ADR-20261127-stop-detail-fold.md): A stop splits its text into note (always shown) and detail, a native fold: shut below 600 px, open from 600 px, a tap either way.

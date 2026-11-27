@@ -163,6 +163,10 @@ const DAYS = [
 				what: ['入境、领行李、买悠游卡', 'Immigration, bags, buy EasyCards'],
 				place: 'tpe1',
 				note: ['悠游卡在捷运服务台买', 'EasyCards at the MRT service desk'],
+				detail: [
+					'每人一张，一张卡先加值 NT$500，够前两天的捷运和公车。一人去服务台排队，长辈在旁边找位子坐着等（示范）',
+					'One card each, with NT$500 on it: enough metro and bus for the first two days. One person queues at the desk while the seniors wait seated nearby (demo)',
+				],
 			},
 			{
 				t: '~14:35–15:20',

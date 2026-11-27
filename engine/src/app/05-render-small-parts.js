@@ -213,6 +213,20 @@ function optsToggle(b) {
 	const list = document.getElementById(b.getAttribute('aria-controls'));
 	if (list) list.hidden = !open;
 }
+// a stop's longer note (schedule[].detail, trip-format.md) folds under its short one: closed on a phone, where the
+// day's string comes first, open on a wider screen, and a tap folds or unfolds it on any screen, remembered per stop for
+// this page view (detailOpen); a reload reopens the folds that were open, as for every fold (spotSave). A native details: the page's search finds the text inside and opens it
+const detailOpen = new Map();
+function stopDetail(it, sid) {
+	if (!it.detail) return '';
+	const open = detailOpen.has(sid) ? detailOpen.get(sid) : !matchMedia('(max-width: 599px)').matches;
+	return `<details class="stop-detail" data-detail="${sid}"${open ? ' open' : ''}><summary class="sn-tog">${icon('info')}<span class="sn-h">${Z('更多说明', 'More details')}</span>${icon('chev', 'chev')}</summary><p class="stop-note">${fmt(it.detail)}</p></details>`;
+}
+// the reader's own tap, on the summary (Enter and Space click it too): a redraw keeps what they chose
+document.addEventListener('click', (e) => {
+	const s = e.target.closest('details.stop-detail > summary');
+	if (s) detailOpen.set(s.parentElement.dataset.detail, !s.parentElement.open);
+});
 function nearDrinks(d, it) {
 	// a drink within a few minutes' walk: best rated first
 	if (!it.place || !DRINKS.length) return '';
