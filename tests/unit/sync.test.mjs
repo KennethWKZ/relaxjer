@@ -334,3 +334,110 @@ test('Sync: while you were away keeps one line per record, the newest, newest fi
 	assert.equal(Sync.awayLog([], many)[0].u, 39, 'the newest kept first');
 	assert.deepEqual(Sync.awayLog('junk', [null, { r: 'tick:z' }, { r: 'tick:z', u: 1, t: 'x' }]), [], 'damaged entries are dropped');
 });
+
+// ── approval trips (ADR-20261127-sync-approval) ─────────────────────────────────────────────────────────────────────
+const U = (c) => `${c.repeat(27)}1`; // a user id as Firebase's anonymous sign-in makes them
+const D = (c) => U(c).slice(0, 24);
+
+test('approval: names, roles, blocks and kinds stay out of the records; the rest is shared as before', () => {
+	const recs = {
+		'stop:a': stop('a'),
+		'tick:before-x': true,
+		'who:abcdef': 'Mei',
+		'role:abcdef': 'planner',
+		'block:abcdef': true,
+		'kit:abcdef': 'iphone/app',
+	};
+	assert.deepEqual(Object.keys(Sync.ungated(recs)), ['stop:a', 'tick:before-x']);
+	assert.deepEqual(Sync.ungated(null), {});
+});
+
+test('approval: a device’s sync id is its user id’s start, and its join code is 4 digits', () => {
+	assert.equal(Sync.devOfUid(U('A')), D('A'));
+	assert.equal(D('A').length, 24);
+	for (const bad of ['short', `${U('A')}/x`, '', null, 42]) assert.equal(Sync.devOfUid(bad), null, String(bad));
+	assert.equal(Sync.joinCode(new Uint8Array([0, 7])), '0007');
+	assert.equal(Sync.joinCode(new Uint8Array([255, 255])), '5535');
+	assert.match(Sync.joinCode(crypto.getRandomValues(new Uint8Array(2))), /^\d{4}$/);
+});
+
+test('approval: a name is sealed for its trip and device, and opens nowhere else', async () => {
+	const key = await Sync.recordKey('k'.repeat(43));
+	const sealed = await Sync.sealName(key, 'T'.repeat(22), U('A'), '  Mei  ');
+	assert.match(sealed, /^[A-Za-z0-9_-]{16}\.[A-Za-z0-9_-]+$/);
+	assert.ok(!sealed.includes('Mei'));
+	assert.equal(await Sync.openName(key, 'T'.repeat(22), U('A'), sealed), 'Mei');
+	assert.equal(await Sync.openName(key, 'T'.repeat(22), U('B'), sealed), '', 'copied to another device');
+	assert.equal(await Sync.openName(key, 'X'.repeat(22), U('A'), sealed), '', 'another trip’s');
+	assert.equal(await Sync.openName(await Sync.recordKey('j'.repeat(43)), 'T'.repeat(22), U('A'), sealed), '', 'another key');
+	assert.equal(await Sync.openName(key, 'T'.repeat(22), U('A'), 'junk'), '');
+	assert.notEqual(await Sync.sealName(key, 'T'.repeat(22), U('A'), 'Mei'), sealed, 'a fresh iv each time');
+});
+
+test('approval: the group comes from the devices and planners entries; join requests wait apart, oldest first', () => {
+	const e = (c, over) => ({ name: 'sealed', kind: 'iphone/safari', dev: D(c), code: '1234', state: 'approved', ...over });
+	const devices = {
+		[U('A')]: e('A', { person: D('A') }),
+		[U('B')]: e('B', { person: D('A'), kind: 'ipad/app' }),
+		[U('C')]: e('C', { state: 'blocked' }),
+		[U('E')]: e('E', { state: 'pending', code: '4821', at: 20 }),
+		[U('F')]: e('F', { state: 'pending', code: '9999', at: 10, kind: 'Mozilla/5.0' }),
+		[U('G')]: e('G', { dev: D('A') }), // claims another device's sync id: left out
+		[U('H')]: e('H', { state: 'weird' }),
+	};
+	const names = { [U('A')]: 'Mei', [U('B')]: 'Mei', [U('C')]: 'Spam', [U('E')]: 'Ken', [U('F')]: '' };
+	const g = Sync.groupOf(devices, { [U('A')]: true, [U('C')]: true }, names);
+	assert.deepEqual(g.people, { [D('A')]: 'Mei', [D('B')]: 'Mei', [D('C')]: 'Spam' });
+	assert.deepEqual(g.roles, { [D('A')]: 'planner' }, 'a blocked device is no planner');
+	assert.deepEqual(g.blocks, { [D('C')]: true });
+	assert.deepEqual(g.persons, { [D('A')]: D('A'), [D('B')]: D('A'), [D('C')]: D('C') });
+	assert.deepEqual(g.kits, { [D('A')]: 'iphone/safari', [D('B')]: 'ipad/app', [D('C')]: 'iphone/safari' });
+	assert.equal(g.uidOf[D('B')], U('B'));
+	assert.deepEqual(
+		g.requests.map((r) => [r.name, r.code, r.kind]),
+		[
+			['', '9999', ''],
+			['Ken', '4821', 'iphone/safari'],
+		],
+	);
+	assert.deepEqual(Sync.groupOf(null, null).requests, []);
+});
+
+test('approval: a request whose name matches a person offers that person once; blocked devices don’t count', () => {
+	const group = {
+		people: { [D('A')]: 'Mei', [D('B')]: 'mei ', [D('C')]: 'Mei', [D('E')]: 'Ken' },
+		persons: { [D('A')]: 'p1', [D('B')]: 'p1', [D('C')]: 'p2', [D('E')]: 'p3' },
+		blocks: { [D('C')]: true },
+	};
+	assert.deepEqual(Sync.samePerson('  MEI', group), [{ dev: D('A'), person: 'p1', name: 'Mei' }]);
+	assert.deepEqual(Sync.samePerson('Lee', group), []);
+	assert.deepEqual(Sync.samePerson('', group), []);
+});
+
+test('approval: a planner’s choices are the writes the rules take', () => {
+	const o = { uid: U('A'), dev: D('A') };
+	assert.deepEqual(Sync.approvalWrites('approve', o), { [`devices/${U('A')}/state`]: 'approved', [`devices/${U('A')}/person`]: D('A') });
+	assert.deepEqual(Sync.approvalWrites('approve', { ...o, person: 'p1', sealed: 's', planner: true }), {
+		[`devices/${U('A')}/state`]: 'approved',
+		[`devices/${U('A')}/person`]: 'p1',
+		[`devices/${U('A')}/name`]: 's',
+		[`planners/${U('A')}`]: true,
+	});
+	assert.deepEqual(Sync.approvalWrites('block', o), { [`devices/${U('A')}/state`]: 'blocked', [`planners/${U('A')}`]: null });
+	assert.deepEqual(Sync.approvalWrites('unblock', o), { [`devices/${U('A')}/state`]: 'approved' });
+	assert.deepEqual(Sync.approvalWrites('planner', { ...o, on: false }), { [`planners/${U('A')}`]: null });
+	assert.deepEqual(Sync.approvalWrites('rename', { ...o, sealed: 's' }), { [`devices/${U('A')}/name`]: 's' });
+	assert.deepEqual(Sync.approvalWrites('move', { ...o, person: 'p1' }), { [`devices/${U('A')}/person`]: 'p1' });
+	assert.throws(() => Sync.approvalWrites('nope', o), /unknown/);
+});
+
+test('approval: the group list goes by the person a planner set, not by the typed name', () => {
+	const people = { a1: 'Mei', a2: 'Mei', a3: 'Ken' };
+	const persons = { a1: 'p1', a2: 'p2', a3: 'p1' };
+	const { people: list } = Sync.byPerson(['a1', 'a2', 'a3'], people, {}, null, persons);
+	assert.deepEqual(
+		list.map((p) => p.devs),
+		[['a1', 'a3'], ['a2']],
+		'two people named Mei stay two; Ken’s device is under the person it was put with',
+	);
+});

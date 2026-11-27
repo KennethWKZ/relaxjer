@@ -285,9 +285,10 @@ export function deviceKind({ ua = '', standalone = false, touch = 0 } = {}) {
  * reads it; devices with no name stay one each. A blocked device leaves its person and goes on the blocked list.
  * Roles and blocks stay per device (a name proves nothing). devs = device ids in the order to show; people = { device
  * id: name }; me = this device. Returns { people: [{ key, name, devs }], blocked: [device id] }; this device's person
- * comes first, this device first among its person's, and a person goes by the name on their first device.
+ * comes first, this device first among its person's, and a person goes by the name on their first device. On an
+ * approval trip, persons = { device id: person id } groups them instead of the names (ADR-20261127-sync-approval).
  */
-export function byPerson(devs, people = {}, blocks = {}, me = null) {
+export function byPerson(devs, people = {}, blocks = {}, me = null, persons = null) {
 	const out = new Map();
 	const blocked = [];
 	for (const dev of devs || []) {
@@ -296,7 +297,8 @@ export function byPerson(devs, people = {}, blocks = {}, me = null) {
 			continue;
 		}
 		const name = people[dev] || '';
-		const key = nameKey(name) || `dev:${dev}`;
+		// on an approval trip a planner set each device's person (persons = { device id: person id }); a name proves nothing
+		const key = persons ? `person:${persons[dev] || dev}` : nameKey(name) || `dev:${dev}`;
 		const p = out.get(key) || { key, name, devs: [] };
 		p.devs.push(dev);
 		if (dev === me) p.devs.unshift(p.devs.pop()); // this device first among its person's
@@ -322,4 +324,129 @@ export function awayLog(log, adds, cap = 30) {
 		if (!o || newer(e, o)) m.set(e.r, e);
 	}
 	return [...m.values()].sort((a, b) => b.u - a.u || (a.d < b.d ? 1 : -1)).slice(0, cap);
+}
+
+/* ───────── approval trips (ADR-20261127-sync-approval) ─────────
+   Each device signs in to Firebase anonymously and asks to join under devices/<uid>: its name (sealed with the trip's
+   key, so the database never reads it), its kind, its sync id and a join code it shows. A planner approves it, as a
+   person of the group, or blocks it; the database rules refuse records from anything else. Who is in the group, who
+   is a planner and who is blocked come from those entries, so the page no longer sends who:, role:, block: or kit:
+   records there (the CLI reads the same entries: scripts/sync/sync.mjs). */
+
+/** the record kinds a token trip shares and an approval trip keeps in devices/ and planners/ instead */
+export const GATED_KINDS = ['who', 'role', 'block', 'kit'];
+/** records without the gated kinds (an approval trip neither sends nor takes them) */
+export function ungated(recs) {
+	const out = {};
+	for (const [rid, v] of Object.entries(recs || {})) if (!GATED_KINDS.includes(String(rid).split(':')[0])) out[rid] = v;
+	return out;
+}
+/** a device's sync id on an approval trip: its user id's first 24 characters, so no device can take another's */
+export const devOfUid = (uid) => (typeof uid === 'string' && /^[A-Za-z0-9]{20,128}$/.test(uid) ? uid.slice(0, 24) : null);
+/** the join code a device shows while it waits: 4 digits from 2 random bytes */
+export const joinCode = (bytes) => String((((bytes && bytes[0]) || 0) * 256 + ((bytes && bytes[1]) || 0)) % 10000).padStart(4, '0');
+
+const b64u = (u8) =>
+	btoa(String.fromCharCode(...u8))
+		.replace(/\+/g, '-')
+		.replace(/\//g, '_')
+		.replace(/=+$/, '');
+const unb64u = (s) => Uint8Array.from(atob(String(s).replace(/-/g, '+').replace(/_/g, '/')), (c) => c.charCodeAt(0));
+/** the AES-GCM key records and names are sealed with, from the trip's sync key, as the page has always derived it */
+export const recordKey = async (syncKey) => {
+	const raw = await crypto.subtle.importKey('raw', unb64u(syncKey), 'HKDF', false, ['deriveKey']);
+	const info = new TextEncoder().encode('relaxjer sync record');
+	return crypto.subtle.deriveKey({ name: 'HKDF', hash: 'SHA-256', salt: new Uint8Array(0), info }, raw, { name: 'AES-GCM', length: 256 }, false, [
+		'encrypt',
+		'decrypt',
+	]);
+};
+// a name is bound to its trip and device, so a sealed name copied to another entry doesn't open
+const nameAad = (trip, uid) => new TextEncoder().encode(`${trip}/dev/${uid}`);
+/** a device's name sealed for its entry: "iv.ciphertext", base64url */
+export const sealName = async (key, trip, uid, name) => {
+	const iv = crypto.getRandomValues(new Uint8Array(12));
+	const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv, additionalData: nameAad(trip, uid) }, key, new TextEncoder().encode(text(name, 24)));
+	return `${b64u(iv)}.${b64u(new Uint8Array(ct))}`;
+};
+/** the name in a device's entry; '' when it doesn't open (another trip's, or damaged) */
+export const openName = async (key, trip, uid, sealed) => {
+	try {
+		const [iv, ct] = String(sealed).split('.');
+		const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64u(iv), additionalData: nameAad(trip, uid) }, key, unb64u(ct));
+		return text(new TextDecoder().decode(pt).trim(), 24);
+	} catch {
+		return '';
+	}
+};
+
+/**
+ * The group as an approval trip's database holds it. devices = { uid: entry }, planners = { uid: true }, names = { uid:
+ * opened name }. Returns the page's own maps by sync id (people, roles, blocks, kits, persons), uidOf (sync id → uid),
+ * and the join requests waiting for a planner, oldest first: [{ uid, dev, name, kind, code, at }]. An entry that
+ * doesn't fit is left out.
+ */
+export function groupOf(devices, planners, names = {}) {
+	const out = { people: {}, roles: {}, blocks: {}, kits: {}, persons: {}, uidOf: {}, requests: [] };
+	for (const [uid, e] of Object.entries(devices && typeof devices === 'object' ? devices : {})) {
+		if (!e || typeof e !== 'object' || typeof e.dev !== 'string' || devOfUid(uid) !== e.dev) continue;
+		const kind = KIT.test(String(e.kind)) ? e.kind : '';
+		const name = text(names[uid], 24);
+		if (e.state === 'pending') {
+			out.requests.push({ uid, dev: e.dev, name, kind, code: /^[0-9]{4,8}$/.test(String(e.code)) ? e.code : '', at: num(e.at) || 0 });
+			continue;
+		}
+		if (e.state !== 'approved' && e.state !== 'blocked') continue;
+		out.uidOf[e.dev] = uid;
+		if (name) out.people[e.dev] = name;
+		if (kind) out.kits[e.dev] = kind;
+		out.persons[e.dev] = typeof e.person === 'string' && DEV.test(e.person) ? e.person : e.dev;
+		if (e.state === 'blocked') out.blocks[e.dev] = true;
+		else if (planners && planners[uid] === true) out.roles[e.dev] = 'planner';
+	}
+	out.requests.sort((a, b) => a.at - b.at || (a.uid < b.uid ? -1 : 1));
+	return out;
+}
+
+/**
+ * The approved, unblocked devices whose name matches a join request's, so the planner sees "Same person as Mei
+ * (iPhone)": [{ dev, person, name }], one per person, in the order of devs. group = groupOf's result.
+ */
+export function samePerson(name, group, devs = Object.keys(group.people || {})) {
+	const k = nameKey(name);
+	const seen = new Set();
+	const out = [];
+	if (!k) return out;
+	for (const dev of devs) {
+		const p = group.persons[dev];
+		if (!p || group.blocks[dev] || seen.has(p) || nameKey(group.people[dev]) !== k) continue;
+		seen.add(p);
+		out.push({ dev, person: p, name: group.people[dev] });
+	}
+	return out;
+}
+
+/**
+ * The database writes for a planner's choice on a device (paths under trips/<trip>), so the page and the CLI write the
+ * same thing. uid = the device's user id, dev = its sync id. act:
+ *  - 'approve': person = an existing person's id (else its own), sealed = a new sealed name, planner = make it one too;
+ *  - 'block' (its planner role goes with it), 'unblock';
+ *  - 'planner': on = true or false;
+ *  - 'rename': sealed; 'move': person, and sealed when the name changes with it.
+ */
+export function approvalWrites(act, { uid, dev, person, sealed, planner, on } = {}) {
+	const at = (f) => `devices/${uid}/${f}`;
+	if (act === 'approve')
+		return {
+			[at('state')]: 'approved',
+			[at('person')]: person || dev,
+			...(sealed ? { [at('name')]: sealed } : {}),
+			...(planner ? { [`planners/${uid}`]: true } : {}),
+		};
+	if (act === 'block') return { [at('state')]: 'blocked', [`planners/${uid}`]: null };
+	if (act === 'unblock') return { [at('state')]: 'approved' };
+	if (act === 'planner') return { [`planners/${uid}`]: on ? true : null };
+	if (act === 'rename') return { [at('name')]: sealed };
+	if (act === 'move') return { [at('person')]: person, ...(sealed ? { [at('name')]: sealed } : {}) };
+	throw new Error(`unknown act ${act}`);
 }

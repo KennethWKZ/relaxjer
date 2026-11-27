@@ -4,12 +4,13 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
-import { plannerCode } from '../../scripts/sync/sync.mjs';
+import { plannerCode, plannerProof } from '../../scripts/sync/sync.mjs';
 import { DEMO_TRIPS, ROOT, resolveEngine, resolveTrip, stagePage } from './stage.mjs';
 import { makeWorldTrip, SKIES } from './world-trip.mjs';
 
 export const PAGES_DIR = path.join(ROOT, '.cache', 'pages');
 export const SYNC_TEST_FILE = path.join(ROOT, '.cache', 'sync-test.json');
+export const APPROVAL_TEST_FILE = path.join(ROOT, '.cache', 'sync-approval-test.json');
 export const GKEY_TEST_FILE = path.join(ROOT, '.cache', 'gkey-test.json');
 /** the live demo's clock, read from the workflow that publishes it, so the tests open the page visitors get */
 export const DEMO_CLOCK = (fs.readFileSync(path.join(ROOT, '.github', 'workflows', 'pages.yml'), 'utf8').match(/--demo-clock "([^"]+)"/) || [])[1];
@@ -35,6 +36,7 @@ export default async function globalSetup() {
 	fs.cpSync(path.join(ROOT, 'site'), path.join(PAGES_DIR, 'site'), { recursive: true });
 
 	fs.rmSync(path.join(PAGES_DIR, 'trip-sync.html'), { force: true });
+	fs.rmSync(path.join(PAGES_DIR, 'trip-approval.html'), { force: true });
 	for (const f of fs.readdirSync(PAGES_DIR).filter((x) => /^trip-world/.test(x))) fs.rmSync(path.join(PAGES_DIR, f), { force: true });
 	fs.rmSync(path.join(PAGES_DIR, 'trip-gkey.html'), { force: true });
 	if (engine.kind !== 'engine') return; // the legacy engine has no group sync
@@ -49,6 +51,20 @@ export default async function globalSetup() {
 	fs.writeFileSync(SYNC_TEST_FILE, JSON.stringify(sync), { mode: 0o600 });
 	const page = stagePage({ engine, trip, outDir: path.join(ROOT, '.cache', 'stage-sync'), args: ['--sync', SYNC_TEST_FILE] });
 	fs.copyFileSync(page, path.join(PAGES_DIR, 'trip-sync.html'));
+	// the same trip as an approval trip (ADR-20261127-sync-approval): devices sign in on the stand-in's sign-in with a
+	// made-up web API key, ask to join, and sync once a planner let them in. The proof salt goes in the page; the specs
+	// work the proof out from the code, as the CLI would put it in the database
+	const approval = {
+		url: sync.url,
+		trip: b64u(16),
+		syncKey: b64u(32),
+		approval: true,
+		apiKey: `standin${b64u(24)}`,
+		planner: { ...plannerCode(TEST_PLANNER_CODE), proofSalt: plannerProof(TEST_PLANNER_CODE).proofSalt },
+	};
+	fs.writeFileSync(APPROVAL_TEST_FILE, JSON.stringify(approval), { mode: 0o600 });
+	const gated = stagePage({ engine, trip, outDir: path.join(ROOT, '.cache', 'stage-approval'), args: ['--sync', APPROVAL_TEST_FILE] });
+	fs.copyFileSync(gated, path.join(PAGES_DIR, 'trip-approval.html'));
 
 	// the same trip as a planner's key builds it, so the Google parts are drawn (tests/e2e/place-finder.spec.mjs). The key
 	// is a stand-in no Google service takes, made here, never in the repo; the spec stubs Google's library in the page,

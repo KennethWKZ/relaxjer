@@ -6378,6 +6378,53 @@ input[data-rate][aria-invalid='true'] {
 .sync-blocked > summary {
 	color: var(--ink-2);
 }
+/* an approval trip (ADR-20261127-sync-approval): the name a planner confirmed, the join code a waiting device shows,
+   and a planner's fold-outs on a join request or a device (edit the name, pick a person), under the row's own actions */
+.sync-name-set {
+	gap: 2px;
+}
+.sync-name-set b {
+	font-size: 17px;
+}
+.sync-name-set .muted {
+	font-weight: 600;
+}
+.sync-join {
+	display: flex;
+	gap: 10px;
+	align-items: flex-start;
+	margin: 0 0 12px;
+	padding: 10px 12px;
+	border-radius: var(--r-md);
+	background: color-mix(in srgb, var(--link) 10%, var(--paper));
+	font-size: var(--fs-sm);
+	font-weight: 700;
+}
+.sync-join > svg.i {
+	flex: none;
+	margin-top: 2px;
+	color: var(--link);
+}
+.sync-join .muted {
+	display: block;
+	margin-top: 2px;
+	font-weight: 600;
+}
+.sync-join-code {
+	font-size: 1.25rem;
+	font-variant-numeric: tabular-nums;
+	letter-spacing: 0.08em;
+}
+.sync-row:has(> details) {
+	flex-wrap: wrap;
+}
+.sync-row > details {
+	flex-basis: 100%;
+	margin: 2px 0 4px;
+}
+.sync-pick {
+	justify-content: flex-start;
+}
 @media (max-width: 420px) {
 	.sync-row:has(.sync-acts) {
 		flex-wrap: wrap;

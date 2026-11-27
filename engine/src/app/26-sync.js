@@ -4,7 +4,11 @@
    record is encrypted on the phone (AES-GCM) under a name the database can't read (an HMAC of the record id), and the
    database's rules only take it with the trip's write token. This phone's saved state stays the source of truth: a change
    is saved here first, queued, and sent when there's a connection; what comes from the group is checked, merged newest
-   wins per record (core/sync.mjs, `Sync`) and put back into the saved state, then the page redraws once it has settled. */
+   wins per record (core/sync.mjs, `Sync`) and put back into the saved state, then the page redraws once it has settled.
+   On an approval trip (SYNC_GATE, ADR-20261127-sync-approval) there's no write token: the device signs in to Firebase
+   anonymously over REST, asks to join with the name its person typed (sealed), and reads or writes records only once a
+   planner approved it; until then its changes wait on it. Names, planners and blocks then come from the database's
+   devices/ and planners/ entries, which the rules guard, not from records. */
 let syncApi = null;
 const toB64u = (u8) =>
 	btoa(String.fromCharCode(...u8))
@@ -17,7 +21,8 @@ const utf8 = (s) => new TextEncoder().encode(s);
 if (SYNC) groupSync();
 
 function groupSync() {
-	const base = `${String(SYNC.url).replace(/\/$/, '')}/trips/${SYNC.trip}/r`;
+	const root = `${String(SYNC.url).replace(/\/$/, '')}/trips/${SYNC.trip}`;
+	const base = `${root}/r`;
 	if (!(window.crypto && crypto.subtle)) {
 		syncStatus = { state: 'unsupported', at: 0, waiting: 0 };
 		return;
@@ -33,6 +38,7 @@ function groupSync() {
 			known: {},
 			pending: {},
 			seeded: false,
+			code: '', // an approval trip's join code, shown while the device waits
 		};
 		if (!m || typeof m !== 'object') return fresh;
 		if (m.room !== SYNC.trip) return { ...fresh, dev: m.dev || fresh.dev, name: m.name || '' };
@@ -96,8 +102,10 @@ function groupSync() {
 	// what kind of device this is (iPhone · home-screen app, Mac · Chrome), so the group can tell one person's devices
 	// apart. Told with this device's name or its changes, never on its own: a device that only reads stays unlisted
 	const KIND = Sync.deviceKind({ ua: navigator.userAgent, standalone: isStandalone(), touch: navigator.maxTouchPoints || 0 });
-	const kitOff = () => ((store.get('kits', {}) || {})[meta.dev] || '') !== KIND;
-	let prev = Sync.recordsOf(stateNow(), sharedTick);
+	const kitOff = () => !SYNC_GATE && ((store.get('kits', {}) || {})[meta.dev] || '') !== KIND;
+	// the records this device shares; on an approval trip names, roles, blocks and kinds live in the database's entries
+	const recsNow = () => (SYNC_GATE ? Sync.ungated : (r) => r)(Sync.recordsOf(stateNow(), sharedTick));
+	let prev = recsNow();
 	let quiet = false;
 	let remoteWho = null;
 	const rawSet = store.set;
@@ -113,10 +121,10 @@ function groupSync() {
 	};
 	let soonT = 0;
 	function noteLocal() {
-		let next = Sync.recordsOf(stateNow(), sharedTick);
+		let next = recsNow();
 		if (Sync.changes(prev, next).length && kitOff()) {
 			rawSet('kits', { ...(store.get('kits', {}) || {}), [meta.dev]: KIND });
-			next = Sync.recordsOf(stateNow(), sharedTick);
+			next = recsNow();
 		}
 		const u = Date.now();
 		for (const [rid, v] of Sync.changes(prev, next)) meta.pending[rid] = { v, u, d: meta.dev };
@@ -174,7 +182,7 @@ function groupSync() {
 			remoteWho = null;
 		}
 		for (const [rid, , ver] of list) meta.known[rid] = { u: ver.u, d: ver.d };
-		prev = Sync.recordsOf(stateNow(), sharedTick);
+		prev = recsNow();
 		save();
 		whenSettled(() => mineRerender(note, act));
 		syncSheetRefresh();
@@ -183,11 +191,12 @@ function groupSync() {
 		else if (blockedHere()) status('blocked');
 	}
 	async function takeIn(recs) {
-		const all = {};
+		let all = {};
 		for (const [hid, rec] of Object.entries(recs && typeof recs === 'object' ? recs : {})) {
 			const d = await decode(hid, rec);
 			if (d) all[d[0]] = d[1];
 		}
+		if (SYNC_GATE) all = Sync.ungated(all); // names, planners and blocks come from the database's entries there
 		// what a blocked phone wrote doesn't count here, whatever it is
 		const { remote } = Sync.dropBlocked(all, store.get('blocks', {}) || {});
 		const { apply, drop } = Sync.merge(meta.known, meta.pending, remote);
@@ -200,12 +209,229 @@ function groupSync() {
 	}
 
 	const denied = (r) => r.status === 401 || r.status === 403;
+
+	/* ── an approval trip: signing in, the join request, the group's entries (ADR-20261127-sync-approval) ── */
+	const A = SYNC.approval || null;
+	// the device's anonymous account: its user id, the refresh token that keeps it, the ID token the database takes
+	let auth = (() => {
+		const a = store.get('syncAuth', null);
+		return a && typeof a === 'object' && a.room === SYNC.trip && a.uid && a.refresh ? a : null;
+	})();
+	let signing = null;
+	/** an ID token for the database's `auth=`: the saved one while it lasts, else a refreshed one, else a new account */
+	function idToken() {
+		if (auth && auth.id && auth.exp > Date.now() + 60000) return Promise.resolve(auth.id);
+		if (!signing) signing = signIn().finally(() => (signing = null));
+		return signing;
+	}
+	async function signIn() {
+		const key = `?key=${encodeURIComponent(A.apiKey)}`;
+		if (auth) {
+			const r = await fetch(`${A.token}${key}`, {
+				method: 'POST',
+				headers: { 'content-type': 'application/x-www-form-urlencoded' },
+				body: `grant_type=refresh_token&refresh_token=${encodeURIComponent(auth.refresh)}`,
+			});
+			if (r.ok) {
+				const j = await r.json();
+				auth = { ...auth, id: j.id_token, refresh: j.refresh_token || auth.refresh, exp: Date.now() + Number(j.expires_in || 3600) * 1000 };
+				store.set('syncAuth', auth);
+				return auth.id;
+			}
+			if (r.status !== 400) throw new Error(`sign-in ${r.status}`); // the line or the server: try again later
+			auth = null; // the account is gone: this device starts again as a new one, and asks again
+		}
+		const r = await fetch(`${A.signUp}${key}`, {
+			method: 'POST',
+			headers: { 'content-type': 'application/json' },
+			body: '{"returnSecureToken":true}',
+		});
+		if (!r.ok) throw new Error(`sign-in ${r.status}`);
+		const j = await r.json();
+		auth = { room: SYNC.trip, uid: j.localId, refresh: j.refreshToken, id: j.idToken, exp: Date.now() + Number(j.expiresIn || 3600) * 1000 };
+		store.set('syncAuth', auth);
+		adoptUid();
+		return auth.id;
+	}
+	// a device's sync id is the start of its user id, so the rules can check a record is its own. What it changed before
+	// it signed in (its first open offline) moves to the new id
+	function adoptUid() {
+		const dev = auth && Sync.devOfUid(auth.uid);
+		if (!dev || dev === meta.dev) return;
+		const old = meta.dev;
+		meta.dev = dev;
+		meta.code = Sync.joinCode(crypto.getRandomValues(new Uint8Array(2)));
+		meta.joined = 'none';
+		syncGate = { ...syncGate, state: 'none', code: meta.code };
+		for (const p of Object.values(meta.pending)) if (p.d === old) p.d = dev;
+		save();
+		const mine = mineAll();
+		if (mine.some((x) => x.dev === old)) mineSet(mine.map((x) => (x.dev === old ? { ...x, dev } : x)));
+	}
+	/** a call to the trip's database as this device (path under trips/<trip>) */
+	async function api(path, init = {}, silent = false) {
+		const tok = await idToken();
+		return fetch(`${root}${path ? `/${path}` : ''}.json?${silent ? 'print=silent&' : ''}auth=${encodeURIComponent(tok)}`, {
+			cache: 'no-store',
+			...init,
+		});
+	}
+	const quietSet = (k, v) => {
+		quiet = true;
+		try {
+			store.set(k, v);
+		} finally {
+			quiet = false;
+		}
+	};
+	/** where this device stands: none (hasn't asked), pending, approved or blocked */
+	function setGate(st) {
+		const was = syncGate.state;
+		syncGate = { ...syncGate, state: st, code: meta.code };
+		if (meta.joined !== st) {
+			meta.joined = st;
+			save();
+		}
+		// a blocked device reads only its own entry: it marks itself, so its bar and its sends stop as on a token trip
+		const b = store.get('blocks', {}) || {};
+		if ((st === 'blocked') !== !!b[meta.dev]) {
+			const nb = { ...b };
+			if (st === 'blocked') nb[meta.dev] = true;
+			else delete nb[meta.dev];
+			quietSet('blocks', nb);
+		}
+		if (was !== st) {
+			syncSheetRefresh();
+			syncBarPaint();
+		}
+	}
+	// its own entry as the database has it: its state, and once in, the name a planner confirmed
+	async function ownEntry(e) {
+		const st = e && ['pending', 'approved', 'blocked'].includes(e.state) ? e.state : 'none';
+		if (e && st !== 'pending') {
+			const n = await Sync.openName((await keysP).enc, SYNC.trip, auth.uid, e.name);
+			if (n && n !== meta.name) {
+				const first = !meta.name;
+				meta.name = n;
+				save();
+				named(first ? Z('名字已保存', 'Name saved') : Z(`规划人把你的名字设为「${n}」`, `A planner set your name to ${n}`));
+			}
+		}
+		if (e && e.code && e.code !== meta.code) {
+			meta.code = e.code;
+			save();
+		}
+		setGate(st);
+	}
+	/**
+	 * Its own entry, read: the state, or 'ended' when the database won't say (the planner ended sync), or null offline. A
+	 * device with a name and no entry asks to join here.
+	 */
+	async function gateCheck() {
+		try {
+			await idToken();
+			const r = await api(`devices/${auth.uid}`);
+			if (denied(r)) {
+				status('ended');
+				return 'ended';
+			}
+			if (!r.ok) throw new Error(`sync ${r.status}`);
+			const e = await r.json();
+			if (e) await ownEntry(e);
+			else {
+				setGate('none');
+				if (meta.name) await askToJoin();
+			}
+			if (syncGate.state !== 'approved') status(syncGate.state);
+			return syncGate.state;
+		} catch {
+			status('waiting');
+			return null;
+		}
+	}
+	/**
+	 * The join request: the name its person typed (sealed), its kind, its sync id and the join code it shows, as pending.
+	 * While it waits, a new name changes the request. True when the database took it.
+	 */
+	async function askToJoin() {
+		if (!meta.name) return false;
+		await idToken();
+		const sealed = await Sync.sealName((await keysP).enc, SYNC.trip, auth.uid, meta.name);
+		if (!meta.code) {
+			meta.code = Sync.joinCode(crypto.getRandomValues(new Uint8Array(2)));
+			save();
+		}
+		const entry = { name: sealed, kind: KIND, dev: meta.dev, code: meta.code, state: 'pending', at: Date.now() };
+		let r = syncGate.state === 'pending' ? await api(`devices/${auth.uid}/name`, { method: 'PUT', body: JSON.stringify(sealed) }, true) : null;
+		if (!r || denied(r)) r = await api(`devices/${auth.uid}`, { method: 'PUT', body: JSON.stringify(entry) }, true);
+		if (!r.ok) return false;
+		setGate('pending');
+		status('pending');
+		return true;
+	}
+	/** who's in the group, who's a planner and blocked, and the join requests: read by an approved device */
+	async function readGroup() {
+		const [d, p] = await Promise.all([api('devices'), api('planners')]);
+		if (denied(d) || denied(p)) return false;
+		if (!d.ok || !p.ok) throw new Error('sync group');
+		const devices = await d.json();
+		const planners = await p.json();
+		const { enc } = await keysP;
+		const names = {};
+		for (const [uid, e] of Object.entries(devices && typeof devices === 'object' ? devices : {}))
+			names[uid] = await Sync.openName(enc, SYNC.trip, uid, e && e.name);
+		const g = Sync.groupOf(devices, planners, names);
+		syncGate = { ...syncGate, requests: g.requests, persons: g.persons, uidOf: g.uidOf };
+		quiet = true;
+		try {
+			store.set('people', g.people);
+			store.set('roles', g.roles);
+			store.set('blocks', g.blocks);
+			store.set('kits', g.kits);
+		} finally {
+			quiet = false;
+		}
+		if (devices && devices[auth.uid]) await ownEntry(devices[auth.uid]);
+		syncSheetRefresh();
+		return true;
+	}
+	/**
+	 * A planner's choices on devices, as one write the rules take from a planner, then the group read again. steps = [[act,
+	 * { dev, name, person, planner, on }]] (Sync.approvalWrites); a name is sealed for its device here.
+	 */
+	async function gate(steps) {
+		try {
+			const { enc } = await keysP;
+			const writes = {};
+			for (const [act, o] of steps) {
+				const uid = o.uid || syncGate.uidOf[o.dev];
+				if (!uid) throw new Error('no such device');
+				const sealed = o.name ? await Sync.sealName(enc, SYNC.trip, uid, o.name) : undefined;
+				Object.assign(writes, Sync.approvalWrites(act, { ...o, uid, dev: o.dev || Sync.devOfUid(uid), sealed }));
+			}
+			const r = await api('', { method: 'PATCH', body: JSON.stringify(writes) }, true);
+			if (!r.ok) throw new Error(`sync ${r.status}`);
+			await readGroup();
+			return true;
+		} catch {
+			toast(
+				navigator.onLine === false
+					? Z('没有网络：有网络时再试', 'Offline: try again once you’re online')
+					: Z('数据库没收下这个改动，再试一次', 'The database didn’t take that: try again'),
+			);
+			await readGroup().catch(() => {});
+			return false;
+		}
+	}
+
 	/** reads the whole trip: true when read, false when the database refuses (sync ended), null when offline */
 	async function pull() {
 		try {
-			const r = await fetch(`${base}.json`, { cache: 'no-store' });
+			const r = SYNC_GATE ? await api('r') : await fetch(`${base}.json`, { cache: 'no-store' });
 			if (denied(r)) {
-				status('ended');
+				// an approval trip: not let in (yet), blocked, or ended; its own entry says which
+				if (SYNC_GATE) await gateCheck();
+				else status('ended');
 				return false;
 			}
 			if (!r.ok) throw new Error(`sync ${r.status}`);
@@ -233,6 +459,7 @@ function groupSync() {
 		const rids = Object.keys(meta.pending);
 		if (!rids.length || navigator.onLine === false || syncStatus.state === 'ended') return;
 		if (blockedHere()) return status('blocked'); // a planner blocked this phone: its changes stay here
+		if (SYNC_GATE && syncGate.state !== 'approved') return; // not let in yet: its changes wait here until it is
 		pushing = true;
 		pushAgain = false;
 		let refused = false;
@@ -243,10 +470,12 @@ function groupSync() {
 			for (const rid of rids) {
 				const p = meta.pending[rid];
 				const hid = await hidOf(rid);
-				body[hid] = { c: await seal(hid, { r: rid, v: p.v, n: meta.name }), u: p.u, d: p.d, k: SYNC.token };
+				// an approval trip's rules know the device by its sign-in, so no token goes with a record there
+				body[hid] = { c: await seal(hid, { r: rid, v: p.v, n: meta.name }), u: p.u, d: p.d, ...(SYNC_GATE ? {} : { k: SYNC.token }) };
 				sent[rid] = p.u;
 			}
-			const r = await fetch(`${base}.json?print=silent`, { method: 'PATCH', body: JSON.stringify(body) });
+			const init = { method: 'PATCH', body: JSON.stringify(body) };
+			const r = SYNC_GATE ? await api('r', init, true) : await fetch(`${base}.json?print=silent`, init);
 			if (denied(r)) refused = true;
 			else if (!r.ok) throw new Error(`sync ${r.status}`);
 			else {
@@ -275,10 +504,29 @@ function groupSync() {
 		} else if (took && pushAgain) setTimeout(push, 0); // a send that failed waits for 'online' or the next tick, as before
 	}
 
-	let es = null;
-	function listen() {
-		if (es || typeof EventSource === 'undefined' || document.hidden || syncStatus.state === 'ended') return;
-		es = new EventSource(`${base}.json`);
+	// live changes: the records; on an approval trip also the group's entries once in, or its own entry while it waits
+	let streams = [];
+	let listening = false;
+	async function listen() {
+		if (listening || streams.length || typeof EventSource === 'undefined' || document.hidden || syncStatus.state === 'ended') return;
+		if (!SYNC_GATE) return watch(`${base}.json`, records);
+		listening = true;
+		try {
+			const q = `?auth=${encodeURIComponent(await idToken())}`;
+			if (streams.length || document.hidden) return;
+			if (syncGate.state === 'approved') {
+				watch(`${base}.json${q}`, records);
+				watch(`${root}/devices.json${q}`, groupSoon);
+				watch(`${root}/planners.json${q}`, groupSoon);
+			} else watch(`${root}/devices/${auth.uid}.json${q}`, selfChanged);
+		} catch {
+			/* offline: the next return to the page or the line coming back opens it */
+		} finally {
+			listening = false;
+		}
+	}
+	function watch(url, onMsg) {
+		const es = new EventSource(url);
 		const on = (e) => {
 			let m;
 			try {
@@ -286,30 +534,62 @@ function groupSync() {
 			} catch {
 				return;
 			}
-			if (!m || typeof m.path !== 'string') return;
-			const parts = m.path.split('/').filter(Boolean);
-			if (!parts.length) takeIn(m.data);
-			else if (parts.length === 1) takeIn({ [parts[0]]: m.data });
-			else pull(); // a field inside a record: read the whole trip again
+			if (m && typeof m.path === 'string') onMsg(m);
 		};
 		es.addEventListener('put', on);
 		es.addEventListener('patch', on);
 		es.addEventListener('cancel', () => {
 			stop();
-			pull(); // the database stopped letting this phone read: find out why
+			// the database stopped letting this phone read: find out why (on an approval trip, a block or the end)
+			if (SYNC_GATE) pull().then(listen);
+			else pull();
+		});
+		// the ID token in its address ran out: open it again with a fresh one
+		es.addEventListener('auth_revoked', () => {
+			stop();
+			listen();
 		});
 		es.onerror = () => {
-			if (es && es.readyState === 2) stop(); // closed for good: the next return to the page opens it again
+			if (es.readyState === 2) stop(); // closed for good: the next return to the page opens it again
 		};
+		streams.push(es);
 	}
+	function records(m) {
+		const parts = m.path.split('/').filter(Boolean);
+		if (!parts.length) takeIn(m.data);
+		else if (parts.length === 1) takeIn({ [parts[0]]: m.data });
+		else pull(); // a field inside a record: read the whole trip again
+	}
+	let groupT = 0;
+	const groupSoon = () => {
+		clearTimeout(groupT);
+		groupT = setTimeout(() => readGroup().catch(() => {}), 250);
+	};
+	// waiting for a planner: its entry changed (approved, blocked, renamed). In: catch up with the group
+	const selfChanged = () =>
+		gateCheck().then((st) => {
+			if (st === 'approved') {
+				stop();
+				catchUp();
+			}
+		});
 	const stop = () => {
-		if (es) es.close();
-		es = null;
+		for (const es of streams) es.close();
+		streams = [];
 	};
 	// away: this read follows an absence (the page opening, or coming back to it), so what it brings is news the reader
 	// missed; a read while they're looking (Sync now, back online) isn't
 	let awayOpen = false;
 	const catchUp = async (away = false) => {
+		if (SYNC_GATE) {
+			// not let in yet (or blocked, or ended): its changes wait here, and it listens for a planner's answer
+			if ((await gateCheck()) !== 'approved') return listen();
+			try {
+				await readGroup(); // first, so a block in the group counts before the records do
+			} catch {
+				/* offline: the read below says so */
+			}
+		}
 		awayOpen = away === true;
 		try {
 			await pull();
@@ -329,8 +609,9 @@ function groupSync() {
 	// the name: kept as it's typed, and once settled, shared as this phone's (`who:` record) and put on the stops it
 	// added, so everyone sees who added them. A planner's name isn't for another phone to take, unless that phone is a
 	// planner too: one planner's phone, tablet and laptop go by one name
+	// (on an approval trip a planner confirms each name, so there's nothing to guard here)
 	const takenByPlanner = (v) => {
-		if (syncIsPlanner()) return false;
+		if (SYNC_GATE || syncIsPlanner()) return false;
 		const k = Sync.nameKey(v);
 		const people = store.get('people', {}) || {};
 		const roles = store.get('roles', {}) || {};
@@ -340,12 +621,13 @@ function groupSync() {
 		const inp = e.target.closest('[data-sync-name]');
 		if (!inp) return;
 		const v = inp.value.trim().slice(0, 24);
-		if (takenByPlanner(v)) return;
+		if (takenByPlanner(v) || (SYNC_GATE && !['none', 'pending'].includes(syncGate.state))) return; // in the group: a planner renames
 		meta.name = v;
 		save();
 	});
 	let namedAs = meta.name;
 	function announce() {
+		if (SYNC_GATE) return; // an approval trip's names are in the join requests, confirmed by a planner
 		if (meta.name && kitOff()) store.set('kits', { ...(store.get('kits', {}) || {}), [meta.dev]: KIND });
 		const people = { ...(store.get('people', {}) || {}) };
 		if ((people[meta.dev] || '') === meta.name) return;
@@ -372,6 +654,27 @@ function groupSync() {
 		const inp = e.target.closest('[data-sync-name]');
 		if (!inp) return;
 		const v = inp.value.trim().slice(0, 24);
+		if (SYNC_GATE) {
+			// an approval trip: the name is the join request's. Once in the group, only a planner changes it
+			if (!['none', 'pending'].includes(syncGate.state)) {
+				meta.name = namedAs;
+				save();
+				inp.value = namedAs;
+				return;
+			}
+			if (!v || (v === namedAs && syncGate.state === 'pending')) return;
+			meta.name = v;
+			save();
+			named(Z('名字已保存', 'Name saved'));
+			askToJoin()
+				.then((ok) => {
+					if (!ok) throw new Error('refused');
+					stop();
+					listen();
+				})
+				.catch(() => status(navigator.onLine === false ? 'waiting' : syncGate.state));
+			return;
+		}
 		if (takenByPlanner(v)) {
 			meta.name = namedAs;
 			save();
@@ -394,16 +697,57 @@ function groupSync() {
 
 	// the trip's planner code (`pnpm sync planner`), checked on the phone against the hash the build put in: the phone
 	// that gives it becomes a planner, for everyone
+	const pbkdf = async (code, salt) => {
+		const k = await crypto.subtle.importKey('raw', utf8(code.trim()), 'PBKDF2', false, ['deriveBits']);
+		const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: fromB64u(salt), iterations: Sync.PLANNER_ROUNDS }, k, 256);
+		return toB64u(new Uint8Array(bits));
+	};
 	async function claim(code) {
 		const p = SYNC.planner;
 		if (!p || !code || !code.trim()) return false;
-		const k = await crypto.subtle.importKey('raw', utf8(code.trim()), 'PBKDF2', false, ['deriveBits']);
-		const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: fromB64u(p.salt), iterations: Sync.PLANNER_ROUNDS }, k, 256);
-		if (toB64u(new Uint8Array(bits)) !== p.hash) return false;
+		if ((await pbkdf(code, p.salt)) !== p.hash) return false;
+		if (SYNC_GATE) {
+			await claimGate(code);
+			return true;
+		}
 		store.set('roles', { ...(store.get('roles', {}) || {}), [meta.dev]: 'planner' });
 		whenSettled(() => mineRerender(Z('你现在是规划人', 'You’re a planner now')));
 		syncSheetRefresh();
 		return true;
+	}
+	// an approval trip: the code's second hash (under the proof salt the build put in) is the proof the database checks.
+	// A device that hasn't asked yet asks first; a pending one approves itself in the same write, as its own person
+	async function claimGate(code) {
+		if (!meta.name) {
+			const inp = $('#placeSheet [data-sync-name]');
+			if (inp) inp.focus();
+			return toast(Z('先写上名字，再输入规划人密码', 'Type your name first, then the planner code'));
+		}
+		try {
+			if (syncGate.state === 'none' && !(await askToJoin())) throw new Error('ask');
+			const proof = await pbkdf(code, SYNC.planner.proofSalt);
+			const uid = auth.uid;
+			const writes = {
+				[`claims/${uid}`]: proof,
+				[`planners/${uid}`]: true,
+				...(syncGate.state === 'pending' ? { [`devices/${uid}/state`]: 'approved', [`devices/${uid}/person`]: meta.dev } : {}),
+			};
+			const r = await api('', { method: 'PATCH', body: JSON.stringify(writes) }, true);
+			if (!r.ok) throw new Error(`sync ${r.status}`);
+			stop();
+			await catchUp();
+			whenSettled(() => mineRerender(Z('你现在是规划人', 'You’re a planner now')));
+			syncSheetRefresh();
+		} catch {
+			toast(
+				navigator.onLine === false
+					? Z('没有网络：有网络时再输入规划人密码', 'Offline: give the planner code again once you’re online')
+					: Z(
+							'数据库没收下规划人密码：请设置同步的人再运行一次 pnpm sync planner',
+							'The database didn’t take the planner code: whoever set up sync can run pnpm sync planner again',
+						),
+			);
+		}
 	}
 	let claiming = false;
 	const tryClaim = async () => {
@@ -432,7 +776,10 @@ function groupSync() {
 		syncStatus = { state: s, at: state === 'ok' ? Date.now() : syncStatus.at, waiting };
 		syncPaint();
 	}
-	syncApi = { now: () => catchUp(), name: () => meta.name };
+	syncApi = { now: () => catchUp(), name: () => meta.name, gate };
+	// an approval trip: where this device stood last time, so the bar is right before the database answers
+	if (SYNC_GATE)
+		syncGate = { ...syncGate, state: auth && ['pending', 'approved', 'blocked'].includes(meta.joined) ? meta.joined : 'none', code: meta.code };
 	syncBarPaint();
 
 	// a phone that has read the group before gets what changed since as news; on its first read everything is new, so none
@@ -467,7 +814,17 @@ function syncWelcomeSoon() {
 }
 function syncWelcomeHTML() {
 	return `<div data-sync-welcome><h3 class="spots-h">${icon('users')}${Z('欢迎！大家怎么称呼你？', 'Welcome! What should the group call you?')}</h3>
-      <p class="small">${Z('全组同步已开：你加的行程、改的时间会出现在大家的手机上。写上名字，大家就知道是谁改的。', 'Group sync is on: stops you add and times you change show on everyone’s phone. Your name tells them who changed what.')}</p>
+      <p class="small">${
+				SYNC_GATE
+					? Z(
+							'全组同步已开：写上名字，规划人让这台设备加入后，你加的行程、改的时间就会出现在大家的设备上。在那之前，改动先留在这台设备。',
+							'Group sync is on: give your name, and once a planner lets this device in, stops you add and times you change show on everyone’s devices. Until then they wait on this one.',
+						)
+					: Z(
+							'全组同步已开：你加的行程、改的时间会出现在大家的手机上。写上名字，大家就知道是谁改的。',
+							'Group sync is on: stops you add and times you change show on everyone’s phone. Your name tells them who changed what.',
+						)
+			}</p>
       <label class="sync-name">${Z('你的名字', 'Your name')}<input type="text" data-sync-name data-welcome-name maxlength="24" autocomplete="nickname" enterkeyhint="done"></label>
       <div class="links-row"><button type="button" class="go-btn" data-welcome-save>${icon('check')}${Z('保存', 'Save')}</button><button type="button" class="mlink" data-close>${Z('先不用', 'Not now')}</button></div>
       <p class="xsmall muted">${Z('以后可以在「目录 → 全组同步」改。', 'You can change it later: Sections → Group sync.')}</p></div>`;
@@ -514,6 +871,9 @@ function syncState() {
 			ended: Z('已停止（规划人结束了同步）', 'stopped: the planner ended it'),
 			blocked: Z('规划人停用了这台手机：改动只留在这里', 'a planner blocked this phone: its changes stay on it'),
 			unsupported: Z('这个浏览器用不了', 'not available in this browser'),
+			// an approval trip, before a planner let this device in
+			none: Z('写上名字，请规划人让这台设备加入', 'add your name to ask a planner to let this device in'),
+			pending: Z('等规划人让这台设备加入全组的改动', 'waiting for a planner to let this device into the group’s changes'),
 		}[s.state] || ''
 	);
 }
@@ -575,16 +935,81 @@ function syncSheet() {
 			: '';
 	const claimBox =
 		!lead && SYNC.planner && !syncIsBlocked()
-			? `<details class="sync-code"><summary>${icon('users')}${Z('我是规划人（有规划人密码）', 'I’m a planner (I have the planner code)')}${icon('chev', 'chev')}</summary><label class="sync-name">${Z('规划人密码', 'Planner code')}<input type="password" data-planner-code autocomplete="current-password" enterkeyhint="go"></label><div class="links-row"><button type="button" class="go-btn" data-planner-ok>${icon('check')}${Z('确认', 'Confirm')}</button></div><p class="xsmall muted">${Z('密码是设置同步的人定的；其他规划人也可以直接把你设为规划人。', 'The person who set up sync chose it; a planner can also make you one from their phone.')}</p></details>`
+			? `<details class="sync-code"><summary>${icon('users')}${Z('我是规划人（有规划人密码）', 'I’m a planner (I have the planner code)')}${icon('chev', 'chev')}</summary><label class="sync-name">${Z('规划人密码', 'Planner code')}<input type="password" data-planner-code autocomplete="current-password" enterkeyhint="go"></label><div class="links-row"><button type="button" class="go-btn" data-planner-ok>${icon('check')}${Z('确认', 'Confirm')}</button></div><p class="xsmall muted">${
+					SYNC_GATE
+						? Z(
+								'密码是设置同步的人定的：输入后这台设备直接以规划人身份加入。其他规划人也可以把你设为规划人。',
+								'The person who set up sync chose it: with it, this device lets itself in as a planner. A planner can also make you one.',
+							)
+						: Z(
+								'密码是设置同步的人定的；其他规划人也可以直接把你设为规划人。',
+								'The person who set up sync chose it; a planner can also make you one from their phone.',
+							)
+				}</p></details>`
+			: '';
+	// an approval trip: the name is the join request's until a planner lets the device in; after that only a planner
+	// renames it. While it waits, the join code it shows lets a planner tell its request from the others
+	const gated = SYNC_GATE && !['none', 'pending'].includes(syncGate.state);
+	const nameBox = gated
+		? `<p class="sync-name sync-name-set"><span>${Z('你在全组的名字', 'Your name in the group')}</span><b>${esc(m.name || Z('（没有名字）', '(no name)'))}</b><span class="xsmall muted">${lead ? Z('在下面「全组」你那一行可以改', 'Change it under your row in The group below') : Z('只有规划人能改', 'Only a planner can change it')}</span></p>`
+		: `<label class="sync-name">${SYNC_GATE ? Z('你的名字（规划人凭它让你加入）', 'Your name (a planner lets you in by it)') : Z('你的名字（别人收到你的改动时看到）', 'Your name (others see it on your changes)')}<input type="text" data-sync-name maxlength="24" value="${esc(m.name || '')}" autocomplete="nickname" enterkeyhint="done"></label>`;
+	const waitBox =
+		SYNC_GATE && syncGate.state === 'pending' && syncGate.code
+			? `<p class="sync-join" data-sync-join>${icon('clock')}<span>${Z('加入码', 'Join code')} <b class="sync-join-code">${esc(syncGate.code)}</b><span class="xsmall muted">${Z('规划人在「全组同步」的「加入请求」里看到同一个码，就是这台设备。', 'A planner sees the same code under Join requests in their Group sync: that’s this device.')}</span></span></p>`
 			: '';
 	return `<div data-sync-sheet><h3 class="spots-h">${icon('users')}${Z('全组同步', 'Group sync')}</h3>
       <p class="sync-state" data-sync-state role="status">${Cap(syncState())}</p>
       <p class="small">${Z(`加的行程、往后推的时间、改过的航班时间${lists ? `和${lists}的勾选` : ''}，会出现在全组每个人的手机上。语言、主题、其他勾选只留在这台手机。`, `Added stops, pushed-back times and changed flight times${lists ? `, and ticks in ${lists},` : ''} show up on everyone’s phone. Language, theme and other ticks stay on this one.`)}</p>
-      <label class="sync-name">${Z('你的名字（别人收到你的改动时看到）', 'Your name (others see it on your changes)')}<input type="text" data-sync-name maxlength="24" value="${esc(m.name || '')}" autocomplete="nickname" enterkeyhint="done"></label>
+      ${nameBox}${waitBox}
       ${lead ? `<p class="sync-role">${icon('check')}${Z('你是规划人：可以改、删任何人加的行程，也可以把别人设为规划人', 'You’re a planner: you can change or remove anyone’s stops, and make others planners')}</p>` : claimBox}
       <div class="links-row"><button type="button" class="go-btn sync-now" data-sync-now>${icon('sync')}${Z('现在同步', 'Sync now')}</button></div>
       <p class="small muted">${Z('改动会自动同步；这个按钮只是马上再查一次。', 'Changes sync by themselves; this checks again right away.')}</p>
-      ${syncGroupHTML(m, lead)}${syncGoneHTML()}${reset}</div>`;
+      ${SYNC_GATE && lead ? syncAsksHTML() : ''}${syncGroupHTML(m, lead)}${syncGoneHTML()}${reset}</div>`;
+}
+/* an approval trip's join requests, for a planner: each as "Mei · iPad · Safari" with its join code. Approve takes the
+   typed name as a new person; "Same person as Mei (iPhone)" puts it under a person whose name matches; the fold edits
+   the name or picks any person first; Block refuses it (ADR-20261127-sync-approval) */
+function syncAsksHTML() {
+	const asks = syncGate.requests || [];
+	if (!asks.length) return '';
+	const people = store.get('people', {}) || {};
+	const kits = store.get('kits', {}) || {};
+	const blocks = store.get('blocks', {}) || {};
+	const group = { people, persons: syncGate.persons || {}, blocks };
+	// every person in the group once, by the name and kind of their first device: "Mei (iPhone · Safari)"
+	const persons = [];
+	for (const dev of Object.keys(group.persons)) {
+		if (blocks[dev] || persons.some((p) => p.person === group.persons[dev])) continue;
+		persons.push({ dev, person: group.persons[dev], name: people[dev] || '' });
+	}
+	const who = (p) => `${p.name || Z('没写名字的人', 'Someone with no name')}${kits[p.dev] ? ` (${kitLabel(kits[p.dev])})` : ''}`;
+	const rows = asks.map((a) => {
+		const same = Sync.samePerson(a.name, group);
+		const title = [a.name || Z('没写名字', 'No name'), kitLabel(a.kind)].filter(Boolean).join(' · ');
+		const sub = [a.code ? Z(`加入码 ${a.code}`, `join code ${a.code}`) : '', a.at ? Z(`${syncAgo(a.at)}请求`, `asked ${syncAgo(a.at)}`) : '']
+			.filter(Boolean)
+			.join(' · ');
+		const sameBtns = same
+			.map(
+				(p) =>
+					`<button type="button" class="mlink" data-ask-person="${esc(a.uid)}" data-person="${esc(p.person)}" data-person-name="${esc(p.name)}">${icon('users')}${esc(Z(`和${who(p)}是同一个人`, `Same person as ${who(p)}`))}</button>`,
+			)
+			.join('');
+		const pick = persons
+			.map(
+				(p) =>
+					`<button type="button" class="mlink" data-ask-person="${esc(a.uid)}" data-person="${esc(p.person)}" data-person-name="${esc(p.name)}">${icon('users')}${esc(who(p))}</button>`,
+			)
+			.join('');
+		return `<li class="sync-row sync-ask" data-sync-ask="${esc(a.uid)}"><span><b>${esc(title)}</b><span class="xsmall muted sync-row-sub">${esc(sub)}</span></span>
+        <span class="sync-acts">${sameBtns}<button type="button" class="mlink" data-ask-ok="${esc(a.uid)}">${icon('check')}${same.length ? Z('作为新的一个人同意', 'Approve as someone new') : Z('同意', 'Approve')}</button><button type="button" class="mlink danger" data-ask-block="${esc(a.uid)}">${icon('x')}${Z('停用', 'Block')}</button></span>
+        <details class="sync-code sync-ask-more" data-fold="ask-${esc(a.uid)}"><summary>${icon('users')}${Z('改名字或选一个人', 'Edit the name or pick a person')}${icon('chev', 'chev')}</summary>
+          <label class="sync-name">${Z('名字', 'Name')}<input type="text" data-ask-name="${esc(a.uid)}" maxlength="24" value="${esc(a.name)}" autocomplete="off" enterkeyhint="done"></label>
+          <div class="links-row"><button type="button" class="go-btn" data-ask-named="${esc(a.uid)}">${icon('check')}${Z('用这个名字同意', 'Approve with this name')}</button></div>
+          ${pick ? `<p class="sub-h">${Z('或者，是这个人的另一台设备', 'Or, another device of')}</p><div class="sync-acts sync-pick">${pick}</div>` : ''}
+        </details></li>`;
+	});
+	return `<div class="sync-part sync-asks"><p class="sub-h">${Z(`加入请求（${asks.length}）`, `Join requests (${asks.length})`)}</p><ul class="sync-list">${rows.join('')}</ul></div>`;
 }
 // what kind of device a phone said it is, as the group reads it: "iPhone · home-screen app", "Mac · Chrome"
 function kitLabel(kit) {
@@ -645,7 +1070,29 @@ function syncGroupHTML(m, lead) {
 		]),
 	].filter((d) => d && /^[A-Za-z0-9_-]{6,24}$/.test(d));
 	if (!devs.length) return '';
-	const { people: list, blocked } = Sync.byPerson(devs, people, blocks, m.dev || null);
+	// an approval trip groups devices by the person a planner put them under, not by the name they typed
+	const persons = SYNC_GATE ? syncGate.persons || {} : null;
+	const { people: list, blocked } = Sync.byPerson(devs, people, blocks, m.dev || null, persons);
+	// a planner on an approval trip renames a person, or moves a device to another person or onto its own
+	const fix = (dev) => {
+		if (!SYNC_GATE || !lead || !syncGate.uidOf[dev] || blocks[dev]) return '';
+		const mineP = persons[dev] || dev;
+		const others = list.filter((p) => !p.devs.some((d) => (persons[d] || d) === mineP));
+		const alone = list.find((p) => p.devs.includes(dev));
+		const moves = [
+			...others.map(
+				(p) =>
+					`<button type="button" class="mlink" data-dev-move="${esc(dev)}" data-person="${esc(persons[p.devs[0]] || p.devs[0])}" data-person-name="${esc(p.name)}">${icon('users')}${esc(Z(`移到${p.name || '没写名字的人'}下`, `Move to ${p.name || 'someone with no name'}`))}</button>`,
+			),
+			alone && alone.devs.length > 1
+				? `<button type="button" class="mlink" data-dev-move="${esc(dev)}" data-person="${esc(dev)}" data-person-name="${esc(people[dev] || '')}">${Z('单独作为一个人', 'Make it a person of its own')}</button>`
+				: '',
+		].join('');
+		return `<details class="sync-code sync-fix" data-fold="fix-${esc(dev)}"><summary>${icon('users')}${Z('改名字或换人', 'Change the name or person')}${icon('chev', 'chev')}</summary>
+        <label class="sync-name">${Z('这个人的名字（他所有的设备都改）', 'This person’s name (on all their devices)')}<input type="text" data-dev-name="${esc(dev)}" maxlength="24" value="${esc(people[dev] || '')}" autocomplete="off" enterkeyhint="done"></label>
+        <div class="links-row"><button type="button" class="go-btn" data-dev-rename="${esc(dev)}">${icon('check')}${Z('改名字', 'Rename')}</button></div>
+        ${moves ? `<div class="sync-acts sync-pick">${moves}</div>` : ''}</details>`;
+	};
 	const nameOf = (dev) => {
 		const g = groups.find((x) => x.dev === dev);
 		const name = people[dev] || (g && g.by) || '';
@@ -679,7 +1126,7 @@ function syncGroupHTML(m, lead) {
 				: '',
 			lead && isBlocked ? `<button type="button" class="mlink" data-block-drop="${esc(dev)}">${Z('恢复这台手机', 'Unblock')}</button>` : '',
 		].join('');
-		return `<li class="sync-row" data-sync-dev="${esc(dev)}"><span><b>${esc(label.text)}</b>${label.me ? `<span class="sync-badge is-me">${Z('这台', 'This one')}</span>` : ''}${planner ? `<span class="sync-badge">${Z('规划人', 'Planner')}</span>` : ''}${isBlocked ? `<span class="sync-badge is-blocked">${Z('已停用', 'Blocked')}</span>` : ''}<span class="xsmall muted sync-row-sub">${esc(sub.join(' · '))}</span></span>${acts ? `<span class="sync-acts">${acts}</span>` : ''}</li>`;
+		return `<li class="sync-row" data-sync-dev="${esc(dev)}"><span><b>${esc(label.text)}</b>${label.me ? `<span class="sync-badge is-me">${Z('这台', 'This one')}</span>` : ''}${planner ? `<span class="sync-badge">${Z('规划人', 'Planner')}</span>` : ''}${isBlocked ? `<span class="sync-badge is-blocked">${Z('已停用', 'Blocked')}</span>` : ''}<span class="xsmall muted sync-row-sub">${esc(sub.join(' · '))}</span></span>${acts ? `<span class="sync-acts">${acts}</span>` : ''}${fix(dev)}</li>`;
 	};
 	const items = list.map((p) => {
 		if (p.devs.length === 1) return row(p.devs[0], { text: nameOf(p.devs[0]), kit: true });
@@ -692,6 +1139,69 @@ function syncGroupHTML(m, lead) {
 		: '';
 	return `<div class="sync-part"><p class="sub-h">${Z('全组', 'The group')}</p><ul class="sync-list">${items.join('')}</ul>${fold}</div>`;
 }
+// an approval trip: a planner's answer to a join request, and a device's name or person in the group, written to the
+// database (syncApi.gate); the sheet redraws from what the database then says
+document.addEventListener('click', (e) => {
+	const t = e.target.closest('[data-ask-ok], [data-ask-named], [data-ask-person], [data-ask-block], [data-dev-rename], [data-dev-move]');
+	if (!t || !SYNC_GATE || !syncApi) return;
+	if (!syncIsPlanner()) return toast(Z('只有规划人能这样做', 'Only a planner can do that'));
+	const d = t.dataset;
+	const ask = (syncGate.requests || []).find((a) => a.uid === (d.askOk || d.askNamed || d.askPerson || d.askBlock));
+	const run = (steps, msg) => {
+		t.disabled = true;
+		syncApi.gate(steps).then((ok) => {
+			t.disabled = false;
+			if (ok) toast(msg);
+		});
+	};
+	const nameOf = (a) => a.name || Z('这台设备', 'The device');
+	if (d.askOk && ask) return run([['approve', { uid: ask.uid }]], Z(`${nameOf(ask)}加入了全组`, `${nameOf(ask)} is in the group now`));
+	if (d.askNamed && ask) {
+		const inp = t.closest('details')?.querySelector('[data-ask-name]');
+		const v = inp ? inp.value.trim().slice(0, 24) : '';
+		if (!v) {
+			if (inp) inp.focus();
+			return toast(Z('先写上名字', 'Type a name first'));
+		}
+		return run([['approve', { uid: ask.uid, name: v }]], Z(`${v}加入了全组`, `${v} is in the group now`));
+	}
+	if (d.askPerson && ask) {
+		const name = d.personName || '';
+		return run(
+			[['approve', { uid: ask.uid, person: d.person, name: name || undefined }]],
+			Z(`${name || '这台设备'}的另一台设备加入了全组`, `Another device of ${name || 'that person'} is in the group now`),
+		);
+	}
+	if (d.askBlock && ask) {
+		if (
+			!confirm(
+				Z(
+					`停用${nameOf(ask)}的加入请求？这台设备看不到也改不了全组的改动。之后可以在「已停用的手机」里恢复。`,
+					`Block ${nameOf(ask)}’s join request? That device won’t see or change the group’s changes. You can unblock it later.`,
+				),
+			)
+		)
+			return;
+		return run([['block', { uid: ask.uid }]], Z(`已停用${nameOf(ask)}`, `Blocked ${nameOf(ask)}`));
+	}
+	const persons = syncGate.persons || {};
+	if (d.devRename) {
+		const inp = t.closest('details')?.querySelector('[data-dev-name]');
+		const v = inp ? inp.value.trim().slice(0, 24) : '';
+		if (!v) {
+			if (inp) inp.focus();
+			return toast(Z('先写上名字', 'Type a name first'));
+		}
+		const p = persons[d.devRename] || d.devRename;
+		const devs = Object.keys(persons).filter((x) => (persons[x] || x) === p);
+		return run(
+			devs.map((dev) => ['rename', { dev, name: v }]),
+			Z(`名字改成了「${v}」`, `Renamed to ${v}`),
+		);
+	}
+	if (d.devMove)
+		return run([['move', { dev: d.devMove, person: d.person, name: d.personName || undefined }]], Z('已换到另一个人下', 'Moved to the other person'));
+});
 // "recently removed": kept on this phone, from anyone, so a stop removed by mistake can be put back
 function syncGoneHTML() {
 	const log = (store.get('syncGone', []) || []).filter((e) => e && e.x && dayById[e.x.day] && !MINE[e.x.id]).slice(0, 10);
@@ -728,14 +1238,20 @@ function syncBarPaint() {
 	const m = syncMeta();
 	const later = +store.get('syncBarLater', 0) > Date.now();
 	const blocked = !!SYNC && syncIsBlocked();
-	const on = !!SYNC && !['unsupported', 'ended', 'off'].includes(syncStatus.state) && (blocked || (!(m && m.name) && !later));
+	// an approval trip's device waiting for a planner: the bar stays until it's let in, with the code a planner checks
+	const waiting = SYNC_GATE && syncGate.state === 'pending' && !blocked;
+	const on = !!SYNC && !['unsupported', 'ended', 'off'].includes(syncStatus.state) && (blocked || waiting || (!(m && m.name) && !later));
 	const was = !el.hidden;
 	el.hidden = !on;
 	el.innerHTML = !on
 		? ''
 		: blocked
 			? `${icon('alert')}<span><b>${Z('这台手机已停用', 'This phone is blocked')}</b> · ${Z('规划人停用了它：你的改动只留在这台手机', 'a planner blocked it: your changes stay on this phone')}</span>`
-			: `${icon('users')}<span><b>${Z('全组同步已开', 'Group sync is on')}</b> · ${Z('写上名字，大家才知道是谁改的', 'add your name so the group sees who changed what')}</span><button type="button" class="text-btn" data-sync-open>${Z('写名字', 'Add name')}</button><button type="button" class="text-btn" data-sync-later>${Z('以后', 'Later')}</button>`;
+			: waiting
+				? `${icon('clock')}<span data-sync-wait><b>${Z('等规划人', 'Waiting for a planner')}</b>${Z('', ' ')}${Z('让这台设备加入全组的改动', 'to let this device into the group’s changes')}${syncGate.code ? ` · ${Z('加入码', 'join code')} <b>${esc(syncGate.code)}</b>` : ''}</span><button type="button" class="text-btn" data-sync-open>${Z('详情', 'Details')}</button>`
+				: SYNC_GATE
+					? `${icon('users')}<span><b>${Z('全组同步已开', 'Group sync is on')}</b> · ${Z('写上名字，请规划人让这台设备加入', 'add your name to ask a planner to let this device in')}</span><button type="button" class="text-btn" data-sync-open>${Z('写名字', 'Add name')}</button><button type="button" class="text-btn" data-sync-later>${Z('以后', 'Later')}</button>`
+					: `${icon('users')}<span><b>${Z('全组同步已开', 'Group sync is on')}</b> · ${Z('写上名字，大家才知道是谁改的', 'add your name so the group sees who changed what')}</span><button type="button" class="text-btn" data-sync-open>${Z('写名字', 'Add name')}</button><button type="button" class="text-btn" data-sync-later>${Z('以后', 'Later')}</button>`;
 	if (was !== on) measureBar();
 }
 function syncPaint() {
