@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.11.0](https://github.com/KennethWKZ/relaxjer/compare/v1.10.0...v1.11.0) (2026-11-27)
+
+
+### ✨ Features
+
+* **engine:** a stop's longer note folds under its short one ([#97](https://github.com/KennethWKZ/relaxjer/issues/97)) ([ad3f9e3](https://github.com/KennethWKZ/relaxjer/commit/ad3f9e3748c76e51a6c5b50ba2b191b1afe65065))
+
+
+### 🐛 Bug Fixes
+
+* **pipeline:** a route leg to a place with no pin is reported, not a crash ([#96](https://github.com/KennethWKZ/relaxjer/issues/96)) ([ec5abeb](https://github.com/KennethWKZ/relaxjer/commit/ec5abeba183a6f533cf95131b5b1b97ba4b7a5d7))
+* **pipeline:** every leg gets its time: drives from the schedule, untimed trains from the trip ([#94](https://github.com/KennethWKZ/relaxjer/issues/94)) ([2b72499](https://github.com/KennethWKZ/relaxjer/commit/2b72499a1346e8c0b06ce5de4c13027fcfef425b))
+
+
+### ⚡️ Performance Improvements
+
+* **engine:** a stop's sheet is built when it first opens, so a long trip paints within budget ([#93](https://github.com/KennethWKZ/relaxjer/issues/93)) ([6fc8f7d](https://github.com/KennethWKZ/relaxjer/commit/6fc8f7df6fcd64dfdc383f9c879a7481d259619f))
+
 ## [1.10.0](https://github.com/KennethWKZ/relaxjer/compare/v1.9.1...v1.10.0) (2026-11-25)
 
 
