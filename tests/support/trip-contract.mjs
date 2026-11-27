@@ -129,6 +129,9 @@ export function checkTrip(trip) {
 			if (it.place && !PLACES[it.place]) bad(`${where}: unknown place "${it.place}"`);
 			// a link is a SITES key, an in-page anchor (#airport) or a URL
 			if (it.link && !SITES[it.link] && !/^(#|https?:\/\/)/.test(it.link)) bad(`${where}: unknown site "${it.link}"`);
+			// a longer note that folds under the short one (ADR-20261127-stop-detail-fold): the short line always shows
+			if (it.detail != null && !isLabel(it.detail)) bad(`${where}: detail must be [zh, en]`);
+			if (it.detail != null && !it.note) bad(`${where}: detail folds under the note, so the stop needs a note too`);
 			if (it.rel) {
 				const o = it.rel.arr || it.rel.dep;
 				if (!Array.isArray(o)) bad(`${where}: rel needs arr or dep offsets`);

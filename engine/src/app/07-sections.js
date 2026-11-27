@@ -1076,7 +1076,7 @@ function secDay(d, today) {
 			: '';
 		return `<li class="${cls}${it._sh ? ' shifted' : ''}${more ? ' has-more' : ''}" id="${sid}" ${pt.s != null ? `data-s="${pt.s}"` : ''}><div class="stop-t">${esc(t)}${it._sh ? `<span class="t-was">${esc(Z(`原 ${L(it._base)}`, `was ${L(it._base)}`))}</span>` : ''}</div><div class="stop-knot">${closes[i] ? '' : gapBtn(d, `${i}`)}</div><div class="stop-b">
         <p class="stop-name"${alt(other(it.what))}>${fmt(it.what)}${it.fixed ? seal() : ''}<span class="flag-slot"></span></p>${moreBtn}
-        ${it.note ? `<p class="stop-note">${fmt(it.note)}</p>` : ''}
+        ${it.note ? `<p class="stop-note">${fmt(it.note)}</p>` : ''}${stopDetail(it, sid)}
         ${splitBack(d, it)}
         ${it._clash ? `<p class="warn">${icon('alert')}${esc(Z(`推迟后会撞到 ${L(it._clash.t)}「${stopName(it._clash)}」：这一项缩短或跳过`, `Now runs into the fixed ${L(it._clash.t)} ${stopName(it._clash)}: shorten or skip this`))}</p>` : ''}
         ${it.place ? `<div class="stop-drv"><button type="button" class="mlink" data-driver="${it.place}">${icon('car')}${Z('给司机看', 'Show driver')}</button></div>` : ''}

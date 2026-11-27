@@ -1,6 +1,6 @@
 ---
-total_decisions: 37
-last_updated: 2026-11-26
+total_decisions: 38
+last_updated: 2026-11-27
 ---
 
 # Decision Index
@@ -76,6 +76,7 @@ How the page looks, moves and reads: type, colour, illustrations, motion, names 
 | [ADR-20261124-bottom-app-bar](decisions/ADR-20261124-bottom-app-bar.md)         | 2026-11-24 | amended  | Below 1024 px a bottom bar (Today, Days, Map, More) replaces the date strip and the Sections button, and the sky’s Pause moves into More.                       |
 | [ADR-20261124-grouped-lists](decisions/ADR-20261124-grouped-lists.md)           | 2026-11-24 | accepted | The rail, Days, More and the Sections sheet are grouped lists: cards of 52 px rows split by inset hairlines, each row ending in ›, a value with ⌃⌄, or nothing. |
 | [ADR-20261124-map-first-search](decisions/ADR-20261124-map-first-search.md)     | 2026-11-24 | accepted | Search results and the finder lie over the map (sheet or side panel); a picked place is framed with the group and marked, no line; filters behind one button.   |
+| [ADR-20261127-stop-detail-fold](decisions/ADR-20261127-stop-detail-fold.md)     | 2026-11-27 | accepted | A stop splits its text into note (always shown) and detail, a native fold: shut below 600 px, open from 600 px, a tap either way.                               |
 
 ## tooling
 
