@@ -47,7 +47,7 @@ pack export instead, document it in `trip-format.md`, and have the contract chec
   is the way in: Today and Map are links to their views, Days and More open sheets (`renderDays`, `renderToc('more')`),
   so every tap is a step Back undoes.
 - A planning part is a summary button plus a sheet (`partsHTML` in `06-render-blocks.js`). Its summary is read from
-  the data, generic (never a trip's names); a block's own `sum` replaces it. A part's sheet is a closed list: it's
+  the data, generic (never a trip's names); a block's own `sum` replaces it. A part's sheet, and a stop's sheet, is a closed list: it's
   built the first time it opens, or when search or a jump needs it (`lazyFill`, `lazyFor`), so code that reads inside
   a sheet must not assume it's drawn, and the page-wide e2e audits fill them first (`fillAll`).
 - A world's sky (`24-sky.js`, `core/sky.mjs`) reads the mode from `html[data-sky]` (the build's `TRIP.sky` or the

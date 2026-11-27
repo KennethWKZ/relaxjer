@@ -1,10 +1,13 @@
 // Which app the Map and Directions links open: Google Maps by default, Apple Maps when the phone picks it in the
 // Sections menu. The choice is kept on the phone, and the whole-day route stays on Google (it carries every stop).
 import { test, expect, openTrip } from '../support/fixtures.mjs';
-import { openSections } from '../support/page.mjs';
+import { fillAll, openSections } from '../support/page.mjs';
 
-const mapLinks = (page) =>
-	page.locator('.stop-links a.mlink').evaluateAll((as) => as.map((a) => a.href).filter((h) => /maps\.apple\.com|google\.com\/maps/.test(h)));
+// a stop's links sit in its sheet, built the first time it opens (and again after each redraw): fill them first
+async function mapLinks(page) {
+	await fillAll(page);
+	return page.locator('.stop-links a.mlink').evaluateAll((as) => as.map((a) => a.href).filter((h) => /maps\.apple\.com|google\.com\/maps/.test(h)));
+}
 
 async function pickApple(page) {
 	await openSections(page); // the Sections button is there from the first screen

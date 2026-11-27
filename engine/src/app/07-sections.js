@@ -1066,8 +1066,13 @@ function secDay(d, today) {
 		const moreBtn = more
 			? `<button type="button" class="stop-more" data-part="${sid}-more" aria-haspopup="dialog" aria-expanded="false" aria-label="${esc(`${L(it.t || '')} ${stopName(it)}: ${Z('地图、路线和附近', 'map, directions and nearby')}`)}">${icon('chev-r')}</button>`
 			: '';
+		// built the first time it opens, like a part's sheet (partSheet, 06-render-blocks.js): a long trip has a sheet per
+		// stop, and drawing them all at first paint cost a twelve-day trip ~2,900 nodes (tests/e2e/boot.spec.mjs)
 		const moreSheet = more
-			? `<dialog class="sheet bsheet ssheet" id="${sid}-more" aria-labelledby="${sid}-more-h"><div class="bsheet-head"><span class="bsheet-grip" aria-hidden="true"></span><span class="part-ic" aria-hidden="true">${icon(it.fixed ? 'clock' : 'pin')}</span><h3 class="bsheet-h" id="${sid}-more-h">${escText(stopName(it))}<small>Day ${d.n} · ${esc(dateLabel(d.date, d.dow))}${it.t ? ` · ${esc(L(it.t))}` : ''}</small></h3><button type="button" class="icon-btn bsheet-x" data-close aria-label="${Z('关闭', 'Close')}">${icon('x')}</button></div><div class="bsheet-body">${more}</div></dialog>`
+			? `<dialog class="sheet bsheet ssheet" id="${sid}-more" aria-labelledby="${sid}-more-h" data-lazy="${lazyKey(
+					() =>
+						`<div class="bsheet-head"><span class="bsheet-grip" aria-hidden="true"></span><span class="part-ic" aria-hidden="true">${icon(it.fixed ? 'clock' : 'pin')}</span><h3 class="bsheet-h" id="${sid}-more-h">${escText(stopName(it))}<small>Day ${d.n} · ${esc(dateLabel(d.date, d.dow))}${it.t ? ` · ${esc(L(it.t))}` : ''}</small></h3><button type="button" class="icon-btn bsheet-x" data-close aria-label="${Z('关闭', 'Close')}">${icon('x')}</button></div><div class="bsheet-body">${more}</div>`,
+				)}"></dialog>`
 			: '';
 		return `<li class="${cls}${it._sh ? ' shifted' : ''}${more ? ' has-more' : ''}" id="${sid}" ${pt.s != null ? `data-s="${pt.s}"` : ''}><div class="stop-t">${esc(t)}${it._sh ? `<span class="t-was">${esc(Z(`原 ${L(it._base)}`, `was ${L(it._base)}`))}</span>` : ''}</div><div class="stop-knot">${closes[i] ? '' : gapBtn(d, `${i}`)}</div><div class="stop-b">
         <p class="stop-name"${alt(other(it.what))}>${fmt(it.what)}${it.fixed ? seal() : ''}<span class="flag-slot"></span></p>${moreBtn}

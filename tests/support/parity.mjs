@@ -99,6 +99,8 @@ async function sections(which, lang) {
 	await p.goto(`http://127.0.0.1:${port}/${which}`);
 	await p.waitForTimeout(600);
 	const out = await p.evaluate(async () => {
+		// sheets and lists built on first open (lazyKey) hold no text until then: fill them all, as a search does
+		if (typeof window.RJ_FILL === 'function') window.RJ_FILL();
 		document.querySelectorAll('#app details').forEach((d) => {
 			d.open = true;
 			d.dispatchEvent(new Event('toggle'));
