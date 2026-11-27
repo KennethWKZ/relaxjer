@@ -818,7 +818,9 @@ test.describe('group sync with approval', { tag: '@demo' }, () => {
 		await openSyncSheet(page);
 		await sheet(page).locator('[data-fold="blocked"] > summary').click();
 		await sheet(page).locator('.sync-row', { hasText: 'Tester' }).locator('[data-block-drop]').click();
-		await expect(page.locator('#toast')).toContainText('Unblocked Tester');
+		await expect.poll(async () => (await approvalStored(request, testInfo, `devices/${uid}`))?.state, { timeout: 15_000 }).not.toBe('blocked');
+		// the waiting tick can land at once and its toast replace "Unblocked Tester": either says the unblock worked
+		await expect(page.locator('#toast')).toContainText(/Unblocked Tester|Tester ticked/);
 		await sheet(page).locator('[data-close]').click();
 		await openApproval(page, '#checklist');
 		await expect(box(page, 'before-passport'), 'unblocked: what waited arrives').toBeChecked({ timeout: 20_000 });
