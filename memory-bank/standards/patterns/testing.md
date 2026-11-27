@@ -59,7 +59,9 @@ Tier 0 (`pnpm test`) runs on every commit, so keep it under a few seconds: no ne
   per run. Each test gets its own space in it (the `rtdb_ns` cookie, `tests/support/sync.mjs`), because tests run in
   parallel and every sync page holds the same trip id. Setup also gives it a planner code (`TEST_PLANNER_CODE`), so the
   specs can claim planner on a phone and block the other; `add-stop.spec.mjs` covers Undo and the 4-stop caution on a
-  page with no sync.
+  page with no sync. It also builds `trip-approval.html`, the same trip as an approval trip: the stand-in answers its
+  anonymous sign-in too (`/__auth/v1/…`, unsigned tokens), `freshApproval` opens a trip with the planner-code proof, and
+  `approvalAdminSet` writes what `pnpm sync approve` would, so a spec can let a device in without the UI.
 - **The landing page runs in the same projects** (`tests/e2e/site.spec.mjs`): global setup copies `site/` beside the
   trip page, and the spec opens it with motion on, because that's where its overflow and its moving sky live. A state
   that only lasts a moment, a postcard part-way through settling, is measured by seeking its animation through its
@@ -70,6 +72,9 @@ Tier 0 (`pnpm test`) runs on every commit, so keep it under a few seconds: no ne
   scroll once.
 - **The real database rules run on Firebase's emulator,** not in CI: `pnpm test:sync-rules` (needs Java; firebase-tools
   comes through npx). Run it after any change to `scripts/sync/database.rules.json`, and change the stand-in to match.
+  Both run the same list of checks (`scripts/sync/rules-checks.mjs`): the emulator through `pnpm test:sync-rules`, the
+  stand-in in tier 0 (`tests/unit/sync-rules-stand-in.test.mjs`), so a rule the stand-in gets wrong fails on every
+  commit. A new rule gets its allow and deny cases there.
 
 ## Running
 

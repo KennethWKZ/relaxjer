@@ -52,6 +52,11 @@ const SYNC = window.SYNC || null;
 const SHARED_GROUPS = SYNC ? (typeof CHECKLIST !== 'undefined' ? CHECKLIST : []).filter((g) => g && g.shared).map((g) => g.id) : [];
 const sharedTick = (key) => SHARED_GROUPS.some((g) => String(key).startsWith(`${g}-`));
 let syncStatus = { state: SYNC ? 'starting' : 'off', at: 0, waiting: 0 };
+// an approval trip (ADR-20261127-sync-approval): each device signs in, asks to join, and syncs only once a planner let it
+// in. syncGate is what 26-sync.js last read: this device's state (none: hasn't asked, pending, approved, blocked), the
+// join code it shows, and for a planner the join requests, each device's person and its user id
+const SYNC_GATE = !!(SYNC && SYNC.approval);
+let syncGate = { state: 'none', code: '', requests: [], persons: {}, uidOf: {} };
 // the trip's own settings (data.js TRIP): group size, currency, the destination's clock, the name on the home screen
 const PAX = TRIP.pax;
 const CUR = TRIP.currency; // { sym: 'NT$', home: 'RM', rate: 7.8, rateNote: [zh, en] }: the destination's and the group's home currency

@@ -98,6 +98,12 @@ pack export instead, document it in `trip-format.md`, and have the contract chec
 - With group sync, every removal goes through `mineSet` and offers Undo (`undoPutBack`), and every entry point that
   edits or removes a stop checks `canEditStop` first. Only stops are guarded: shifts, flight changes and ticks aren't
   ([ADR-20261002-sync-planners](../decisions/ADR-20261002-sync-planners.md)).
+- On an approval trip (`SYNC_GATE`, ADR-20261127-sync-approval) `people`, `roles`, `blocks` and `kits` come from the
+  database's `devices/` and `planners/` entries (`Sync.groupOf`), written back quietly; the page neither sends nor takes
+  `who:`, `role:`, `block:` or `kit:` records there (`Sync.ungated`). A planner's change to a device goes through
+  `syncApi.gate`, which writes what `Sync.approvalWrites` says (the CLI writes the same), and `syncGate` in
+  `01-storage.js` holds this device's state and the join requests for the first draw. The rules, the stand-in database
+  and their shared checks (`scripts/sync/rules-checks.mjs`) change together.
 
 ## Decisions behind these rules
 

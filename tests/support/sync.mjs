@@ -1,9 +1,11 @@
 // Helpers for the group-sync e2e tests: the trip-sync.html page global-setup builds, the stand-in database's admin
 // routes (tests/support/fake-rtdb.mjs), and a second phone with the same rules as the fixtures' first one.
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { expect } from '@playwright/test';
-import { PAGES_DIR, SYNC_TEST_FILE } from './global-setup.mjs';
+import { PLANNER_ROUNDS } from '../../engine/src/core/sync.mjs';
+import { APPROVAL_TEST_FILE, PAGES_DIR, SYNC_TEST_FILE, TEST_PLANNER_CODE } from './global-setup.mjs';
 import { STORE_KEY } from './store-key.mjs';
 import { CONSOLE_NOISE, TEARDOWN_NOISE } from './console-noise.mjs';
 
@@ -27,6 +29,34 @@ export async function freshDatabase(request, testInfo) {
 export const endSync = async (request, testInfo) => request.delete(`/__rtdb-admin/key?${admin(testInfo)}`);
 /** the records the database holds, as stored */
 export const stored = async (request, testInfo) => (await request.get(`/__rtdb-admin/dump?${admin(testInfo)}`)).json();
+
+// ── an approval trip (ADR-20261127-sync-approval): trip-approval.html, the same trip on the same stand-in ──────────────
+export const APPROVAL_PAGE = '/trip-approval.html';
+export const hasApprovalPage = () => fs.existsSync(path.join(PAGES_DIR, 'trip-approval.html'));
+export const approvalConfig = () => JSON.parse(fs.readFileSync(APPROVAL_TEST_FILE, 'utf8'));
+const approvalAdmin = (testInfo) => `trip=${approvalConfig().trip}&ns=${space(testInfo)}`;
+/** the planner-code proof, worked out from the code and the page's proof salt as `pnpm sync planner` stores it */
+export const approvalProof = () =>
+	crypto
+		.pbkdf2Sync(TEST_PLANNER_CODE, Buffer.from(approvalConfig().planner.proofSalt, 'base64url'), PLANNER_ROUNDS, 32, 'sha256')
+		.toString('base64url');
+/** a fresh approval trip in this test's space: its gate, with the proof unless proof is false; no devices, no records */
+export async function freshApproval(request, testInfo, { proof = true } = {}) {
+	const body = proof ? { proof: approvalProof() } : {};
+	expect((await request.post(`/__rtdb-admin/gate?${approvalAdmin(testInfo)}`, { data: JSON.stringify(body) })).ok()).toBe(true);
+	return approvalConfig();
+}
+/** what's stored at a path of the approval trip (the records when path is empty) */
+export const approvalStored = async (request, testInfo, p = '') =>
+	(await request.get(`/__rtdb-admin/dump?${approvalAdmin(testInfo)}${p ? `&path=${encodeURIComponent(p)}` : ''}`)).json();
+/** a write past the rules, as `pnpm sync approve` makes it from the planner's laptop */
+export const approvalAdminSet = async (request, testInfo, writes) =>
+	expect((await request.patch(`/__rtdb-admin/set?${approvalAdmin(testInfo)}`, { data: JSON.stringify(writes) })).ok()).toBe(true);
+/** Opens the approval page and waits for the first render. */
+export async function openApproval(page, hash = '') {
+	await page.goto(`${APPROVAL_PAGE}${hash}`);
+	await expect(page.locator('#app [data-sec]').first()).toBeAttached();
+}
 
 /** a phone past its first-open welcome sheet (the sync tests that aren't about it) */
 export const skipWelcome = (context) =>
