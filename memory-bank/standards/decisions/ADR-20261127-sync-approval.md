@@ -3,8 +3,8 @@ id: ADR-20261127-sync-approval
 date: 2026-11-27
 title: 'Group Sync Admits Only Devices a Planner Approved'
 domain: sync
-status: proposed
-decision: 'Proposed: the page stays on ht-ml.app; a device reads or writes group sync only after a planner approves it, enforced by anonymous Auth and the rules.'
+status: accepted
+decision: 'The page stays on ht-ml.app; a device reads or writes group sync only after a planner approves it, enforced by anonymous Auth and the rules.'
 tags: [hosting]
 ---
 
@@ -12,7 +12,7 @@ tags: [hosting]
 
 ## Summary
 
-Proposed, not built. The trip page stays one file on ht-ml.app behind its password, as today. What changes is group
+Accepted on 2026-11-27 by Kenneth; not built yet. The trip page stays one file on ht-ml.app behind its password, as today. What changes is group
 sync: each device signs in to Firebase Auth anonymously, sends a join request with the name its person types, and can
 read or change the shared plan only after a planner approves it. The database rules enforce it, on Firebase's free
 plan. A block becomes "the database refuses this device", not "every device ignores it". Raised by Kenneth on
@@ -38,7 +38,7 @@ with him the same day.
   building.
 - `pnpm sync` already writes to the database as the planner (`firebase login`).
 
-## Decision (proposed)
+## Decision
 
 ### Joining
 
