@@ -1,5 +1,5 @@
 ---
-total_decisions: 38
+total_decisions: 39
 last_updated: 2026-11-27
 ---
 
@@ -54,12 +54,13 @@ Group sync: the shared database, who may change what, and the roles of each phon
 
 Where the page and the demos are published, the keys they need, and the page security policy. No pattern file: the rules live in these ADRs.
 
-| ADR                                                                                               | Date       | Status   | Rule                                                                                                                                               |
-| ------------------------------------------------------------------------------------------------- | ---------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [ADR-20261001-live-page-on-relaxjer](decisions/ADR-20261001-live-page-on-relaxjer.md)             | 2026-10-01 | accepted | The live trip page moves to RelaxJer's host only after a screen-by-screen comparison with the old build of the same data.                          |
-| [ADR-20261001-page-csp](decisions/ADR-20261001-page-csp.md)                                       | 2026-10-01 | accepted | The build writes a strict Content-Security-Policy into each page: hashed inline scripts, no unsafe-inline, and connect-src limited to known hosts. |
-| [ADR-20261002-live-demo-on-pages](decisions/ADR-20261002-live-demo-on-pages.md)                   | 2026-10-02 | amended  | GitHub Pages publishes site/ and the synthetic demo's single file only, never a real trip, a key or a sync setting.                                |
-| [ADR-20261117-second-demo-and-site-worlds](decisions/ADR-20261117-second-demo-and-site-worlds.md) | 2026-11-17 | accepted | A second synthetic demo, examples/demo-sapporo, is built from public landmarks and invented details only, with no Google content.                  |
+| ADR                                                                                                     | Date       | Status   | Rule                                                                                                                                                  |
+| ------------------------------------------------------------------------------------------------------- | ---------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [ADR-20261001-live-page-on-relaxjer](decisions/ADR-20261001-live-page-on-relaxjer.md)                   | 2026-10-01 | accepted | The live trip page moves to RelaxJer's host only after a screen-by-screen comparison with the old build of the same data.                             |
+| [ADR-20261001-page-csp](decisions/ADR-20261001-page-csp.md)                                             | 2026-10-01 | accepted | The build writes a strict Content-Security-Policy into each page: hashed inline scripts, no unsafe-inline, and connect-src limited to known hosts.    |
+| [ADR-20261002-live-demo-on-pages](decisions/ADR-20261002-live-demo-on-pages.md)                         | 2026-10-02 | amended  | GitHub Pages publishes site/ and the synthetic demo's single file only, never a real trip, a key or a sync setting.                                   |
+| [ADR-20261117-second-demo-and-site-worlds](decisions/ADR-20261117-second-demo-and-site-worlds.md)       | 2026-11-17 | accepted | A second synthetic demo, examples/demo-sapporo, is built from public landmarks and invented details only, with no Google content.                     |
+| [ADR-20261127-firebase-hosting-approval-push](decisions/ADR-20261127-firebase-hosting-approval-push.md) | 2026-11-27 | proposed | Proposed: a trip page on the planner’s Firebase Hosting, opened by phones the planner approves, with web push from a Cloud Function. Demo trip first. |
 
 ## design
 
