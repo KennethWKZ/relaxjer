@@ -2,6 +2,28 @@
 // place's name, ADR-20261124-finder-google-distance): which way to ask about, which of Google's results is the place,
 // and its leg in the group's minutes. Pure; wrapped as `Way` inside the page script.
 
+// The group's walking pace (ADR-20261127-trip-walk-pace): how much longer the group takes to walk than Google's fit
+// adult. A trip sets it as TRIP.walkPace; without one the group walks at the seniors' pace (AGENTS.md), and 1 is
+// Google's own walking time, for a group of fit adults.
+
+/** the pace when the trip doesn't set one: seniors walk 40 % longer */
+export const DEFAULT_PACE = 1.4;
+/** the paces a trip may set: Google's own time up to twice it */
+export const PACE_MIN = 1;
+export const PACE_MAX = 2;
+
+/** what's wrong with a trip's TRIP.walkPace, or '' when it's fine (left out is fine) */
+export const paceProblem = (v) =>
+	v == null || (typeof v === 'number' && v >= PACE_MIN && v <= PACE_MAX)
+		? ''
+		: `TRIP.walkPace must be a number from ${PACE_MIN} to ${PACE_MAX}, got ${JSON.stringify(v)}`;
+
+/** the group's pace from the trip's TRIP.walkPace: the trip's own, else DEFAULT_PACE */
+export const paceOf = (v) => (v == null ? DEFAULT_PACE : v);
+
+/** walking minutes for metres in a straight line, at a pace: 75 m a minute on streets 1.3× the straight line */
+export const walkMin = (m, pace) => ((m * 1.3) / 75) * pace;
+
 /** the longest walk the page offers before a ride: the add sheet's "taxi first" rule (20 min at the group's pace) */
 export const WALK_MAX_MIN = 20;
 

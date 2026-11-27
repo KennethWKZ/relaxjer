@@ -44,7 +44,9 @@ Start from the demo's shape (`examples/demo-trip/data.js` shows every field in u
 requirements. No demo content may survive: its hotel, stalls and prices are invented.
 
 - `TRIP`: name in both languages, `start`/`end`, `brand`, `pax`, `tz`, `currency` (with the home currency and a rate
-  note), `checked`, `mapViews`, `fileName`, and `storageKey` if the page was published before.
+  note), `checked`, `mapViews`, `fileName`, and `storageKey` if the page was published before. Leave `walkPace` out
+  when the group has seniors or anyone slow on foot; set `walkPace: 1` only when the planner says everyone is a fit
+  adult (Google's own walking times).
 - `DAYS`: ids `d1`…`dN` in order. Booked or timed items are `fixed: true`; flight-tied items use `rel: { arr }` or
   `rel: { dep }`. Give each day a route, a rain plan and slack around fixed items. Seniors' walking counts ×1.4, and a
   long leg suggests a taxi first.

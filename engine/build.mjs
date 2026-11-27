@@ -17,6 +17,7 @@ import { rangeLabel } from './src/core/time.mjs';
 import { dayRoles, hotelsByDay, storeKey } from './src/core/plan.mjs';
 import { leadMotif } from './src/core/motif.mjs';
 import { MODES as SKY_MODES, modeFor as skyModeFor } from './src/core/sky.mjs';
+import { paceProblem } from './src/core/way.mjs';
 import { splitArt } from './world-art.mjs';
 
 const argv = process.argv.slice(2);
@@ -231,6 +232,8 @@ async function loadWorld(name) {
 if (ctx.TRIP.sky != null && !SKY_MODES.includes(ctx.TRIP.sky))
 	throw new Error(`TRIP.sky: one of ${SKY_MODES.join('|')}, got ${JSON.stringify(ctx.TRIP.sky)}`);
 const skyMode = skyModeFor(ctx.TRIP.sky, world?.sky);
+// the group's walking pace (ADR-20261127-trip-walk-pace): left out is the seniors' pace; anything else is a number in range
+if (paceProblem(ctx.TRIP.walkPace)) throw new Error(paceProblem(ctx.TRIP.walkPace));
 if (ctx.TRIP.sky && ctx.TRIP.sky !== 'off' && skyMode === 'off')
 	console.warn(`! TRIP.sky ${JSON.stringify(ctx.TRIP.sky)}: ${world ? `the ${world.name} world` : 'the default world'} has no sky, so none is drawn`);
 // a world's backdrop (ADR-20261121-world-motion): the sky behind the whole page, fixed layers the world's stylesheet

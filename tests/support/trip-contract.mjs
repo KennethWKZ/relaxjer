@@ -5,6 +5,7 @@ import path from 'node:path';
 import vm from 'node:vm';
 import { names as MOTIFS } from '../../engine/src/core/motif.mjs';
 import { MODES as SKIES } from '../../engine/src/core/sky.mjs';
+import { paceProblem } from '../../engine/src/core/way.mjs';
 
 // read when present: the themed shop lists (SNOW is the older single-list form)
 export const OPTIONAL_GLOBALS = ['SHOPLISTS', 'SNOW'];
@@ -103,6 +104,8 @@ export function checkTrip(trip) {
 	)
 		bad(`TRIP.brandShort must be a shorter name than TRIP.brand`);
 	if (TRIP.sky != null && !SKIES.includes(TRIP.sky)) bad(`TRIP.sky ${JSON.stringify(TRIP.sky)} must be one of ${SKIES.join('|')}`);
+	// the group's walking pace (ADR-20261127-trip-walk-pace): left out for the seniors' pace, else a number in range
+	if (paceProblem(TRIP.walkPace)) bad(paceProblem(TRIP.walkPace));
 	for (const v of TRIP.mapViews || [])
 		if (!v.id || !Array.isArray(v.name) || !(Array.isArray(v.bbox) && v.bbox.length === 4))
 			bad(`TRIP.mapViews ${v.id}: needs id, name [zh, en] and bbox [w, s, e, n]`);
