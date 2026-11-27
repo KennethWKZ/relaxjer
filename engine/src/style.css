@@ -7266,15 +7266,6 @@ dialog.gl-sheet,
 .rl[aria-current] .rl-t b {
 	font-weight: 800;
 }
-/* pressed: at once on touch-down, the row greys and its mark sinks; only the release eases back */
-.rl:active {
-	background: var(--gl-press);
-	transition-duration: 0ms;
-}
-.rl:active > :first-child {
-	scale: 0.9;
-	transition-duration: 0ms;
-}
 .rl:focus-visible {
 	outline: 3px solid var(--focus);
 	outline-offset: -3px;
@@ -7287,6 +7278,17 @@ dialog.gl-sheet,
 	.rl[aria-current]:hover {
 		background: color-mix(in srgb, var(--c, var(--ink)) 21%, var(--gl-card));
 	}
+}
+/* pressed: at once on touch-down, the row greys and its mark sinks; only the release eases back. After the hover
+   rules, and as specific as the lit row's hover, so a mouse press shows over the hover fill too */
+.rl:active,
+.rl[aria-current]:active {
+	background: var(--gl-press);
+	transition-duration: 0ms;
+}
+.rl:active > :first-child {
+	scale: 0.9;
+	transition-duration: 0ms;
 }
 @media (prefers-contrast: more) {
 	.gl {
