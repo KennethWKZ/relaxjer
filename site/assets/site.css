@@ -1419,11 +1419,12 @@ svg.i {
 	width: 17px;
 	height: 17px;
 }
-/* the header: one 54 px row, as the trip page draws it on a phone (the brand, then search, currency and language), over
-   the Now stripe: the day's colour on a day, a hairline on Today and the other views (--now) */
+/* the header: the trip page's phone header (the brand, then search, currency and language), over the Now stripe: the
+   day's colour on a day, a hairline on Today and the other views (--now). The 44 px buttons get 8 px above and below,
+   so the pills never sit on the stripe */
 .m-hd {
-	height: 57px;
-	padding: 0 16px 0 18px;
+	height: 63px;
+	padding: 8px 16px 8px 18px;
 	display: flex;
 	align-items: center;
 	gap: 8px;
