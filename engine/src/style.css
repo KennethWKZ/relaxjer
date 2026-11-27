@@ -546,9 +546,6 @@ svg.i {
 	border-bottom: 1px solid var(--rule);
 	border-radius: 0;
 }
-.result:active {
-	background: var(--paper-2);
-}
 .result-dot {
 	width: 10px;
 	height: 10px;
@@ -2290,6 +2287,11 @@ dialog.sheet {
 	.result:hover {
 		background: var(--paper-2);
 	}
+}
+/* pressed: a shade past the hover fill, at once, so a mouse press shows too; after the hover rule, which it beats */
+.result:active {
+	background: var(--paper-3);
+	transition-duration: 0ms;
 }
 @media (prefers-reduced-motion: reduce) {
 	html {
@@ -6624,10 +6626,6 @@ input[data-rate][aria-invalid='true'] {
 .tb[aria-current] .tb-ic svg.i {
 	stroke-width: 2.2;
 }
-.tb:active .tb-ic {
-	transform: scale(0.92);
-	background: var(--paper-3);
-}
 .tb:focus-visible {
 	outline: 3px solid var(--focus);
 	outline-offset: -3px;
@@ -6636,6 +6634,17 @@ input[data-rate][aria-invalid='true'] {
 	.tb:hover .tb-ic {
 		background: var(--paper-3);
 	}
+	/* the lit tab keeps its day's tint under the pointer, a shade deeper */
+	.tb[aria-current]:hover .tb-ic {
+		background: color-mix(in srgb, var(--c, var(--ink)) 26%, transparent);
+	}
+}
+/* pressed: after the hover rules and as specific as the lit tab's, so the press shows on any pointer */
+.tb:active .tb-ic,
+.tb[aria-current]:active .tb-ic {
+	transform: scale(0.92);
+	background: var(--paper-3);
+	transition-duration: 0ms;
 }
 
 /* a heading's date: a calendar mark and the short date ("3/15 一") */

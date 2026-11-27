@@ -150,6 +150,58 @@ test('the lit item in the bar or the rail shows more than a colour change, and t
 	await expect(btn).toHaveText('EN');
 });
 
+// with a mouse, hover never hides what the page says: a press on a search result or a tab shows over the hover fill at
+// once, and the lit tab keeps its day's tint under the pointer
+test('with a mouse, a press shows over the hover fill, and the lit tab keeps its tint under the pointer [16][17]', async ({ page }) => {
+	await openTrip(page);
+	test.skip(!(await page.evaluate(() => matchMedia('(hover: hover) and (pointer: fine)').matches)), 'a touch screen has no hover');
+	// the style a state ends on, without waiting out its transition
+	const look = (loc) =>
+		loc.evaluate((e) => {
+			for (const a of e.getAnimations()) a.finish();
+			const s = getComputedStyle(e);
+			return { fill: s.backgroundColor, transform: s.transform };
+		});
+	const pointAt = async (loc) => {
+		const b = await loc.boundingBox();
+		await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
+	};
+
+	// a search result: hover greys it, and a press greys it further
+	await page.locator('#searchBtn').click();
+	const first = await page.evaluate(() => DAYS[0].id);
+	const name = (await page.locator(`#${first}-s0 .stop-name`).textContent()).trim().slice(0, 6);
+	await page.locator('#q').fill(name);
+	const hit = page.locator('#results-inner .result[data-hit]').first();
+	await expect(hit).toBeVisible();
+	await pointAt(hit);
+	const hover = await look(hit);
+	await page.mouse.down();
+	const down = await hit.evaluate((e) => getComputedStyle(e).backgroundColor);
+	await page.mouse.move(0, 0);
+	await page.mouse.up();
+	expect(down, 'a pressed result shows over its hover fill, at once').not.toBe(hover.fill);
+	await page.keyboard.press('Escape');
+
+	// the bar: at a tablet's width with a mouse
+	await page.setViewportSize({ width: 800, height: 900 });
+	await expect(page.locator(BAR.bar)).toBeVisible();
+	const lit = page.locator(`${BAR.lit} .tb-ic`);
+	const off = page.locator(`${BAR.item}:not([aria-current]) .tb-ic`).first();
+	await pointAt(off);
+	const offHover = await look(off);
+	await page.mouse.down();
+	const offDown = await off.evaluate((e) => getComputedStyle(e).transform);
+	await page.mouse.move(0, 0);
+	await page.mouse.up();
+	expect(offDown, 'a pressed tab sinks at once').not.toBe('none');
+	const litRest = await look(lit);
+	await pointAt(lit);
+	const litHover = await look(lit);
+	expect(litHover.fill, 'the lit tab keeps its tint under the pointer').not.toBe(offHover.fill);
+	expect(litHover.fill, 'and the hover still shows on it').not.toBe(litRest.fill);
+});
+
 // the lists that take the reader somewhere, and the settings (ADR-20261124-grouped-lists): the rail on a desktop, Days and
 // More below 1024 px, the desktop's Sections sheet. One column of full-width rows, 52 px or more, each ending in what it
 // does (› to go somewhere, ⌃⌄ for a choice, nothing for an action), split by hairlines that start where the words do;
