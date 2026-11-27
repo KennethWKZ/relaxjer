@@ -33,6 +33,8 @@ showed as RM520 when an agent ran one on 2026-10-01 only to test a key. So the r
 
 - A run answers from the trip's cache, and asks Google only what's new or what failed last time. A dry run does too:
   "dry run" means no trip file is written, not that nothing is paid.
+- A place just added to `PLACES` needs a rough `{ lat, lng }` in `geo.json` first (`trip-customize`). Until it has one,
+  the run says "no pin in geo.json" for it and leaves its route legs untimed; the next run puts the pin on Google's.
 - Each step stops after 200 new calls (`stopped: this step needs more than 200 Google calls…`). What it fetched is
   kept.
 - `--fresh`, or a trip with no cache yet, prints how many calls and what they cost, and stops without a yes.

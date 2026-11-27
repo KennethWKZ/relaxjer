@@ -30,6 +30,8 @@ for k, g in G['places'].items():
     g['gpid'] = pid; g['lat'], g['lng'] = new; g['src'] = 'google'
     if moved > 60: log.append(f'{k}: pin moved {moved} m to Google ({(d.get("displayName") or {}).get("text")})')
 F.save()
+for k in PLACES:  # a place in PLACES with no pin is never searched here: it needs a rough one first
+    if k not in G['places']: log.append(f'{k}: no pin in geo.json: add a rough {{ lat, lng }} (trip-customize), then refresh')
 print('\n'.join(log) or 'no changes')
 print(f"places on Google: {sum(1 for g in G['places'].values() if g.get('src') == 'google')}/{len(G['places'])}")
 if '--write' in sys.argv: json.dump(G, open(S + 'geo.json', 'w'), ensure_ascii=False, indent=1); print('wrote geo.json')

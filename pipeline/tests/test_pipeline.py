@@ -29,6 +29,12 @@ class Trip(unittest.TestCase):
         self.assertEqual(trip.leg_parts(['a', 'b', 'transit', '10:00', 90]), ('a', 'b', 'transit', '10:00', 90))
         self.assertEqual(trip.leg_parts(['a', 'b', 'driving', '16:55']), ('a', 'b', 'driving', '16:55', None))
 
+    def test_a_leg_to_a_place_with_no_pin_is_reported_not_asked(self):
+        legs_def = {'d4': [['hotel', 'shop', 'walking', '09:10'], ['shop', 'hotel', 'driving']], 'd5': [['hotel', 'lake', 'driving']]}
+        self.assertEqual(trip.missing_pins(legs_def, {'hotel': {}, 'lake': {}}), {'d4:0': ['shop'], 'd4:1': ['shop']})
+        self.assertEqual(trip.missing_pins({'d1': [['new', 'new', 'walking']]}, {}), {'d1:0': ['new']})  # named once
+        self.assertEqual(trip.missing_pins(legs_def, {'hotel': {}, 'shop': {}, 'lake': {}}), {})
+
     def test_google_is_never_asked_for_transit_where_it_has_none(self):
         self.assertIn('JP', google.NO_TRANSIT)  # Google's coverage FAQ: every transit partner "except those in Japan"
         self.assertNotIn('TW', google.NO_TRANSIT)

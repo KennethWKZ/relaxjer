@@ -74,5 +74,16 @@ def leg_ends(legs_def, key):
     day, i = key.split(':')
     a, b, m = legs_def[day][int(i)][:3]
     return a, b, m
+def missing_pins(legs_def, places):
+    """the route legs that join a place with no pin in geo.json, as {'d4:0': ['orixSap'], ...}: Google can't be asked for
+    a leg with no position at one end. A place gets its first pin by hand, a rough { lat, lng } (trip-customize), and
+    pins.py then moves it onto Google's"""
+    out = {}
+    for day, ls in legs_def.items():
+        for i, l in enumerate(ls):
+            gone = [p for p in dict.fromkeys(l[:2]) if p not in places]
+            if gone: out[f'{day}:{i}'] = gone
+    return out
+
 def cfg(key, default):
     return CONFIG.get(key, default)
