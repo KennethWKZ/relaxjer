@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.13.1](https://github.com/KennethWKZ/relaxjer/compare/v1.13.0...v1.13.1) (2026-11-27)
+
+
+### 🐛 Bug Fixes
+
+* **engine:** presses show over hover with a mouse, and the lit tab keeps its tint ([#111](https://github.com/KennethWKZ/relaxjer/issues/111)) ([c10b553](https://github.com/KennethWKZ/relaxjer/commit/c10b5539ee70f6c87dcfbd91b1f9e06b6e9de18d))
+* **engine:** the phone header gives its buttons 8 px above and below ([#110](https://github.com/KennethWKZ/relaxjer/issues/110)) ([ce84988](https://github.com/KennethWKZ/relaxjer/commit/ce84988ab34185c0c84959775df370136fb34bae))
+* **site:** the phone mock's header gives its buttons room above the stripe ([#106](https://github.com/KennethWKZ/relaxjer/issues/106)) ([8b028f6](https://github.com/KennethWKZ/relaxjer/commit/8b028f6ed0c36cb4efbae0be1fe7e0a96dd02b3c))
+* **sync:** a join request's code stands out for the planner to match ([#109](https://github.com/KennethWKZ/relaxjer/issues/109)) ([f1a6766](https://github.com/KennethWKZ/relaxjer/commit/f1a6766516d23d81744ac2695abb2f9ef7abbca4))
+
+
+### 📝 Documentation
+
+* **sync-setup:** leave anonymous sign-in's automatic clean-up off ([#108](https://github.com/KennethWKZ/relaxjer/issues/108)) ([b251644](https://github.com/KennethWKZ/relaxjer/commit/b25164456e95c9178b219b774e40708a34119ade))
+
 ## [1.13.0](https://github.com/KennethWKZ/relaxjer/compare/v1.12.0...v1.13.0) (2026-11-27)
 
 
