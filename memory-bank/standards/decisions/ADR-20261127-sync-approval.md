@@ -75,6 +75,19 @@ with him the same day.
 - Every rule has emulator tests before any deploy (`pnpm test:sync-rules`), and the e2e stand-in database follows the
   same rules.
 
+### Found while building (2026-11-27)
+
+- **A device's sync id is bound to its sign-in:** its `dev` is the first 24 characters of its Auth user id, and the
+  rules check it. Without that, an approved member could register a second device under someone else's `dev`, get it
+  approved, and write as them.
+- **The planner-code proof sits apart:** approved devices can read `planners/`, so the proof goes in `claims/$uid`,
+  written in the same update and readable by nobody.
+- **Names are sealed** like records, so Google still sees only ciphertext; the CLI opens them with the key in the sync
+  file.
+- **Approval trips are told apart by a gate** the CLI writes at `/gates/$trip` (with the proof hash), readable by no
+  device; a token path works only while a trip's write token exists and no gate does, so a token never opens an
+  approval trip, and `pnpm sync end` closes both.
+
 ### Blocking
 
 - A planner blocks a device from the sheet. Its added stops and last changes still go back to the plan for everyone,
