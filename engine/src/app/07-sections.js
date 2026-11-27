@@ -1038,7 +1038,7 @@ function secDay(d, today) {
 	]
 		.filter(Boolean)
 		.join('');
-	const photos = d.photos.filter((p) => credit[p]);
+	const photos = (d.photos || []).filter((p) => credit[p]); // optional: a day may have none
 	const stopsTitle = d.stepsTitle ? L(d.stepsTitle) : Z('行程', 'Schedule');
 	// no "+" where nothing can come right after: the row that closes the day (back to the hotel), a moment the next row
 	// starts at too (Plan.roomAfter), and the flight home

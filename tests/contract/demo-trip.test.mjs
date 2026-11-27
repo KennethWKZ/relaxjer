@@ -20,6 +20,8 @@ test('the contract catches a broken trip', () => {
 	trip.DAYS[3].motif = 'skiing in the morning'; // free text: the mark is a name from the list
 	trip.TRIP.sky = 'aurora'; // a sky the engine doesn't draw
 	trip.TRIP.walkPace = '1.4'; // a pace is a number, not text
+	trip.DAYS[4].photos = 'one-photo'; // a list of ids, not one id
+	delete trip.DAYS[5].photos; // optional: no photos is fine
 	const decide = trip.DAYS.flatMap((d) => d.blocks).find((b) => b.type === 'decide');
 	decide.pick = 'z'; // no option has that key
 	trip.DAYS[0].blocks[0].sum = 'one language only';
@@ -35,6 +37,7 @@ test('the contract catches a broken trip', () => {
 		'd4: motif "skiing in the morning" must be one of snowboard\\|',
 		'TRIP.sky "aurora" must be one of live\\|globe\\|pile\\|off',
 		'TRIP.walkPace must be a number from 1 to 2',
+		'd5: photos must be a list of photo ids',
 		'pick "z" must be the k of one of its options',
 		'd1 \\w+ block: sum must be \\[zh, en\\]',
 		'TRIP.pax missing',
