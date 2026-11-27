@@ -26,14 +26,20 @@ test('straight-line distance comes from one model (Fit.distKm)', () => {
 });
 
 // Walking counted ×1.4 for seniors only in the add sheet: stop cards, the metro planner and the nearby lists showed a fit
-// adult's pace, from three formulas (75 m and 80 m a minute), until one model took over (first trip).
+// adult's pace, from three formulas (75 m and 80 m a minute), until one model took over (first trip). A group of fit
+// adults sets its own pace (TRIP.walkPace, ADR-20261127-trip-walk-pace), still read in one place.
 test('walking minutes come from one model, at the group pace (walkMinM, GROUP_WALK)', () => {
-	const all = src;
+	const core = path.join(ROOT, 'engine', 'src', 'core');
+	const all = [...src, ...fs.readdirSync(core).map((f) => [f, fs.readFileSync(path.join(core, f), 'utf8')])];
 	const formulas = all.flatMap(([f, s]) => [...s.matchAll(/\*\s*1\.3\)?\s*\/\s*(75|80)\b/g)].map(() => f));
-	assert.deepEqual(formulas, ['02-helpers.js'], 'only walkMinM turns metres into walking minutes');
-	const factors = all.flatMap(([f, s]) => [...s.matchAll(/\b(GROUP_WALK|WW)\s*=\s*[\d.]+/g)].map(() => f));
-	assert.deepEqual(factors, ['02-helpers.js'], 'the group pace is set once');
+	assert.deepEqual(formulas, ['way.mjs'], 'only Way.walkMin turns metres into walking minutes');
+	// the pace is set once, from the trip; its default is one number, in Way
+	const sets = all.flatMap(([f, s]) => [...s.matchAll(/\b(GROUP_WALK|WW)\s*=[^=]/g)].map(() => f));
+	assert.deepEqual(sets, ['02-helpers.js'], 'the group pace is set once');
+	assert.match(src.find(([f]) => f === '02-helpers.js')[1], /const GROUP_WALK = Way\.paceOf\(TRIP\.walkPace\);/, 'from the trip');
+	const literal = all.flatMap(([f, s]) => [...s.matchAll(/\b(GROUP_WALK|WW|\w*PACE)\s*=\s*[\d.]+/g)].map((m) => `${f}: ${m[0]}`));
+	assert.deepEqual(literal, ['way.mjs: DEFAULT_PACE = 1.4'], 'one default pace, in Way');
 	// Google's minutes (a station's walk, a leg's) are never printed raw: a walk gets the group pace, a ride keeps its own
-	const raw = all.flatMap(([f, s]) => [...s.matchAll(/\$\{(m|t)\.min\}\s?(分|min\b)/g)].map((m) => `${f}: ${m[0]}`));
+	const raw = src.flatMap(([f, s]) => [...s.matchAll(/\$\{(m|t)\.min\}\s?(分|min\b)/g)].map((m) => `${f}: ${m[0]}`));
 	assert.deepEqual(raw, [], "a Google walking time shown at a fit adult's pace");
 });

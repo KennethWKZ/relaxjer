@@ -220,7 +220,7 @@ same; only the colours and the drawings change. Without one, the page is the sky
 - **The time:** a suggestion to start from (the next full hour today, an hour into the free time, noon, or the gap
   after the "+" stop), in 15-minute steps.
 - **Getting there:** the sheet works out the trip from the stop before (or from where you are, for the next few hours
-  today): the distance, and minutes walking (counted ×1.4 for seniors), by taxi (hailing one included, the same
+  today): the distance, and minutes walking (at the group's pace: 40 % longer than Google for seniors, unless the trip sets its own), by taxi (hailing one included, the same
   minutes the added stop shows later) and by metro. A time too early to get there says so and offers "Use HH:MM",
   only while that time still fits before the next stop and, on the leaving day, before the group must leave; the
   suggested time moves to it by itself the same way. A time already past today says so. It also says when to leave
@@ -316,7 +316,7 @@ itself is the planner's: it's in the trip's data, and nobody makes one on the pa
   hotel), as Google measures it: "From the hotel: 800 m · ~14 min walk", the walk at the group's pace, or the minutes
   by car past a 20-minute walk. Then the day it fits best (the day whose stop is nearest, preferring one with free
   time after that stop; never a day it's closed, a day that already has it, or a day that's over), how far that stop
-  is and the walk or taxi there (walking ×1.4), and a warning when it's far from every day. Below, the other days'
+  is and the walk or taxi there (walking at the group's pace), and a warning when it's far from every day. Below, the other days'
   nearest stops, each one tap from adding. "Add to Day N" opens the add sheet on that day, right after that stop.
   Details opens the place's own view. "Back to results" (or the phone's Back) returns to the list where it was.
   The days' distances are in a straight line and their times are estimates. Only the line by road asks Google, once
@@ -479,7 +479,7 @@ approved (ADR-20261127-sync-approval). Trips already syncing keep the older way 
 Large text that follows the phone's own text size, buttons no smaller than a fingertip, high contrast in sunlight (and
 solid bars and edged links when the phone asks for more contrast), solid surfaces when it asks for less transparency,
 no sliding when it asks for less motion, a clear focus ring and screen-reader labels, every walking time counted ×1.4
-for seniors (stop cards, the add sheet, the metro planner, the nearby lists and Google's walking minutes alike), a taxi first for long legs, one part of the trip on screen at a time with big Previous day and Next day buttons, and Back after every jump. Redrawing the page (a new language, a push-back, an added stop) keeps you on
+for seniors (stop cards, the add sheet, the metro planner, the nearby lists and Google's walking minutes alike; a group of fit adults sets `TRIP.walkPace: 1` for Google's own times), a taxi first for long legs, one part of the trip on screen at a time with big Previous day and Next day buttons, and Back after every jump. Redrawing the page (a new language, a push-back, an added stop) keeps you on
 the same spot.
 
 ## Private and safe
@@ -520,6 +520,7 @@ Everything above that isn't listed here is on every page. The fields are in
 | The sky over each view (live weather, snow globe, snow piles), its pause                   | `TRIP.sky` in a look that has a sky (Snow Light Path's own is live weather); the weather from the forecast (`forecast_spots`, `forecastSpot`), light snow on a day without one; still, with no pause, when less motion is asked for      |
 | The sky behind the page and the sunrise at its end                                         | the look (Snow Light Path draws one) with `TRIP.sky: 'off'`; it follows the scroll where the browser can, and holds a still night with less motion asked for                                                                             |
 | The planner's preview panel (sky, weather, snow, theme, clock)                             | building with `--preview` (`pnpm build --trip … --preview`): a separate `<fileName>-preview.html` to compare looks on, never for publishing; its choices are never saved or synced                                                       |
+| Walking times at the group's pace (seniors' by default, or Google's own)                   | `TRIP.walkPace`: left out, every walking time is 40 % longer than Google's for seniors; `1` shows Google's own times for a group of fit adults; up to `2` for a slower group                                                             |
 | The day's activity mark, its picture, and the icon's                                       | `DAYS[i].motif` (one of the names in `trip-format.md`); the picture when the look has drawn that mark, moving when the look moves it (never with less motion asked for); the icon shows the one on the most days, when the look draws it |
 | The offline transit planner, station pins                                                  | the city's metro data (`mrt.json`, from the data refresh)                                                                                                                                                                                |
 | Fixed times, flight-tied times                                                             | `fixed: true`, `rel` on a stop                                                                                                                                                                                                           |

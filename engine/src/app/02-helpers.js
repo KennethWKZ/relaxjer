@@ -55,10 +55,11 @@ const cvHtml = (h, orig = true) =>
 		: h;
 /** plain text (an SVG label or description, a tag inside a list line) the same way, without markup */
 const cvPlain = (t) => (homeFirst ? Money.toHome(t, CUR.sym, rate, CUR.home) : t);
-// walking, one model: 75 m a minute on streets 1.3× the straight line, at the group's pace (seniors walk ×1.4, AGENTS.md).
-// Every walking time the page shows is at that pace, Google's walking minutes too; a ride's minutes stay as they are.
-const GROUP_WALK = 1.4;
-const walkMinM = (m) => ((m * 1.3) / 75) * GROUP_WALK; // metres in a straight line → minutes, at the group's pace
+// walking, one model (core/way.mjs walkMin), at the group's pace: the trip's TRIP.walkPace, else the seniors' pace
+// (ADR-20261127-trip-walk-pace). Every walking time the page shows is at that pace, Google's walking minutes too; a
+// ride's minutes stay as they are.
+const GROUP_WALK = Way.paceOf(TRIP.walkPace);
+const walkMinM = (m) => Way.walkMin(m, GROUP_WALK); // metres in a straight line → minutes, at the group's pace
 // number ranges and phone numbers stay on one line (core/wrap.mjs), in lists, hours, tables, notes and the airport
 // tiles' narrow cells. keepRanges takes escaped text; escText is esc for text people read (never an attribute).
 const keepRanges = Wrap.keepRanges;

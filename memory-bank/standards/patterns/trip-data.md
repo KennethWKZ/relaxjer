@@ -13,7 +13,9 @@ data must pass in `tests/support/trip-contract.mjs`. `examples/demo-trip/data.js
 - **Fixed times never move.** Anything booked or timed (a flight, a show, a charter, a reservation) is `fixed: true`.
   Times tied to a flight use `rel: { arr: [a, b] }` or `{ dep: [a, b] }`, so a typed delay moves them.
 - **A comfortable pace beats sights per day.** Leave slack around fixed items, and give each day a rain plan.
-- **Seniors:** count walking time ×1.4, and suggest a taxi first for long legs.
+- **Seniors:** count walking time ×1.4, and suggest a taxi first for long legs. The page does this by itself; a group
+  of fit adults only sets `TRIP.walkPace: 1` for Google's own walking times
+  ([ADR-20261127-trip-walk-pace](../decisions/ADR-20261127-trip-walk-pace.md)).
 - **Decisions show their rule:** when to go, when to skip, and the fallback.
 - **Every number is the plan's own, or marked as an estimate** ("≈", "(估)"). Don't invent a budget the planner didn't
   give.
