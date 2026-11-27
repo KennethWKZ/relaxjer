@@ -129,7 +129,7 @@ const drinkHowTo = () =>
 function secEat() {
 	return `<section class="sec" id="eat" data-sec="eat">
       <h2 class="sec-title">${icon('food')}${Z('吃喝', 'Food & drinks')}</h2>
-      <p class="sec-lede">${Z('按一下，按手机位置列出附近今天有开的早餐、午餐、晚餐、宵夜、小吃。', 'One tap: nearest places open today (breakfast, lunch, dinner, late-night, snacks) by phone location.')}</p>
+      <p class="sec-lede">${Z('按一下，按你的位置列出附近今天有开的早餐、午餐、晚餐、宵夜、小吃。', 'One tap: nearest places open today (breakfast, lunch, dinner, late-night, snacks) by your location.')}</p>
       <div class="links-row"><button type="button" class="go-btn" data-near>${icon('pin')}${Z('找我附近吃的', 'Find food near me')}</button><button type="button" class="go-btn ghost" data-near="drink">${icon('boba')}${Z('附近饮料', 'Drinks near me')}</button><button type="button" class="go-btn ghost" data-near="rest">${icon('coffee')}${Z('坐下歇脚', 'Sit & rest')}</button><button type="button" class="go-btn ghost" data-near="wc">${icon('wc')}${Z('附近厕所', 'Toilets near me')}</button></div>
       ${drinkHowTo()}
       ${foodBlock(['bk-hotel'], ['酒店附近早餐（每天都可以）', 'Breakfast near the hotel (any day)'])}
@@ -288,10 +288,10 @@ function secChecklist() {
       <p class="sec-lede">${
 				SHARED_GROUPS.length
 					? Z(
-							'标着「全组」的清单，勾选会出现在每个人的手机上；其他的只保存在这台手机，各自勾。',
-							'Ticks in lists marked Shared show on everyone’s phone; the rest stay on this phone, per person.',
+							'标着「全组」的清单，勾选会出现在每个人的页面上；其他的只保存在这台设备，各自勾。',
+							'Ticks in lists marked Shared show on everyone’s page; the rest stay on this device, per person.',
 						)
-					: Z('勾选只保存在这台手机上；每个人各自勾。', 'Ticks stay on this phone only; per person.')
+					: Z('勾选只保存在这台设备上；每个人各自勾。', 'Ticks stay on this device only; per person.')
 			}</p>
       <div class="progress"><span id="prog-text"></span><div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div></div>
       ${groups.map((g) => `<h3 class="sub">${fmt(g.h)}${SHARED_GROUPS.includes(g.id) ? `<span class="sync-tag">${icon('users')}${Z('全组', 'Shared')}</span>` : ''}</h3>${checkList(g.items.map((it) => ({ ...it, id: `${g.id}-${it.id}` })))}`).join('')}

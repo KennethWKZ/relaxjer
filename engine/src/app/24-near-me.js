@@ -148,7 +148,7 @@ function renderNear() {
       <div class="map-ctrl near-meals" role="group" aria-label="${Z('哪一餐', 'Which meal')}">${tabs}</div>
       ${body}
       <details class="more"><summary>${icon('pin')}${Z('换一个起点', 'Start from somewhere else')}${icon('chev', 'chev')}</summary><div class="more-body"><div class="pills">${`<button type="button" class="tag pinbtn" data-near-gps>${Z('我的位置', 'My location')}</button>`}${starts.map((pid) => `<button type="button" class="tag pinbtn" data-near-from="${pid}">${esc(L(PLACES[pid].name))}</button>`).join('')}</div></div></details>
-      <p class="xsmall">${Z('位置只在本机算距离，不上传。距离为直线，步行时间为估计。', 'Location used on this phone only for distance; never uploaded. Straight-line distances; walking times estimated.')}</p>`;
+      <p class="xsmall">${Z('位置只在本机算距离，不上传。距离为直线，步行时间为估计。', 'Location used on this device only for distance; never uploaded. Straight-line distances; walking times estimated.')}</p>`;
 }
 function nearFrom(pid, why) {
 	near.from = placeLL(pid);

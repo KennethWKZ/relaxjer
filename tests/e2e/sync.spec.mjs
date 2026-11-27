@@ -284,13 +284,13 @@ test.describe('group sync', { tag: '@demo' }, () => {
 		await expect(sheet(page).locator('.sync-row', { hasText: 'Ana' }).locator('.sync-badge')).toHaveText('Blocked');
 		// a blocked phone folds away at the end of The group, out of the people using the trip
 		const fold = sheet(page).locator('[data-fold="blocked"]');
-		await expect(fold.locator('summary')).toContainText('Blocked phones (1)');
+		await expect(fold.locator('summary')).toContainText('Blocked devices (1)');
 		await expect(sheet(page).locator('.sync-row', { hasText: 'Ana' }), 'folded until opened').toBeHidden();
 		await sheet(page).locator('[data-close]').click();
 		await expect(box(page, 'before-charter'), 'its last tick goes back').not.toBeChecked();
 		await expect(page.locator('#d3 .stop.mine', { hasText: 'Demo Tester Stop' })).toHaveCount(0);
 
-		await expect(b.page.locator('#syncBar'), 'the blocked phone is told').toContainText('This phone is blocked', { timeout: 15_000 });
+		await expect(b.page.locator('#syncBar'), 'the blocked device is told').toContainText('This device is blocked', { timeout: 15_000 });
 		await expect(b.page.locator('#d3 .stop.mine', { hasText: 'Demo Tester Stop' })).toHaveCount(0);
 		// what the blocked phone does next waits on it: its outbox holds it, and the database gets nothing new
 		const before = Object.keys((await stored(request, testInfo)) || {}).length;
@@ -806,7 +806,7 @@ test.describe('group sync with approval', { tag: '@demo' }, () => {
 		const uid = await uidOn(b.page);
 		await expect.poll(async () => (await approvalStored(request, testInfo, `devices/${uid}`))?.state, { timeout: 15_000 }).toBe('blocked');
 
-		await expect(bar(b.page), 'the blocked device is told').toContainText('This phone is blocked', { timeout: 15_000 });
+		await expect(bar(b.page), 'the blocked device is told').toContainText('This device is blocked', { timeout: 15_000 });
 		// what it does next waits on it; the database takes nothing from it
 		const before = Object.keys((await approvalStored(request, testInfo)) || {}).length;
 		await openApproval(b.page, '#checklist');

@@ -821,8 +821,8 @@ function syncWelcomeHTML() {
 							'Group sync is on: give your name, and once a planner lets this device in, stops you add and times you change show on everyone’s devices. Until then they wait on this one.',
 						)
 					: Z(
-							'全组同步已开：你加的行程、改的时间会出现在大家的手机上。写上名字，大家就知道是谁改的。',
-							'Group sync is on: stops you add and times you change show on everyone’s phone. Your name tells them who changed what.',
+							'全组同步已开：你加的行程、改的时间会出现在大家的页面上。写上名字，大家就知道是谁改的。',
+							'Group sync is on: stops you add and times you change show on everyone’s page. Your name tells them who changed what.',
 						)
 			}</p>
       <label class="sync-name">${Z('你的名字', 'Your name')}<input type="text" data-sync-name data-welcome-name maxlength="24" autocomplete="nickname" enterkeyhint="done"></label>
@@ -869,7 +869,7 @@ function syncState() {
 			waiting: n ? Z(`${n} 个改动等网络`, `${n} change${n > 1 ? 's' : ''} waiting for a connection`) : Z('等网络', 'waiting for a connection'),
 			refused: Z('数据库不收这个改动', 'the database refused a change'),
 			ended: Z('已停止（规划人结束了同步）', 'stopped: the planner ended it'),
-			blocked: Z('规划人停用了这台手机：改动只留在这里', 'a planner blocked this phone: its changes stay on it'),
+			blocked: Z('规划人停用了这台设备：改动只留在这里', 'a planner blocked this device: its changes stay on it'),
 			unsupported: Z('这个浏览器用不了', 'not available in this browser'),
 			// an approval trip, before a planner let this device in
 			none: Z('写上名字，请规划人让这台设备加入', 'add your name to ask a planner to let this device in'),
@@ -943,7 +943,7 @@ function syncSheet() {
 							)
 						: Z(
 								'密码是设置同步的人定的；其他规划人也可以直接把你设为规划人。',
-								'The person who set up sync chose it; a planner can also make you one from their phone.',
+								'The person who set up sync chose it; a planner can also make you one from their device.',
 							)
 				}</p></details>`
 			: '';
@@ -959,7 +959,7 @@ function syncSheet() {
 			: '';
 	return `<div data-sync-sheet><h3 class="spots-h">${icon('users')}${Z('全组同步', 'Group sync')}</h3>
       <p class="sync-state" data-sync-state role="status">${Cap(syncState())}</p>
-      <p class="small">${Z(`加的行程、往后推的时间、改过的航班时间${lists ? `和${lists}的勾选` : ''}，会出现在全组每个人的手机上。语言、主题、其他勾选只留在这台手机。`, `Added stops, pushed-back times and changed flight times${lists ? `, and ticks in ${lists},` : ''} show up on everyone’s phone. Language, theme and other ticks stay on this one.`)}</p>
+      <p class="small">${Z(`加的行程、往后推的时间、改过的航班时间${lists ? `和${lists}的勾选` : ''}，会出现在全组每个人的页面上。语言、主题、其他勾选只留在这台设备。`, `Added stops, pushed-back times and changed flight times${lists ? `, and ticks in ${lists},` : ''} show up on everyone’s page. Language, theme and other ticks stay on this one.`)}</p>
       ${nameBox}${waitBox}
       ${lead ? `<p class="sync-role">${icon('check')}${Z('你是规划人：可以改、删任何人加的行程，也可以把别人设为规划人', 'You’re a planner: you can change or remove anyone’s stops, and make others planners')}</p>` : claimBox}
       <div class="links-row"><button type="button" class="go-btn sync-now" data-sync-now>${icon('sync')}${Z('现在同步', 'Sync now')}</button></div>
@@ -1122,9 +1122,9 @@ function syncGroupHTML(m, lead) {
 				: '',
 			lead && planner && !mine ? `<button type="button" class="mlink" data-role-drop="${esc(dev)}">${Z('取消规划人', 'Not a planner')}</button>` : '',
 			lead && !mine && !isBlocked
-				? `<button type="button" class="mlink danger" data-block-set="${esc(dev)}">${icon('x')}${Z('停用这台手机', 'Block this phone')}</button>`
+				? `<button type="button" class="mlink danger" data-block-set="${esc(dev)}">${icon('x')}${Z('停用这台设备', 'Block this device')}</button>`
 				: '',
-			lead && isBlocked ? `<button type="button" class="mlink" data-block-drop="${esc(dev)}">${Z('恢复这台手机', 'Unblock')}</button>` : '',
+			lead && isBlocked ? `<button type="button" class="mlink" data-block-drop="${esc(dev)}">${Z('恢复这台设备', 'Unblock')}</button>` : '',
 		].join('');
 		return `<li class="sync-row" data-sync-dev="${esc(dev)}"><span><b>${esc(label.text)}</b>${label.me ? `<span class="sync-badge is-me">${Z('这台', 'This one')}</span>` : ''}${planner ? `<span class="sync-badge">${Z('规划人', 'Planner')}</span>` : ''}${isBlocked ? `<span class="sync-badge is-blocked">${Z('已停用', 'Blocked')}</span>` : ''}<span class="xsmall muted sync-row-sub">${esc(sub.join(' · '))}</span></span>${acts ? `<span class="sync-acts">${acts}</span>` : ''}${fix(dev)}</li>`;
 	};
@@ -1135,7 +1135,7 @@ function syncGroupHTML(m, lead) {
 		return `<li class="sync-person"><p class="sync-person-h"><b>${esc(nameOf(p.devs[0]))}</b><span class="xsmall muted"> · ${Z(`${k} 台设备`, `${k} devices`)}</span></p><ul class="sync-list sync-devs">${devRows}</ul></li>`;
 	});
 	const fold = blocked.length
-		? `<details class="sync-code sync-blocked" data-fold="blocked"><summary>${icon('x')}${Z(`已停用的手机（${blocked.length}）`, `Blocked phones (${blocked.length})`)}${icon('chev', 'chev')}</summary><ul class="sync-list">${blocked.map((dev) => row(dev, { text: nameOf(dev), kit: true })).join('')}</ul></details>`
+		? `<details class="sync-code sync-blocked" data-fold="blocked"><summary>${icon('x')}${Z(`已停用的设备（${blocked.length}）`, `Blocked devices (${blocked.length})`)}${icon('chev', 'chev')}</summary><ul class="sync-list">${blocked.map((dev) => row(dev, { text: nameOf(dev), kit: true })).join('')}</ul></details>`
 		: '';
 	return `<div class="sync-part"><p class="sub-h">${Z('全组', 'The group')}</p><ul class="sync-list">${items.join('')}</ul>${fold}</div>`;
 }
@@ -1176,7 +1176,7 @@ document.addEventListener('click', (e) => {
 		if (
 			!confirm(
 				Z(
-					`停用${nameOf(ask)}的加入请求？这台设备看不到也改不了全组的改动。之后可以在「已停用的手机」里恢复。`,
+					`停用${nameOf(ask)}的加入请求？这台设备看不到也改不了全组的改动。之后可以在「已停用的设备」里恢复。`,
 					`Block ${nameOf(ask)}’s join request? That device won’t see or change the group’s changes. You can unblock it later.`,
 				),
 			)
@@ -1246,7 +1246,7 @@ function syncBarPaint() {
 	el.innerHTML = !on
 		? ''
 		: blocked
-			? `${icon('alert')}<span><b>${Z('这台手机已停用', 'This phone is blocked')}</b> · ${Z('规划人停用了它：你的改动只留在这台手机', 'a planner blocked it: your changes stay on this phone')}</span>`
+			? `${icon('alert')}<span><b>${Z('这台设备已停用', 'This device is blocked')}</b> · ${Z('规划人停用了它：你的改动只留在这台设备', 'a planner blocked it: your changes stay on this device')}</span>`
 			: waiting
 				? `${icon('clock')}<span data-sync-wait><b>${Z('等规划人', 'Waiting for a planner')}</b>${Z('', ' ')}${Z('让这台设备加入全组的改动', 'to let this device into the group’s changes')}${syncGate.code ? ` · ${Z('加入码', 'join code')} <b>${esc(syncGate.code)}</b>` : ''}</span><button type="button" class="text-btn" data-sync-open>${Z('详情', 'Details')}</button>`
 				: SYNC_GATE
@@ -1270,7 +1270,7 @@ function syncNow(b) {
 	if (!syncApi) return toast(syncLabel());
 	if (syncNowBusy) return;
 	if (navigator.onLine === false)
-		return toast(Z('没有网络：改动先存在这台手机，有网络会自动同步', 'Offline: changes wait on this phone and sync by themselves once it’s back'));
+		return toast(Z('没有网络：改动先存在这台设备，有网络会自动同步', 'Offline: changes wait on this device and sync by themselves once it’s back'));
 	const show = (ic, text, state) => {
 		if (!b || !b.isConnected) return;
 		b.innerHTML = `${icon(ic)}${text}`;
@@ -1322,7 +1322,7 @@ function syncLine([rid, v, ver], z = Z) {
 	const id = rid.slice(rid.indexOf(':') + 1);
 	const kind = rid.slice(0, rid.indexOf(':'));
 	const dayN = (d) => (d ? `Day ${d.n}` : '');
-	const nameOf = (dev) => (store.get('people', {}) || {})[dev] || z('一台手机', 'a phone');
+	const nameOf = (dev) => (store.get('people', {}) || {})[dev] || z('一台设备', 'a device');
 	if (kind === 'stop') {
 		const old = MINE[id];
 		return v

@@ -206,7 +206,7 @@ function geoAsk() {
 		);
 	return card(
 		Z('打开定位，行程会提醒你是不是晚了', 'Turn on location so the plan can tell you when you’re running late'),
-		Z('地图也会显示你在哪。位置只留在这支手机上。', 'The map also shows where you are. Your position stays on this phone.'),
+		Z('地图也会显示你在哪。位置只留在这台设备上。', 'The map also shows where you are. Your position stays on this device.'),
 		turnOn,
 	);
 }
@@ -265,7 +265,7 @@ function geoHelp(kind) {
 				];
 	openSheet(`<div class="home-guide"><p class="pop-name">${icon('pin')}${Z('打开定位', 'Turn on location')}</p>
       <ol class="home-steps">${steps.map((x) => `<li>${x}</li>`).join('')}</ol>
-      <p class="small">${Z('位置只用来在地图上显示你、检查行程进度，不会传出这支手机。', 'Your position is only used to show you on the map and check the plan; it never leaves this phone.')}</p></div>`);
+      <p class="small">${Z('位置只用来在地图上显示你、检查行程进度，不会传出这台设备。', 'Your position is only used to show you on the map and check the plan; it never leaves this device.')}</p></div>`);
 }
 const meDot = () => {
 	const d = document.createElement('div');
