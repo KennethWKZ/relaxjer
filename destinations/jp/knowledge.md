@@ -54,6 +54,49 @@ trip. Lessons that hold for every country live in [`knowledge/`](../../knowledge
   pack has no `bikeShare`.
 - **Four people fill one taxi**, without big suitcases: with bags, a jumbo taxi or a charter van.
 
+## Renting a car in Hokkaido
+
+Learned while pricing a winter one-way rental, Sapporo to Asahikawa, for four people with eight cases. Checked
+2026-11-27 unless a line says otherwise; prices move with the season, so quote again for each trip.
+
+- **Luggage decides the model, before price.** Honda Rent-a-Lease Sapporo's own test: a Step Wagon with its third row
+  folded into the floor takes about 3 large and 2–3 medium cases in the boot (tested 2023-05-20,
+  https://www.hondarent.com/blog/knowledge/rentalcar-how-many-suitcases.html). The rest ride on the second row. The
+  Nissan Serena, Toyota Noah and Voxy flip their third row up against the sides instead, so their boot is narrower and
+  takes fewer (https://response.jp/article/2023/06/20/372313.html). Ask how many cases and what size at intake, then
+  pick the model.
+- **"Or similar" isn't a promise.** Booking sites list "Step Wagon or similar", and the similar cars (Serena, Noah,
+  Voxy) are often the same price. Before booking, ask the rental company to confirm the model and 4WD; a guaranteed
+  model is worth paying a little more for when the luggage only fits one car.
+- **Don't filter seats tightly.** A 7-seat Step Wagon (two separate middle seats instead of a bench) was much cheaper
+  than the 8-seat on the same site and dates, and an 8–9 seat filter hid it. Check the seat band next to the one you
+  need. With two middle seats, the small cases go in the aisle and footwells.
+- **Price from the offer's details page, not the list.** On Klook, each offer's "Select" opens a details page (in a
+  new tab) with every insurance package and the split between paying online and paying at pick-up, all without
+  booking. Stop before the driver's details form. Read there: the real operator (an "Alamo" listing was run by Nippon
+  Rent-A-Car), the deposit, whether winter tyres are an add-on to tick (¥5,280 for 8 days on one offer) or must be
+  reserved separately, the free-cancellation date, and what the pay-at-pick-up figure includes: on one ORIX offer it
+  looked to include the ¥16,500 one-way fee.
+- **Compare like for like:** full cover, winter tyres and the one-way fee in every option, cheapest first. For 8 days,
+  one way, a Step Wagon came to about ¥141,800 with ORIX through Klook (Klook Protect, no deposit), about
+  ¥187,500 with Alamo through Klook (deposit USD 500–3,000), and ¥166,500–195,000 with Honda Rent a Car directly
+  (normal to high-season rate, ¥1,980 a day for full cover, ¥11,000 one-way to Asahikawa; https://www.hondarent.com/en/).
+- **Book early in winter.** Honda Rent a Car direct replied that it had no Step Wagon left for a January week asked
+  about in late November. Klook's ORIX offer allowed free cancellation until a few days before pick-up, so booking early
+  costs little.
+- **ETC cards:** Honda Rent a Car says to bring your own; ORIX and most others lend one (about ¥330–550). Ask when
+  booking, because the Expressway Pass needs a rental company's ETC card.
+- **Hokkaido Expressway Pass:** a flat rate for NEXCO East's Hokkaido expressways, 4 to 8 days (4 days ¥7,700). It is
+  sold only at the counters of designated rental companies, with a passport and the driving permit: ORIX, Nippon,
+  Nissan, Toyota, Times, Honda, OTS and others, but not Alamo, Enterprise or National under their own names. Check
+  the company against NEXCO's list before booking (https://en.driveplaza.com/drawari/hokkaido_expass/shoplist.html ;
+  terms, https://en.driveplaza.com/assets/pdf/drawari/hokkaido_expass/policy_en.pdf). It pays only when the drives
+  are long: price each day's tolls first on NEXCO's route search (https://www.driveplaza.com/dp/SearchTop, weekday
+  daytime ETC). On one plan with two expressway days, per-trip tolls came to ¥7,950, only ¥250 more than the pass.
+- **Hand the company a request in Japanese and English** with the model, 4WD, winter tyres, the Expressway Pass and
+  an ETC card, and the pick-up and return shops. Pick-up shops near a station are often a short walk away: two drivers
+  can collect the car without the bags while the others wait with them at the hotel's entrance.
+
 ## Sights with look-alikes and traps (Hokkaido)
 
 - **Biei's "lone tree" usually means the Christmas Tree** (クリスマスツリーの木): one narrow spruce alone in a field. The
