@@ -202,6 +202,11 @@ const DAYS = [
 						name: ['士林夜市', 'Shilin Night Market'],
 						cost: ['NT$1,200–1,800 / 五人', 'NT$1,200–1,800 for 5'],
 						place: 'shilin',
+						// the option's own route; the demo has no Google leg times, so each leg carries the trip's own minutes (demo)
+						route: [
+							['hotel', 'shilin', 'transit', '18:00', 25],
+							['shilin', 'hotel', 'transit', 25],
+						],
 						when: ['精神还好就去', 'If everyone still has energy'],
 						list: [
 							['小吃为主，边走边吃', 'Street food, eat as you walk'],

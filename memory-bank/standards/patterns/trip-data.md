@@ -34,6 +34,11 @@ data must pass in `tests/support/trip-contract.mjs`. `examples/demo-trip/data.js
   door-to-door minutes from the operator's timetable, `['station', 'airport', 'transit', 37]`, and put the line, fare
   and source in the stop's note
   ([ADR-20261126-own-leg-minutes](../decisions/ADR-20261126-own-leg-minutes.md)).
+- **An option that goes somewhere carries its own route.** When option A of a `decide` card is a drive or a ride the
+  day's route doesn't have, give the option a `route` (the day route's legs) instead of writing the minutes into its
+  text: the refresh times it like the day's, and its card shows the line. Give its first leg an `'HH:MM'`, since an
+  option has no schedule to read a departure from
+  ([ADR-20261127-decide-option-route](../decisions/ADR-20261127-decide-option-route.md)).
 - **An errand with a closing time goes on a short day**, in daylight, not after a long day out, and it gets a fallback:
   a split option for who fetches it, or the shop delivering. The first trip moved a bike pickup off its day-trip
   evening once the traffic times came back.
@@ -96,3 +101,4 @@ Each rule above rests on a decision. The decision and its reasons live in its AD
 - [ADR-20261001-resync-cost-guard](../decisions/ADR-20261001-resync-cost-guard.md): A data refresh answers from the cache first and calls Google again only for failures that may pass on retry, never for a 404.
 - [ADR-20261007-traffic-aware-drives](../decisions/ADR-20261007-traffic-aware-drives.md): A drive leg may carry an HH:MM time, and a drive still ahead uses Google's traffic-aware estimate for that time.
 - [ADR-20261126-own-leg-minutes](../decisions/ADR-20261126-own-leg-minutes.md): A route leg may end with the trip's own minutes, shown only when Google has no time for it; Japan's transit is never asked.
+- [ADR-20261127-decide-option-route](../decisions/ADR-20261127-decide-option-route.md): A decide option may carry its own route; its legs are stored as <day>:<k>:<i> in geo.json, apart from the day's, and drawn on its card.

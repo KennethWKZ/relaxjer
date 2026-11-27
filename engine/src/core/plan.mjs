@@ -171,18 +171,28 @@ export function legCheck({ at, from, go, next, onward }) {
 }
 
 /**
- * A route leg's stored times (geo.json legs["<day>:<i>"], written by the data refresh) for the leg the day has now, only
+ * The key prefix a route's legs are stored under in geo.json `legs`: the day's id for the day's own route (`d3:0`,
+ * `d3:1`…), and `<day>:<k>` for a decide option's (`d3:b:0`…). The data refresh writes the same keys (pipeline/lib/trip.py).
+ */
+export const legScope = (day, k) => (k == null ? day : `${day}:${k}`);
+
+/**
+ * A route leg's stored times (geo.json legs["<day>:<i>"], or legs["<day>:<k>:<i>"] for a decide option's route, written by the data refresh) for the leg the day has now, only
  * while a stored leg of that day still joins the same two places the same way. One stored at another position counts
  * too, so removing or adding a stop earlier in the day keeps the later legs' times. A leg the day didn't have at the
  * refresh shows no time until the next one, never another leg's. A leg stored before the refresh recorded its ends (no
  * `from`) is taken as it is, at its own position only. A leg Google can't time (a train in Japan) shows the minutes the
  * trip gives it, the number at the end of the route leg (`[from, to, mode, 'HH:MM'?, minutes?]`), as `{ min, own: true }`.
+ * `scope` is the day's id for the day's own route, or `legScope(day, k)` for a decide option's (ADR-20261127-decide-option-route):
+ * the fallback only reads keys of that scope followed by a bare leg number, so a day never takes an option's leg, nor
+ * an option the day's or another option's.
  */
-export function storedLeg(legs, day, i, [from, to, mode, ...rest]) {
+export function storedLeg(legs, scope, i, [from, to, mode, ...rest]) {
 	const same = (t) => t.from === from && t.to === to && t.mode === mode;
-	const t = legs && legs[`${day}:${i}`];
+	const t = legs && legs[`${scope}:${i}`];
 	if (t && (t.from == null || same(t))) return t;
-	for (const [k, o] of Object.entries(legs || {})) if (k.startsWith(`${day}:`) && o.from != null && same(o)) return o;
+	const pre = `${scope}:`;
+	for (const [k, o] of Object.entries(legs || {})) if (k.startsWith(pre) && /^\d+$/.test(k.slice(pre.length)) && o.from != null && same(o)) return o;
 	const own = rest.find((x) => typeof x === 'number');
 	return own > 0 ? { min: own, own: true } : null;
 }

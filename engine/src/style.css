@@ -1591,6 +1591,11 @@ ul.list li::marker {
 	font-size: var(--fs-sm);
 	color: var(--ink-2);
 }
+/* an option's own route: the day route's line, in the option's text column */
+.opt .opt-route {
+	grid-column: 2;
+	margin: 2px 0 0;
+}
 
 /* details */
 details.more {

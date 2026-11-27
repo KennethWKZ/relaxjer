@@ -40,6 +40,32 @@ test('the contract catches a broken trip', () => {
 		assert.match(problems, new RegExp(want));
 });
 
+test("the contract checks a decide option's own route like a day's", () => {
+	const trip = loadTrip(DEMO_TRIP);
+	const day = trip.DAYS.find((d) => d.blocks.some((b) => b.type === 'decide'));
+	const decide = day.blocks.find((b) => b.type === 'decide');
+	const [a, b] = decide.opts;
+	a.route = [
+		['hotel', 'atlantis', 'walking'], // no such place
+		['hotel', 'hotel', 'teleport'], // no such way
+	];
+	b.route = [['hotel', 'hotel', 'driving', '9am']]; // the time is 'HH:MM'
+	const extra = { type: 'decide', h: ['二', 'Two'], opts: [{ ...b, k: b.k, route: [['hotel', 'hotel', 'walking']] }] }; // the same k twice
+	const odd = { type: 'decide', h: ['三', 'Three'], opts: [{ ...b, k: 'x:1', route: [['hotel', 'hotel', 'walking']] }] }; // a k that breaks the key
+	const empty = { type: 'decide', h: ['四', 'Four'], opts: [{ ...b, k: 'e', route: [] }] };
+	day.blocks.push(extra, odd, empty);
+	const problems = checkTrip(trip).join('\n');
+	for (const want of [
+		`${day.id} decide option "${a.k}" route leg 0: needs`,
+		`${day.id} decide option "${a.k}" route leg 1: needs`,
+		`${day.id} decide option "${b.k}" route leg 0: needs`,
+		`another option of ${day.id} with a route has the same k`,
+		'"x:1" route: an option with a route needs a k of letters',
+		'"e" route: needs at least one leg',
+	])
+		assert.ok(problems.includes(want), `${want}\nin:\n${problems}`);
+});
+
 for (const dir of dirs) {
 	const isDemo = DEMO_TRIPS.includes(dir);
 	const at = ` (${path.relative(ROOT, dir) || dir})`;

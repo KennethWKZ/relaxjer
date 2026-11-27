@@ -388,6 +388,32 @@ test("Plan: a stored route leg's times only while it still joins the same stops"
 	assert.equal(Plan.storedLeg({}, 'd1', 0, ['a', 'b', 'driving', '16:55']), null); // an 'HH:MM' is not minutes
 });
 
+// a decide option's own route (ADR-20261127-decide-option-route) keeps its legs under `<day>:<k>:<i>`, apart from the day's
+test("Plan: a decide option's stored legs and the day's never stand in for each other", () => {
+	assert.equal(Plan.legScope('d3'), 'd3');
+	assert.equal(Plan.legScope('d3', 'b'), 'd3:b');
+	const legs = {
+		'd3:0': { min: 30, from: 'hotel', to: 'falls', mode: 'driving' },
+		'd3:b:0': { min: 25, from: 'hotel', to: 'lake', mode: 'driving' },
+		'd3:b:1': { min: 12, from: 'lake', to: 'pond', mode: 'driving' },
+		'd3:1:0': { min: 8, from: 'falls', to: 'pond', mode: 'walking' }, // an option whose k is a digit
+	};
+	const opt = (k) => Plan.legScope('d3', k);
+	assert.equal(Plan.storedLeg(legs, opt('b'), 1, ['lake', 'pond', 'driving']).min, 12);
+	assert.equal(Plan.storedLeg(legs, opt('b'), 0, ['lake', 'pond', 'driving']).min, 12); // a leg moved within the option
+	// the day never takes an option's leg, at its position or by its ends
+	assert.equal(Plan.storedLeg(legs, 'd3', 1, ['lake', 'pond', 'driving']), null);
+	assert.equal(Plan.storedLeg(legs, 'd3', 2, ['falls', 'pond', 'walking']), null);
+	// an option never takes the day's leg, nor another option's
+	assert.equal(Plan.storedLeg(legs, opt('a'), 0, ['hotel', 'falls', 'driving']), null);
+	assert.equal(Plan.storedLeg(legs, opt('a'), 0, ['hotel', 'lake', 'driving']), null);
+	assert.equal(Plan.storedLeg(legs, opt('1'), 0, ['falls', 'pond', 'walking']).min, 8);
+	assert.equal(Plan.storedLeg(legs, opt('1'), 1, ['hotel', 'falls', 'driving']), null); // 'd3:1' is the day's second leg
+	assert.equal(Plan.storedLeg(legs, 'd3', 0, ['hotel', 'falls', 'driving']).min, 30);
+	// the trip's own minutes work the same on an option's leg
+	assert.deepEqual(Plan.storedLeg(legs, opt('c'), 0, ['pond', 'inn', 'transit', '10:00', 20]), { min: 20, own: true });
+});
+
 // a made-up city on a grid: 0.01° of latitude is about 1.1 km
 const at = (dLat, dLng = 0) => ({ lat: 35 + dLat, lng: 139 + dLng });
 const PLACE = at(0);

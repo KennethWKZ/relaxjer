@@ -1,4 +1,14 @@
 /* ───────── render: blocks ───────── */
+// a decide option's own route (ADR-20261127-decide-option-route): the day route's line, with the leg times the data
+// refresh stored for this option apart from the day's, under Plan.legScope(day, k)
+const optRoute = (day, o) =>
+	routeLine(
+		Plan.legScope(day.id, o.k),
+		o.route,
+		(pid) => L(PLACES[pid].name),
+		o.mark ? Z(`${o.mark} 方案的路线`, `Route for option ${o.mark}`) : Z('这个方案的路线', 'Route for this option'),
+		true,
+	);
 function renderBlock(b, day) {
 	const places = b.places
 		? `<div class="links-row">${b.places.map((p) => `<span class="plabel">${esc(L(PLACES[p].name))}</span>${placeLinks(p, { noDriver: true })}`).join('')}</div>`
@@ -19,7 +29,7 @@ function renderBlock(b, day) {
 			return `<div class="block">${blockH(b.icon, b.h)}<div class="route">${b.stops.map((s, i) => `${i ? icon('arrow', 'arr') : ''}${s.line && !b.plain ? `<span class="line-tag ${s.line}" style="background:var(--mrt-${s.line})">${s.code ? esc(s.code) : esc(L(s.name))}</span>` : ''}${!s.isLine ? `<span>${esc(L(s.name))}</span>` : ''}`).join('')}</div>
           ${b.note ? `<p class="note">${fmt(b.note)}</p>` : ''}${b.total ? `<div style="margin-top:10px">${totalBox(b.total.amt, b.total.per, b.total.min, b.total.max, eachLine(b.total.min, b.total.max))}</div>` : ''}${b.note2 ? `<p class="note">${fmt(b.note2)}</p>` : ''}${places}${sites}</div>`;
 		case 'decide':
-			return `<div class="block">${blockH(b.icon, b.h)}<div class="decide">${b.opts.map((o) => `<div class="opt ${o.k}"><span class="opt-mark" aria-hidden="true">${esc(o.mark)}</span><p class="opt-name">${fmt(o.name)}<span class="opt-cost">${fmt(o.cost)}</span></p><p class="opt-body">${fmt(o.when)}</p>${o.list ? list(o.list) : ''}${o.place || o.site ? `<div class="links-row opt-body">${o.place ? placeLinks(o.place, { noDriver: true }) : ''}${o.site ? ext(SITES[o.site].url, L(SITES[o.site].name), 'ext') : ''}</div>` : ''}</div>`).join('')}</div>${places}${sites}</div>`;
+			return `<div class="block">${blockH(b.icon, b.h)}<div class="decide">${b.opts.map((o) => `<div class="opt ${o.k}"><span class="opt-mark" aria-hidden="true">${esc(o.mark)}</span><p class="opt-name">${fmt(o.name)}<span class="opt-cost">${fmt(o.cost)}</span></p><p class="opt-body">${fmt(o.when)}</p>${o.list ? list(o.list) : ''}${o.route ? optRoute(day, o) : ''}${o.place || o.site ? `<div class="links-row opt-body">${o.place ? placeLinks(o.place, { noDriver: true }) : ''}${o.site ? ext(SITES[o.site].url, L(SITES[o.site].name), 'ext') : ''}</div>` : ''}</div>`).join('')}</div>${places}${sites}</div>`;
 		case 'weather':
 			return `<div class="block" id="${day.id}-ride">${blockH(b.icon, b.h)}${b.flow ? rideFlow() : ''}<div class="decide">${b.opts.map(optRow).join('')}</div></div>`;
 		case 'wear':

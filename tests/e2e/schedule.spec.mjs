@@ -1,7 +1,7 @@
 // Timeline rules: fixed times never move; flight-tied times follow the flight; a push-back only suggests and stops at
 // the next fixed item.
 import { test, expect, openTrip } from '../support/fixtures.mjs';
-import { fillAll, goToView, setStored, show } from '../support/page.mjs';
+import { fillAll, goToView, optRoute, setStored, show } from '../support/page.mjs';
 /* global DAYS, GEO, SITES */
 
 // tagged @demo: stop ids, times and dates are the demo trip's
@@ -110,7 +110,8 @@ test("a route leg Google can't time shows the trip's own minutes", async ({ page
 		for (const d of DAYS)
 			for (const [i, l] of (d.route || []).entries()) {
 				const min = l.slice(3).find((x) => typeof x === 'number');
-				const stored = Object.entries(legs).some(([k, o]) => k.startsWith(`${d.id}:`) && o.from === l[0] && o.to === l[1] && o.mode === l[2]);
+				const ofDay = (k) => k.startsWith(`${d.id}:`) && /^\d+$/.test(k.slice(d.id.length + 1)); // not a decide option's '<day>:<k>:<i>'
+				const stored = Object.entries(legs).some(([k, o]) => ofDay(k) && o.from === l[0] && o.to === l[1] && o.mode === l[2]);
 				if (min && !stored && !legs[`${d.id}:${i}`]) return { day: d.id, i, min };
 			}
 		return null;
@@ -120,4 +121,43 @@ test("a route leg Google can't time shows the trip's own minutes", async ({ page
 	const leg = page.locator(`#${own.day}-route .rl-m`).nth(own.i);
 	await expect(leg.locator('small')).toHaveText(`${own.min}′`);
 	await expect(leg).toHaveAttribute('aria-label', new RegExp(`${own.min}`));
+});
+
+// a decide option's own route (ADR-20261127-decide-option-route): its card draws the day route's line, each leg with the
+// time stored for the option ('<day>:<k>:<i>' in geo.json), else the trip's own minutes, a walk at the group's pace
+test("a decide option's own route shows on its card with its legs' times", async ({ page }) => {
+	await openTrip(page);
+	const opt = await page.evaluate(() => {
+		const legs = (typeof GEO !== 'undefined' && GEO && GEO.legs) || {};
+		for (const d of DAYS)
+			for (const b of d.blocks || [])
+				for (const o of b.type === 'decide' ? b.opts : [])
+					if (o.route)
+						return {
+							scope: `${d.id}:${o.k}`,
+							legs: o.route.map((l, i) => {
+								const t = legs[`${d.id}:${o.k}:${i}`];
+								const google = t && t.from === l[0] && t.to === l[1] && t.mode === l[2] ? t.min : null;
+								const own = l.slice(3).find((x) => typeof x === 'number') || null;
+								return { mode: l[2], google, own };
+							}),
+						};
+		return null;
+	});
+	test.skip(!opt, 'no decide option on this trip has its own route');
+	const line = await show(page, optRoute(page, opt.scope));
+	await expect(line).toBeVisible();
+	await expect(line.locator('.rl-p')).toHaveCount(opt.legs.length + 1);
+	const legs = line.locator('.rl-m');
+	await expect(legs).toHaveCount(opt.legs.length);
+	for (const [i, l] of opt.legs.entries()) {
+		const small = legs.nth(i).locator('small');
+		if (l.google != null && l.mode !== 'walking') await expect(small).toHaveText(`${l.google}′`);
+		else if (l.google != null)
+			expect(parseInt(await small.textContent(), 10)).toBeGreaterThanOrEqual(l.google); // at the group's pace
+		else if (l.own) await expect(small).toHaveText(l.mode === 'walking' ? /^\d+′$/ : `${l.own}′`);
+		else await expect(small).toHaveCount(0); // no time rather than a guess, or the day's
+	}
+	// the line sits inside the option's own card, under its name
+	await expect(line.locator('xpath=ancestor::div[contains(concat(" ", @class, " "), " opt ")]')).toHaveCount(1);
 });

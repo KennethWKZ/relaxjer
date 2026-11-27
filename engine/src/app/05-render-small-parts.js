@@ -547,26 +547,29 @@ const legSub = (t, mode) => {
 	return `<small class="l-leg-s">${Z(`约${min}分`, `~${min} min`)}${rides.length ? ` · ${esc(rides.join(' → '))}` : ''}</small>`;
 };
 // the day's route as one line of places with how you get between them (ADR-20261122-day-views: it was a button per
-// leg); each stop's own sheet has its map and directions, and the whole route opens in the maps app below the line
-function routeLine(day, legs, nm) {
+// leg); each stop's own sheet has its map and directions, and the whole route opens in the maps app below the line.
+// `scope` is the day's id, or Plan.legScope(day, k) for a decide option's own route (ADR-20261127-decide-option-route)
+function routeLine(scope, legs, nm, label = Z('今天的路线', "Today's route"), opt = false) {
 	const LT = (GEO && GEO.legs) || {};
 	const end = (pid) => (isHotel(pid) ? Z('酒店', 'hotel') : nm(pid));
 	const items = legs
 		.map((leg, li) => {
 			const [a, b, m] = leg;
-			const t = Plan.storedLeg(LT, day.id, li, leg);
+			const t = Plan.storedLeg(LT, scope, li, leg);
 			const min = t ? (m === 'walking' ? Math.round(t.min * GROUP_WALK) : t.min) : null;
 			const how = `${Z(MODES[m][0], MODES[m][1])}${min ? Z(` 约 ${min} 分钟`, `, ~${min} min`) : ''}`;
 			return `${li ? '' : `<li class="rl-p">${esc(end(a))}</li>`}<li class="rl-m" aria-label="${esc(how)}">${icon(MODES[m][2])}${min ? `<small aria-hidden="true">${min}′</small>` : ''}</li><li class="rl-p">${esc(end(b))}</li>`;
 		})
 		.join('');
-	return `<ol class="route-line" aria-label="${Z('今天的路线', "Today's route")}">${items}</ol>`;
+	// an option's line also names its legs' key prefix in geo.json
+	const attrs = opt ? `class="route-line opt-route" data-legs="${esc(scope)}"` : 'class="route-line"';
+	return `<ol ${attrs} aria-label="${esc(label)}">${items}</ol>`;
 }
 function routeCard(day) {
 	const legs = LEGS[day.id];
 	if (!legs) return '';
 	const nm = (pid) => L(PLACES[pid].name);
-	const rows = routeLine(day, legs, nm);
+	const rows = routeLine(day.id, legs, nm);
 	const ids = [legs[0][0], ...legs.map((l) => l[1])];
 	const chunks = []; // ≤3 waypoints per link on phones, so a long day is split; each part says where it starts and ends
 	for (let i = 0; i < ids.length - 1; i += 4) chunks.push(ids.slice(i, Math.min(i + 5, ids.length)));

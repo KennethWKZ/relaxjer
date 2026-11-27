@@ -23,6 +23,37 @@ class Trip(unittest.TestCase):
         self.assertEqual(trip.leg_ends(legs_def, 'd3:1'), ('market', 'canal', 'walking'))  # an 'HH:MM' start isn't an end
         self.assertEqual(trip.leg_ends({'d3': [['station', 'airport', 'transit', '11:40', 37]]}, 'd3:0'), ('station', 'airport', 'transit'))
 
+    def test_a_decide_options_route_is_asked_and_stored_apart_from_the_days(self):
+        # ADR-20261127-decide-option-route: an option's legs go under '<day>:<k>:<i>', never a day's '<day>:<i>'
+        days = [{'id': 'd3', 'date': '2027-03-15', 'route': [['hotel', 'falls', 'driving']],
+                 'blocks': [{'type': 'decide', 'opts': [{'k': 'a'}, {'k': 'b', 'route': [['hotel', 'lake', 'driving', '10:00'], ['lake', 'pond', 'walking']]}]},
+                            {'type': 'weather', 'opts': [{'k': 'go', 'route': [['x', 'y', 'walking']]}]}]},  # only a decide option's route
+                {'id': 'd4', 'date': '2027-03-16', 'blocks': [{'type': 'decide', 'opts': [{'k': '1', 'route': [['pond', 'inn', 'transit', 30]]}]}]}]
+        ld = trip.legs_def(days)
+        self.assertEqual(ld, {'d3': [['hotel', 'falls', 'driving']], 'd3:b': [['hotel', 'lake', 'driving', '10:00'], ['lake', 'pond', 'walking']],
+                              'd4:1': [['pond', 'inn', 'transit', 30]]})
+        self.assertEqual(trip.leg_ends(ld, 'd3:b:1'), ('lake', 'pond', 'walking'))
+        self.assertEqual(trip.leg_ends(ld, 'd3:0'), ('hotel', 'falls', 'driving'))
+        self.assertEqual(trip.leg_ends(ld, 'd4:1:0'), ('pond', 'inn', 'transit'))  # an option whose k is a digit
+        self.assertEqual(trip.leg_scope('d4:1:0'), ('d4:1', 0))
+        self.assertEqual(trip.leg_scope('d4:1'), ('d4', 1))
+        self.assertEqual(trip.missing_pins(ld, {'hotel': {}, 'falls': {}, 'lake': {}, 'inn': {}}), {'d3:b:1': ['pond'], 'd4:1:0': ['pond']})
+        # the day's drive has no schedule time here, so it keeps the plausible hour; the option's walk sets off at its 10:00
+        self.assertEqual(trip.leg_starts(days), {'d3': [None], 'd3:b': ['10:00', '10:00'], 'd4:1': [None]})
+        self.assertEqual(trip.leg_time('2027-03-15', 1, 2, trip.leg_starts(days)['d3:b'][1]), '2027-03-15T02:00:00Z')
+
+    def test_an_options_leg_with_no_time_sets_off_at_the_options_nearest_earlier_one(self):
+        r = lambda *ts: [['a', 'b', 'driving', t] if t else ['a', 'b', 'driving'] for t in ts]
+        self.assertEqual(trip.option_departures(r(None, '11:00', None, '15:00', None)), ['11:00', '11:00', '11:00', '15:00', '15:00'])  # before the first: the first
+        self.assertEqual(trip.option_departures(r(None, None)), [None, None])  # none at all: the plausible hour (leg_time)
+        self.assertEqual(trip.option_departures([['a', 'b', 'transit', 40], ['b', 'c', 'transit', '14:10', 20]]), ['14:10', '14:10'])  # minutes are not a time
+
+    def test_the_demo_has_a_decide_option_with_its_own_route(self):
+        ld = trip.legs_def(trip.DAYS)
+        opt = [k for k in ld if k.count(':') == 1]
+        self.assertTrue(opt)  # the demo exercises it
+        self.assertTrue(all(k.split(':')[0] in {d['id'] for d in trip.DAYS} for k in opt))
+
     def test_a_leg_may_carry_its_own_time_and_the_trips_own_minutes(self):
         self.assertEqual(trip.leg_parts(['a', 'b', 'transit']), ('a', 'b', 'transit', None, None))
         self.assertEqual(trip.leg_parts(['a', 'b', 'transit', 90]), ('a', 'b', 'transit', None, 90))
