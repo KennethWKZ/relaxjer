@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.14.0](https://github.com/KennethWKZ/relaxjer/compare/v1.13.1...v1.14.0) (2026-11-27)
+
+
+### ✨ Features
+
+* **engine:** a decide option can carry its own route, timed like a day's ([#113](https://github.com/KennethWKZ/relaxjer/issues/113)) ([9d7ae63](https://github.com/KennethWKZ/relaxjer/commit/9d7ae630b1e882fdab01c97bff47b996bb8d3dd7))
+* **engine:** a trip sets its group's walking pace (TRIP.walkPace) ([#112](https://github.com/KennethWKZ/relaxjer/issues/112)) ([331af1e](https://github.com/KennethWKZ/relaxjer/commit/331af1ecfa7b21a2e4b706e972de05d8321c99a4))
+
+
+### 🐛 Bug Fixes
+
+* **engine:** a day with no photos draws without them, and the contract checks the field ([#115](https://github.com/KennethWKZ/relaxjer/issues/115)) ([e4d9b95](https://github.com/KennethWKZ/relaxjer/commit/e4d9b95f63172090f8e4a1e66597c8a33b3e540c))
+
 ## [1.13.1](https://github.com/KennethWKZ/relaxjer/compare/v1.13.0...v1.13.1) (2026-11-27)
 
 
