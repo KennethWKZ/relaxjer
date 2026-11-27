@@ -5,7 +5,7 @@ import json, os, re, sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ['RESYNC_FRESH'] = '0'  # apply reads what fetch just fetched, even in a --fresh run
 import opencc; T2S = opencc.OpenCC('t2s').convert
-from lib.trip import S, PLACES, HOTEL_OF, ROLES, TODAY, cfg, leg_ends, leg_parts
+from lib.trip import S, PLACES, HOTEL_OF, ROLES, TODAY, cfg, leg_ends, leg_parts, leg_scope
 from lib import google as F
 from lib.hours import parse_hours, fmt_hours, closed_on_trip, clean_addr, merge_addr
 o = json.load(open(F.OUT))
@@ -136,7 +136,8 @@ for k, v in legs.items():  # every drive and the roads it takes: a mountain pass
     if v.get('via') or v.get('roads'): print(f"  drive {k} {v.get('from', '')}→{v.get('to', '')} {v['min']} min, {v['km']} km via {v.get('via', '?')}: " + ' / '.join(t for _, t in v.get('roads', [])) + (f" | warnings: {' '.join(v['warnings'])}" if v.get('warnings') else ''))
 for k, r in o['legs'].items():  # a leg Google gave no time: the page shows the trip's own minutes, or none
     if k in legs or not o.get('_legs_def'): continue
-    a, b, m, _, own = leg_parts(o['_legs_def'][k.split(':')[0]][int(k.split(':')[1])])
+    scope, i = leg_scope(k)  # a day's 'd3:1' or an option's 'd3:b:0'
+    a, b, m, _, own = leg_parts(o['_legs_def'][scope][i])
     if r.get('_noPin'):  # a place in the route with no pin yet: nothing to ask Google from
         print(f"  untimed {k} {a}→{b} {m}: no pin in geo.json for {', '.join(r['_noPin'])}: add a rough {{ lat, lng }} to geo.json places (trip-customize), then refresh"); continue
     why = f'Google has no transit in {F.REGION}' if r.get('_noTransit') else 'Google found no route'

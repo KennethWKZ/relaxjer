@@ -343,6 +343,9 @@ export async function skyPause(page) {
 /** The view on screen: its section's id (#top, #d3, #budget…). */
 export const viewOn = (page) => page.locator('html').getAttribute('data-showing');
 
+/** A decide option's own route line (ADR-20261127-decide-option-route), by its legs' key prefix in geo.json: '<day>:<k>'. */
+export const optRoute = (page, scope) => page.locator(`ol.opt-route[data-legs="${scope}"]`);
+
 /** Builds every closed sheet and list, as a search does: a part's sheet is drawn the first time it opens
  *  (06-render-blocks.js), so a check that reads the whole page fills them first. */
 export const fillAll = (page) => page.evaluate(() => window.RJ_FILL && window.RJ_FILL());

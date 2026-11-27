@@ -80,7 +80,8 @@ planners, is in [`guides/trip-page.md`](../../guides/trip-page.md).
 - **Near each stop, and "near me":** food, drinks, rest spots and toilets (plus places that let you borrow a toilet),
   the group's wishlist where it fits, and the optional plans the trip suggests at that stop, which open over the day.
 - **Each day:** Now and Next on a trip day (a countdown and the to-dos coming due before it), Copy for chat and Copy
-  link, today's route as one line with a whole-route link, decide-on-the-day options, and the rain plan.
+  link, today's route as one line with a whole-route link, decide-on-the-day options (an option that goes somewhere
+  with its own route line and leg minutes), and the rain plan.
 - **One part at a time** (ADR-20261122-day-views): each day and each section is its own view with its own address,
   so a long trip never becomes one long page: a day fits in a few phone screens. Back steps through the views and
   restores each one's scroll; every jump (Now and Next, search, the map, the Sections menu, a link) opens its view

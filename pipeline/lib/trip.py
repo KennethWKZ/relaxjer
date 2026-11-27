@@ -69,13 +69,59 @@ def leg_departures(day):
         if k is not None: cur = k
     return out
 
+def legs_def(days):
+    """every route the refresh asks Google for, by the prefix its legs are stored under in geo.json `legs`: a day's own
+    route under its id ('d3' → 'd3:0', 'd3:1', …) and a decide option's own route under '<day>:<k>' ('d3:b' → 'd3:b:0',
+    …), the engine's Plan.legScope (ADR-20261127-decide-option-route). A day's leg key has one colon and an option's two,
+    and the contract keeps k a plain word, unique among the day's routed options, so no two routes share a key."""
+    out = {}
+    for d in days:
+        if d.get('route'): out[d['id']] = [list(l) for l in d['route']]
+        for b in d.get('blocks') or []:
+            if b.get('type') != 'decide': continue
+            for o in b.get('opts') or []:
+                if o.get('route'): out[f"{d['id']}:{o['k']}"] = [list(l) for l in o['route']]
+    return out
+
+def option_departures(route):
+    """when each leg of a decide option's own route sets off: an option has no schedule to read, so a leg without its own
+    'HH:MM' sets off at the nearest earlier leg's in the option, else at the option's first; None (the plausible hour,
+    leg_time) when no leg of the option has one"""
+    times = [leg_parts(l)[3] for l in route]
+    first = next((t for t in times if t), None)
+    out, prev = [], None
+    for t in times:
+        prev = t or prev
+        out.append(prev or first)
+    return out
+
+def leg_starts(days):
+    """the 'HH:MM' each leg of every route in legs_def is asked at, or None for the plausible hour: a day's leg at its own
+    time, else for a drive the schedule's (leg_departures); an option's leg at option_departures"""
+    out = {}
+    for d in days:
+        if d.get('route'):
+            dep = leg_departures(d)
+            out[d['id']] = [leg_parts(l)[3] or (dep[i] if l[2] == 'driving' else None) for i, l in enumerate(d['route'])]
+        for b in d.get('blocks') or []:
+            if b.get('type') != 'decide': continue
+            for o in b.get('opts') or []:
+                if o.get('route'): out[f"{d['id']}:{o['k']}"] = option_departures(o['route'])
+    return out
+
+def leg_scope(key):
+    """a stored leg's key split into its route's prefix and the leg's index: 'd3:1' → ('d3', 1), 'd3:b:0' → ('d3:b', 0)"""
+    scope, i = key.rsplit(':', 1)
+    return scope, int(i)
+
 def leg_ends(legs_def, key):
-    """(from, to, mode) of the route leg a stored leg 'd3:1' was asked for, from the day's route at the refresh"""
-    day, i = key.split(':')
-    a, b, m = legs_def[day][int(i)][:3]
+    """(from, to, mode) of the route leg a stored leg 'd3:1' (or an option's 'd3:b:0') was asked for, from its route at
+    the refresh"""
+    scope, i = leg_scope(key)
+    a, b, m = legs_def[scope][i][:3]
     return a, b, m
 def missing_pins(legs_def, places):
-    """the route legs that join a place with no pin in geo.json, as {'d4:0': ['orixSap'], ...}: Google can't be asked for
+    """the route legs that join a place with no pin in geo.json, as {'d4:0': ['orixSap'], 'd4:b:1': [...], ...}: Google can't be asked for
     a leg with no position at one end. A place gets its first pin by hand, a rough { lat, lng } (trip-customize), and
     pins.py then moves it onto Google's"""
     out = {}

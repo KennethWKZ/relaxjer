@@ -4,7 +4,7 @@ each day's route-leg times. Writes <trip>/.cache/google-out.json for apply.py. R
 import datetime, json, os, re, sys
 from concurrent.futures import ThreadPoolExecutor
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from lib.trip import S, PLACES, DAYS, cfg, leg_time, leg_departures, leg_parts, missing_pins
+from lib.trip import S, PLACES, DAYS, cfg, leg_time, leg_parts, legs_def, leg_starts, missing_pins
 from lib.google import CACHE, OUT, REGION, NO_TRANSIT, details, text, nearby, route, dist, save
 e = json.load(open(S + 'extra.json')); wa = json.load(open(S + 'wish-a.json')); wb = json.load(open(S + 'wish-b.json')); geo = json.load(open(S + 'geo.json'))
 out = {'food': {}, 'branch': {}, 'place': {}, 'chains': {}, 'mrt': {}, 'legs': {}}
@@ -77,22 +77,22 @@ with ThreadPoolExecutor(8) as ex:
 stations = {v['id'] for v in out['mrt'].values() if v}
 with ThreadPoolExecutor(8) as ex: en = dict(zip(stations, ex.map(lambda i: (details(i, 'en').get('displayName') or {}).get('text'), stations)))
 out['station_en'] = en
-# 5) each day's route legs, at the leg's own time (a 4th 'HH:MM'), else for a drive the schedule's (the stop before the
-# destination's), else a plausible one; a drive still ahead gets Google's typical and heavy-traffic times for that hour
-LEGS = {d['id']: [tuple(l) for l in d['route']] for d in DAYS if d.get('route')}  # each day's route (memory-bank/standards/trip-format.md)
-DEPART = {d['id']: leg_departures(d) for d in DAYS if d.get('route')}
+# 5) each day's route legs, and each decide option's own route (stored as '<day>:<k>:<i>'), at the leg's own time (a 4th
+# 'HH:MM'), else for a day's drive the schedule's (the stop before the destination's), for an option's leg the option's
+# nearest earlier time, else a plausible one; a drive still ahead gets Google's typical and heavy-traffic times for that hour
+LEGS = legs_def(DAYS)  # by key prefix: 'd3' for the day, 'd3:b' for option b (memory-bank/standards/trip-format.md)
+START = leg_starts(DAYS)
 DATES = {d['id']: d['date'] for d in DAYS}
 MODE = {'transit': 'TRANSIT', 'walking': 'WALK', 'driving': 'DRIVE', 'bicycling': 'BICYCLE'}
 NOW = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
 NOPIN = missing_pins(LEGS, geo['places'])  # a leg to or from a place with no pin yet: reported, not asked (apply.py)
 if NOPIN: print('legs to a place with no pin in geo.json (add a rough { lat, lng }, trip-customize):', NOPIN)
 def leg(item):
-    (day, i), l = item
-    a, b, m, at, _ = leg_parts(l)
+    (day, i), l = item  # day: the route's key prefix, 'd3' or an option's 'd3:b'
+    a, b, m, _, _ = leg_parts(l)
     if m == 'transit' and REGION in NO_TRANSIT: return (day, i), {'_noTransit': True}  # Google has no transit here: never asked
     if f'{day}:{i}' in NOPIN: return (day, i), {'_noPin': NOPIN[f'{day}:{i}']}  # no position to ask from
-    own = at or (DEPART[day][i] if m == 'driving' else None)
-    when = leg_time(DATES[day], i, len(LEGS[day]), own)  # in the trip's time zone
+    when = leg_time(DATES[day.split(':')[0]], i, len(LEGS[day]), START[day][i])  # in the trip's time zone
     ga, gb = geo['places'][a], geo['places'][b]
     if m == 'driving' and when > NOW:  # Google predicts traffic only for a departure still ahead
         r = route((ga['lat'], ga['lng']), (gb['lat'], gb['lng']), 'DRIVE', when, 'BEST_GUESS')

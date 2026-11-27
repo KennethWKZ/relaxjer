@@ -151,12 +151,28 @@ export function checkTrip(trip) {
 		if (d.foodSlots && !(Array.isArray(d.foodSlots) && d.foodSlots.every((x) => typeof x === 'string'))) bad(`${d.id}: foodSlots must be slot names`);
 		if (d.freeEvening != null && typeof d.freeEvening !== 'boolean') bad(`${d.id}: freeEvening must be true or false`);
 		if (d.freeFrom != null && minutes(d.freeFrom) == null) bad(`${d.id}: freeFrom must be HH:MM`);
-		for (const [k, leg] of (d.route || []).entries()) {
-			if (!Array.isArray(leg) || !PLACES[leg[0]] || !PLACES[leg[1]] || !MODES.has(leg[2]) || !routeTail(leg.slice(3)))
-				bad(
-					`${d.id} route leg ${k}: needs [known place, known place, ${[...MODES].join('|')}, optional 'HH:MM', optional minutes], got ${JSON.stringify(leg)}`,
-				);
-		}
+		const routeChecks = (route, where) => {
+			if (!Array.isArray(route)) return bad(`${where}: must be a list of legs`);
+			for (const [k, leg] of route.entries())
+				if (!Array.isArray(leg) || !PLACES[leg[0]] || !PLACES[leg[1]] || !MODES.has(leg[2]) || !routeTail(leg.slice(3)))
+					bad(
+						`${where} leg ${k}: needs [known place, known place, ${[...MODES].join('|')}, optional 'HH:MM', optional minutes], got ${JSON.stringify(leg)}`,
+					);
+		};
+		if (d.route) routeChecks(d.route, `${d.id} route`);
+		// a decide option's own route (ADR-20261127-decide-option-route): its legs are stored under `<day>:<k>:<i>`, so its
+		// k is a plain word and no other routed option of the day has it
+		const optKeys = new Set();
+		for (const b of d.blocks)
+			for (const o of b.type === 'decide' ? b.opts || [] : []) {
+				if (o.route == null) continue;
+				const where = `${d.id} decide option ${JSON.stringify(o.k)} route`;
+				if (typeof o.k !== 'string' || !/^[A-Za-z0-9_-]+$/.test(o.k)) bad(`${where}: an option with a route needs a k of letters, digits, _ or -`);
+				else if (optKeys.has(o.k)) bad(`${where}: another option of ${d.id} with a route has the same k`);
+				optKeys.add(o.k);
+				if (Array.isArray(o.route) && !o.route.length) bad(`${where}: needs at least one leg`);
+				routeChecks(o.route, where);
+			}
 		for (const b of d.blocks) {
 			for (const p of [...(b.places || []), ...(b.opts || []).map((o) => o.place).filter(Boolean)])
 				if (!PLACES[p]) bad(`${d.id} ${b.type} block: unknown place "${p}"`);
