@@ -137,6 +137,8 @@ for k, v in legs.items():  # every drive and the roads it takes: a mountain pass
 for k, r in o['legs'].items():  # a leg Google gave no time: the page shows the trip's own minutes, or none
     if k in legs or not o.get('_legs_def'): continue
     a, b, m, _, own = leg_parts(o['_legs_def'][k.split(':')[0]][int(k.split(':')[1])])
+    if r.get('_noPin'):  # a place in the route with no pin yet: nothing to ask Google from
+        print(f"  untimed {k} {a}→{b} {m}: no pin in geo.json for {', '.join(r['_noPin'])}: add a rough {{ lat, lng }} to geo.json places (trip-customize), then refresh"); continue
     why = f'Google has no transit in {F.REGION}' if r.get('_noTransit') else 'Google found no route'
     print(f"  untimed {k} {a}→{b} {m}: {why}; " + (f"the trip's own {own} min" if own else "no time on the page: give the leg its own minutes (trip-format.md, route)"))
 print('place mrt:', {k: (p.get('mrt') or {}).get('zh') for k, p in list(geo['places'].items())[:12]})
