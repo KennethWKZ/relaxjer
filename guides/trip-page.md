@@ -427,6 +427,10 @@ Off unless the planner sets it up for the trip (the `sync-setup` skill). With it
   device: an iPhone's Safari and its home-screen copy are two. Blocked devices fold away under **Blocked phones (N)**
   at the end, with Unblock inside.
 - **Others' changes** show as a toast: "Ana added … · Day 3 19:30", a push-back, a new landing time, a tick.
+- **While you were away:** what the group changed while your page was closed or in the background waits in a card on
+  Today, newest first, each with when and a way to its day; a toast says how many, with See. It stays, in either
+  language, until you tap **Got it**, and it's only on your phone. The first open on a phone shows none: everything
+  would be new.
 - **Offline is fine.** Changes wait on the phone and go when it's back online. Every record is encrypted on the phone
   before it leaves, on the planner's own Firebase database.
 - **After the trip** the planner ends sync; each page says so and keeps its own copy.

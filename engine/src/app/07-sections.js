@@ -13,6 +13,7 @@ function secOverview() {
       ${head}
       ${worldArt('hero', 'world-hero')}
       <div class="now-card" id="now" aria-live="polite"></div>
+      ${syncAwayHTML()}
       <h2 class="sub">${icon('calendar')}${Z('这一周', 'The week')}</h2>
       <ol class="week">${DAYS.map((d) => `<li><a class="wk" href="#${d.id}" style="${colorVars(d.c)}">${dayMark(d)}<span class="wk-date">${+d.date.slice(8)}<small>${esc(Z('周' + d.dow[0], d.dow[1]))}</small></span><span class="wk-title">${esc(L(d.title))}<span class="wk-focus">${esc(L(d.focus))}</span></span>${icon('arrow', 'wk-arrow')}</a></li>`).join('')}</ol>
       <h2 class="sub">${icon('info')}${Z('旅行资料', 'Trip facts')}</h2>

@@ -131,7 +131,24 @@ function groupSync() {
 	function applyRemote(list) {
 		// a phone telling its name or what kind of device it is isn't news worth a toast
 		const theirs = list.filter(([rid, , ver]) => ver.d !== meta.dev && !rid.startsWith('who:') && !rid.startsWith('kit:'));
-		const note = theirs.length ? syncNote(theirs) : '';
+		let note = theirs.length ? syncNote(theirs) : '';
+		let act;
+		// read on opening the page or coming back to it: news the reader wasn't there for, kept in a card on Today until they
+		// say they've seen it (ADR-20261127-while-away). Worded now, while the plan still holds what a removal took away
+		if (awayOpen && theirs.length) {
+			const adds = theirs
+				.map((it) => {
+					const t = syncPair(it);
+					return t && { r: it[0], u: it[2].u, d: it[2].d, n: it[2].n || '', t, day: syncDayOf(it) };
+				})
+				.filter(Boolean);
+			if (adds.length) {
+				rawSet('syncAway', Sync.awayLog(store.get('syncAway', []), adds));
+				const n = adds.length;
+				note = Z(`你不在时有 ${n} 处改动`, `${n} change${n > 1 ? 's' : ''} while you were away`);
+				act = { label: Z('看看', 'See'), run: () => landOn($('#syncAway'), true) };
+			}
+		}
 		const next = Sync.applyRecords(
 			stateNow(),
 			list.map(([rid, v]) => [rid, v]),
@@ -159,7 +176,7 @@ function groupSync() {
 		for (const [rid, , ver] of list) meta.known[rid] = { u: ver.u, d: ver.d };
 		prev = Sync.recordsOf(stateNow(), sharedTick);
 		save();
-		whenSettled(() => mineRerender(note));
+		whenSettled(() => mineRerender(note, act));
 		syncSheetRefresh();
 		if (wasBlocked && !blockedHere())
 			setTimeout(push, 0); // unblocked: what waited here goes now
@@ -193,6 +210,10 @@ function groupSync() {
 			}
 			if (!r.ok) throw new Error(`sync ${r.status}`);
 			await takeIn(await r.json());
+			if (!meta.read) {
+				meta.read = true; // this phone has read the group once: from now on, what changed since is news
+				save();
+			}
 			status('ok');
 			return true;
 		} catch {
@@ -285,13 +306,21 @@ function groupSync() {
 		if (es) es.close();
 		es = null;
 	};
-	const catchUp = async () => {
-		await pull();
+	// away: this read follows an absence (the page opening, or coming back to it), so what it brings is news the reader
+	// missed; a read while they're looking (Sync now, back online) isn't
+	let awayOpen = false;
+	const catchUp = async (away = false) => {
+		awayOpen = away === true;
+		try {
+			await pull();
+		} finally {
+			awayOpen = false;
+		}
 		await push();
 		listen();
 	};
-	document.addEventListener('visibilitychange', () => (document.hidden ? stop() : catchUp()));
-	window.addEventListener('online', catchUp);
+	document.addEventListener('visibilitychange', () => (document.hidden ? stop() : catchUp(true)));
+	window.addEventListener('online', () => catchUp());
 	window.addEventListener('offline', () => status('waiting'));
 	setInterval(() => {
 		if (!document.hidden && Object.keys(meta.pending).length) push();
@@ -403,16 +432,18 @@ function groupSync() {
 		syncStatus = { state: s, at: state === 'ok' ? Date.now() : syncStatus.at, waiting };
 		syncPaint();
 	}
-	syncApi = { now: catchUp, name: () => meta.name };
+	syncApi = { now: () => catchUp(), name: () => meta.name };
 	syncBarPaint();
 
+	// a phone that has read the group before gets what changed since as news; on its first read everything is new, so none
+	const readBefore = !!meta.read || Object.keys(meta.known).length > 0;
 	// a phone's first time on the group: what it already holds goes in as the oldest version, so anything synced wins
 	if (!meta.seeded) {
 		for (const [rid, v] of Object.entries(prev)) if (!meta.known[rid] && !meta.pending[rid]) meta.pending[rid] = { v, u: 1, d: meta.dev };
 		meta.seeded = true;
 		save();
 	}
-	catchUp();
+	catchUp(readBefore);
 	syncWelcomeSoon();
 }
 
@@ -756,45 +787,92 @@ function syncNow(b) {
 			}, 2500);
 		});
 }
-// "Ken added Night market · Day 3 19:30": what a change from someone else did, in a toast
-const tickName = (key) => {
-	for (const g of CHECKLIST) for (const it of g.items) if (`${g.id}-${it.id}` === key) return L(it.t);
+// "Ken added Night market · Day 3 19:30": what a change from someone else did, in a toast, and in the card of what
+// changed while the reader was away. z words it: Z in the reader's language, or one language for the card's two
+const tickName = (key, z = Z) => {
+	for (const g of CHECKLIST)
+		for (const it of g.items) if (`${g.id}-${it.id}` === key) return Array.isArray(it.t) ? z(it.t[0], it.t[1]) : String(it.t);
 	return key;
 };
 function syncNote(list) {
 	const names = [...new Set(list.map(([, , v]) => v.n || ''))];
 	const who = names.length === 1 && names[0] ? names[0] : Z('有人', 'Someone');
 	if (list.length > 1) return Z(`${who}改了 ${list.length} 处行程`, `${who} made ${list.length} changes to the plan`);
-	const [rid, v] = list[0];
+	return syncLine(list[0]);
+}
+/** one change, [record id, value, version], in words; '' for a kind the group doesn't need told */
+function syncLine([rid, v, ver], z = Z) {
+	const who = (ver && ver.n) || z('有人', 'Someone');
 	const id = rid.slice(rid.indexOf(':') + 1);
 	const kind = rid.slice(0, rid.indexOf(':'));
 	const dayN = (d) => (d ? `Day ${d.n}` : '');
+	const nameOf = (dev) => (store.get('people', {}) || {})[dev] || z('一台手机', 'a phone');
 	if (kind === 'stop') {
 		const old = MINE[id];
 		return v
-			? Z(`${who}加了「${v.name}」· ${dayN(dayById[v.day])} ${v.t}`, `${who} added ${v.name} · ${dayN(dayById[v.day])} ${v.t}`)
-			: Z(`${who}删了「${old ? old.name : '一个行程'}」`, `${who} removed ${old ? old.name : 'an added stop'}`);
+			? z(`${who}加了「${v.name}」· ${dayN(dayById[v.day])} ${v.t}`, `${who} added ${v.name} · ${dayN(dayById[v.day])} ${v.t}`)
+			: z(`${who}删了「${old ? old.name : '一个行程'}」`, `${who} removed ${old ? old.name : 'an added stop'}`);
 	}
 	if (kind === 'shift') {
 		const d = dayN(DAYS.find((x) => x.date === id));
-		return v ? Z(`${who}把 ${d} 往后推了`, `${who} pushed ${d} back`) : Z(`${who}把 ${d} 改回原定时间`, `${who} put ${d} back to the planned times`);
+		return v ? z(`${who}把 ${d} 往后推了`, `${who} pushed ${d} back`) : z(`${who}把 ${d} 改回原定时间`, `${who} put ${d} back to the planned times`);
 	}
 	if (kind === 'flt')
-		return id === 'arr' ? Z(`${who}改了到达时间`, `${who} changed the landing time`) : Z(`${who}改了回程起飞时间`, `${who} changed the flight home`);
+		return id === 'arr' ? z(`${who}改了到达时间`, `${who} changed the landing time`) : z(`${who}改了回程起飞时间`, `${who} changed the flight home`);
 	if (kind === 'block') {
-		const name = (store.get('people', {}) || {})[id] || Z('一台手机', 'a phone');
-		return v ? Z(`${who}停用了${name}`, `${who} blocked ${name}`) : Z(`${who}恢复了${name}`, `${who} unblocked ${name}`);
+		const name = nameOf(id);
+		return v ? z(`${who}停用了${name}`, `${who} blocked ${name}`) : z(`${who}恢复了${name}`, `${who} unblocked ${name}`);
 	}
 	if (kind === 'role') {
-		const name = (store.get('people', {}) || {})[id] || Z('一台手机', 'a phone');
-		if (v && list[0][2] && list[0][2].d === id) return Z(`${name}现在是规划人`, `${name} is a planner now`); // gave the code
+		const name = nameOf(id);
+		if (v && ver && ver.d === id) return z(`${name}现在是规划人`, `${name} is a planner now`); // gave the code
 		return v
-			? Z(`${who}把${name}设为规划人`, `${who} made ${name} a planner`)
-			: Z(`${who}取消了${name}的规划人`, `${who} made ${name} no longer a planner`);
+			? z(`${who}把${name}设为规划人`, `${who} made ${name} a planner`)
+			: z(`${who}取消了${name}的规划人`, `${who} made ${name} no longer a planner`);
 	}
 	if (kind === 'tick')
 		return v
-			? Z(`${who}勾了「${tickName(id)}」`, `${who} ticked “${tickName(id)}”`)
-			: Z(`${who}取消了「${tickName(id)}」`, `${who} unticked “${tickName(id)}”`);
+			? z(`${who}勾了「${tickName(id, z)}」`, `${who} ticked “${tickName(id, z)}”`)
+			: z(`${who}取消了「${tickName(id, z)}」`, `${who} unticked “${tickName(id, z)}”`);
 	return '';
 }
+/** the same change in both languages, [zh, en], for the card that outlives a language switch; null when not news */
+function syncPair(item) {
+	const zh = syncLine(item, (a) => a);
+	return zh ? [zh, syncLine(item, (a, b) => b)] : null;
+}
+/** the day a change is on (an added or removed stop, a pushed-back day), so the card can go there; null for the rest */
+function syncDayOf([rid, v]) {
+	const id = rid.slice(rid.indexOf(':') + 1);
+	if (rid.startsWith('stop:')) return (v && dayById[v.day] ? v.day : MINE[id] && MINE[id].day) || null;
+	if (rid.startsWith('shift:')) return (DAYS.find((x) => x.date === id) || {}).id || null;
+	return null;
+}
+/* "While you were away" (ADR-20261127-while-away): the group's changes this phone took in when the page opened or came
+   back, on Today until the reader taps Got it. Kept on this phone only (it's news for this reader), never sent */
+function syncAwayHTML() {
+	const shown = 5; // in the function: the first draw runs before this file's own constants are set
+	const log = (store.get('syncAway', []) || []).filter((e) => e && Array.isArray(e.t));
+	if (!SYNC || !log.length) return '';
+	const row = (e) => {
+		const d = e.day && dayById[e.day];
+		const go = d ? `<a class="mlink" href="#${esc(d.id)}">${icon('arrow')}Day ${d.n}</a>` : '';
+		return `<li class="sync-row"><span>${esc(L(e.t))}<span class="xsmall muted sync-row-sub">${esc(syncAgo(e.u))}</span></span>${go}</li>`;
+	};
+	const n = log.length;
+	const more = log.slice(shown);
+	return `<div class="away-card" id="syncAway" role="region" aria-labelledby="syncAway-h">
+      <h2 class="sub" id="syncAway-h">${icon('users')}<span>${Z('你不在时的改动', 'While you were away')}</span><span class="wg-n">${n}</span></h2>
+      <ul class="sync-list">${log.slice(0, shown).map(row).join('')}</ul>
+      ${more.length ? `<details class="more away-more"><summary>${icon('list')}<span>${Z(`再看 ${more.length} 处`, `${more.length} more`)}</span>${icon('chev', 'chev')}</summary><ul class="sync-list more-body">${more.map(row).join('')}</ul></details>` : ''}
+      <div class="links-row"><button type="button" class="mlink" data-sync-away-ok>${icon('check')}${Z('知道了', 'Got it')}</button></div>
+    </div>`;
+}
+// Got it: the card goes, here only; the focus moves to the view's heading so a screen reader isn't left nowhere
+document.addEventListener('click', (e) => {
+	if (!e.target.closest('[data-sync-away-ok]')) return;
+	store.set('syncAway', []);
+	const el = $('#syncAway');
+	if (el) el.remove();
+	focusView('top');
+});

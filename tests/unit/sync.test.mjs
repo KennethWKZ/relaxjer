@@ -315,3 +315,22 @@ test('Sync: the group is one entry per person; one name on a phone, a tablet and
 	assert.deepEqual(blocked, ['strayC1'], 'a blocked device leaves its person, whatever name it gives');
 	assert.deepEqual(Sync.byPerson([], {}, {}, 'me').people, []);
 });
+
+test('Sync: while you were away keeps one line per record, the newest, newest first, capped', () => {
+	const e = (r, u, d = 'A', t = [`改 ${r}`, `changed ${r}`]) => ({ r, u, d, n: 'Ken', t, day: 'd3' });
+	const log = Sync.awayLog([e('stop:x', 10)], [e('stop:x', 30, 'A', ['删了 x', 'removed x']), e('tick:y', 20)]);
+	assert.deepEqual(
+		log.map((x) => [x.r, x.u, x.t[1]]),
+		[
+			['stop:x', 30, 'removed x'],
+			['tick:y', 20, 'changed tick:y'],
+		],
+		'the later change to a record replaces the earlier one',
+	);
+	assert.equal(Sync.awayLog([e('stop:x', 30)], [e('stop:x', 20)])[0].u, 30, 'an older version arriving late doesn’t win');
+	assert.equal(Sync.awayLog([e('stop:x', 30, 'A')], [e('stop:x', 30, 'B')])[0].d, 'B', 'a tie goes to the larger device id, as in merge');
+	const many = Array.from({ length: 40 }, (_, i) => e(`tick:${i}`, i));
+	assert.equal(Sync.awayLog([], many).length, 30, 'at most 30 kept');
+	assert.equal(Sync.awayLog([], many)[0].u, 39, 'the newest kept first');
+	assert.deepEqual(Sync.awayLog('junk', [null, { r: 'tick:z' }, { r: 'tick:z', u: 1, t: 'x' }]), [], 'damaged entries are dropped');
+});
