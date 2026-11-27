@@ -513,7 +513,7 @@ document.addEventListener('click', (e) => {
 	if (t.matches('[data-role-set], [data-role-drop]')) {
 		if (!syncIsPlanner()) return toast(noEditMsg());
 		const dev = t.dataset.roleSet || t.dataset.roleDrop;
-		const name = (store.get('people', {}) || {})[dev] || Z('这台手机', 'this phone');
+		const name = (store.get('people', {}) || {})[dev] || Z('这台设备', 'this device');
 		const on = !!t.dataset.roleSet;
 		if (
 			!confirm(
@@ -536,10 +536,10 @@ document.addEventListener('click', (e) => {
 	if (t.matches('[data-block-set], [data-block-drop]')) {
 		if (!syncIsPlanner()) return toast(noEditMsg());
 		const dev = t.dataset.blockSet || t.dataset.blockDrop;
-		const name = (store.get('people', {}) || {})[dev] || Z('这台手机', 'this phone');
+		const name = (store.get('people', {}) || {})[dev] || Z('这台设备', 'this device');
 		const on = !!t.dataset.blockSet;
 		if (!on) {
-			if (!confirm(Z(`恢复${name}？之后它的改动会再出现在大家的手机上。`, `Unblock ${name}? Its changes reach everyone again from now on.`))) return;
+			if (!confirm(Z(`恢复${name}？之后它的改动会再出现在大家的页面上。`, `Unblock ${name}? Its changes reach everyone again from now on.`))) return;
 			const b = { ...(store.get('blocks', {}) || {}) };
 			delete b[dev];
 			store.set('blocks', b);
@@ -559,7 +559,7 @@ document.addEventListener('click', (e) => {
 		const other = shifts.length + flts.length + ticks.length;
 		const ask = Z(
 			`停用${name}？它加的 ${theirs.length} 个行程${other ? `和最后改的 ${other} 处（推迟时间、航班、勾选）` : ''}会改回原计划，之后它的改动大家都看不到。规划人可以再恢复。`,
-			`Block ${name}? Its ${theirs.length} added stop${theirs.length === 1 ? '' : 's'}${other ? ` and the ${other} change${other === 1 ? '' : 's'} it made last (pushed-back times, flights, ticks)` : ''} go back to the original plan, and from now on its changes are ignored on every phone. A planner can unblock it.`,
+			`Block ${name}? Its ${theirs.length} added stop${theirs.length === 1 ? '' : 's'}${other ? ` and the ${other} change${other === 1 ? '' : 's'} it made last (pushed-back times, flights, ticks)` : ''} go back to the original plan, and from now on its changes are ignored on every device. A planner can unblock it.`,
 		);
 		if (!confirm(ask)) return;
 		const was = {

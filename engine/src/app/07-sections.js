@@ -568,7 +568,7 @@ function addSheet(item) {
       <p class="sub-h">${Z('几点', 'What time')}</p><input type="time" data-add-t class="add-t" value="${esc(t)}" step="900">
       <p class="add-clash" data-add-clash></p>
       <div class="add-leg" data-add-leg aria-live="polite"></div>
-      ${SYNC ? syncAddNote() : `<p class="xsmall muted">${esc(L(TRIP.addStopNote || ['只存在这支手机；用「分享」把链接发给大家。', 'Saved on this phone; use Share to send it to the others.']))}</p>`}
+      ${SYNC ? syncAddNote() : `<p class="xsmall muted">${esc(L(TRIP.addStopNote || ['只存在这台设备；用「分享」把链接发给大家。', 'Saved on this device; use Share to send it to the others.']))}</p>`}
       <div class="links-row add-act"><button type="button" class="go-btn" data-add-save>${icon('check')}${item.id ? Z('保存', 'Save') : Z('加入', 'Add')}</button>${item.id ? `<button type="button" class="go-btn ghost" data-mine-del="${esc(item.id)}">${icon('x')}${Z('删除', 'Remove')}</button>` : ''}</div>`;
 }
 // with group sync the stop goes on everyone's page, under this phone's name; no name yet: ask for it right here

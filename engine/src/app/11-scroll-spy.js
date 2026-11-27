@@ -158,17 +158,15 @@ const isAndroid = () => /Android/.test(navigator.userAgent);
 const canHome = () => !isStandalone() && (installEv || isIOS() || isAndroid());
 // Install as a row of the settings (23-sections-menu.js): an action, so no ›
 const homeRow = () =>
-	canHome()
-		? actRow('toc-home', 'data-home', 'install', Z('加到手机主画面', 'Add to the home screen'), Z('像 App 一样打开', 'Opens like an app'))
-		: '';
+	canHome() ? actRow('toc-home', 'data-home', 'install', Z('加到主画面', 'Add to the home screen'), Z('像 App 一样打开', 'Opens like an app')) : '';
 // the header's install button: shown until the page runs from the home screen
 const homeSync = () => {
 	const b = $('#homeBtn');
 	if (!b) return;
 	b.hidden = !canHome();
 	$('.home-lab', b).textContent = Z('安装', 'Install');
-	b.setAttribute('aria-label', Z('加到手机主画面（像 App 一样打开）', 'Add to the home screen (opens like an app)'));
-	b.title = Z('加到手机主画面', 'Add to the home screen');
+	b.setAttribute('aria-label', Z('加到主画面（像 App 一样打开）', 'Add to the home screen (opens like an app)'));
+	b.title = Z('加到主画面', 'Add to the home screen');
 };
 window.addEventListener('beforeinstallprompt', (e) => {
 	e.preventDefault();
@@ -196,7 +194,7 @@ function homeGuide() {
 				Z('选<b>「加到主画面」</b>或<b>「安装应用」</b>', 'Pick <b>Add to home screen</b> or <b>Install app</b>'),
 				Z('再点<b>「安装」/「加入」</b>', 'Tap <b>Install</b> / <b>Add</b>'),
 			];
-	openSheet(`<div class="home-guide"><p class="pop-name">${icon('plus')}${Z('加到手机主画面', 'Add to the home screen')}</p>
+	openSheet(`<div class="home-guide"><p class="pop-name">${icon('plus')}${Z('加到主画面', 'Add to the home screen')}</p>
       <ol class="home-steps">${steps.map((x) => `<li>${x}</li>`).join('')}</ol>
       <p class="small">${Z(`以后点主画面的「${BRAND}」图标打开，全屏像 App。`, `Then open it from the ${BRAND} icon: full screen, like an app.`)}</p>
       <ul class="home-notes">

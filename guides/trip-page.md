@@ -405,7 +405,7 @@ itself is the planner's: it's in the trip's data, and nobody makes one on the pa
 Off unless the planner sets it up for the trip (the `sync-setup` skill). With it:
 
 - **What's shared:** added stops, pushed-back times, flight changes and ticks in shared lists reach every phone. The
-  rest (the language, the theme, personal ticks, which split plan a phone shows) stays on each phone.
+  rest (the language, the theme, personal ticks, which split plan a device shows) stays on each device.
 - **Your name.** The first open asks for a name once, a moment after the page shows (Not now is fine); until then a bar
   under the header asks again, and Later hides it for a day. The add-stop sheet asks too. The keyboard's Done key saves
   the name (while a Chinese input method is still picking characters, its Enter is left to it). A name given later goes onto
@@ -414,7 +414,7 @@ Off unless the planner sets it up for the trip (the `sync-setup` skill). With it
 - **Who can change what.** Each phone changes or removes only the stops it added ("only the person who added it, or a
   planner"), and "Remove the N stops I added" clears them. Pushed-back times, flight changes and ticks stay open to
   everyone.
-- **Planners** (a phone that gave the planner code under "I'm a planner") can change anyone's stops, remove one
+- **Planners** (a device that gave the planner code under "I'm a planner") can change anyone's stops, remove one
   phone's, put the whole group back on the original plan, make another phone a planner, and block a stray phone: its
   stops and last changes go back to the plan, and what it writes next reaches nobody. Undo brings it all back, and
   Unblock sends what waited.
@@ -424,12 +424,12 @@ Off unless the planner sets it up for the trip (the `sync-setup` skill). With it
 - **The group** lists each person once. Someone on a phone, a tablet and a laptop under one name shows that name with
   each device under it: what kind it is ("iPhone · home-screen app", "Mac · Chrome", "Android · OPPO Browser"), its
   badges (This one, Planner), how many stops it added and when it last changed something. Every browser is its own
-  device: an iPhone's Safari and its home-screen copy are two. Blocked devices fold away under **Blocked phones (N)**
+  device: an iPhone's Safari and its home-screen copy are two. Blocked devices fold away under **Blocked devices (N)**
   at the end, with Unblock inside.
 - **Others' changes** show as a toast: "Ana added … · Day 3 19:30", a push-back, a new landing time, a tick.
 - **While you were away:** what the group changed while your page was closed or in the background waits in a card on
   Today, newest first, each with when and a way to its day; a toast says how many, with See. It stays, in either
-  language, until you tap **Got it**, and it's only on your phone. The first open on a phone shows none: everything
+  language, until you tap **Got it**, and it's only on your device. The first open on a device shows none: everything
   would be new.
 - **Offline is fine.** Changes wait on the phone and go when it's back online. Every record is encrypted on the phone
   before it leaves, on the planner's own Firebase database.
