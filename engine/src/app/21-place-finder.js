@@ -549,7 +549,7 @@ function finderHTML(info) {
       ${inPlan.length ? `<p class="pf-in">${icon('calendar')}<span>${esc(Z('已在行程：', 'In the plan: '))}${inPlan.map((d) => `<a class="mlink" href="#${d.id}">Day ${d.n}</a>`).join(' ')}</span></p>` : ''}
       ${best}
       ${others.length ? `<p class="sub-h">${Z('其他天最近的站', 'Other days, nearest stop first')}</p><ul class="pf-days">${others.map(row).join('')}</ul>` : ''}
-      <p class="xsmall muted">${Z('直线距离；时间为估算（走路按长辈速度），不含塞车。', 'Straight-line distance; times are estimates (walking at the group’s pace), without traffic.')}</p>
+      <p class="xsmall muted">${Z(`直线距离；时间为估算（走路按${GROUP_WALK > Way.PACE_MIN ? '长辈' : '一般'}速度），不含塞车。`, 'Straight-line distance; times are estimates (walking at the group’s pace), without traffic.')}</p>
     </div>`;
 }
 /** the list pane's title: the results' count, or for the finder its way back to them (16-map.js) */

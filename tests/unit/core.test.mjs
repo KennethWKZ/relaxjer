@@ -554,3 +554,24 @@ test('Way: the walk or ride Google measures to a place, in the group’s minutes
 		1,
 	);
 });
+
+test('Way: the group walks at the trip’s pace (TRIP.walkPace), the seniors’ pace when it sets none', () => {
+	// left out: the seniors' pace, so every trip without the field walks as before
+	assert.equal(Way.paceOf(undefined), Way.DEFAULT_PACE);
+	assert.equal(Way.paceOf(null), Way.DEFAULT_PACE);
+	assert.equal(Way.DEFAULT_PACE, 1.4);
+	// 1: Google's own walking time, for a group of fit adults
+	assert.equal(Way.paceOf(1), 1);
+	// 750 m in a straight line: 975 m on streets, 13 min at 75 m a minute; the seniors take 40 % longer
+	assert.equal(Way.walkMin(750, 1), 13);
+	assert.equal(Math.round(Way.walkMin(750, Way.paceOf(undefined))), 18);
+	assert.equal(Way.walkMin(750, Way.paceOf(1)), 13);
+	// Google's walk to a place follows the same pace: 10 min stays 10 for fit adults, 14 for the seniors
+	const json = { places: [{ id: 'g' }], routingSummaries: [{ legs: [{ duration: '600s', distanceMeters: 800 }] }] };
+	assert.equal(Way.legOf(json, { gpid: 'g' }, 'WALK', Way.paceOf(1)).min, 10);
+	assert.equal(Way.legOf(json, { gpid: 'g' }, 'WALK', Way.paceOf(undefined)).min, 14);
+	// a trip may set Google's own time up to twice it; anything else fails the contract and the build
+	for (const ok of [undefined, null, 1, 1.25, 2]) assert.equal(Way.paceProblem(ok), '', `${ok} is a pace`);
+	for (const bad of [0.5, 0, -1, 2.5, '1.4', true, NaN, Infinity, [1]])
+		assert.match(Way.paceProblem(bad), /TRIP\.walkPace must be a number from 1 to 2/, `${String(bad)} is not a pace`);
+});

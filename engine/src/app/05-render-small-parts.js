@@ -431,7 +431,7 @@ async function loadPlace(id, box) {
 	}
 }
 const md = (d) => `${+d.slice(5, 7)}/${+d.slice(8, 10)}`;
-// nearest MRT from Google (walking time at Google's pace; seniors add a few minutes)
+// nearest MRT from Google, its walking time at the group's pace (GROUP_WALK)
 const mrtText = (m) =>
 	!m
 		? ''
