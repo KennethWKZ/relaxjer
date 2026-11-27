@@ -31,6 +31,14 @@ export const REQUIRED = [
 // the trip's own settings the engine reads (it used to hard-code them)
 export const TRIP_FIELDS = ['brand', 'description', 'pax', 'tz', 'currency', 'checked', 'arriveCity', 'searchHint', 'footer'];
 const MODES = new Set(['transit', 'walking', 'driving', 'bicycling']);
+// what may follow a route leg's mode: its own 'HH:MM', then the trip's own whole minutes (1–600) for a leg Google can't time
+const routeTail = (rest) => {
+	const [a, b] = rest;
+	const isMin = (x) => Number.isInteger(x) && x > 0 && x <= 600;
+	if (rest.length === 0) return true;
+	if (rest.length === 1) return /^\d{2}:\d{2}$/.test(a) || isMin(a);
+	return rest.length === 2 && /^\d{2}:\d{2}$/.test(a) && isMin(b);
+};
 
 /** Evaluates a trip's data.js the way the build does (no window) and returns its globals. */
 export function loadTrip(dir) {
@@ -138,15 +146,10 @@ export function checkTrip(trip) {
 		if (d.freeEvening != null && typeof d.freeEvening !== 'boolean') bad(`${d.id}: freeEvening must be true or false`);
 		if (d.freeFrom != null && minutes(d.freeFrom) == null) bad(`${d.id}: freeFrom must be HH:MM`);
 		for (const [k, leg] of (d.route || []).entries()) {
-			if (
-				!Array.isArray(leg) ||
-				!PLACES[leg[0]] ||
-				!PLACES[leg[1]] ||
-				!MODES.has(leg[2]) ||
-				leg.length > 4 ||
-				(leg.length === 4 && !/^\d{2}:\d{2}$/.test(leg[3]))
-			)
-				bad(`${d.id} route leg ${k}: needs [known place, known place, ${[...MODES].join('|')}, optional 'HH:MM'], got ${JSON.stringify(leg)}`);
+			if (!Array.isArray(leg) || !PLACES[leg[0]] || !PLACES[leg[1]] || !MODES.has(leg[2]) || !routeTail(leg.slice(3)))
+				bad(
+					`${d.id} route leg ${k}: needs [known place, known place, ${[...MODES].join('|')}, optional 'HH:MM', optional minutes], got ${JSON.stringify(leg)}`,
+				);
 		}
 		for (const b of d.blocks) {
 			for (const p of [...(b.places || []), ...(b.opts || []).map((o) => o.place).filter(Boolean)])

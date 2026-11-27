@@ -370,7 +370,7 @@ const DAYS = [
 			[/午餐/, [['lunch', ['d3-lunch']]]],
 		],
 		route: [
-			['hotel', 'beitouStn', 'transit'],
+			['hotel', 'beitouStn', 'transit', 35],
 			['beitouStn', 'beitou', 'walking'],
 			['beitou', 'thermal', 'walking'],
 			['thermal', 'hotel', 'transit'],

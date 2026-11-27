@@ -381,6 +381,11 @@ test("Plan: a stored route leg's times only while it still joins the same stops"
 	assert.equal(Plan.storedLeg(legs, 'd2', 0, ['a', 'b', 'transit']).min, 9);
 	assert.equal(Plan.storedLeg(legs, 'd4', 0, ['a', 'b', 'transit']), null);
 	assert.equal(Plan.storedLeg(undefined, 'd1', 0, ['a', 'b', 'walking']), null);
+	// a leg Google can't time (a train in Japan): the trip's own minutes, only while Google has none for it
+	assert.deepEqual(Plan.storedLeg(undefined, 'd1', 0, ['a', 'b', 'transit', 90]), { min: 90, own: true });
+	assert.deepEqual(Plan.storedLeg({}, 'd1', 0, ['a', 'b', 'transit', '10:00', 37]), { min: 37, own: true });
+	assert.equal(Plan.storedLeg(legs, 'd2', 0, ['a', 'b', 'transit', 40]).min, 9); // Google's time wins
+	assert.equal(Plan.storedLeg({}, 'd1', 0, ['a', 'b', 'driving', '16:55']), null); // an 'HH:MM' is not minutes
 });
 
 // a made-up city on a grid: 0.01° of latitude is about 1.1 km

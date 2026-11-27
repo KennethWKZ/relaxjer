@@ -16,6 +16,7 @@ test('the contract catches a broken trip', () => {
 	trip.BUDGET.totalMax = 1;
 	trip.FACTS[0].v = ['日期', ''];
 	trip.DAYS[1].route = [['hotel', 'atlantis', 'teleport']];
+	trip.DAYS[2].route = [['hotel', 'hotel', 'transit', 0]]; // the trip's own minutes are whole and above 0
 	trip.DAYS[3].motif = 'skiing in the morning'; // free text: the mark is a name from the list
 	trip.TRIP.sky = 'aurora'; // a sky the engine doesn't draw
 	const decide = trip.DAYS.flatMap((d) => d.blocks).find((b) => b.type === 'decide');
@@ -29,6 +30,7 @@ test('the contract catches a broken trip', () => {
 		'totalMin',
 		'both languages needed',
 		'route leg 0',
+		'd3 route leg 0: needs',
 		'd4: motif "skiing in the morning" must be one of snowboard\\|',
 		'TRIP.sky "aurora" must be one of live\\|globe\\|pile\\|off',
 		'pick "z" must be the k of one of its options',

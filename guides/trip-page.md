@@ -111,7 +111,8 @@ two of them seniors.
   and the home currency, linking to the day's budget) and what to wear. Under a sky (below) the forecast and what to
   wear move into the sky's weather line.
 - **Today's route:** one line of the day's places in order, with the way between each (walk, metro, taxi, bike) and
-  its minutes, and a **Whole route** button that opens the directions for all of it.
+  its minutes, and a **Whole route** button that opens the directions for all of it. A leg Google can't time (a train
+  in Japan) shows the minutes the planner gave it.
 - **Copy for chat** puts the day as text (times, notes, each person's budget, the rain plan, the link) on the
   clipboard; **Copy link** copies the day's address; **Map** opens the map full screen on that day.
 - **The timeline:** each stop with its time and a note. A stop with more to it has a › button: tap it, or the stop,

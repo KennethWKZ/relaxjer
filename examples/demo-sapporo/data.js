@@ -134,7 +134,7 @@ const DAYS = [
 		mealAt: [[/晚餐/, [['dinner', ['d1-ramen']]]]],
 		route: [
 			['cts', 'airportStn', 'transit'],
-			['airportStn', 'sapStn', 'transit'],
+			['airportStn', 'sapStn', 'transit', 37],
 			['sapStn', 'hotel', 'walking'],
 			['hotel', 'odori', 'walking'],
 			['odori', 'susukino', 'transit'],

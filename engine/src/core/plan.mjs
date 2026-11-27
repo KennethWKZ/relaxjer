@@ -175,13 +175,14 @@ export function legCheck({ at, from, go, next, onward }) {
  * while a stored leg of that day still joins the same two places the same way. One stored at another position counts
  * too, so removing or adding a stop earlier in the day keeps the later legs' times. A leg the day didn't have at the
  * refresh shows no time until the next one, never another leg's. A leg stored before the refresh recorded its ends (no
- * `from`) is taken as it is, at its own position only.
+ * `from`) is taken as it is, at its own position only. A leg Google can't time (a train in Japan) shows the minutes the
+ * trip gives it, the number at the end of the route leg (`[from, to, mode, 'HH:MM'?, minutes?]`), as `{ min, own: true }`.
  */
-export function storedLeg(legs, day, i, [from, to, mode]) {
-	if (!legs) return null;
+export function storedLeg(legs, day, i, [from, to, mode, ...rest]) {
 	const same = (t) => t.from === from && t.to === to && t.mode === mode;
-	const t = legs[`${day}:${i}`];
+	const t = legs && legs[`${day}:${i}`];
 	if (t && (t.from == null || same(t))) return t;
-	for (const [k, o] of Object.entries(legs)) if (k.startsWith(`${day}:`) && o.from != null && same(o)) return o;
-	return null;
+	for (const [k, o] of Object.entries(legs || {})) if (k.startsWith(`${day}:`) && o.from != null && same(o)) return o;
+	const own = rest.find((x) => typeof x === 'number');
+	return own > 0 ? { min: own, own: true } : null;
 }
