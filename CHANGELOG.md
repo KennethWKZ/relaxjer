@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.12.0](https://github.com/KennethWKZ/relaxjer/compare/v1.11.0...v1.12.0) (2026-11-27)
+
+
+### ✨ Features
+
+* **engine:** what the group changed while a phone was away waits on Today ([#100](https://github.com/KennethWKZ/relaxjer/issues/100)) ([9dff922](https://github.com/KennethWKZ/relaxjer/commit/9dff9227db6b5a85cd1406014ee57cba5c828e72))
+
+
+### 📝 Documentation
+
+* **jp:** renting a car in Hokkaido: luggage fit, detail-page prices, the Expressway Pass list ([#98](https://github.com/KennethWKZ/relaxjer/issues/98)) ([51488a2](https://github.com/KennethWKZ/relaxjer/commit/51488a2469bc11baa164af108bdb078ca31cfdcc))
+
 ## [1.11.0](https://github.com/KennethWKZ/relaxjer/compare/v1.10.0...v1.11.0) (2026-11-27)
 
 

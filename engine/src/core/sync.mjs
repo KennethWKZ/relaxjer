@@ -307,3 +307,19 @@ export function byPerson(devs, people = {}, blocks = {}, me = null) {
 	if (mine > 0) list.unshift(...list.splice(mine, 1));
 	return { people: list, blocked };
 }
+
+/**
+ * "While you were away" (ADR-20261127-while-away): the group's changes a phone took in when it opened the page or came
+ * back to it, kept until the reader says they've seen them. log and adds are [{ r: record id, u: edit time, d: device,
+ * n: name, t: [zh, en] what it did, day }]. One entry per record, the newest version winning as in `merge`; newest
+ * first; at most `cap`. An entry without a record id, a time or the words to show is dropped.
+ */
+export function awayLog(log, adds, cap = 30) {
+	const ok = (e) => e && typeof e.r === 'string' && typeof e.u === 'number' && Array.isArray(e.t) && e.t.length === 2;
+	const m = new Map();
+	for (const e of [...(Array.isArray(log) ? log : []), ...(Array.isArray(adds) ? adds : [])].filter(ok)) {
+		const o = m.get(e.r);
+		if (!o || newer(e, o)) m.set(e.r, e);
+	}
+	return [...m.values()].sort((a, b) => b.u - a.u || (a.d < b.d ? 1 : -1)).slice(0, cap);
+}
