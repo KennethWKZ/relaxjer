@@ -123,6 +123,9 @@ export function checkTrip(trip) {
 		if (!(Number.isInteger(d.c) && d.c >= 1 && d.c <= 7)) bad(`${d.id}: c (its lantern colour) must be 1–7, got ${JSON.stringify(d.c)}`);
 		// the day's activity mark: one the engine draws (engine/src/core/motif.mjs), named by the planner, never free text
 		if (d.motif != null && !MOTIFS.includes(d.motif)) bad(`${d.id}: motif ${JSON.stringify(d.motif)} must be one of ${MOTIFS.join('|')}`);
+		// photos are optional; when set, a list of photo ids (img/credits.json)
+		if (d.photos != null && !(Array.isArray(d.photos) && d.photos.every((p) => typeof p === 'string')))
+			bad(`${d.id}: photos must be a list of photo ids, got ${JSON.stringify(d.photos)}`);
 		if (i && Date.parse(d.date) - Date.parse(DAYS[i - 1].date) !== 864e5) bad(`${d.id}: ${d.date} does not follow ${DAYS[i - 1].date}`);
 		// planned (non-flight-tied) times never run backwards
 		let last = -1;

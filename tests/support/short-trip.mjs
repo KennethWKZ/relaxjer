@@ -26,6 +26,8 @@ const RESHAPE = `
 	});
 	// two hotels: the group moves on night 2 (to a place the demo already pins)
 	DAYS[1].hotel = 'tpmain';
+	// a day with no photos: the field is optional (trip-format), so the page draws the day without a photo row
+	delete DAYS[2].photos;
 	// and no destination pack: the page must leave the tax refund, lucky draw, taxi meter and bike share out cleanly
 	delete TRIP.destination;
 	delete TRIP.region;
