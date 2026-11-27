@@ -706,6 +706,38 @@ ul.list li::marker {
 	display: grid;
 	gap: 14px;
 }
+/* the group's changes while this phone was away (ADR-20261127-while-away): a card under Now, on the same Fog Grey, its
+   rows the group-sync sheet's; the count sits on Paper so it reads against the card */
+.away-card {
+	margin-top: 14px;
+	border-radius: var(--r-lg);
+	background: var(--paper-2);
+	padding: 2px 16px 10px;
+}
+.away-card > .sub {
+	margin: 12px 0 2px;
+}
+.away-card .wg-n {
+	margin-left: auto;
+	background: var(--paper);
+}
+.away-card details.away-more {
+	background: transparent;
+	border-radius: 0;
+	border-top: 1px solid color-mix(in srgb, var(--rule) 60%, transparent);
+}
+.away-card details.away-more > summary {
+	padding: 0;
+	font-size: var(--fs-sm);
+}
+/* Got it lines up with the rows' text: the link's own padding would push it 12 px in */
+.away-card > .links-row > .mlink {
+	margin-left: -12px;
+}
+.away-card details.away-more > .more-body {
+	margin: 0;
+	padding: 0;
+}
 .now-count {
 	display: flex;
 	align-items: baseline;

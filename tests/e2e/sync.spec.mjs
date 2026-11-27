@@ -540,6 +540,52 @@ test.describe('group sync', { tag: '@demo' }, () => {
 		await expect(btn).not.toHaveAttribute('data-state', /./);
 	});
 
+	// ADR-20261127-while-away: what the group changed while this phone's page was closed waits on Today, in both
+	// languages, until Got it; what changes while the reader is looking stays a toast
+	test('what the group changed while a phone was away waits on Today until Got it', async ({ page }) => {
+		const syncMetaOf = (p) => p.evaluate((k) => JSON.parse(localStorage.getItem(`${k}sync`) || '{}'), STORE_KEY);
+		await openSync(b.page);
+		await expect.poll(async () => (await syncMetaOf(b.page)).read, { message: 'the second phone has read the group once' }).toBe(true);
+		await b.page.goto('about:blank'); // the second phone's page is closed
+
+		await openSync(page);
+		await setName(page, 'Ana');
+		await addByLink(page, 'Demo Away Stop');
+		await expect.poll(() => pendingOf(page), { message: 'the change has reached the group' }).toEqual([]);
+
+		await openSync(b.page);
+		const card = b.page.locator('#syncAway');
+		await expect(card).toBeAttached();
+		await expect(card.locator('.sync-row').first()).toContainText('Ana added Demo Away Stop · Day 3 16:00');
+		await expect(card.locator('.wg-n')).toHaveText('1');
+		await expect(card.locator('a[href="#d3"]'), 'a way to the day it changed').toHaveCount(1);
+		const toastEl = b.page.locator('#toast');
+		await expect(toastEl).toContainText('1 change while you were away');
+		await toastEl.locator('[data-toast-act]').click();
+		await expect(card, 'See goes to the card on Today').toBeInViewport();
+
+		// in the reader's language, whichever it is now, and still there after a reload
+		await b.page.locator('#langBtn').click();
+		await expect(b.page.locator('#syncAway .sync-row').first()).toContainText('Ana加了「Demo Away Stop」');
+		await b.page.locator('#langBtn').click();
+		await b.page.reload();
+		await expect(b.page.locator('#syncAway')).toBeAttached();
+
+		// Got it: gone, and it stays gone
+		await show(b.page, '#syncAway [data-sync-away-ok]');
+		await b.page.locator('#syncAway [data-sync-away-ok]').click();
+		await expect(b.page.locator('#syncAway')).toHaveCount(0);
+		await b.page.reload();
+		await expect(b.page.locator('#app [data-sec]').first()).toBeAttached();
+		await expect(b.page.locator('#syncAway')).toHaveCount(0);
+
+		// a change while the reader is looking is a toast, not the card
+		await addByLink(page, 'Demo Live Stop', 'd3', '17:00');
+		await expect(b.page.locator('#d3 .stop.mine', { hasText: 'Demo Live Stop' })).toBeAttached({ timeout: 15_000 });
+		await expect(toastEl).toContainText('Ana added Demo Live Stop');
+		await expect(b.page.locator('#syncAway')).toHaveCount(0);
+	});
+
 	test('when the planner ends sync, the page says so and keeps its own copy', async ({ page, request }, testInfo) => {
 		await openSync(page, '#checklist');
 		await tick(page, 'before-charter');
