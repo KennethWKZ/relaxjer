@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.13.0](https://github.com/KennethWKZ/relaxjer/compare/v1.12.0...v1.13.0) (2026-11-27)
+
+
+### ✨ Features
+
+* **sync:** devices join group sync with a planner's approval ([#104](https://github.com/KennethWKZ/relaxjer/issues/104)) ([16a0d69](https://github.com/KennethWKZ/relaxjer/commit/16a0d6907cce28301e32a9525022e5579d5894e4))
+
+
+### 🐛 Bug Fixes
+
+* **engine:** the page says "device" where it means any device ([#102](https://github.com/KennethWKZ/relaxjer/issues/102)) ([a35d5b7](https://github.com/KennethWKZ/relaxjer/commit/a35d5b7935ef3dc4f0d5ef0b9cfbc96ec8728ed5))
+
+
+### 📝 Documentation
+
+* **adr:** accept approval for group sync, the page staying on ht-ml.app ([#99](https://github.com/KennethWKZ/relaxjer/issues/99)) ([2fef1e7](https://github.com/KennethWKZ/relaxjer/commit/2fef1e75e1e353662f61610ed8b1ad331a1d1474))
+* **trip-format:** a food slot's site field, the card's Website button ([#103](https://github.com/KennethWKZ/relaxjer/issues/103)) ([f0e5958](https://github.com/KennethWKZ/relaxjer/commit/f0e5958f01cde892836f0f8d8eef3cf1b62957ec))
+
 ## [1.12.0](https://github.com/KennethWKZ/relaxjer/compare/v1.11.0...v1.12.0) (2026-11-27)
 
 
