@@ -1,5 +1,5 @@
 ---
-total_decisions: 39
+total_decisions: 40
 last_updated: 2026-11-27
 ---
 
@@ -45,23 +45,23 @@ A trip's data and the pipeline that refreshes it: the fields, the contract and t
 
 Group sync: the shared database, who may change what, and the roles of each phone. No pattern file: the rules live in these ADRs.
 
-| ADR                                                                   | Date       | Status   | Rule                                                                                                                                       |
-| --------------------------------------------------------------------- | ---------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| [ADR-20261001-group-sync](decisions/ADR-20261001-group-sync.md)       | 2026-10-01 | amended  | Group sync runs on each planner's own Firebase Realtime Database, one per planner, in the trip's region, with no shared server of ours.    |
-| [ADR-20261002-sync-planners](decisions/ADR-20261002-sync-planners.md) | 2026-10-02 | amended  | A role belongs to a phone, not a name: planner changes are per device, and the undo toast and busy-day caution ship on every page.         |
-| [ADR-20261127-while-away](decisions/ADR-20261127-while-away.md)       | 2026-11-27 | accepted | Changes read on opening the page or coming back to it go into a card on Today, kept on the phone until Got it; no push and no new service. |
+| ADR                                                                   | Date       | Status   | Rule                                                                                                                                                  |
+| --------------------------------------------------------------------- | ---------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [ADR-20261001-group-sync](decisions/ADR-20261001-group-sync.md)       | 2026-10-01 | amended  | Group sync runs on each planner's own Firebase Realtime Database, one per planner, in the trip's region, with no shared server of ours.               |
+| [ADR-20261002-sync-planners](decisions/ADR-20261002-sync-planners.md) | 2026-10-02 | amended  | A role belongs to a phone, not a name: planner changes are per device, and the undo toast and busy-day caution ship on every page.                    |
+| [ADR-20261127-sync-approval](decisions/ADR-20261127-sync-approval.md) | 2026-11-27 | proposed | Proposed: the page stays on ht-ml.app; a phone reads or writes group sync only after a planner approves it, enforced by anonymous Auth and the rules. |
+| [ADR-20261127-while-away](decisions/ADR-20261127-while-away.md)       | 2026-11-27 | accepted | Changes read on opening the page or coming back to it go into a card on Today, kept on the phone until Got it; no push and no new service.            |
 
 ## hosting
 
 Where the page and the demos are published, the keys they need, and the page security policy. No pattern file: the rules live in these ADRs.
 
-| ADR                                                                                                     | Date       | Status   | Rule                                                                                                                                                  |
-| ------------------------------------------------------------------------------------------------------- | ---------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [ADR-20261001-live-page-on-relaxjer](decisions/ADR-20261001-live-page-on-relaxjer.md)                   | 2026-10-01 | accepted | The live trip page moves to RelaxJer's host only after a screen-by-screen comparison with the old build of the same data.                             |
-| [ADR-20261001-page-csp](decisions/ADR-20261001-page-csp.md)                                             | 2026-10-01 | accepted | The build writes a strict Content-Security-Policy into each page: hashed inline scripts, no unsafe-inline, and connect-src limited to known hosts.    |
-| [ADR-20261002-live-demo-on-pages](decisions/ADR-20261002-live-demo-on-pages.md)                         | 2026-10-02 | amended  | GitHub Pages publishes site/ and the synthetic demo's single file only, never a real trip, a key or a sync setting.                                   |
-| [ADR-20261117-second-demo-and-site-worlds](decisions/ADR-20261117-second-demo-and-site-worlds.md)       | 2026-11-17 | accepted | A second synthetic demo, examples/demo-sapporo, is built from public landmarks and invented details only, with no Google content.                     |
-| [ADR-20261127-firebase-hosting-approval-push](decisions/ADR-20261127-firebase-hosting-approval-push.md) | 2026-11-27 | proposed | Proposed: a trip page on the planner’s Firebase Hosting, opened by phones the planner approves, with web push from a Cloud Function. Demo trip first. |
+| ADR                                                                                               | Date       | Status   | Rule                                                                                                                                               |
+| ------------------------------------------------------------------------------------------------- | ---------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [ADR-20261001-live-page-on-relaxjer](decisions/ADR-20261001-live-page-on-relaxjer.md)             | 2026-10-01 | accepted | The live trip page moves to RelaxJer's host only after a screen-by-screen comparison with the old build of the same data.                          |
+| [ADR-20261001-page-csp](decisions/ADR-20261001-page-csp.md)                                       | 2026-10-01 | accepted | The build writes a strict Content-Security-Policy into each page: hashed inline scripts, no unsafe-inline, and connect-src limited to known hosts. |
+| [ADR-20261002-live-demo-on-pages](decisions/ADR-20261002-live-demo-on-pages.md)                   | 2026-10-02 | amended  | GitHub Pages publishes site/ and the synthetic demo's single file only, never a real trip, a key or a sync setting.                                |
+| [ADR-20261117-second-demo-and-site-worlds](decisions/ADR-20261117-second-demo-and-site-worlds.md) | 2026-11-17 | accepted | A second synthetic demo, examples/demo-sapporo, is built from public landmarks and invented details only, with no Google content.                  |
 
 ## design
 
