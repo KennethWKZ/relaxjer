@@ -2,7 +2,7 @@
 // (ADR-20261128-budget-paid-insurance). Any trip: each test reads the trip's own rows and skips what it doesn't have.
 import { test, expect, openTrip } from '../support/fixtures.mjs';
 import { show } from '../support/page.mjs';
-import { budgetTally, roundHome } from '../../engine/src/core/money.mjs';
+import { budgetByKind, budgetTally, roundHome } from '../../engine/src/core/money.mjs';
 /* global BUDGET, TRIP */
 
 const glance = '#budget-glance';
@@ -83,6 +83,41 @@ test('every amount in the trip’s currency in the budget lists also shows in th
 		expect(missing, `${key}: a trip-currency amount without its home-currency line`).toBe(0);
 		await page.keyboard.press('Escape');
 	}
+});
+
+// any trip: By kind lists one row a kind, biggest first, each with a share bar; the kinds add up to the view's totals,
+// and its foot repeats them (ADR-20261128-budget-paid-insurance, amended)
+test('By kind lists each kind of spend, biggest first, with a share bar, adding up to the totals', async ({ page }) => {
+	await openTrip(page, '#budget');
+	const b = await tripBudget(page);
+	const kinds = budgetByKind(b.rows, { rate: b.home ? b.cur.rate : 1, home: b.home });
+	test.skip(!kinds.length, 'this trip has no budget rows');
+	await (await show(page, tile('kinds'))).click();
+	const sh = page.locator(sheet('kinds'));
+	await expect(sh).toBeVisible();
+	const rows = sh.locator('li.kind');
+	await expect(rows).toHaveCount(kinds.length);
+	expect(await rows.evaluateAll((ls) => ls.map((l) => l.dataset.kind))).toEqual(kinds.map((k) => k.cat));
+	const shares = await rows.evaluateAll((ls) => ls.map((l) => +l.dataset.share));
+	expect(
+		[...shares].sort((x, y) => y - x),
+		'biggest first',
+	).toEqual(shares);
+	// the kinds add up to the view's totals, to the unit
+	const sum = (f) => kinds.reduce((n, k) => n + f(k), 0);
+	expect(Math.abs(sum((k) => k.paid) - b.tally.paid)).toBeLessThan(1e-6);
+	expect(Math.abs(sum((k) => k.todo[1]) - b.tally.todo[1])).toBeLessThan(1e-6);
+	await expect(sh.locator('.kinds-sum')).toContainText(fig(b.tally.paid, b.tally.paidApprox));
+	if (b.tally.todo[1] > 0) await expect(sh.locator('.kinds-sum')).toContainText(fig(b.tally.todo[1], b.tally.todoApprox));
+	// each row: a big icon, its name, a share bar drawn as bars (never a donut), and each person's share
+	const first = rows.first();
+	expect((await first.locator('.kind-ic').boundingBox()).width).toBeGreaterThanOrEqual(40);
+	const bar = await first.locator('.kind-bar').evaluate((e) => ({ h: e.getBoundingClientRect().height, w: e.getBoundingClientRect().width }));
+	expect(bar.h).toBeGreaterThanOrEqual(8);
+	expect(bar.w).toBeGreaterThan(100);
+	const filled = await first.locator('.kb-paid, .kb-todo').evaluateAll((s) => s.reduce((n, e) => n + e.getBoundingClientRect().width, 0));
+	expect(filled, 'the biggest kind fills its bar').toBeGreaterThan(bar.w * 0.95);
+	if (kinds[0].paid + kinds[0].todo[1] > 0) await expect(first.locator('.kind-each')).toContainText(/Each/);
 });
 
 test('the Insurance tile shows only when the trip has a policy, and its numbers are big tel: and wa.me links', async ({ page }) => {

@@ -3,7 +3,7 @@ id: ADR-20261128-budget-paid-insurance
 date: 2026-11-28
 title: 'The Budget Shows What Was Paid and What Is Still to Come, and a Trip Can Carry Its Travel Insurance'
 domain: trip-data
-status: accepted
+status: amended
 decision: 'Budget rows can be paid (date, where, ref), in the home currency, in parts, or price TBD; the glance is the paid total. INSURANCE: a tile, no IDs.'
 tags: [engine, design]
 ---
@@ -77,3 +77,17 @@ policies, the numbers to call and what to keep for a claim. Asked for by Kenneth
 
 You're changing the Budget view, the budget's rows or the money tally; adding a way to pay; adding insurance or any
 field that could hold a person's details.
+
+## Amendment 2026-11-28
+
+The budget also says what kind of spend each sum is (Kenneth, the same day). A row may carry a kind from a closed list,
+`transport`, `car`, `lodging`, `food`, `tickets`, `activity`, `insurance` or `other` (`Money.budgetKinds`): `cat` on an
+object row, the last item of an estimate array (after its anchor when there is one), so every old row stays valid. A
+row without one counts as `other`, and an estimate anchored at the airport as `transport`; the page never guesses a kind
+from a row's words, so a row lands where the planner put it. A fifth tile, 按类别 / By kind, opens one row a kind,
+biggest first (paid plus the middle of what's to come): its icon, its share of the whole, a share bar (paid solid, still
+to pay hatched as an estimate, against the biggest kind's), what's paid (exact) and what's still to pay (a range) in the
+home currency, and each person's share. `Money.budgetByKind` sums the very items `Money.budgetTally` sums, so the kinds
+add up to the view's totals, and the sheet's foot repeats them; a unit test and an e2e test hold it. A split is bars,
+never a donut. A day card's budget tags (`train`, `food`, `ticket`, `car`) read as the same kinds (`Money.kindOfTag`) and
+draw the kind's icon on their row; `card` (a transit card top-up) names none. The contract checks `cat` against the list.

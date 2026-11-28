@@ -873,6 +873,7 @@ const BUDGET = {
 		// paid at home, in the home currency: exact amounts, with where and when (synthetic booking numbers)
 		{
 			label: ['机票（来回）', 'Flights, return'],
+			cat: 'transport', // the budget's kinds (By kind): transport, car, lodging, food, tickets, activity, insurance, other
 			min: 16800,
 			max: 16800,
 			cur: 'home',
@@ -882,6 +883,7 @@ const BUDGET = {
 		},
 		{
 			label: ['酒店（四晚）', 'Hotel, four nights'],
+			cat: 'lodging',
 			min: 7200,
 			max: 7200,
 			cur: 'home',
@@ -892,19 +894,20 @@ const BUDGET = {
 		// paid in parts: a deposit in the activities app, the rest on the day
 		{
 			label: ['滑雪课（四人）', 'Ski lesson (four of us)'],
+			cat: 'activity',
 			parts: [
 				{ amt: 7800, paid: '2026-12-08', via: ['活动平台', 'Activities app'], label: ['订金', 'Deposit'] },
 				{ amt: 11700, via: ['当天付现金', 'Cash on the day'], label: ['尾款', 'Balance'] },
 			],
 		},
 		// still to come: estimates in the trip's currency
-		[['机场来回', 'Airport, both ways'], '≈¥26,000–30,000', 26000, 30000, 'airport'],
-		[['雪场缆车', 'Lift passes'], '≈¥4,000–6,000', 4000, 6000],
-		[['市内交通', 'Local transport'], '≈¥6,000–9,000', 6000, 9000],
-		[['门票与活动', 'Tickets and activities'], '≈¥4,000–6,000', 4000, 6000],
-		[['吃饭（含早餐）', 'Meals (with breakfasts)'], '≈¥50,000–66,000', 50000, 66000],
+		[['机场来回', 'Airport, both ways'], '≈¥26,000–30,000', 26000, 30000, 'airport', 'transport'],
+		[['雪场缆车', 'Lift passes'], '≈¥4,000–6,000', 4000, 6000, 'activity'],
+		[['市内交通', 'Local transport'], '≈¥6,000–9,000', 6000, 9000, 'transport'],
+		[['门票与活动', 'Tickets and activities'], '≈¥4,000–6,000', 4000, 6000, 'tickets'],
+		[['吃饭（含早餐）', 'Meals (with breakfasts)'], '≈¥50,000–66,000', 50000, 66000, 'food'],
 		// planned, price not known yet: listed, never counted
-		{ label: ['加购行李（回程）', 'Extra baggage, home'], tbd: true, via: ['航空公司 App', 'Airline app'] },
+		{ label: ['加购行李（回程）', 'Extra baggage, home'], tbd: true, via: ['航空公司 App', 'Airline app'], cat: 'transport' },
 	],
 	split: ['滑雪课按人算，两人去温泉时不付课费。', 'The lesson is charged per person; the two at the onsen do not pay it.'],
 	suggest: ['公费 ¥150,000，最后多退少补。', 'A shared pot of ¥150,000; settle up at the end.'],

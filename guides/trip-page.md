@@ -132,7 +132,8 @@ count and a chevron that opens in place). Search still finds what's inside eithe
   move into the sky's weather line.
 - **⋯ beside the title:** **Copy for chat** puts the day as text (times, notes, each person's budget, the rain plan,
   the link) on the clipboard; **Copy link** copies the day's address; **See it on the map** opens the map full screen
-  on that day.
+  on that day. A day's Spend card shows each row's kind as a small icon where its tag names one (a ride, a meal, a
+  ticket, a car).
 - **The tiles** under the heading, one for each of the day's parts: **Route** (the day's focus, one line of the day's
   places in order with the way between each and its minutes, a **Whole route** button for the directions of all of it,
   and the day on the map; a leg Google can't time, a train in Japan, shows the minutes the planner gave it), then each
@@ -423,8 +424,11 @@ itself is the planner's: it's in the trip's data, and nobody makes one on the pa
 - **The budget:** what the group has already paid, in the home currency (≈ where something was converted), and one line
   for what's still to come and each person's share. Then tiles: **Paid** (each payment, where and when; open one for
   its booking number), **To pay** (each estimate with each person's share, a balance still due with where it's paid,
-  and anything planned whose price isn't known yet as "price TBD", never counted), a chart of each day's costs
-  (estimates dashed, linking to each day) and the cash; then the rate, and a fold with the suggestion, which costs
+  and anything planned whose price isn't known yet as "price TBD", never counted), **By kind** (transport, car,
+  lodging, food, tickets, activities, insurance, other: one row a kind, biggest first, each with its big icon, its share
+  of the whole, a bar, what's paid and what's still to pay in the home currency, and each person's share; the kinds add
+  up to the totals above, and a row with no kind counts as Other), a chart of each day's costs (estimates dashed,
+  linking to each day) and the cash; then the rate, and a fold with the suggestion, which costs
   don't shrink with fewer people (cars), the group pot (also in the home currency) and what's not included. A budget
   with no payment yet shows its estimate total first, as before.
 - **Cash and cards:** how much shared cash and each person's share of it, what it's for, where cards work, and the
@@ -575,6 +579,7 @@ Everything above that isn't listed here is on every page. The fields are in
 | Where to eat, meal chips                                                                   | `DAYS[i].foodSlots` and `mealAt`, and `extra.json` `food`                                                                                                                                                                                |
 | Day cards (decide, rain, budget, wear…)                                                    | `DAYS[i].blocks`                                                                                                                                                                                                                         |
 | The budget's Paid and To pay, a deposit and its balance, a price TBD                       | `BUDGET.rows` written as payments (`paid`, `cur`, `via`, `ref`), in `parts`, or `tbd`; estimate rows stay as they were                                                                                                                   |
+| The budget's By kind, and its row for each kind                                            | each row's `cat` in `BUDGET.rows` (an estimate's last item); without one, Other (an airport-anchored estimate counts as Transport)                                                                                                       |
 | Insurance in Today's bookings                                                              | `INSURANCE` (`policies`, `claims`)                                                                                                                                                                                                       |
 | A card's tile word                                                                         | `tile` on a card; else its heading when that's short, else the word for its kind                                                                                                                                                         |
 | A day's short name on its row (the week, Days, the rail, the map's list)                   | `DAYS[i].short`; without it, the first place of the day's `title` and how many                                                                                                                                                           |

@@ -277,6 +277,34 @@ function budTodoHTML(T) {
 			: ''
 	}`;
 }
+/* the budget by kind (ADR-20261128-budget-paid-insurance, amended): one row a kind, biggest first, each with what's been
+   paid (exact) and what's still to come (a range), in the home currency, each person's share, and a share bar: paid
+   solid, still to come dashed (an estimate), every bar against the biggest kind's. The kinds add up to the view's totals
+   (Money.budgetByKind sums the same items), and the foot says so */
+function budKindsHTML() {
+	const K = Money.budgetByKind(BUDGET.rows, { rate: budHome() ? rate : 1, home: budHome() ? CUR.home : null });
+	const T = budTally();
+	const top = Math.max(1, ...K.map((k) => k.paid + k.todo[1]));
+	const rows = K.map((k) => {
+		const [ic, name] = BUD_KIND[k.cat] || BUD_KIND.other;
+		const lines = [
+			k.paid > 0 ? `${Z('已付', 'Paid')} <b>${budAmt(k.paid, k.paid, k.paidApprox)}</b>` : '',
+			k.todo[1] > 0 ? `${Z('还要付', 'To pay')} <b>${budAmt(k.todo[0], k.todo[1], k.todoApprox)}</b>` : '',
+			k.tbd ? Z(`${k.tbd} 项价钱待定`, `${k.tbd} with no price yet`) : '',
+		].filter(Boolean);
+		const all = [k.paid + k.todo[0], k.paid + k.todo[1]];
+		const pct = Math.round(k.share * 100);
+		const paidW = ((k.paid / top) * 100).toFixed(1);
+		const todoW = ((k.todo[1] / top) * 100).toFixed(1);
+		return `<li class="kind" data-kind="${k.cat}" data-share="${k.share.toFixed(4)}"><span class="kind-ic" aria-hidden="true">${icon(ic)}</span><div class="kind-b"><p class="kind-h"><b>${esc(L(name))}</b><span class="kind-pct">${all[1] > 0 ? `${pct}%` : Z('待定', 'TBD')}</span></p><span class="kind-bar" role="img" aria-label="${esc(Z(`占总数约 ${pct}%`, `about ${pct}% of the whole`))}"><span class="kb-paid" style="width:${paidW}%"></span><span class="kb-todo" style="width:${todoW}%"></span></span><p class="kind-m">${lines.join(' · ')}</p>${all[1] > 0 ? `<p class="kind-each">${Z('每人', 'Each')} ${budEach(all[0], all[1])}</p>` : ''}</div></li>`;
+	}).join('');
+	const key = `<p class="kind-key" aria-hidden="true"><span class="kk kk-paid"></span>${Z('已付', 'Paid')}<span class="kk kk-todo"></span>${Z('还要付（估）', 'Still to pay (est.)')}</p>`;
+	const foot = `${Z('合计', 'In all')}: ${Z('已付', 'paid')} <b>${budAmt(T.paid, T.paid, T.paidApprox)}</b>${T.todo[1] > 0 ? ` · ${Z('还要付', 'still to pay')} <b>${budAmt(T.todo[0], T.todo[1], T.todoApprox)}</b>` : ''} · ${Z('每人', 'each')} ${budEach(T.paid + T.todo[0], T.paid + T.todo[1])}`;
+	const other = K.some((k) => k.cat === 'other')
+		? `<p class="note">${Z('没写类别的项目算在「其他」。', 'Rows with no kind written count as Other.')}</p>`
+		: '';
+	return `${key}<ul class="kinds">${rows}</ul><p class="pay-sum kinds-sum">${foot}</p>${other}`;
+}
 
 function secBudget() {
 	const B = BUDGET;
@@ -309,6 +337,20 @@ function secBudget() {
 							? `${sumB(budAmt(T.todo[0], T.todo[1], T.todoApprox))} · ${Z('每人', 'each')} ${budEach(T.todo[0], T.todo[1])}`
 							: sumB(Z('价钱待定', 'Price TBD')),
 						body: budTodoHTML(T),
+					},
+					{
+						key: 'kinds',
+						icon: 'bars',
+						t: ['按类别', 'By kind'],
+						h: [`按类别（${GROUP[0]}，${budHome() ? CUR.home : CUR.sym}）`, `By kind (${GROUP[1]}, ${budHome() ? CUR.home : CUR.sym})`],
+						n: Money.budgetByKind(BUDGET.rows).length,
+						sum: (() => {
+							const K = Money.budgetByKind(BUDGET.rows, { rate: budHome() ? rate : 1, home: budHome() ? CUR.home : null });
+							return K.length
+								? `${sumB(L((BUD_KIND[K[0].cat] || BUD_KIND.other)[1]))} ${Z(`最多，约 ${Math.round(K[0].share * 100)}%`, `the most, about ${Math.round(K[0].share * 100)}%`)}`
+								: '';
+						})(),
+						body: `<div id="budget-kinds">${budKindsHTML()}</div>`,
 					},
 					{
 						key: 'days',

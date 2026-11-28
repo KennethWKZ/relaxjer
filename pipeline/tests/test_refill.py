@@ -96,6 +96,9 @@ class Pure(unittest.TestCase):
         self.assertEqual((spots[2]['hours'], spots[2]['credit']), (None, 'demo'))  # unreadable hours dropped; the credit falls back to the source
         self.assertEqual(R.read_local('refill-x.json', [{'id': 7, 'lat': 1.5, 'lng': 2.5}])[0][0]['id'], 'x-7')  # a bare list works too
         self.assertEqual(R.read_local('refill-x.json', {'nope': 1}), ([], ['refill-x.json: no "spots" list']))
+        # a source that knows where a tap is says so; the page keeps an indoor one in winter and shuts an outdoor one
+        tap = lambda v: R.clean({'id': 't', 'lat': 1.5, 'lng': 2.5, 'kind': 'tap', 'indoor': v}, 'x', 'X')[0]['indoor']
+        self.assertEqual((tap(True), tap(False), tap(None), tap('yes')), (True, False, None, None))
 
     def test_the_same_spot_from_two_sources_is_counted_once(self):
         osm = [s for s in map(R.from_osm, OVERPASS) if s]

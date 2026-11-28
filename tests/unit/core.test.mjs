@@ -722,7 +722,9 @@ test('Refill: a window may run over New Year, and only an outdoor tap shuts for 
 	const tap = { kind: 'tap', lat: 43, indoor: null, seasonal: null };
 	assert.equal(Refill.shutFor(tap, '2027-02-20', rule), true, 'a tap not known to be indoors counts as outdoors');
 	assert.equal(Refill.shutFor(tap, '2027-06-10', rule), false, 'outside the window');
-	assert.equal(Refill.shutFor({ ...tap, indoor: true }, '2027-02-20', rule), false);
+	assert.equal(Refill.shutFor({ ...tap, indoor: true }, '2027-02-20', rule), false, 'a source that says indoors keeps it');
+	assert.equal(Refill.shutFor({ ...tap, indoor: false }, '2027-02-20', rule), true, 'and one that says outdoors shuts it');
+	assert.equal(Refill.shutFor({ ...tap, indoor: false }, '2027-02-20', null), false, 'outdoors, but no winter rule and not marked seasonal');
 	assert.equal(Refill.shutFor({ ...tap, seasonal: false }, '2027-02-20', rule), false, 'marked open all year');
 	assert.equal(Refill.shutFor({ ...tap, kind: 'shop' }, '2027-02-20', rule), false);
 	assert.equal(Refill.shutFor({ ...tap, kind: 'shelter' }, '2027-02-20', rule), false);
@@ -778,4 +780,73 @@ test('Refill: a place lists its nearest three within reach, leaving out and coun
 	);
 	assert.equal(summer.shut, 0);
 	assert.deepEqual(Refill.listNear([], '2027-02-20', rule), { list: [], shut: 0, more: 0 });
+});
+
+test('Money: every budget row has a kind: its cat, an estimate’s trailing name, the airport anchor, else other', () => {
+	assert.deepEqual(Money.budgetKinds, ['transport', 'car', 'lodging', 'food', 'tickets', 'activity', 'insurance', 'other']);
+	assert.equal(Money.rowKind({ label: ['酒店', 'Hotel'], min: 1, max: 1, cat: 'lodging' }), 'lodging');
+	assert.equal(Money.rowKind([['吃饭', 'Meals'], 'x', 1, 2, 'food']), 'food'); // a trailing name from the list
+	assert.equal(Money.rowKind([['缆车', 'Lifts'], 'x', 1, 2, 'airport', 'activity']), 'activity'); // after the anchor
+	assert.equal(Money.rowKind([['机场', 'Airport'], 'x', 1, 2, 'airport']), 'transport'); // the airport anchor alone
+	assert.equal(Money.rowKind([['杂项', 'Odds'], 'x', 1, 2]), 'other');
+	assert.equal(Money.rowKind({ label: ['x', 'x'], min: 1, max: 1, cat: 'spa' }), 'other', 'a name off the list');
+	assert.equal(Money.rowKind(null), 'other');
+	// a day card's budget tags read as the same kinds where they mean one
+	assert.equal(Money.kindOfTag('train'), 'transport');
+	assert.equal(Money.kindOfTag('airportMrt'), 'transport');
+	assert.equal(Money.kindOfTag('food'), 'food');
+	assert.equal(Money.kindOfTag('ticket'), 'tickets');
+	assert.equal(Money.kindOfTag('car'), 'car');
+	assert.equal(Money.kindOfTag('card'), null, 'a transit card top-up is money moved, not a kind');
+	assert.equal(Money.kindOfTag(undefined), null);
+});
+
+test('Money: the budget by kind adds up to the view’s totals, biggest first', () => {
+	const rows = [
+		{ label: ['机票', 'Flights'], min: 4200, max: 4200, cur: 'home', paid: '2026-12-02', cat: 'transport' },
+		{ label: ['酒店', 'Hotel'], min: 2350, max: 2350, cur: 'RM', paid: '2026-11-24', cat: 'lodging' },
+		{ label: ['包车', 'Charter'], cat: 'transport', parts: [{ amt: 1560, paid: '2027-02-20' }, { amt: 3900 }] },
+		[['吃饭', 'Meals'], 'NT$7,800–15,600', 7800, 15600, 'food'],
+		[['机场来回', 'Airport'], 'NT$1,560–3,120', 1560, 3120, 'airport'],
+		[['杂项', 'Odds'], 'NT$780', 780, 780],
+		{ label: ['加购行李', 'Extra baggage'], tbd: true, cat: 'transport' },
+		{ label: ['保险', 'Insurance'], tbd: true, cat: 'insurance' },
+	];
+	const opts = { rate: 7.8, home: 'RM' };
+	const T = Money.budgetTally(rows, opts);
+	const K = Money.budgetByKind(rows, opts);
+	const close = (a, b) => assert.ok(Math.abs(a - b) < 1e-6, `${a} ≈ ${b}`);
+	close(
+		K.reduce((n, k) => n + k.paid, 0),
+		T.paid,
+	);
+	close(
+		K.reduce((n, k) => n + k.todo[0], 0),
+		T.todo[0],
+	);
+	close(
+		K.reduce((n, k) => n + k.todo[1], 0),
+		T.todo[1],
+	);
+	assert.deepEqual(
+		K.map((k) => k.cat),
+		['transport', 'lodging', 'food', 'other', 'insurance'],
+		'biggest first; a kind with only a price TBD last',
+	);
+	const tr = K[0];
+	close(tr.paid, 4200 + 200); // the deposit, converted
+	close(tr.todo[0], 500 + 200); // the balance and the airport, converted
+	assert.equal(tr.tbd, 1);
+	assert.equal(tr.paidApprox, true);
+	assert.equal(K[1].paidApprox, false, 'paid at home: exact');
+	assert.equal(K[2].todoApprox, true);
+	assert.deepEqual(K.at(-1), { cat: 'insurance', paid: 0, paidApprox: false, todo: [0, 0], todoApprox: false, tbd: 1, rows: 1, share: 0 });
+	// each kind's share of the whole, by the middle of its range; they add up to the whole
+	const all = T.paid + (T.todo[0] + T.todo[1]) / 2;
+	close(
+		K.reduce((n, k) => n + k.share, 0),
+		1,
+	);
+	close(tr.share, (tr.paid + (tr.todo[0] + tr.todo[1]) / 2) / all);
+	assert.deepEqual(Money.budgetByKind([]), []);
 });

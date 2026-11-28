@@ -994,6 +994,8 @@ function rateSet(v) {
 	// the budget's glance (what's paid, what's still to come) is worked out in the home currency: drawn again
 	const bg = $('#budget-glance');
 	if (bg) bg.outerHTML = budgetGlance();
+	const bk = $('#budget-kinds'); // and so is the By kind sheet, once it's drawn
+	if (bk) bk.innerHTML = budKindsHTML();
 	if (homeFirst) {
 		const bars = $('#budget-bars'),
 			air = $('#airport-bars');

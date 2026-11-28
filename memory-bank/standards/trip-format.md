@@ -224,15 +224,20 @@ The Budget view leads with what the group has paid, in the home currency, and on
 each person's share of it ([ADR-20261128-budget-paid-insurance](decisions/ADR-20261128-budget-paid-insurance.md)). A
 row is one of four shapes:
 
-| Row                   | Shape                                                                                                                                                                            |
-| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| An estimate           | `[label, text, min, max, anchor?]`: a range in the trip's currency, as before; `anchor: 'airport'` links the airport note                                                        |
-| A payment             | `{ label, min, max, cur, paid, via, ref, est, anchor }`: `paid` is the day it was paid (YYYY-MM-DD), and then `min` = `max`, one exact amount; without `paid` it's still to come |
-| A payment in parts    | `{ label, parts: [{ amt, cur, paid, via, label }] }`: a deposit now and the balance later (`paid` on the parts already paid); the row has no `min`, `max` or `paid` of its own   |
-| A price not known yet | `{ label, tbd: true, via }`: listed under Still to pay as "price TBD", never counted in a total                                                                                  |
+| Row                   | Shape                                                                                                                                                                                            |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| An estimate           | `[label, text, min, max, anchor?, cat?]`: a range in the trip's currency, as before; `anchor: 'airport'` links the airport note; its kind last (`[…, 'airport', 'transport']`, or `[…, 'food']`) |
+| A payment             | `{ label, min, max, cur, paid, via, ref, est, anchor }`: `paid` is the day it was paid (YYYY-MM-DD), and then `min` = `max`, one exact amount; without `paid` it's still to come                 |
+| A payment in parts    | `{ label, parts: [{ amt, cur, paid, via, label }] }`: a deposit now and the balance later (`paid` on the parts already paid); the row has no `min`, `max` or `paid` of its own                   |
+| A price not known yet | `{ label, tbd: true, via }`: listed under Still to pay as "price TBD", never counted in a total                                                                                                  |
 
 - `cur`: `'home'` (or the home code, `TRIP.currency.home`) for something paid at home, such as flights; left out, the
   trip's currency. Sums are shown in the home currency, each converted figure marked ≈.
+- `cat`: the row's kind for the budget's By kind sheet, one of `transport` (flights, trains, transfers, a car with its
+  driver), `car` (a car the group drives: rental, fuel, parking, tolls), `lodging`, `food`, `tickets`, `activity` (ski
+  lifts, lessons, gear rental), `insurance`, `other`. On an object row it's `cat`; on an estimate it's the last item, after
+  the anchor when there is one. A row without one counts as `other`, except an estimate anchored at the airport, which
+  counts as `transport`; the page never guesses a kind from the words.
 - `via`: where it was or will be paid, `[zh, en]` or a name ("Booking site", "Cash on the day"). `ref`: the booking
   number, shown only when the row is opened.
 - `excludes` keeps what's truly outside the plan (shopping); flights and lodging can be rows. A budget of estimate rows
@@ -280,20 +285,20 @@ also read the `SHARE_URL` environment variable: the live page's address, for Cop
 Written by the `refill` step ([ADR-20261128-water-refill](decisions/ADR-20261128-water-refill.md)); the build reads
 it as `REFILL` and leaves every refill part out without it. `{ checked: 'YYYY-MM-DD', spots: [ … ] }`, each spot:
 
-| Field                  | Holds                                                                                                                                                                              |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `id`, `src`            | a unique id, prefixed with its source (`osm-n123`, `<src>-…`), and the source's short name                                                                                         |
-| `name`, `address`      | as the source gives them, or `null` (the page then says "Water tap", "Refill shop" or "Indoor water")                                                                              |
-| `lat`, `lng`           | its position                                                                                                                                                                       |
-| `kind`                 | `tap` (a fountain or a tap), `shop` (a shop or café that fills a bottle) or `shelter` (a public indoor place)                                                                      |
-| `indoor`, `seasonal`   | `true`, `false` or `null`. A shop or a shelter is indoors. `seasonal: true` is shut for winter (OSM `seasonal=*`), `false` open all year                                           |
-| `hours`, `hours_note`  | `{ days: { "1": [["10:00", "22:00"]], … "7": [] }, known }` ("1" is Monday, an empty list closed, a range may run past midnight) or `null`; the words when the hours can't be read |
-| `water`, `how`, `site` | what water it gives (`tap`, `cold`, `hot`, `filtered`, or the source's own words), how to ask, and a link to the spot's page                                                       |
-| `added`, `credit`      | when the source added it, and whose data it is, shown with it (`© OpenStreetMap contributors` for OpenStreetMap's)                                                                 |
+| Field                  | Holds                                                                                                                                                                                                                                                                                                                              |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`, `src`            | a unique id, prefixed with its source (`osm-n123`, `<src>-…`), and the source's short name                                                                                                                                                                                                                                         |
+| `name`, `address`      | as the source gives them, or `null` (the page then says "Water tap", "Refill shop" or "Indoor water")                                                                                                                                                                                                                              |
+| `lat`, `lng`           | its position                                                                                                                                                                                                                                                                                                                       |
+| `kind`                 | `tap` (a fountain or a tap), `shop` (a shop or café that fills a bottle) or `shelter` (a public indoor place)                                                                                                                                                                                                                      |
+| `indoor`, `seasonal`   | `true`, `false` or `null`. `indoor: true` keeps a tap on a winter day, `false` (outdoors) shuts it there, and `null` (not known) counts as outdoors in a pack's winter; a shop or a shelter is indoors. `seasonal: true` is shut for winter (OSM `seasonal=*`, in December to February without a pack rule), `false` open all year |
+| `hours`, `hours_note`  | `{ days: { "1": [["10:00", "22:00"]], … "7": [] }, known }` ("1" is Monday, an empty list closed, a range may run past midnight) or `null`; the words when the hours can't be read                                                                                                                                                 |
+| `water`, `how`, `site` | what water it gives (`tap`, `cold`, `hot`, `filtered`, or the source's own words), how to ask, and a link to the spot's page                                                                                                                                                                                                       |
+| `added`, `credit`      | when the source added it, and whose data it is, shown with it (`© OpenStreetMap contributors` for OpenStreetMap's)                                                                                                                                                                                                                 |
 
 A trip's `refill-<src>.json` holds `spots` in the same shape; fields of the source's own (a category, its nearest place)
 are dropped. The page works out what's near a stop (600 m), what's open then, and what winter shuts: on a day inside the
-pack's `refillWinter` every outdoor tap not marked `seasonal: false` is left out and counted.
+pack's `refillWinter` every tap that isn't `indoor: true` or `seasonal: false` is left out and counted.
 
 ## Optional plans (`OPTIONAL`)
 

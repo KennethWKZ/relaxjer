@@ -972,6 +972,7 @@ const BUDGET = {
 		// paid at home, in the home currency: exact amounts, with where and when (synthetic booking numbers)
 		{
 			label: ['机票（来回）', 'Flights, return'],
+			cat: 'transport', // the budget's kinds (By kind): transport, car, lodging, food, tickets, activity, insurance, other
 			min: 4200,
 			max: 4200,
 			cur: 'home',
@@ -981,6 +982,7 @@ const BUDGET = {
 		},
 		{
 			label: ['酒店（六晚）', 'Hotel, six nights'],
+			cat: 'lodging',
 			min: 2350,
 			max: 2350,
 			cur: 'home',
@@ -991,18 +993,19 @@ const BUDGET = {
 		// paid in parts: a deposit by transfer, the balance in cash on the day
 		{
 			label: ['包车一天', 'Charter car, one day'],
+			cat: 'transport', // a car with its driver is a transfer; a car the group drives itself is 'car'
 			parts: [
 				{ amt: 1500, paid: '2027-02-20', via: ['银行转账', 'Bank transfer'], label: ['订金', 'Deposit'] },
 				{ amt: 4000, via: ['当天付现金', 'Cash on the day'], label: ['尾款', 'Balance'] },
 			],
 		},
-		// still to come: estimates in the trip's currency
-		[['机场来回', 'Airport, both ways'], 'NT$1,600–3,200', 1600, 3200, 'airport'],
-		[['市内交通', 'Local transport'], 'NT$2,000–3,000', 2000, 3000],
-		[['门票与活动', 'Tickets and activities'], 'NT$6,400–7,000', 6400, 7000],
-		[['吃饭', 'Meals'], 'NT$12,000–18,000', 12000, 18000],
+		// still to come: estimates in the trip's currency, each ending in its kind (an anchor first, where it has one)
+		[['机场来回', 'Airport, both ways'], 'NT$1,600–3,200', 1600, 3200, 'airport', 'transport'],
+		[['市内交通', 'Local transport'], 'NT$2,000–3,000', 2000, 3000, 'transport'],
+		[['门票与活动', 'Tickets and activities'], 'NT$6,400–7,000', 6400, 7000, 'tickets'],
+		[['吃饭', 'Meals'], 'NT$12,000–18,000', 12000, 18000, 'food'],
 		// planned, price not known yet: listed, never counted
-		{ label: ['加购行李（回程）', 'Extra baggage, home'], tbd: true, via: ['航空公司 App', 'Airline app'] },
+		{ label: ['加购行李（回程）', 'Extra baggage, home'], tbd: true, via: ['航空公司 App', 'Airline app'], cat: 'transport' },
 	],
 	split: ['包车和计程车按车算，人少也不便宜。', 'Charter and taxis are per vehicle, so fewer people don’t pay less.'],
 	suggest: ['公费 NT$40,000，最后多退少补。', 'A group pot of NT$40,000; settle up at the end.'],

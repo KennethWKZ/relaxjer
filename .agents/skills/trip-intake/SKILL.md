@@ -59,6 +59,8 @@ requirements. No demo content may survive: its hotel, stalls and prices are inve
   The page adds the per-person share. In `BUDGET.rows`, what's already booked is a payment: `paid` (the date), `cur:
 'home'` for anything paid at home (flights, often the hotel), `via` (where) and, if the planner wants it on the page,
   `ref`; a deposit and its balance go in `parts`; something planned without a price yet is `tbd: true`, never a guess.
+  Give every row its kind for the By kind sheet: `cat` (`transport`, `car`, `lodging`, `food`, `tickets`, `activity`,
+  `insurance`, `other`), or an estimate's last item.
 - Insurance, when the group has it: `INSURANCE` with each policy's insurer, plan, who it covers, dates, what it covers,
   its app and the hotline numbers (`tel`, `wa`), and `claims` (what to keep, by event). Never an ID or passport number,
   an address or a birth date: the page is shared with the group, and the contract refuses them.

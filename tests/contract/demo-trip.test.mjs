@@ -15,6 +15,8 @@ test('the contract catches a broken trip', () => {
 	trip.DAYS[2].schedule[0].place = 'nowhere';
 	trip.BUDGET.rows.find((r) => r.paid).max += 1; // a payment is one exact amount
 	trip.BUDGET.rows.find((r) => r.tbd).min = 100; // a row with no price yet has no amount
+	trip.BUDGET.rows.find((r) => r.paid).cat = 'souvenirs'; // a kind off the list
+	trip.BUDGET.rows.find(Array.isArray).push('snacks'); // and after an estimate's figures
 	trip.INSURANCE.policies[0].passport = 'A0000000'; // the page is shared with the group
 	trip.FACTS[0].v = ['日期', ''];
 	trip.DAYS[1].route = [['hotel', 'atlantis', 'teleport']];
@@ -34,6 +36,8 @@ test('the contract catches a broken trip', () => {
 		'unknown place "nowhere"',
 		'a paid row has its exact amount',
 		'a row with no price yet',
+		'cat must be one of transport\\|car',
+		"after the figures, 'airport' and/or a kind",
 		'no ID numbers, addresses or birth dates in INSURANCE',
 		'both languages needed',
 		'route leg 0',

@@ -7,6 +7,7 @@ import { names as MOTIFS } from '../../engine/src/core/motif.mjs';
 import { stopKinds as STOP_ICONS } from '../../engine/src/core/plan.mjs';
 import { MODES as SKIES } from '../../engine/src/core/sky.mjs';
 import { paceProblem } from '../../engine/src/core/way.mjs';
+import { budgetKinds as BUDGET_KINDS } from '../../engine/src/core/money.mjs';
 import { fitMealProblems } from '../../engine/src/core/wish.mjs';
 
 // read when present: the themed shop lists (SNOW is the older single-list form)
@@ -323,9 +324,13 @@ export function checkTrip(trip) {
 		const w = `BUDGET.rows[${i}]`;
 		if (Array.isArray(r)) {
 			if (!(isLabel(r[0]) && typeof r[1] === 'string' && Number.isFinite(r[2]) && r[2] <= r[3])) bad(`${w}: [label, text, min, max] with min ≤ max`);
+			// after the figures: an anchor ('airport') and the row's kind, either or both, in that order
+			if (r.slice(4).some((x) => x != null && x !== 'airport' && !BUDGET_KINDS.includes(x)))
+				bad(`${w}: after the figures, 'airport' and/or a kind, one of ${BUDGET_KINDS.join('|')}`);
 			return;
 		}
 		if (!r || typeof r !== 'object' || !isLabel(r.label)) return bad(`${w}: label must be [zh, en]`);
+		if (r.cat != null && !BUDGET_KINDS.includes(r.cat)) bad(`${w}: cat must be one of ${BUDGET_KINDS.join('|')}`);
 		if (!curOK(r.cur)) bad(`${w}: cur must be 'home' or ${JSON.stringify(homeCode)} (a trip with a home currency), or left out for the trip's`);
 		if (!viaOK(r.via)) bad(`${w}: via must be [zh, en] or a name`);
 		if (r.ref != null && !(typeof r.ref === 'string' && r.ref.trim())) bad(`${w}: ref must be the booking number as text`);

@@ -8418,6 +8418,130 @@ details.pay[open] > summary > .chev {
 	white-space: nowrap;
 }
 
+/* the budget by kind: a big icon, the kind's name and its share, a share bar (paid solid, still to pay dashed as an
+   estimate, against the biggest kind), then the figures and each person's share. A split is bars, never a donut */
+.kind-key {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 4px 8px;
+	margin: 0 0 4px;
+	font-size: var(--fs-xs);
+	font-weight: 650;
+	color: var(--ink-2);
+}
+.kk {
+	display: inline-block;
+	width: 18px;
+	height: 10px;
+	border-radius: 3px;
+}
+.kind-key .kk:not(:first-child) {
+	margin-left: 8px;
+}
+.kk-paid,
+.kb-paid {
+	background: color-mix(in srgb, var(--ink) 72%, var(--paper));
+}
+/* still to pay is an estimate: a light tint with a hatch, the chart rule's dashed 22 % (DESIGN.md, Charts) */
+.kk-todo,
+.kb-todo {
+	background-color: color-mix(in srgb, var(--ink) 12%, transparent);
+	background-image: repeating-linear-gradient(
+		135deg,
+		color-mix(in srgb, var(--ink) 30%, transparent) 0,
+		color-mix(in srgb, var(--ink) 30%, transparent) 2px,
+		transparent 2px,
+		transparent 5px
+	);
+}
+.kinds {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+.kind {
+	display: grid;
+	grid-template-columns: 44px minmax(0, 1fr);
+	gap: 12px;
+	padding: 14px 0;
+	border-top: 1px solid var(--rule);
+}
+.kind-ic {
+	display: grid;
+	place-items: center;
+	width: 44px;
+	height: 44px;
+	border-radius: 12px;
+	background: var(--paper-2);
+	color: var(--ink-2);
+}
+.kind-ic svg.i {
+	width: 24px;
+	height: 24px;
+}
+.kind-b {
+	display: grid;
+	gap: 6px;
+	min-width: 0;
+}
+.kind-h {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 8px;
+	margin: 0;
+}
+.kind-h b {
+	font-weight: 750;
+}
+.kind-pct {
+	font-size: var(--fs-sm);
+	font-weight: 750;
+	color: var(--ink-2);
+	font-variant-numeric: tabular-nums;
+}
+.kind-bar {
+	display: flex;
+	height: 12px;
+	border-radius: 4px;
+	background: var(--paper-2);
+	overflow: hidden;
+}
+.kb-paid,
+.kb-todo {
+	display: block;
+	height: 100%;
+}
+.kind-m,
+.kind-each {
+	margin: 0;
+	font-size: var(--fs-sm);
+	font-weight: 650;
+	color: var(--ink-2);
+	font-variant-numeric: tabular-nums;
+}
+.kind-m b {
+	color: var(--ink);
+	white-space: nowrap;
+}
+.kind-each {
+	font-size: var(--fs-xs);
+	color: var(--ink-3);
+}
+.kinds-sum {
+	padding-top: 12px;
+	border-top: 1px solid var(--rule);
+}
+/* a day card's budget row: the icon of its kind (its tag), as in the budget's By kind sheet */
+.bud-ic svg.i {
+	width: 16px;
+	height: 16px;
+	margin-right: 6px;
+	vertical-align: -3px;
+	color: var(--ink-3);
+}
+
 /* travel insurance: a card per policy, the numbers to call as 44 px buttons, what to keep for a claim */
 .ins-card {
 	display: grid;

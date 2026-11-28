@@ -1,4 +1,15 @@
 /* ───────── render: blocks ───────── */
+// a budget kind's icon and name (core/money.mjs budgetKinds): the budget's By kind sheet, and a day card's budget rows
+const BUD_KIND = {
+	transport: ['plane', ['交通', 'Transport']],
+	car: ['car', ['用车', 'Car']],
+	lodging: ['bed', ['住宿', 'Lodging']],
+	food: ['food', ['吃饭', 'Food']],
+	tickets: ['ticket', ['门票', 'Tickets']],
+	activity: ['peak', ['活动', 'Activities']],
+	insurance: ['shield', ['保险', 'Insurance']],
+	other: ['more', ['其他', 'Other']],
+};
 // a decide option's own route (ADR-20261127-decide-option-route): the day route's line, with the leg times the data
 // refresh stored for this option apart from the day's, under Plan.legScope(day, k)
 const optRoute = (day, o) =>
@@ -39,7 +50,9 @@ function renderBlock(b, day) {
 				.map((r) => {
 					let v = L(r[1]);
 					if (r[2] === 'airportMrt' && AIRPORT.mrtFare) v = AIRPORT.mrtFare; // the trip's airport-rail fare for the group
-					return `<div><dt>${fmt(r[0])}</dt><dd>${escText(v).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')}${ddEach(v)}</dd></div>`;
+					// the row's tag, where it names a budget kind, draws that kind's icon, as in the budget's By kind sheet
+					const k = Money.kindOfTag(r[2]);
+					return `<div><dt>${k ? `<span class="bud-ic" aria-hidden="true">${icon(BUD_KIND[k][0])}</span>` : ''}${fmt(r[0])}</dt><dd>${escText(v).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')}${ddEach(v)}</dd></div>`;
 				})
 				.join('');
 			return `<div class="block" id="${day.id}-budget">${blockH('money', b.h)}<dl class="kv kv-each">${rows}</dl><div style="margin-top:10px">${totalBox(
