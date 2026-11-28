@@ -652,6 +652,7 @@ function addPool() {
 			p,
 			cat: cat(p),
 			rating: (p.food && p.food.rating) || (p.wish && p.wish.rating) || (p.drink && p.drink.rating) || null,
+			rsrc: (p.food && p.food.rating_source) || (p.wish && p.wish.rating_source) || (p.drink && p.drink.rating_source) || '',
 			closed: (p.food && p.food.closed_dates) || (p.wish && wBest(p.wish).closed_dates) || (p.drink && p.drink.closed_dates) || [],
 			gpid: (p.food && p.food.gpid) || (p.wish && wBest(p.wish).gpid) || (p.drink && p.drink.gpid) || ((GEO.places || {})[p.pid] || {}).gpid,
 		}));
@@ -667,6 +668,7 @@ function addPool() {
 		},
 		cat: 'buy',
 		rating: x.rating,
+		rsrc: 'Google Maps', // shops come from Google's place search
 		closed: [],
 		week: x.week,
 		gpid: x.gpid,
@@ -695,7 +697,7 @@ function addFindRender(q) {
 		k: from ? km(from, x.p) : null,
 		off: !!date && (x.closed.includes(date) || (x.week && x.week[Time.weekdayIndex(date)] === 'closed')),
 	}));
-	hits.sort((a, b) => a.off - b.off || (addSort === 'near' && from ? a.k - b.k : (b.rating || 0) - (a.rating || 0)));
+	hits.sort((a, b) => a.off - b.off || (addSort === 'near' && from ? a.k - b.k : Rating.byScore((x) => [x.rating, x.rsrc])(a, b)));
 	// the whole row opens the place's preview (the same as its "Add to plan"), so a name is never a dead tap
 	const row = (x) =>
 		`<li class="idea"><button type="button" class="idea-b idea-go" data-add-peek><span class="idea-n">${esc(x.p.name)}</span><span class="idea-m">${esc(L(ADD_KIND[x.cat] || ['', '']))}${x.rating ? ` · ★${x.rating}` : ''}${x.k != null ? ` · ${Z('离上一站', 'from the stop before')} ${distLabel(x.k)}` : ''}${x.trs === 'yes' && trsMin() ? Z(` · 可退税（满${trsMin()}）`, ` · tax refund (${trsMin()}+)`) : ''}${x.off ? `<b class="idea-off"> · ${Z('当天休息', 'closed that day')}</b>` : ''}</span></button>${addBtn(x.p.name, x.p.lat, x.p.lng, x.gpid, x.p.q || x.p.name, '', pinRef(x.p))}</li>`;

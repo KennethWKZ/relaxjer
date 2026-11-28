@@ -272,9 +272,9 @@ itself is the planner's: it's in the trip's data, and nobody makes one on the pa
 
 ## Near each stop, and near me
 
-- **Under every stop:** meal chips at meal stops (sorted by rating, "N closed today", "near the hotel"), and pills for
-  drinks, rest spots (seats and air-conditioning) and toilets, each opening a list sorted by distance with that day's
-  hours, the walk, the rating and a tip.
+- **Under every stop:** meal chips at meal stops (sorted by rating, Tabelog's lower scale counted against Google's,
+  "N closed today", "near the hotel"), and pills for drinks, rest spots (seats and air-conditioning) and toilets, each
+  opening a list sorted by distance with that day's hours, the walk, the rating and a tip.
 - **How to order a drink:** sugar, ice, toppings and price, where the destination has a drink culture (Taiwan's).
 - **Toilets:** the place's own (and whether it's accessible), public toilets by distance, shops that let you ask (buy
   something first), and station toilets, with the metro's tip where it has one (Taipei's free pass inside the gates).
