@@ -18,14 +18,15 @@ tested gets a test.
 
 ## 2. Sort each finding
 
-| The finding is…                                  | It goes to                                                                            |
-| ------------------------------------------------ | ------------------------------------------------------------------------------------- |
-| true for every trip (a browser quirk, a UX rule) | `knowledge/<topic>.md`                                                                |
-| true for one country or city                     | `destinations/<cc>/knowledge.md`, with when it was checked (the month, on a trip day) |
-| a bug in the engine                              | a failing test first (`test.fail(true, reason)` if it's not fixed now), then the fix  |
-| a gap in the data shape                          | `memory-bank/standards/trip-format.md`, the contract, and the engine                  |
-| a better way for the agent to work               | a proposed change to a skill, rule or `AGENTS.md`                                     |
-| only about this trip                             | nowhere in the repo; it stays in `trips/<slug>/`                                      |
+| The finding is…                                       | It goes to                                                                            |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| true for every trip (a browser quirk, a UX rule)      | `knowledge/<topic>.md`                                                                |
+| true for one country or city                          | `destinations/<cc>/knowledge.md`, with when it was checked (the month, on a trip day) |
+| a bug in the engine                                   | a failing test first (`test.fail(true, reason)` if it's not fixed now), then the fix  |
+| a gap in the data shape                               | `memory-bank/standards/trip-format.md`, the contract, and the engine                  |
+| a better way for the agent to work                    | a proposed change to a skill, rule or `AGENTS.md`                                     |
+| the page read as too busy, or a part was hard to find | `DESIGN.md` and an amendment to the glance-first ADR, with the e2e that holds it      |
+| only about this trip                                  | nowhere in the repo; it stays in `trips/<slug>/`                                      |
 
 ## 3. Scrub
 

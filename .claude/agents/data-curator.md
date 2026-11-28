@@ -39,6 +39,10 @@ Read first: `memory-bank/standards/trip-format.md`, `memory-bank/standards/patte
    - only groups everyone ticks once for all (bookings, tickets) are `shared: true`, never passports or packing;
    - each day has a lantern colour `c` (1–7), a rain plan, and a `wear` line when the weather calls for one;
    - `pipeline.json` names its `steps` when the trip isn't in Taiwan, and `wish-a.json` / `wish-b.json` exist.
+10. **Glance first** ([ADR-20261128-progressive-disclosure](../../memory-bank/standards/decisions/ADR-20261128-progressive-disclosure.md)):
+    every day has a `short`; a stop's `what` is a name, its `note` one short line with the rest in `detail`, and
+    `todo: true` only on what the group must act on; a block whose heading is long has a `tile`; checklist items are a
+    few words with the explanation in `sub`; every budget row has its kind; no text repeats a figure the page shows.
 
 ## Return
 

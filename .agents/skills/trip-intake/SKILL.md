@@ -64,6 +64,19 @@ requirements. No demo content may survive: its hotel, stalls and prices are inve
 - Insurance, when the group has it: `INSURANCE` with each policy's insurer, plan, who it covers, dates, what it covers,
   its app and the hotline numbers (`tel`, `wa`), and `claims` (what to keep, by event). Never an ID or passport number,
   an address or a birth date: the page is shared with the group, and the contract refuses them.
+- **Write for the glance layer**
+  ([ADR-20261128-progressive-disclosure](../../../memory-bank/standards/decisions/ADR-20261128-progressive-disclosure.md)):
+  the page shows one line per stop, a tile per part and one number for money, and opens the rest on a tap. So a
+  stop's `what` is its name, not a sentence; its `note` is short and anything longer goes in `detail`, both shown
+  when the stop is opened; a stop's kind comes from the stop or its `icon`. A block gets a `tile: [zh, en]` word (at
+  most 6 characters, 16 in English) when its heading is long, and a `sum` when the line the page works out says too
+  much. A checklist item's `t` is a few words, its `sub` the explanation, shown on a tap. Don't repeat a figure in
+  text that the page already shows (the budget's totals, a day's share).
+- Tax refund, when the group will shop: `TAX` with the steps, card or cash, the airport points and Wi-Fi, the
+  deadline, and any shop coupons (`coupons`, an image each in `img/tax/`, `until` only when the coupon prints one),
+  every fact with its source (`src`) and anything only one blog says marked as that blog's.
+- Long drives: add the `drive-stops` step to `pipeline.json` and the page lists rest stops along the way for
+  reference; a break the group wants in the plan is its own stop. Refill points come from the `refill` step.
 - `PLACES`: every place a day or list names. Positions come from Google through `data-sync`, so a rough position is
   fine for now.
 - Wording: never describe people by family relationship. Say "the group", "seniors", "adults".
@@ -106,4 +119,5 @@ page, so you can show the planner what they'll get.
 - Every fixed time in the requirements is `fixed: true`, and every number in the data comes from the requirements or is
   marked as an estimate.
 - Every must-do in `requirements.md` names one exact place, and every day has photos (or the planner knows it has none).
+- Every day has a `short`, every stop's `what` is a name and its `note` short, and every budget row has its kind.
 - `git status` shows nothing under `trips/` except its README.

@@ -38,6 +38,8 @@ planner; never publish it. Once the planner picks a sky, write it in `TRIP.sky` 
 
 `<fileName>` is `TRIP.fileName` (default `trip`). The build prints its size and whether a key went in. Read that line:
 a page meant for anyone outside the group must say no key.
+The same line counts what went in (photos, tax coupons, food, refill points, drive stops…): a 0 where the trip has the
+data means a side file is missing or wasn't refreshed (`data-sync`).
 
 ## Rules
 

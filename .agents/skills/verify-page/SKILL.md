@@ -54,6 +54,25 @@ WebKit for iPhone behaviour.
 
   Then the squint test, by eye (25).
 
+- **Glance first** ([ADR-20261128-progressive-disclosure](../../../memory-bank/standards/decisions/ADR-20261128-progressive-disclosure.md),
+  `DESIGN.md`), on every view and every sheet the change touches:
+  - only the glance layer is open on arrival (Now/Next, tonight's hotel, the week, a day's card and its one-line
+    stops); every list is a fold with a big heading, its count and a turning chevron, closed by default;
+  - a single part (a booking, a rule set, a day's route, costs or rain plan) is a tile: a big icon over a short word,
+    in a wrapping grid, never a sideways scroller and never an icon without its word;
+  - a row is one line (two at most when the group must act on it); a sentence that explains moved to the top of the
+    sheet or into a fold, never sits on the glance layer;
+  - a sheet leads with one line and its main action (a coupon, a Call button) visible without scrolling; the rest of
+    it folds;
+  - money on the glance layer is one number (each person's share, marked ≈ / est.); each figure appears once per
+    screen, and the range, the group's figure and the other currency stay in the sheet;
+  - rare actions sit behind ⋯, never as a button on the glance layer; a repeated hint shows in full once, then as one
+    row, and ✕ puts it away for good;
+  - a chart follows the chart rules ([frontend](../../../memory-bank/standards/patterns/frontend.md), and the
+    dashboards-and-charts or dataviz skill where the agent has one): bars, not donuts, for a split; ranked bars for a
+    breakdown; estimates and ranges drawn as such; a missing price never reads as zero;
+  - every part the page has can be reached from More as well as from where it lives (Today's tiles, a section, a
+    fold).
 - **Compare:** a screenshot next to the same part of the page before the change, and fix alignment, spacing and style
   drift (`DESIGN.md`).
 
@@ -68,7 +87,9 @@ At 390 px, one-handed, as a senior would (`knowledge/group-ux.md`):
 2. Getting to the next stop: the route, the map, the "show the driver" card.
 3. Where to eat nearby, and a toilet.
 4. The rain plan.
-5. The budget: every group figure has its per-person share, in both currencies.
+5. The budget: the glance shows one number per person; its sheet shows what's paid and what's still to pay, By kind,
+   and each group figure with its per-person share, in both currencies, with prices not known yet listed, never
+   counted.
 6. The airport: the options, and the leave-by time.
 7. Follow a link, then come back: the Back pill, the place kept.
 8. Offline: turn the network off and reload from the home-screen copy.
@@ -85,8 +106,14 @@ At 390 px, one-handed, as a senior would (`knowledge/group-ux.md`):
 13. An optional plan's "Nearby options" chip opens its card over the day, and closing it keeps your place.
 14. Push the day back from a stop: flexible stops move, fixed ones hold, and the banner says what moved. Type a flight
     delay, then Back to booked.
-15. The header: search in the other language, the theme (light, dark, follow the phone), the language switch keeping
+15. The header: search in the other language and clear it (✕ in the field; Done leaves no highlight behind), the theme (light, dark, follow the phone), the language switch keeping
     your place, the Sections menu, and Install.
+16. Find a part with as few taps as possible, from Today and from More: Flights, Insurance (a Call or WhatsApp button
+    reached without scrolling), Tax refund (a coupon opened full screen, turned for the scanner), Cash & cards, a shop
+    list, the checklist (tick without opening a note; a tap on the item shows its note).
+17. Skip a stop, then put it back; a fixed time asks first, a flight or the hotel offers no Skip.
+18. Water and rest: Refill and Toilets near a stop and near me, and a long drive's rest stops (for reference, never
+    in the plan).
 
 Count taps and long scrolls. A dead end, a back trap, a tiny target or squeezed text is a bug: fix it, or file it in
 the story index's "Known issues".
