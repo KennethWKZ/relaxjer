@@ -55,7 +55,9 @@ The repo's rules bind you too (`AGENTS.md` § Rules: seniors' pace, wording, no 
      checklist item with its due date, a decision block, a rain plan line, a budget row;
    - a stay: its name, the date ranges with the total for the group and the availability for each, the beds, the
      walk to the station or first stop, the rating with its count, and the site and date checked;
-   - with the source and checked date for every hour, price and rule.
+   - with the source and checked date for every hour, price and rule;
+   - written for the page's glance layer: a stop's name, not a sentence; a note of one short line, with anything
+     longer as its `detail`; a short name for a new or changed day (`short`, 2–8 characters).
 3. **Risks**: clashes with fixed times, closures on the trip's dates, bookings that sell out, long walks or stairs,
    anything that needs the planner's call.
 4. **Open questions** for the planner, if any, all in one list.

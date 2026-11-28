@@ -25,7 +25,10 @@ Follow the `verify-page` skill (`.agents/skills/verify-page/SKILL.md`). Read `PR
    - token drift (a colour, radius or size not in the system);
    - motion without a reduced-motion path;
    - the measured affordance rules in `memory-bank/standards/patterns/affordances.md` (1, 3, 11, 14, 16, 19, 24),
-     reported by rule number.
+     reported by rule number;
+   - glance first (the `verify-page` skill, § 3): on every view and sheet the change touches, what is open on arrival,
+     what should be a fold or a tile, rows over one line, a figure shown twice, rare actions outside ⋯, a part More
+     can't reach, and charts against the chart rules.
 5. Walk every journey in the `verify-page` skill (§ 4, the one list) at 390 px as a senior would, and the parts of
    `guides/trip-page.md` the change touches. Pin the trip clock with
    `localStorage <storageKey>now = "YYYY-MM-DD HH:MM"`, and count taps and long scrolls.

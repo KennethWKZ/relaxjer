@@ -30,7 +30,9 @@ source and the date you checked it. A fact without a source doesn't go in.
 - Text is `[zh, en]` pairs, as elsewhere, until story step 4.
 - **A world for the page** (`theme`, ADR-20261117-destination-themes): pick one that fits the place and season, or
   draw a new one under `engine/src/themes/` (its palette, a banner per activity mark, and their motion). A trip whose
-  packs name none gets the plain page. Design work handed to a subagent runs on the strongest model at `xhigh` effort or above.
+  packs name none gets the plain page. A world changes the look, never the layout: the glance layer, folds, tiles and
+  sheets stay as `DESIGN.md` sets them
+  ([ADR-20261128-progressive-disclosure](../../../memory-bank/standards/decisions/ADR-20261128-progressive-disclosure.md)). Design work handed to a subagent runs on the strongest model at `xhigh` effort or above.
 
 ## 3. Pipeline steps (if the city needs them)
 
