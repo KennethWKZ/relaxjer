@@ -6,6 +6,7 @@ import vm from 'node:vm';
 import { names as MOTIFS } from '../../engine/src/core/motif.mjs';
 import { MODES as SKIES } from '../../engine/src/core/sky.mjs';
 import { paceProblem } from '../../engine/src/core/way.mjs';
+import { fitMealProblems } from '../../engine/src/core/wish.mjs';
 
 // read when present: the themed shop lists (SNOW is the older single-list form)
 export const OPTIONAL_GLOBALS = ['SHOPLISTS', 'SNOW'];
@@ -321,4 +322,9 @@ export function pointsOutside(dir) {
 	for (const [id, p] of Object.entries(geo.places)) check(`geo ${id}`, p.lat, p.lng);
 	for (const f of readJSON(dir, 'extra.json', { food: [] }).food) check(`food ${f.name_en}`, f.lat, f.lng);
 	return out;
+}
+
+/** The wishlist's side files (wish-a.json, wish-b.json): a fits entry that names its meal names a known one. */
+export function wishProblems(dir) {
+	return ['wish-a.json', 'wish-b.json'].flatMap((f) => (readJSON(dir, f, { items: [] }).items || []).flatMap((w) => fitMealProblems(w.id, w.fits)));
 }

@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { DEMO_TRIP, DEMO_TRIPS, ROOT } from '../support/stage.mjs';
-import { checkTrip, loadTrip, OPTIONAL_GLOBALS, pointsOutside, readJSON, REQUIRED } from '../support/trip-contract.mjs';
+import { checkTrip, loadTrip, OPTIONAL_GLOBALS, pointsOutside, readJSON, REQUIRED, wishProblems } from '../support/trip-contract.mjs';
 
 const dirs = process.env.TRIP_DIR ? [path.resolve(process.env.TRIP_DIR)] : DEMO_TRIPS;
 
@@ -81,6 +81,10 @@ for (const dir of dirs) {
 
 	test('every pin sits inside the map' + at, () => {
 		assert.deepEqual(pointsOutside(dir), []);
+	});
+
+	test('every wishlist day that names its meal names a known one' + at, () => {
+		assert.deepEqual(wishProblems(dir), []);
 	});
 
 	test('every planned place has a pin' + at, () => {
