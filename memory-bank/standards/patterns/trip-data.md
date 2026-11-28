@@ -10,6 +10,10 @@ data must pass in `tests/support/trip-contract.mjs`. `examples/demo-trip/data.js
 
 ## Writing the plan
 
+What goes into a plan is researched the way [`knowledge/research.md`](../../../knowledge/research.md) says (every
+finding sourced and dated, travellers' posts from the last six months, Google's route times, the cost of data runs,
+choices not one pick) and stays the way [`knowledge/stays.md`](../../../knowledge/stays.md) says.
+
 - **Fixed times never move.** Anything booked or timed (a flight, a show, a charter, a reservation) is `fixed: true`.
   Times tied to a flight use `rel: { arr: [a, b] }` or `{ dep: [a, b] }`, so a typed delay moves them.
 - **A comfortable pace beats sights per day.** Leave slack around fixed items, and give each day a rain plan.

@@ -14,6 +14,8 @@ Read first, for the trip you're asked about:
   never in a search query beyond the place and date you need.
 - `PRODUCT.md` (who the page is for), `knowledge/group-ux.md`, `knowledge/data-hygiene.md`, and
   `destinations/<cc>/knowledge.md` when the country has one.
+- [`knowledge/research.md`](../../knowledge/research.md) for every question: sources and dates, rednote posts, route
+  times, data costs, choices not one pick, rental cars, shop lists, cards, customs.
 - [`knowledge/stays.md`](../../knowledge/stays.md) whenever the question is about where to stay.
 - [`guides/trip-page.md`](../../guides/trip-page.md): what the page can show, so your proposals fit a feature (a fixed
   time, a day split, an optional plan at a stop, a shop list, a checklist item, a decision block, a rain plan).

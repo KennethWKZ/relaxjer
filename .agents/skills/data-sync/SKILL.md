@@ -17,6 +17,9 @@ Read first: `pipeline/README.md` (commands, folders), `memory-bank/standards/pat
   `forecast_spots`, `stations`, `skip_nearby`, `no_hours`, `area`. The steps look themselves up in the trip's region
   pack, then its country pack, then `pipeline/steps/`.
 
+Before advising on a route or a drive time, and before any run that pays for calls, follow
+[research](../../../knowledge/research.md) (Google's times first, the winter buffer, saying the calls and their cost).
+
 ## Run
 
 ```sh

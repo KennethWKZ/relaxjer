@@ -16,6 +16,9 @@ change lands).
 
 ## Before you change anything
 
+- **Research the way [research](../../../knowledge/research.md) says:** every finding sourced and dated, travellers'
+  posts from the last six months, Google's route times before route advice, the cost of a data run said out loud,
+  choices rather than one pick, paid amounts read from receipts and never guessed.
 - **Travel questions go to an expert first.** "What should we do on day 3?", "Is this too packed?", "What needs
   booking?" In Claude Code, hand them to the read-only `relaxbro` agent (in the background, so the planner can keep
   talking) and apply its proposals once the planner agrees. Elsewhere, research them yourself from primary sources,
