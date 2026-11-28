@@ -83,3 +83,9 @@ test('Sapporo: taxi meter, with the winter and night surcharges that never stack
 	assert.deepEqual(sapporo.taxiFare(0.5, 720, '2027-03-27'), [540, 600]);
 	assert.deepEqual(sapporo.taxiFare(0.5, 720), [540, 600]);
 });
+
+test('Sapporo: outdoor drinking fountains are shut from November through April', () => {
+	assert.deepEqual(sapporo.refillWinter, ['11-01', '04-30']); // knowledge.md, Water refill: closed early to mid November, back in April
+	assert.equal(jp.refillWinter, undefined, 'the country pack sets none: Tokyo’s fountains run all year');
+	assert.equal(taipei.refillWinter, undefined);
+});

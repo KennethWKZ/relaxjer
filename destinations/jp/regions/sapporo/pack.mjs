@@ -10,6 +10,13 @@ export const theme = 'snowlight';
 export const metro = ['地铁', 'Subway'];
 /** the stored-value card: the city's own, or a nationwide one (Kitaca, Suica) on the subway, tram and JR */
 export const transitCard = ['IC卡（SAPICA / Kitaca / Suica）', 'IC card (SAPICA / Kitaca / Suica)'];
+/**
+ * when outdoor drinking fountains are shut for the winter, as ['MM-DD', 'MM-DD'] (it runs over New Year): the water
+ * refill list leaves outdoor taps out on trip days inside it (core/refill.mjs). Sapporo's parks turn them off from early
+ * to mid November and back on in April (knowledge.md, Water refill); the span is wide on purpose, since a closed
+ * fountain in the snow costs more than a missed one
+ */
+export const refillWinter = ['11-01', '04-30'];
 
 /**
  * Sapporo–Otaru taxi meter (the upper-limit fare from 2025-12-17) for a straight-line distance: the road is taken as

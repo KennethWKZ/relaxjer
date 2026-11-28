@@ -40,7 +40,7 @@ if (window.DEMO_CLOCK) {
 			typeof ENTRY_CHECKS !== 'undefined' && ENTRY_CHECKS,
 			typeof INSURANCE !== 'undefined' && INSURANCE,
 			// the side files (build.mjs): when hours were checked, the forecast's days
-			...['EXTRA', 'WISH', 'FORECAST', 'DRINKS', 'TOILETS', 'YB', 'BUS', 'SHOPS'].map((n) => window[n]),
+			...['EXTRA', 'WISH', 'FORECAST', 'DRINKS', 'TOILETS', 'REFILL', 'YB', 'BUS', 'SHOPS'].map((n) => window[n]),
 		];
 		for (const o of data) if (o && typeof o === 'object') move(o);
 		window.DEMO_CLOCK = `${Time.addDays(window.DEMO_CLOCK.slice(0, 10), days)}${window.DEMO_CLOCK.slice(10)}`;

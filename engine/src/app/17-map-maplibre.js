@@ -44,13 +44,15 @@ function pinSVG(p) {
 									? `<rect x="-7" y="-7.5" width="14" height="15" rx="4" fill="#2f7d4f" stroke="#fff" stroke-width="2"/><rect x="-4" y="-4.5" width="8" height="5" rx="1" fill="#fff"/><circle cx="-2.4" cy="3" r="1.1" fill="#fff"/><circle cx="2.4" cy="3" r="1.1" fill="#fff"/>`
 									: p.type === 'wc'
 										? `<rect x="-7.5" y="-7.5" width="15" height="15" rx="4" fill="#4a6fa5" stroke="#fff" stroke-width="2"/><text x="0" y="3.2" text-anchor="middle" font-size="8" font-weight="800" fill="#fff" font-family="system-ui,sans-serif">WC</text>`
-										: p.type === 'rest'
-											? `<circle r="7.5" fill="#a0527e" stroke="#fff" stroke-width="2"/><path d="M-3.8-2h5.6v2.2a2.8 2.8 0 0 1-5.6 0z" fill="#fff"/><path d="M1.8-1.2h.9a1.3 1.3 0 0 1 0 2.6h-.9" fill="none" stroke="#fff" stroke-width="1.1"/>`
-											: p.type === 'mrt'
-												? `<rect x="-8" y="-8" width="16" height="16" rx="4" fill="#0f5fa8" stroke="#fff" stroke-width="2"/><path d="M-4.5 4V-4L0 1.5 4.5-4V4" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/>`
-												: p.type === 'wish'
-													? `${p.wish && p.wish.must ? '<circle r="12.5" fill="#f2a900" stroke="#fff" stroke-width="1.5"/>' : ''}<path d="M0 -10L2.9 -3.4L9.9 -2.8L4.6 1.9L6.2 8.8L0 5.2L-6.2 8.8L-4.6 1.9L-9.9 -2.8L-2.9 -3.4Z" fill="${c}" ${st}/>`
-													: `<circle r="8" fill="${c}" ${st}/>`;
+										: p.type === 'refill'
+											? REFILL_PIN
+											: p.type === 'rest'
+												? `<circle r="7.5" fill="#a0527e" stroke="#fff" stroke-width="2"/><path d="M-3.8-2h5.6v2.2a2.8 2.8 0 0 1-5.6 0z" fill="#fff"/><path d="M1.8-1.2h.9a1.3 1.3 0 0 1 0 2.6h-.9" fill="none" stroke="#fff" stroke-width="1.1"/>`
+												: p.type === 'mrt'
+													? `<rect x="-8" y="-8" width="16" height="16" rx="4" fill="#0f5fa8" stroke="#fff" stroke-width="2"/><path d="M-4.5 4V-4L0 1.5 4.5-4V4" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/>`
+													: p.type === 'wish'
+														? `${p.wish && p.wish.must ? '<circle r="12.5" fill="#f2a900" stroke="#fff" stroke-width="1.5"/>' : ''}<path d="M0 -10L2.9 -3.4L9.9 -2.8L4.6 1.9L6.2 8.8L0 5.2L-6.2 8.8L-4.6 1.9L-9.9 -2.8L-2.9 -3.4Z" fill="${c}" ${st}/>`
+														: `<circle r="8" fill="${c}" ${st}/>`;
 	return `<svg viewBox="-13 -13 26 26" width="26" height="26" aria-hidden="true">${body}</svg>`;
 }
 const popMrt = (p) => {
@@ -61,7 +63,17 @@ function popupHTML(p) {
 	const f = p.food,
 		w = p.wish;
 	const br = w ? wBest(w) : null;
-	const addr = f ? f.address_trad : w ? br.address_trad : p.drink ? p.drink.address_trad : p.type === 'mrt' || p.wc ? '' : addrFor(p.pid).zh;
+	const addr = f
+		? f.address_trad
+		: w
+			? br.address_trad
+			: p.drink
+				? p.drink.address_trad
+				: p.refill
+					? p.refill.address || ''
+					: p.type === 'mrt' || p.wc
+						? ''
+						: addrFor(p.pid).zh;
 	const meta = f
 		? lang === 'en'
 			? f.dish_en
@@ -72,7 +84,9 @@ function popupHTML(p) {
 				: w.order_zh
 			: p.drink
 				? `${lang === 'en' ? p.drink.tip_en : p.drink.tip_zh}${p.drink.rating ? ` · ★${p.drink.rating}` : ''}`
-				: '';
+				: p.refill
+					? `${Z('装水', 'Refill')} · ${refillKind(p.refill)}`
+					: '';
 	const q = p.q || addr || p.name;
 	const days = p.days
 		.filter((d) => dayById[d])

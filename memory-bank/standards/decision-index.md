@@ -1,5 +1,5 @@
 ---
-total_decisions: 45
+total_decisions: 46
 last_updated: 2026-11-28
 ---
 
@@ -34,16 +34,17 @@ How a trip becomes the page: the views, the sections, the day logic and the pack
 
 A trip's data and the pipeline that refreshes it: the fields, the contract and the cost of a refresh. Patterns: [trip-data.md](./patterns/trip-data.md), [pipeline.md](./patterns/pipeline.md).
 
-| ADR                                                                                   | Date       | Status   | Rule                                                                                                                                               |
-| ------------------------------------------------------------------------------------- | ---------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [ADR-20260930-google-keys](decisions/ADR-20260930-google-keys.md)                     | 2026-09-30 | accepted | RelaxJer ships no Google keys: each user creates their own, a referrer-restricted browser key and a separate server key, never mixed.              |
-| [ADR-20261001-day-split](decisions/ADR-20261001-day-split.md)                         | 2026-10-01 | amended  | A day can split for part of the group: DAYS[i].split names where it forks and who goes, and the trip contract checks it.                           |
-| [ADR-20261001-option-chips](decisions/ADR-20261001-option-chips.md)                   | 2026-10-01 | accepted | An optional plan attaches to a stop with OPTIONAL[i].near, shown as a dashed chip on that stop, and the contract checks the stop exists.           |
-| [ADR-20261001-resync-cost-guard](decisions/ADR-20261001-resync-cost-guard.md)         | 2026-10-01 | amended  | A data refresh answers from the cache first and calls Google again only for failures that may pass on retry, never for a 404.                      |
-| [ADR-20261007-traffic-aware-drives](decisions/ADR-20261007-traffic-aware-drives.md)   | 2026-10-07 | amended  | A drive leg may carry an HH:MM time, and a drive still ahead uses Google's traffic-aware estimate for that time.                                   |
-| [ADR-20261126-own-leg-minutes](decisions/ADR-20261126-own-leg-minutes.md)             | 2026-11-26 | accepted | A route leg may end with the trip's own minutes, shown only when Google has no time for it; Japan's transit is never asked.                        |
-| [ADR-20261127-decide-option-route](decisions/ADR-20261127-decide-option-route.md)     | 2026-11-27 | accepted | A decide option may carry its own route; its legs are stored as <day>:<k>:<i> in geo.json, apart from the day's, and drawn on its card.            |
-| [ADR-20261128-budget-paid-insurance](decisions/ADR-20261128-budget-paid-insurance.md) | 2026-11-28 | accepted | Budget rows can be paid (date, where, ref), in the home currency, in parts, or price TBD; the glance is the paid total. INSURANCE: a tile, no IDs. |
+| ADR                                                                                   | Date       | Status   | Rule                                                                                                                                                   |
+| ------------------------------------------------------------------------------------- | ---------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [ADR-20260930-google-keys](decisions/ADR-20260930-google-keys.md)                     | 2026-09-30 | accepted | RelaxJer ships no Google keys: each user creates their own, a referrer-restricted browser key and a separate server key, never mixed.                  |
+| [ADR-20261001-day-split](decisions/ADR-20261001-day-split.md)                         | 2026-10-01 | amended  | A day can split for part of the group: DAYS[i].split names where it forks and who goes, and the trip contract checks it.                               |
+| [ADR-20261001-option-chips](decisions/ADR-20261001-option-chips.md)                   | 2026-10-01 | accepted | An optional plan attaches to a stop with OPTIONAL[i].near, shown as a dashed chip on that stop, and the contract checks the stop exists.               |
+| [ADR-20261001-resync-cost-guard](decisions/ADR-20261001-resync-cost-guard.md)         | 2026-10-01 | amended  | A data refresh answers from the cache first and calls Google again only for failures that may pass on retry, never for a 404.                          |
+| [ADR-20261007-traffic-aware-drives](decisions/ADR-20261007-traffic-aware-drives.md)   | 2026-10-07 | amended  | A drive leg may carry an HH:MM time, and a drive still ahead uses Google's traffic-aware estimate for that time.                                       |
+| [ADR-20261126-own-leg-minutes](decisions/ADR-20261126-own-leg-minutes.md)             | 2026-11-26 | accepted | A route leg may end with the trip's own minutes, shown only when Google has no time for it; Japan's transit is never asked.                            |
+| [ADR-20261127-decide-option-route](decisions/ADR-20261127-decide-option-route.md)     | 2026-11-27 | accepted | A decide option may carry its own route; its legs are stored as <day>:<k>:<i> in geo.json, apart from the day's, and drawn on its card.                |
+| [ADR-20261128-budget-paid-insurance](decisions/ADR-20261128-budget-paid-insurance.md) | 2026-11-28 | accepted | Budget rows can be paid (date, where, ref), in the home currency, in parts, or price TBD; the glance is the paid total. INSURANCE: a tile, no IDs.     |
+| [ADR-20261128-water-refill](decisions/ADR-20261128-water-refill.md)                   | 2026-11-28 | accepted | refill.json: OSM drinking water plus trip-local refill-*.json, merged by a free step; a pill per stop, a map kind, near me; winter hides outdoor taps. |
 
 ## sync
 

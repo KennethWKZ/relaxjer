@@ -315,6 +315,7 @@ const MAP_CATS = [
 	['drink', ['饮料', 'Drinks']],
 	['rest', ['歇脚', 'Rest']],
 	['wc', ['厕所', 'Toilets']],
+	['refill', ['装水', 'Refill']],
 	['mrt', [METRO[0], Cap(METRO[1])]],
 	['bike', [BIKES[0], Cap(BIKES[1])]],
 	['bus', ['公车', 'Bus']],
@@ -329,36 +330,41 @@ const PIN_KIND = {
 	drink: ['饮料', 'Drinks'],
 	rest: ['歇脚', 'Rest'],
 	wc: ['厕所', 'Toilet'],
+	refill: ['装水点', 'Refill'],
 	mrt: [`${METRO[0]}站`, Cap(METRO[1])],
 	bike: [BIKES[0], Cap(BIKES[1])],
 	bus: ['公车站', 'Bus stop'],
 	mine: ['我加的', 'Added by me'],
 	buy: ['购物', 'Shopping'],
 };
-const PIN_RANK = { mine: 0, hotel: 0, place: 1, shop: 2, buy: 2, food: 3, wish: 4, rest: 5, drink: 6, wc: 7, mrt: 8, bike: 9, bus: 10 };
-// category: 'all' leaves out drinks / rest / toilets (too many pins); a day keeps only that day's pins (+ hotel, + MRT by the hotel)
+const PIN_RANK = { mine: 0, hotel: 0, place: 1, shop: 2, buy: 2, food: 3, wish: 4, rest: 5, drink: 6, wc: 7, refill: 8, mrt: 9, bike: 10, bus: 11 };
+// category: 'all' leaves out drinks / rest / toilets / refill (too many pins); a day keeps only that day's pins (+ hotel, + MRT by the hotel)
 const catOK = (p, c) =>
 	c === 'all'
-		? !['drink', 'rest', 'wc', 'bike', 'bus'].includes(p.type) && !(p.type === 'mrt' && !(p.serves || []).length)
+		? !['drink', 'rest', 'wc', 'refill', 'bike', 'bus'].includes(p.type) && !(p.type === 'mrt' && !(p.serves || []).length)
 		: c === 'place'
 			? ['place', 'shop', 'hotel', 'mine'].includes(p.type)
 			: p.type === c;
-// transport and toilets are about where you are, not which day: their own category ignores the day buttons
+// transport, toilets and refill are about where you are, not which day: their own category ignores the day buttons
 const dayOK = (p, d) =>
-	d === 'all' || p.days.includes(d) || p.type === 'hotel' || !!p.always || (['mrt', 'bike', 'bus', 'wc'].includes(p.type) && mapCat === p.type);
+	d === 'all' ||
+	p.days.includes(d) ||
+	p.type === 'hotel' ||
+	!!p.always ||
+	(['mrt', 'bike', 'bus', 'wc', 'refill'].includes(p.type) && mapCat === p.type);
 const pinShown = (p) => catOK(p, mapCat) && dayOK(p, mapDay);
 // a pin of another day while one day is picked: still drawn, but quieter (ADR-20261128-progressive-disclosure), so the
 // day's own pins stand out and the rest of the trip stays in sight; the list and the count keep to the day
 const pinQuiet = (p) => mapDay !== 'all' && p.days.length > 0 && catOK(p, mapCat) && !dayOK(p, mapDay);
 const inFilter = (p, f) =>
-	p.drink || p.wc
+	p.drink || p.wc || p.refill
 		? f === p.type || (f !== 'all' && p.days.includes(f))
 		: f === 'all' ||
 			(f === 'food'
 				? p.type === 'food'
 				: f === 'wish'
 					? p.type === 'wish'
-					: ['drink', 'rest', 'wc'].includes(f)
+					: ['drink', 'rest', 'wc', 'refill'].includes(f)
 						? false
 						: p.days.includes(f) || p.type === 'hotel');
 const hayOf = (p) =>
@@ -371,6 +377,7 @@ const hayOf = (p) =>
 		p.wish && [p.wish.name_trad, p.wish.name_en, p.wish.name_zh, p.wish.list_name],
 		p.drink && [p.drink.name_trad, p.drink.name_en, p.drink.brand, p.drink.tip_zh, p.drink.kind && L(REST_KIND[p.drink.kind])],
 		p.wc && [p.wc.n_trad, '公厕 toilet wc restroom 廁所'],
+		p.refill && [p.refill.name, p.refill.address, '装水 加水 饮水 饮水机 water refill fountain tap bottle 給水'],
 		PLACES[p.pid] && [PLACES[p.pid].name].flat(),
 		p.type === 'mrt' && [
 			'mrt 捷运 捷運 station',

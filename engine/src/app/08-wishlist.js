@@ -130,7 +130,7 @@ function secEat() {
 	return `<section class="sec" id="eat" data-sec="eat">
       <h2 class="sec-title">${icon('food')}${Z('吃喝', 'Food & drinks')}</h2>
       <p class="sec-lede">${Z('按一下，按你的位置列出附近今天有开的早餐、午餐、晚餐、宵夜、小吃。', 'One tap: nearest places open today (breakfast, lunch, dinner, late-night, snacks) by your location.')}</p>
-      <div class="links-row"><button type="button" class="go-btn" data-near>${icon('pin')}${Z('找我附近吃的', 'Find food near me')}</button><button type="button" class="go-btn ghost" data-near="drink">${icon('boba')}${Z('附近饮料', 'Drinks near me')}</button><button type="button" class="go-btn ghost" data-near="rest">${icon('coffee')}${Z('坐下歇脚', 'Sit & rest')}</button><button type="button" class="go-btn ghost" data-near="wc">${icon('wc')}${Z('附近厕所', 'Toilets near me')}</button></div>
+      <div class="links-row"><button type="button" class="go-btn" data-near>${icon('pin')}${Z('找我附近吃的', 'Find food near me')}</button><button type="button" class="go-btn ghost" data-near="drink">${icon('boba')}${Z('附近饮料', 'Drinks near me')}</button><button type="button" class="go-btn ghost" data-near="rest">${icon('coffee')}${Z('坐下歇脚', 'Sit & rest')}</button><button type="button" class="go-btn ghost" data-near="wc">${icon('wc')}${Z('附近厕所', 'Toilets near me')}</button>${REFILL.spots.length ? `<button type="button" class="go-btn ghost" data-near="refill">${icon('drop')}${Z('附近装水', 'Refill near me')}</button>` : ''}</div>
       ${drinkHowTo()}
       ${foodBlock(['bk-hotel'], ['酒店附近早餐（每天都可以）', 'Breakfast near the hotel (any day)'])}
       ${foodBlock(['sup-hotel'], ['酒店附近宵夜', 'Late-night food near the hotel'])}

@@ -67,7 +67,7 @@ Every part of the page, and what turns it on, is in `guides/trip-page.md`. The o
   gave the trip's planner code, can change any, and can block a phone whose changes should stop reaching the group.
   Every removal can be undone, so a slip costs one tap.
 - Adding a stop checks its time against getting there (walking for seniors, a taxi, the metro) and the fixed times.
-- Food, drinks, rest spots and toilets hang under every stop, and the group's wishlist suggests what fits the day.
+- Food, drinks, rest spots, toilets and free water refill hang under every stop, and the group's wishlist suggests what fits the day.
 - Location is asked for only from a card that says why, and stays on the phone.
 - Two UI languages (today Simplified Chinese and English), with the destination's own names for drivers and signs (a
   "show the driver" card).

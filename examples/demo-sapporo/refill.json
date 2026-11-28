@@ -1,0 +1,300 @@
+{
+ "checked": "2027-01-30",
+ "spots": [
+  {
+   "id": "demo-sp1",
+   "src": "demo",
+   "name": null,
+   "lat": 43.0608,
+   "lng": 141.3535,
+   "address": null,
+   "kind": "tap",
+   "indoor": null,
+   "seasonal": null,
+   "hours": null,
+   "hours_note": null,
+   "water": [
+    "tap"
+   ],
+   "how": null,
+   "site": null,
+   "added": null,
+   "credit": "示范数据 · Demo data (made up)"
+  },
+  {
+   "id": "demo-sp2",
+   "src": "demo",
+   "name": null,
+   "lat": 43.0598,
+   "lng": 141.355,
+   "address": null,
+   "kind": "tap",
+   "indoor": null,
+   "seasonal": true,
+   "hours": null,
+   "hours_note": null,
+   "water": [],
+   "how": null,
+   "site": null,
+   "added": null,
+   "credit": "示范数据 · Demo data (made up)"
+  },
+  {
+   "id": "demo-sp3",
+   "src": "demo",
+   "name": null,
+   "lat": 43.0683,
+   "lng": 141.3502,
+   "address": null,
+   "kind": "tap",
+   "indoor": true,
+   "seasonal": null,
+   "hours": null,
+   "hours_note": null,
+   "water": [
+    "tap",
+    "hot"
+   ],
+   "how": "In the station concourse, by the north exit",
+   "site": null,
+   "added": null,
+   "credit": "示范数据 · Demo data (made up)"
+  },
+  {
+   "id": "demo-sp4",
+   "src": "demo",
+   "name": "Demo Mizu Café（示範）",
+   "lat": 43.0693,
+   "lng": 141.3517,
+   "address": null,
+   "kind": "shop",
+   "indoor": true,
+   "seasonal": null,
+   "hours": {
+    "days": {
+     "1": [
+      [
+       "08:00",
+       "22:00"
+      ]
+     ],
+     "2": [
+      [
+       "08:00",
+       "22:00"
+      ]
+     ],
+     "3": [
+      [
+       "08:00",
+       "22:00"
+      ]
+     ],
+     "4": [
+      [
+       "08:00",
+       "22:00"
+      ]
+     ],
+     "5": [
+      [
+       "08:00",
+       "22:00"
+      ]
+     ],
+     "6": [
+      [
+       "08:00",
+       "22:00"
+      ]
+     ],
+     "7": [
+      [
+       "08:00",
+       "22:00"
+      ]
+     ]
+    },
+    "known": true
+   },
+   "hours_note": null,
+   "water": [
+    "filtered",
+    "cold",
+    "hot"
+   ],
+   "how": "Ask at the counter",
+   "site": null,
+   "added": "2026-05-10",
+   "credit": "示范数据 · Demo data (made up)"
+  },
+  {
+   "id": "demo-sp5",
+   "src": "demo",
+   "name": "示範拉麵（示範）",
+   "lat": 43.0559,
+   "lng": 141.3535,
+   "address": null,
+   "kind": "shop",
+   "indoor": true,
+   "seasonal": null,
+   "hours": {
+    "days": {
+     "1": [
+      [
+       "11:00",
+       "02:00"
+      ]
+     ],
+     "2": [
+      [
+       "11:00",
+       "02:00"
+      ]
+     ],
+     "3": [
+      [
+       "11:00",
+       "02:00"
+      ]
+     ],
+     "4": [
+      [
+       "11:00",
+       "02:00"
+      ]
+     ],
+     "5": [
+      [
+       "11:00",
+       "02:00"
+      ]
+     ],
+     "6": [
+      [
+       "11:00",
+       "02:00"
+      ]
+     ],
+     "7": [
+      [
+       "11:00",
+       "02:00"
+      ]
+     ]
+    },
+    "known": true
+   },
+   "hours_note": null,
+   "water": [
+    "tap"
+   ],
+   "how": null,
+   "site": null,
+   "added": null,
+   "credit": "示范数据 · Demo data (made up)"
+  },
+  {
+   "id": "demo-sp6",
+   "src": "demo",
+   "name": null,
+   "lat": 43.198,
+   "lng": 140.9966,
+   "address": null,
+   "kind": "tap",
+   "indoor": null,
+   "seasonal": null,
+   "hours": null,
+   "hours_note": null,
+   "water": [],
+   "how": null,
+   "site": null,
+   "added": null,
+   "credit": "示范数据 · Demo data (made up)"
+  },
+  {
+   "id": "demo-sp7",
+   "src": "demo",
+   "name": "示範交流中心（示範）",
+   "lat": 43.1957,
+   "lng": 141.0025,
+   "address": null,
+   "kind": "shelter",
+   "indoor": true,
+   "seasonal": null,
+   "hours": {
+    "days": {
+     "1": [
+      [
+       "09:00",
+       "17:00"
+      ]
+     ],
+     "2": [
+      [
+       "09:00",
+       "17:00"
+      ]
+     ],
+     "3": [
+      [
+       "09:00",
+       "17:00"
+      ]
+     ],
+     "4": [
+      [
+       "09:00",
+       "17:00"
+      ]
+     ],
+     "5": [
+      [
+       "09:00",
+       "17:00"
+      ]
+     ],
+     "6": [
+      [
+       "09:00",
+       "17:00"
+      ]
+     ],
+     "7": [
+      [
+       "09:00",
+       "17:00"
+      ]
+     ]
+    },
+    "known": true
+   },
+   "hours_note": null,
+   "water": [
+    "hot"
+   ],
+   "how": null,
+   "site": null,
+   "added": null,
+   "credit": "示范数据 · Demo data (made up)"
+  },
+  {
+   "id": "demo-sp8",
+   "src": "demo",
+   "name": null,
+   "lat": 43.061,
+   "lng": 141.357,
+   "address": null,
+   "kind": "tap",
+   "indoor": null,
+   "seasonal": null,
+   "hours": null,
+   "hours_note": null,
+   "water": [],
+   "how": null,
+   "site": null,
+   "added": null,
+   "credit": "示范数据 · Demo data (made up)"
+  }
+ ]
+}

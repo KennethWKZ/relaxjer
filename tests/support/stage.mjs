@@ -22,6 +22,7 @@ export const TRIP_FILES = [
 	'extra.json',
 	'drinks.json',
 	'toilets.json',
+	'refill.json',
 	'mrt.json',
 	'transit.json',
 	'shops.json',

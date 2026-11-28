@@ -4,7 +4,7 @@
 // place is closed that day says so with Skip beside it; and after a skip the page only suggests moving the next stops
 // earlier. Group sync's two-phone case is in sync.spec.mjs.
 import { test, expect, openTrip } from '../support/fixtures.mjs';
-import { fillAll, openSkipFold, setStored, show, SKIP, skipStop } from '../support/page.mjs';
+import { fillAll, openDayMenu, openSkipFold, setStored, show, SKIP, skipStop } from '../support/page.mjs';
 
 /* global DAYS, TRIP, AIRPORT */
 
@@ -236,7 +236,15 @@ test.describe('skipping a planned stop, on the demo', { tag: '@demo' }, () => {
 		page.on('dialog', (d) => d.accept());
 		await setStored(page, { skips: { [await page.evaluate(() => DAYS[2].schedule[4]._key)]: { at: 1 } } });
 		await expect(page.locator(SKIP.sum('d3'))).toContainText('1 skipped');
-		await (await show(page, '#d3 .mine-bar [data-reset-all]')).click();
+		// rare actions live in the day's ⋯ sheet, not under the string (ADR-20261128-progressive-disclosure, amended)
+		await expect(page.locator('#d3 .sched [data-reset-all], #d3 .sched [data-mine-share]'), 'nothing loud at the day’s foot').toHaveCount(0);
+		const menu = await openDayMenu(page, 'd3');
+		await expect(menu.locator('[data-mine-share]')).toContainText('Share my changes');
+		const reset = menu.locator('[data-reset-all]');
+		await expect(reset).toContainText('Back to the original plan');
+		await expect(reset, 'in red, as the settings row').toHaveClass(/is-bad/);
+		await reset.click();
+		await expect(menu, 'the sheet closes once it’s done').toBeHidden();
 		await expect(page.locator(SKIP.fold('d3'))).toHaveCount(0);
 		await page.locator('#toast [data-toast-act]').click();
 		await expect(page.locator(SKIP.sum('d3')), 'Undo').toContainText('1 skipped');

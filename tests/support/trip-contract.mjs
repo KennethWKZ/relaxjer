@@ -428,3 +428,43 @@ export function pointsOutside(dir) {
 export function wishProblems(dir) {
 	return ['wish-a.json', 'wish-b.json'].flatMap((f) => (readJSON(dir, f, { items: [] }).items || []).flatMap((w) => fitMealProblems(w.id, w.fits)));
 }
+
+const REFILL_KINDS = ['tap', 'shop', 'shelter'];
+const CLOCK = /^([01]?\d|2\d|3[0-5]):[0-5]\d$/; // up to 35:59: a range that runs past midnight
+/** refill.json (pipeline/steps/refill.py, ADR-20261128-water-refill): the spot shape the page reads. Returns problems,
+ *  [] for a trip without the file. */
+export function checkRefill(data) {
+	if (data == null) return [];
+	const bad = [];
+	if (typeof data !== 'object' || !Array.isArray(data.spots)) return ['refill.json: needs a "spots" list'];
+	if (data.checked != null && !/^\d{4}-\d{2}-\d{2}$/.test(data.checked)) bad.push('refill.json checked: YYYY-MM-DD');
+	const ids = new Set();
+	data.spots.forEach((s, i) => {
+		const at = `refill.json spot ${s && s.id ? s.id : i}`;
+		if (!s || typeof s !== 'object') return bad.push(`${at}: not an object`);
+		if (typeof s.id !== 'string' || !s.id) bad.push(`${at}: id must be text`);
+		else if (ids.has(s.id)) bad.push(`${at}: the same id twice`);
+		ids.add(s.id);
+		if (!(typeof s.lat === 'number' && typeof s.lng === 'number' && Math.abs(s.lat) <= 90 && Math.abs(s.lng) <= 180)) bad.push(`${at}: lat and lng`);
+		if (!REFILL_KINDS.includes(s.kind)) bad.push(`${at}: kind must be one of ${REFILL_KINDS.join('|')}`);
+		for (const k of ['indoor', 'seasonal']) if (s[k] != null && typeof s[k] !== 'boolean') bad.push(`${at}: ${k} is true, false or null`);
+		for (const k of ['name', 'address', 'hours_note', 'how', 'added', 'src'])
+			if (s[k] != null && typeof s[k] !== 'string') bad.push(`${at}: ${k} is text or null`);
+		if (typeof s.credit !== 'string' || !s.credit.trim()) bad.push(`${at}: credit (who the data is from) is needed`);
+		if (s.site != null && !/^https?:\/\//.test(s.site)) bad.push(`${at}: site is an http(s) link`);
+		if (s.water != null && !(Array.isArray(s.water) && s.water.every((w) => typeof w === 'string'))) bad.push(`${at}: water is a list of words`);
+		if (s.hours != null) {
+			const h = s.hours;
+			const ok =
+				typeof h === 'object' &&
+				typeof h.known === 'boolean' &&
+				h.days &&
+				typeof h.days === 'object' &&
+				Object.entries(h.days).every(
+					([d, rs]) => /^[1-7]$/.test(d) && Array.isArray(rs) && rs.every((r) => Array.isArray(r) && r.length === 2 && r.every((x) => CLOCK.test(x))),
+				);
+			if (!ok) bad.push(`${at}: hours are { days: { "1".."7": [["HH:MM", "HH:MM"]] }, known } ("1" is Monday) or null`);
+		}
+	});
+	return bad;
+}

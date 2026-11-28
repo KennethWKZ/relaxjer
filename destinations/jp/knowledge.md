@@ -131,7 +131,20 @@ Learned while pricing a winter one-way rental, Sapporo to Asahikawa, for four pe
   signs and taxi screens. The pipeline reads Google's Japanese hours (`月曜日: 7時00分～17時00分`, `24 時間営業`,
   `定休日`), drops "日本、〒…" from addresses, and keeps station names as signed (大通駅, never 大通駅站). Checked on a
   trip refresh, 2026-11-17.
-- Steps outside Taiwan: `pins`, `fetch`, `apply`, `toilets`, `shops` (no tea-shop, metro or bike-share step yet).
+- Steps outside Taiwan: `pins`, `fetch`, `apply`, `toilets`, `shops` (no tea-shop, metro or bike-share step yet), and
+  the free `refill` for water refill points.
+
+## Water refill
+
+- **Outdoor drinking fountains shut for the winter in the cold north.** Sapporo's Odori Park turns its fountains off
+  "from 6 November, one by one … back on in the first half of April" (odori-park.jp, 水飲み台の閉栓について, read
+  2026-11-28; the notice carries no year) and another year from 13 November; Hiraoka Park closed every fountain on 16
+  November (hiraoka-park.jp, posted 2026-11-07). So the Sapporo pack's `refillWinter` is 1 November to 30 April, wider
+  than the notices on purpose: a fountain shut in the snow costs a walk. Otaru, Asahikawa, Biei and Noboribetsu: not
+  confirmed, same climate.
+- **Indoors in winter:** shops in a refill network, stations, malls and the hotel stay open. OpenStreetMap is thin here
+  (239 drinking-water nodes in the whole prefecture, Geofabrik taginfo, 2026-11-25) and mostly outdoor fountains; a
+  private source can mark its indoor taps `indoor: true` so the page keeps them in winter.
 - A place that isn't booked yet (a hotel to choose) gets the station's `gpid`, so the page never shows another
   business's phone number for it.
 - Restaurant ratings from Tabelog run lower than Google's: 3.5 is already very good (the page says so).

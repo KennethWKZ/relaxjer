@@ -3,7 +3,7 @@
 // offline keeps its changes and sends them later; personal ticks never leave the phone; and when the planner ends sync,
 // the page says so and keeps working on its own copy.
 import { test, expect } from '../support/fixtures.mjs';
-import { show, SKIP, skipStop } from '../support/page.mjs';
+import { openDayMenu, show, SKIP, skipStop } from '../support/page.mjs';
 import { TEST_PLANNER_CODE } from '../support/global-setup.mjs';
 import { STORE_KEY } from '../support/store-key.mjs';
 import {
@@ -211,7 +211,11 @@ test.describe('group sync', { tag: '@demo' }, () => {
 		await addByLink(page, 'Demo Named Stop');
 		const row = b.page.locator('#d3 .stop.mine', { hasText: 'Demo Named Stop' });
 		await expect(row.locator('.mine-tag'), 'the other phone sees who added it').toHaveText('Added by Lee', { timeout: 15_000 });
-		await expect(page.locator('#d3 [data-mine-share]'), 'everyone has the stops already: no share link').toHaveCount(0);
+		const menu = await openDayMenu(page, 'd3'); // what this phone changed sits in the day's ⋯ sheet
+		await expect(menu.locator('[data-mine-share]'), 'everyone has the stops already: no share link').toHaveCount(0);
+		await expect(menu.locator('[data-mine-clear-own]'), 'but it can clear its own').toContainText('Remove the 1 stop I added');
+		await expect(menu.locator('[data-reset-all]'), 'putting everyone’s plan back is a planner’s, in Group sync').toHaveCount(0);
+		await menu.locator('[data-close]').click();
 		await expect(row.locator('[data-mine-del]'), 'not the other phone’s to remove').toHaveCount(0);
 		await expect(row.locator('[data-mine-edit]')).toHaveCount(0);
 

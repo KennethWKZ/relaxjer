@@ -344,8 +344,8 @@ function shiftAdd(dayId, from, min) {
 	if (sh && sh.open) closeDialog(sh);
 	whenSettled(() => mineRerender(Z(`后面行程已往后推 ${min} 分`, `Pushed back ${min} min`)));
 }
-// the day's string: its planned stops, its added ones slotted in by time, then the fold of skipped stops (tail), and the
-// bar to share or clear what this phone changed
+// the day's string: its planned stops, its added ones slotted in by time, then the fold of skipped stops (tail). Sharing
+// or clearing what this phone changed is rare, so it lives in the day's ⋯ sheet (changeRows), not under the string
 function mineMerge(d, planned, tail = '') {
 	const segs = shiftsOf(d.date);
 	const rawDay = d.schedule.map((it) => parseT(it.t || ''));
@@ -369,13 +369,7 @@ function mineMerge(d, planned, tail = '') {
 			.find((r) => r.ll);
 		rows.splice(at, 0, { s: m, ll: x, html: mineStopHTML(d, x, prev && prev.ll) });
 	});
-	// with group sync everyone already has every added stop and skip, so the share link would only resend other people's
-	const changed = Object.keys(skipsAll()).length > 0;
-	const share = SYNC
-		? ''
-		: `<button type="button" class="mlink" data-mine-share="${d.id}">${icon('link')}${changed ? Z('把我的改动分享给大家', 'Share my changes') : Z('把我加的分享给大家', 'Share my added stops')}</button>`;
-	const bar = share + resetBtn();
-	return rows.map((r) => r.html).join('') + tail + (bar ? `<li class="mine-bar">${bar}</li>` : '');
+	return rows.map((r) => r.html).join('') + tail;
 }
 /* Day 6: the free afternoon, worked back from the flight. Checked bags for 5: at the airport 3 h before take-off
      (most counters close 60 min before); hotel → airport ~60 min door to door (+15 by train via A1); 45 min to collect bags. */
@@ -586,7 +580,7 @@ function mineStopHTML(d, x, prevLL) {
 			}
       ${prevLL ? `<p class="stop-note">${icon(wk > 20 ? 'car' : 'walk')} ${esc(wk > 20 ? Z(`从上一站 ${distLabel(k)}：计程车约${Math.round(taxiMin(k))}分钟，或搭${METRO[0]}`, `${distLabel(k)} from the stop before: taxi ~${Math.round(taxiMin(k))} min, or the ${METRO[1]}`) : Z(`从上一站 ${distLabel(k)} · 走路约${wk}分钟`, `${distLabel(k)} from the stop before · ~${wk} min walk`))}</p>` : ''}
       <div class="stop-links">${extI(gmSearch(x.q, x.gpid), Z('地图', 'Map'), 'pin')}${extI(gmDir(x.q, 'transit', undefined, x.gpid), Z('路线', 'Directions'), 'route')}${addAfter(d, x.id, true)}${canEditStop(x) ? `<button type="button" class="mlink" data-mine-edit="${esc(x.id)}">${icon('clock')}<span>${Z('改时间', 'Change')}</span></button><button type="button" class="mlink" data-mine-del="${esc(x.id)}" aria-label="${Z('删除', 'Remove')}">${icon('x')}<span class="dlbl">${Z('删除', 'Remove')}</span></button>` : ''}</div>
-      ${nearDrinks(d, { place: x.id })}
+      ${nearDrinks(d, { place: x.id, t: x.t })}
     </div></li>`;
 }
 /* a day that splits (DAYS[].split, trip-format.md): part of the group takes its own plan for a few hours. It hangs,
@@ -781,7 +775,7 @@ function addFindSheet(dayId, ctx = {}) {
 // everything addable, with a category, a rating and "closed that day" when we know it
 function addPool() {
 	if (addPins) return addPins;
-	const ok = (p) => !['wc', 'bike', 'bus', 'mrt', 'hotel', 'mine'].includes(p.type);
+	const ok = (p) => !['wc', 'refill', 'bike', 'bus', 'mrt', 'hotel', 'mine'].includes(p.type);
 	const cat = (p) => (p.type === 'shop' || p.type === 'place' ? 'place' : p.type);
 	const pins = buildPins()
 		.filter(ok)
@@ -1020,6 +1014,7 @@ function putBack(stops, extra) {
 const undoPutBack = (stops, extra) => ({ label: Z('撤销', 'Undo'), run: () => putBack(stops, extra) });
 function removeStops(list, ask) {
 	if (!list.length || !confirm(ask(list.length))) return;
+	$$('#app dialog.bsheet[open]').forEach(closeDialog); // a day's ⋯ sheet, where it was asked for
 	const ids = new Set(list.map((x) => x.id));
 	mineSet(mineAll().filter((x) => !ids.has(x.id)));
 	const n = list.length;
@@ -1071,6 +1066,7 @@ function resetAll() {
 	if (ps && ps.open) closeDialog(ps);
 	const tc = $('#toc');
 	if (tc && tc.open) closeDialog(tc);
+	$$('#app dialog.bsheet[open]').forEach(closeDialog); // a day's ⋯ sheet, where it was asked for
 	whenSettled(() => mineRerender(Z('已恢复原计划', 'Back to the original plan'), undoPutBack(was.stops, was)));
 	if (SYNC) syncSheetRefresh();
 }
@@ -1092,8 +1088,26 @@ const resetAllNeeded = () =>
 	Object.keys(store.get('shift', {}) || {}).length;
 const resetAllBtn = () =>
 	resetAllNeeded()
-		? `<button type="button" class="mlink reset-btn" data-reset-all>${icon('x')}${Z('恢复原计划（清除我加的和改过的）', 'Back to the original plan (clear what I added or changed)')}</button>`
+		? `<button type="button" class="mlink reset-btn" data-reset-all>${icon('x')}${Z('恢复原计划', 'Back to the original plan')}</button>`
 		: '';
+/* what this phone changed, as rows of a day's ⋯ sheet (ADR-20261128-progressive-disclosure, amended): share it by link
+   (only without group sync, which already shares it) and back to the original plan, in red. Both act on the whole trip,
+   as they did at the foot of each day, and show only when there's something to act on. With group sync the reset row
+   clears this phone's own stops; putting everyone's plan back stays a planner's, in the Group sync sheet */
+function changeRows() {
+	const skips = Object.keys(skipsAll()).length > 0;
+	const share =
+		!SYNC && (mineAll().length || skips)
+			? actRow(
+					'',
+					'data-mine-share',
+					'link',
+					skips ? Z('把我的改动分享给大家', 'Share my changes') : Z('把我加的分享给大家', 'Share my added stops'),
+					Z('一个链接，大家打开就加进自己的页面', 'One link; opening it adds them to their page'),
+				)
+			: '';
+	return share + resetRow();
+}
 // the same two actions as the last row of the settings (23-sections-menu.js), in red: they take away (with Undo)
 function resetRow() {
 	if (SYNC) {
@@ -1430,7 +1444,12 @@ function secDay(d, today) {
 		key: 'menu',
 		icon: 'more',
 		h: [`Day ${d.n} · ${dateLabel(d.date, d.dow)}`, `Day ${d.n} · ${dateLabel(d.date, d.dow)}`],
-		body: `<div class="gl day-menu">${actRow('', `data-copy-day="${d.id}"`, 'copy', Z('复制给大家', 'Copy for chat'), Z('整天的行程，贴到群组', "The whole day, to paste in the group's chat"))}${actRow('', `data-copy-link="${d.id}"`, 'link', Z('复制链接', 'Copy link'), Z('直接打开这一天', 'Opens this day'))}${GEO ? actRow('', `data-map-day="${d.id}"`, 'map', Z('在地图上看', 'See it on the map')) : ''}</div>`,
+		body: `<div class="gl day-menu">${actRow('', `data-copy-day="${d.id}"`, 'copy', Z('复制给大家', 'Copy for chat'), Z('整天的行程，贴到群组', "The whole day, to paste in the group's chat"))}${actRow('', `data-copy-link="${d.id}"`, 'link', Z('复制链接', 'Copy link'), Z('直接打开这一天', 'Opens this day'))}${GEO ? actRow('', `data-map-day="${d.id}"`, 'map', Z('在地图上看', 'See it on the map')) : ''}</div>${(() => {
+			const ch = changeRows();
+			return ch
+				? `<p class="gl-h" id="${d.id}-mine-h">${Z('我的改动', 'My changes')}</p><div class="gl day-menu day-mine" role="group" aria-labelledby="${d.id}-mine-h">${ch}</div>`
+				: '';
+		})()}`,
 	});
 	return `<section class="day" id="${d.id}" data-sec="${d.id}" style="${colorVars(d.c)}">
       ${band}
@@ -1485,7 +1504,9 @@ function secMap() {
 						)
 						.join('')}</div>
           <p class="sub-h" id="mapfilt-c">${Z('看哪一类', 'Show')}</p>
-          <div class="map-pick cats" role="group" aria-labelledby="mapfilt-c">${MAP_CATS.filter(([k]) => k !== 'wish' || WISH.length)
+          <div class="map-pick cats" role="group" aria-labelledby="mapfilt-c">${MAP_CATS.filter(
+						([k]) => (k !== 'wish' || WISH.length) && (k !== 'refill' || REFILL.spots.length),
+					)
 						.map(
 							([k, l]) =>
 								`<button type="button" class="seg-btn cat" data-cat="${k}" aria-pressed="${k === mapCat}">${k === 'all' ? '' : `<span class="cat-ic" aria-hidden="true">${pinSVG({ type: k === 'place' ? 'place' : k, days: [], wish: null })}</span>`}${esc(L(l))}</button>`,
@@ -1502,6 +1523,7 @@ function secMap() {
           <span><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="#0f8a7e"/><path d="M5.4 4.8h5.2l-.8 6.4H6.2z" fill="#fff"/></svg>${Z('饮料', 'Drinks')}</span>
           <span><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="#a0527e"/><path d="M4.4 6h5.4v2.2a2.7 2.7 0 0 1-5.4 0z" fill="#fff"/><path d="M9.8 6.8h.8a1.2 1.2 0 0 1 0 2.4h-.8" fill="none" stroke="#fff" stroke-width="1"/></svg>${Z('歇脚·甜品', 'Rest & dessert')}</span>
           <span><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="1.5" width="13" height="13" rx="3.5" fill="#4a6fa5"/><text x="8" y="10.6" text-anchor="middle" font-size="6.5" font-weight="800" fill="#fff" font-family="system-ui,sans-serif">WC</text></svg>${Z('公厕', 'Public toilet')}</span>
+          ${REFILL.spots.length ? `<span><svg viewBox="-9.5 -10 19 19" aria-hidden="true">${REFILL_PIN}</svg>${Z('装水', 'Refill')}</span>` : ''}
           <span><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="1.5" width="13" height="13" rx="3.5" fill="#0f5fa8"/><path d="M4.5 11.5V4.5L8 9l3.5-4.5v7" fill="none" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>${Z('捷运站', 'MRT')}</span>
           <span><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="1.5" width="13" height="13" rx="4" fill="var(--ink)"/><path d="M4.5 9l3.5-3.5 3.5 3.5v3h-7z" fill="var(--paper)"/></svg>${Z('酒店', 'Hotel')}</span>
       </div>

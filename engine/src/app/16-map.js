@@ -17,9 +17,9 @@ function mapListHTML() {
 	const openId = td ? td.id : dnum(now.date) < dnum(TRIP.start) ? DAYS[0].id : '';
 	const byDay = DAYS.filter((d) => d.id !== ROLE.flight).map((d) => ({
 		d,
-		items: pins.filter((p) => p.days.includes(d.id) && p.type !== 'mrt' && !p.drink && !p.wc),
+		items: pins.filter((p) => p.days.includes(d.id) && p.type !== 'mrt' && !p.drink && !p.wc && !p.refill),
 	}));
-	const other = pins.filter((p) => !p.days.length && p.type !== 'mrt' && !p.drink && !p.wc);
+	const other = pins.filter((p) => !p.days.length && p.type !== 'mrt' && !p.drink && !p.wc && !p.refill);
 	// a place the group skips that day reads struck through, its pin quieter (ADR-20261128-skip-planned-stops)
 	const btn = (p, day) =>
 		(p.skipDays || []).includes(day)

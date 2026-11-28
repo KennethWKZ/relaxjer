@@ -3,7 +3,7 @@
 // note and longer note (schedule[].note, .detail) and its actions; a note the group must act on (todo) stays in sight;
 // a fixed time keeps its seal on a second line. The page's search still finds what's inside a shut stop and opens it.
 import { test, expect, openTrip } from '../support/fixtures.mjs';
-import { show } from '../support/page.mjs';
+import { show, switchLang } from '../support/page.mjs';
 
 /* global DAYS */
 
@@ -100,6 +100,33 @@ test('a note the group must act on, and a fixed time, keep a second line; nothin
 		if (w.todo) await expect(two).toHaveText(w.note);
 		else await expect(two.locator('.seal')).toHaveCount(1);
 		await expect(page.locator(`#${w.id} .stop-sum > :is(p, .stop-note)`), 'no third line').toHaveCount(0);
+	}
+});
+
+// any trip: a must-do note's flag stays on its first line and the words wrap beside it, in both languages and on the
+// narrowest phone (in English at 390 px the flag once sat alone on a line, its words under it)
+test("a must-do note's flag stays on the note's first line, its words wrapping beside it", async ({ page }) => {
+	await openTrip(page);
+	const ids = await page.evaluate(() =>
+		DAYS.flatMap((d) => d.schedule.flatMap((it, i) => (it.todo && it.note && !it.fixed ? [`${d.id}-s${i}`] : []))),
+	);
+	test.skip(!ids.length, 'this trip has no must-do notes');
+	const widths = (page.viewportSize().width < 600 ? [360, 390] : [page.viewportSize().width]).map((w) => ({ w, h: page.viewportSize().height }));
+	for (const lang of ['en', 'zh']) {
+		if (lang === 'zh') await switchLang(page, 'zh');
+		for (const vp of widths) {
+			await page.setViewportSize({ width: vp.w, height: vp.h });
+			for (const id of ids.slice(0, 4)) {
+				await show(page, `#${id}`);
+				const g = await page.locator(`#${id} .stop-do`).evaluate((el) => {
+					const f = el.querySelector('svg.i').getBoundingClientRect();
+					const t = el.querySelector(':scope > span').getBoundingClientRect();
+					return { flagTop: f.top, flagRight: f.right, textTop: t.top, textLeft: t.left, lineH: parseFloat(getComputedStyle(el).lineHeight) };
+				});
+				expect(g.textLeft, `${lang} ${vp.w}: ${id}'s words sit beside the flag`).toBeGreaterThanOrEqual(g.flagRight);
+				expect(Math.abs(g.flagTop - g.textTop), `${lang} ${vp.w}: ${id}'s flag is on the first line`).toBeLessThan(g.lineH);
+			}
+		}
 	}
 });
 

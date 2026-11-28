@@ -58,6 +58,8 @@ function showCard(p, card = $('#mapcard')) {
 			)}</p>${p.near ? `<p class="xsmall">${escText(p.near)}</p>` : ''}<div class="links-row">${extI(gmSearch(p.q), Z('地图', 'Map'), 'pin')}${extI(gmDir(p.q, 'walking'), Z('路线', 'Directions'), 'route')}</div></article>`;
 	} else if (p.wc) {
 		card.innerHTML = `<article class="hang"><p class="hang-name">${icon('wc')} ${esc(p.name)}</p><p class="xsmall">${Z('公厕', 'Public toilet')} · Google</p><div class="links-row">${extI(gmSearch(p.q, p.wc.gpid), Z('地图', 'Map'), 'pin')}${extI(gmDir(p.q, 'walking', undefined, p.wc.gpid), Z('路线', 'Directions'), 'route')}</div></article>`;
+	} else if (p.refill) {
+		card.innerHTML = refillCard(p.refill);
 	} else if (p.drink) {
 		card.innerHTML = drinkCard(p.drink);
 	} else if (p.type === 'mrt') {
@@ -164,6 +166,13 @@ function buildPins() {
 	TOILETS.wc.forEach((w, i) =>
 		pins.push({ pid: `wc-${i}`, type: 'wc', lat: w.lat, lng: w.lng, days: [], name: wcName(w), q: `${w.n_trad} ${w.lat},${w.lng}`, wc: w }),
 	);
+	// water refill points: where you are, not which day (like toilets); an outdoor tap shut for winter on the day the map
+	// is about (core/refill.mjs) isn't drawn
+	const rfDay = refillDay();
+	REFILL.spots.forEach((x) => {
+		if (Refill.shutFor(x, rfDay, REFILL_RULE)) return;
+		pins.push({ pid: `rf-${x.id}`, type: 'refill', lat: x.lat, lng: x.lng, days: [], name: refillName(x), q: `${x.lat},${x.lng}`, refill: x });
+	});
 	DRINKS.forEach((x) => {
 		const days = [...new Set(Object.keys(x.near || {}).flatMap((k) => dayOf[k] || []))];
 		pins.push({

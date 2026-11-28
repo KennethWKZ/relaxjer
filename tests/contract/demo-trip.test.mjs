@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { DEMO_TRIP, DEMO_TRIPS, ROOT } from '../support/stage.mjs';
-import { checkTrip, loadTrip, OPTIONAL_GLOBALS, pointsOutside, readJSON, REQUIRED, wishProblems } from '../support/trip-contract.mjs';
+import { checkRefill, checkTrip, loadTrip, OPTIONAL_GLOBALS, pointsOutside, readJSON, REQUIRED, wishProblems } from '../support/trip-contract.mjs';
 
 const dirs = process.env.TRIP_DIR ? [path.resolve(process.env.TRIP_DIR)] : DEMO_TRIPS;
 
@@ -49,6 +49,22 @@ test('the contract catches a broken trip', () => {
 		assert.match(problems, new RegExp(want));
 });
 
+test('the contract catches a broken refill.json', () => {
+	assert.deepEqual(checkRefill(null), [], 'no file: nothing to check');
+	const good = readJSON(DEMO_TRIP, 'refill.json');
+	assert.ok(good.spots.length >= 4, 'the demo has refill spots');
+	const spots = structuredClone(good.spots);
+	spots[0].kind = 'fountain'; // not one of the three
+	spots[1].hours = { days: { 1: [['9am', '5pm']] }, known: true }; // HH:MM
+	spots[2].id = spots[3].id; // the same id twice
+	spots[4].credit = ''; // whose data it is must show
+	spots[5].indoor = 'yes';
+	const problems = checkRefill({ checked: good.checked, spots }).join('\n');
+	for (const want of ['kind must be one of', 'hours are', 'the same id twice', 'credit', 'indoor is true, false or null'])
+		assert.match(problems, new RegExp(want));
+	assert.deepEqual(checkRefill({ points: [] }), ['refill.json: needs a "spots" list']);
+});
+
 test("the contract checks a decide option's own route like a day's", () => {
 	const trip = loadTrip(DEMO_TRIP);
 	const day = trip.DAYS.find((d) => d.blocks.some((b) => b.type === 'decide'));
@@ -81,6 +97,10 @@ for (const dir of dirs) {
 
 	test('trip follows the contract' + at, () => {
 		assert.deepEqual(checkTrip(loadTrip(dir)), []);
+	});
+
+	test('refill.json, when the trip has one, follows the spot shape' + at, () => {
+		assert.deepEqual(checkRefill(readJSON(dir, 'refill.json')), []);
 	});
 
 	test('every pin sits inside the map' + at, () => {

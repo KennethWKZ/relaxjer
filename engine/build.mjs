@@ -169,6 +169,8 @@ const drinks = readJSON('src/drinks.json', []);
 // a file with only some of the parts (no Google step ran, so no gp) still gives the page every part it reads
 const toilets = { wc: [], near: {}, gp: {}, borrow: {}, ...readJSON('src/toilets.json', {}) };
 const shops = readJSON('src/shops.json', []);
+// pipeline/steps/refill.py: free water refill points (OpenStreetMap + the trip's own refill-*.json), ADR-20261128-water-refill
+const refill = { checked: null, spots: [], ...readJSON('src/refill.json', {}) };
 const mrt = readJSON('src/mrt.json', null);
 const transit = readJSON('src/transit.json', { yb: [], bus: [] }); // scripts/mrt.py, scripts/gtransit.py
 // scripts/gtoilets.py: public toilets, own-restroom flags, borrowable restrooms
@@ -421,7 +423,7 @@ const worldCSS = (world ? world.css : '') + previewCSS;
 const scripts = (
 	imgMap,
 	kmlB64,
-) => `<script>window.CREDITS=${safe(credits)};window.GEO=${safe(geo)};window.EXTRA=${safe(extra)};window.WISH=${safe(wish)};window.SHARE_URL=${safe(shareUrl)};window.APP_ICONS=${safe(APP_ICONS)};${WORLD_ART ? `window.WORLD_ART=${safe(WORLD_ART)};` : ''}${WORLD_ACTORS ? `window.WORLD_ACTORS=${safe(WORLD_ACTORS)};` : ''}window.GMAPS=${safe(gmaps)};window.SYNC=${safe(sync)};window.DEMO_CLOCK=${safe(demoClock)};window.FORECAST=${safe(forecast)};window.DRINKS=${safe(drinks)};window.TOILETS=${safe(toilets)};window.MRT=${safe(mrt)};window.YB=${safe(transit.yb)};window.BUS=${safe(transit.bus)};window.SHOPS=${safe(shops)};window.KML_B64=${safe(kmlB64 || '')};${imgMap ? `window.IMG=${imgMap ? 'null' : 'null'};` : ''}</script>
+) => `<script>window.CREDITS=${safe(credits)};window.GEO=${safe(geo)};window.EXTRA=${safe(extra)};window.WISH=${safe(wish)};window.SHARE_URL=${safe(shareUrl)};window.APP_ICONS=${safe(APP_ICONS)};${WORLD_ART ? `window.WORLD_ART=${safe(WORLD_ART)};` : ''}${WORLD_ACTORS ? `window.WORLD_ACTORS=${safe(WORLD_ACTORS)};` : ''}window.GMAPS=${safe(gmaps)};window.SYNC=${safe(sync)};window.DEMO_CLOCK=${safe(demoClock)};window.FORECAST=${safe(forecast)};window.DRINKS=${safe(drinks)};window.TOILETS=${safe(toilets)};window.REFILL=${safe(refill)};window.MRT=${safe(mrt)};window.YB=${safe(transit.yb)};window.BUS=${safe(transit.bus)};window.SHOPS=${safe(shops)};window.KML_B64=${safe(kmlB64 || '')};${imgMap ? `window.IMG=${imgMap ? 'null' : 'null'};` : ''}</script>
 <script>${data}</script>
 <script>${app}</script>`;
 
@@ -473,7 +475,7 @@ ${scripts(imgMap, kmlB64)}
 };
 const { artifact, standalone, kb } = writePages('');
 console.log(
-	`${preview ? 'PREVIEW (not for publishing) · ' : ''}google key ${gmaps ? 'yes' : 'no'} · group sync ${sync ? `yes (${sync.approval ? 'approval, ' : ''}planner code ${sync.planner ? 'set' : 'not set'})` : 'no'}${demoClock ? ` · demo clock ${demoClock}` : ''}${skyMode !== 'off' ? ` · sky ${skyMode}` : ''} · artifact ${kb(artifact)} · standalone ${kb(standalone)} · photos ${credits.length} · geo ${geo ? 'yes' : 'no'} · food ${extra.food?.length || 0} · tickets ${extra.tickets?.length || 0} · wish ${wish.length} · brush glyphs ${brush.size} (${fontCSS ? 'font in the page' : 'system Kaiti'})${drawnIcon.size ? ` · icon drawn (${world.name}${iconMark ? ` + ${iconMark}` : ''})` : ''}`,
+	`${preview ? 'PREVIEW (not for publishing) · ' : ''}google key ${gmaps ? 'yes' : 'no'} · group sync ${sync ? `yes (${sync.approval ? 'approval, ' : ''}planner code ${sync.planner ? 'set' : 'not set'})` : 'no'}${demoClock ? ` · demo clock ${demoClock}` : ''}${skyMode !== 'off' ? ` · sky ${skyMode}` : ''} · artifact ${kb(artifact)} · standalone ${kb(standalone)} · photos ${credits.length} · geo ${geo ? 'yes' : 'no'} · food ${extra.food?.length || 0} · tickets ${extra.tickets?.length || 0} · wish ${wish.length} · refill ${refill.spots.length} · brush glyphs ${brush.size} (${fontCSS ? 'font in the page' : 'system Kaiti'})${drawnIcon.size ? ` · icon drawn (${world.name}${iconMark ? ` + ${iconMark}` : ''})` : ''}`,
 );
 
 // 3) Google My Maps export (KML): one combined file + one file per layer

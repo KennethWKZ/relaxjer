@@ -33,6 +33,7 @@ What the engine reads from `Pack`, each optional:
 | `taxiFare(km, minsNow, date)`                                         | `[low, high]` per car in the "from where you are" plan (date: a seasonal rate)                                                                                                                                                                         |
 | `bikeShare: { name, request(nos), parse(json) }`                      | live bike and dock counts on bike-share pins                                                                                                                                                                                                           |
 | `theme`                                                               | the page's world: `engine/src/themes/<theme>.css` and `.mjs` (`'snowlight'`: Snow Light Path, set by Sapporo); look, browser-bar colour and icon. None: the default sky lanterns. The city's overrides the country's (ADR-20261117-destination-themes) |
+| `refillWinter`                                                        | `['MM-DD', 'MM-DD']`: when outdoor drinking fountains are shut (it may run over New Year); on trip days inside it the refill list and the map leave outdoor taps out and count them (`regions/sapporo`: 1 November to 30 April)                        |
 
 The packs are `tw` with `regions/taipei`, and `jp` with `regions/sapporo`.
 

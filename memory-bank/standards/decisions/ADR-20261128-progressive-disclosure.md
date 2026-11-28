@@ -168,3 +168,16 @@ place is closed that day says so under its name with Skip beside it
 list: one row on the string at the schedule's foot, "N skipped", with its count and a chevron that turns, each inside
 with Put back. Right after a skip, the stop stays greyed where it was with the suggestion to move the next stops
 earlier, until it's taken or declined.
+
+## Amendment 2026-11-28
+
+Rare actions live in ⋯. After a skip, an added stop or a push-back, two big buttons appeared at the foot of the day's stops, "Share my changes"
+(blue) and "Back to the original plan (clear what I added or changed)" (red, wrapping to two lines): louder than the
+plan, and repeating the "N skipped" row above them. Kenneth's call the same day: both move into the day card's ⋯ sheet,
+as a second grouped card under "我的改动 / My changes", shown only once this phone has added or changed something. Share
+is a link-blue row and only without group sync (sync already shares); Back to the original plan is the settings' red
+row, "恢复原计划 / Back to the original plan" with "Clears what I added or changed" under it, still asking first and
+offering Undo for 8 seconds. With group sync that row clears only this phone's own stops, and putting everyone's plan
+back stays a planner's, in the Group sync sheet. Both act on the whole trip, as before. The "N skipped" fold stays the
+last row under the stops, Put back inside it. The rule: what the group does rarely sits behind ⋯, never as a button on
+the glance layer.

@@ -61,10 +61,14 @@ const MEAL_NAMES = {
 	drink: ['饮料', 'Drinks'],
 	rest: ['坐下歇脚', 'Sit & rest'],
 	wc: ['厕所', 'Toilets'],
+	refill: ['装水', 'Refill'], // near me only, on a trip with refill data (24-near-me.js)
 };
 const DRINKS = window.DRINKS || []; // cat "drink" = grab-and-go stand; cat "rest" = sit down (teahouse, dessert, café)
 const isRest = (x) => x.cat === 'rest';
 const TOILETS = window.TOILETS || { wc: [], near: {}, gp: {}, borrow: {} }; // scripts/gtoilets.py
+// free water refill points (pipeline/steps/refill.py: OpenStreetMap and the trip's own refill-*.json files;
+// ADR-20261128-water-refill). Which are near a stop, shut for winter or open now is worked out here (core/refill.mjs)
+const REFILL = { checked: null, spots: [], ...(window.REFILL || {}) };
 const MRT = window.MRT || null; // scripts/mrt.py: stations + lines (Google positions and ride times, stop order from OpenStreetMap)
 const YB = window.YB || []; // scripts/gtransit.py: YouBike stations near our places (live counts fetched on tap)
 const BUS = window.BUS || []; // scripts/gtransit.py: bus stops near our places (Google)
@@ -234,20 +238,23 @@ document.addEventListener('click', (e) => {
 		stopOpen.set(x.dataset.stop, x.open);
 	}
 });
+/* what's near a stop, as one row of pills: drinks and rest spots (drinks.json), toilets (toilets.json) and water refill
+   (refill.json). Each pill shows on its own data alone: a trip with toilets but no drinks keeps its toilet pill (the
+   guard on drinks once hid them all on a trip without a drinks step) */
 function nearDrinks(d, it) {
-	// a drink within a few minutes' walk: best rated first
-	if (!it.place || !DRINKS.length) return '';
+	if (!it.place) return '';
 	if (isHotel(it.place)) return ''; // the hotel has its own food section; a pickup stop is no time for a drink list
-	const n = (rest) => spotsNear(it.place, rest, d.date).length;
+	const n = (rest) => (DRINKS.length ? spotsNear(it.place, rest, d.date).length : 0);
 	const dr = n(false),
 		rs = n(true);
 	const wcB = wcPill(it.place);
-	if (!dr && !rs && !wcB) return '';
+	const rfB = refillPill(it.place, d.date, parseT(it.t || '').s);
+	if (!dr && !rs && !wcB && !rfB) return '';
 	const btn = (rest, c) =>
 		c
 			? `<button type="button" class="near-pill${rest ? ' is-rest' : ''}" data-spots="${esc(it.place)}|${rest ? 'rest' : 'drink'}|${d.date}">${icon(rest ? 'coffee' : 'boba')}<span>${rest ? Z('歇脚', 'Rest') : Z('饮料', 'Drinks')}</span><b>${c}</b></button>`
 			: '';
-	return `<div class="stop-drink">${btn(false, dr)}${btn(true, rs)}${wcB}</div>`;
+	return `<div class="stop-drink">${btn(false, dr)}${btn(true, rs)}${wcB}${rfB}</div>`;
 }
 // 厕所 button: "场内" when the place has its own, else the nearest public toilet, else "可借" (a café or shop with one)
 /* my own stops: added from any card or a Google search; kept on this phone, shareable by link */
@@ -337,6 +344,121 @@ function wcSheet(pk) {
       ${pub.length ? `<p class="sub-h">${Z('公厕（按距离）', 'Public toilets, nearest first')}</p><ul class="spots">${pub.join('')}</ul>` : ''}
       ${bor.length ? `<p class="sub-h">${Z('可借用的店家（Google 标示有厕所；先买点东西再开口较好）', 'Shops with a toilet you can ask to use (buy something first)')}</p><ul class="spots">${bor.join('')}</ul>` : ''}
       <p class="xsmall muted" style="margin-top:10px">${mrt ? esc(mrt) + Z('；', '. ') : ''}${Pack.metroToiletTip ? Z(...Pack.metroToiletTip) : ''}</p>`;
+}
+/* water refill near a stop (refill.json; ADR-20261128-water-refill): a pill with the nearest open spot's distance, and a
+   sheet with the nearest three within REFILL_REACH, each with its walk, a shop or a tap, its hours that day and whether
+   it's open when the group is there. An outdoor tap shut for winter on that day is left out and counted */
+const REFILL_KIND = { tap: ['饮水台', 'Tap'], shop: ['店家', 'Shop'], shelter: ['室内', 'Indoor'] };
+const REFILL_NAME = { tap: ['饮水点', 'Water tap'], shop: ['可装水的店', 'Refill shop'], shelter: ['室内饮水点', 'Indoor water'] };
+// a source's words for the water it gives, in the page's two languages; a word not listed shows as the source wrote it
+const REFILL_WATER = {
+	水道水: ['自来水', 'tap water'],
+	tap: ['自来水', 'tap water'],
+	冷水: ['冷水', 'cold'],
+	cold: ['冷水', 'cold'],
+	'cold/chilled': ['冷水', 'cold'],
+	お湯: ['热水', 'hot'],
+	hot: ['热水', 'hot'],
+	温水: ['温水', 'warm'],
+	浄水: ['过滤水', 'filtered'],
+	filtered: ['过滤水', 'filtered'],
+};
+const REFILL_REACH = 600; // metres in a straight line: a few minutes on foot, at the group's pace
+const REFILL_RULE = Pack.refillWinter || null; // the window outdoor taps close in a cold place (destinations/README.md)
+const refillName = (x) => x.name || L(REFILL_NAME[x.kind] || REFILL_NAME.tap);
+const refillKind = (x) => L(REFILL_KIND[x.kind] || REFILL_KIND.tap);
+const refillWater = (x) => [...new Set((x.water || []).map((w) => L(REFILL_WATER[w] || REFILL_WATER[String(w).toLowerCase()] || [w, w])))];
+const refillMemo = new Map(); // this page view only: place → its spots within 1 km
+/** [[spot, metres], …] within 1 km of a place (a planned place's pin, or a stop the group added), nearest first */
+function refillNear(pk) {
+	if (refillMemo.has(pk)) return refillMemo.get(pk);
+	const at = placeLL(pk) || (MINE[pk] ? { lat: +MINE[pk].lat, lng: +MINE[pk].lng } : null);
+	const out = at
+		? REFILL.spots
+				.map((x) => [x, Math.round(km(at, x) * 1000)])
+				.filter(([, m]) => m <= 1000)
+				.sort((a, b) => a[1] - b[1])
+		: [];
+	refillMemo.set(pk, out);
+	return out;
+}
+/** the date a refill list is for when no stop gives one (the map, near me): today on a trip day, else the trip's first */
+const refillDay = () => (TRIP_DATES.includes(tpNow().date) ? tpNow().date : TRIP.start);
+/** the sources' credits for these spots, OpenStreetMap's linked to its copyright page (ODbL asks for the credit) */
+function refillCredits(spots) {
+	// a merged spot's credit is "its source · © OpenStreetMap contributors": each part once, in the order they come
+	const all = [...new Set(spots.flatMap((x) => String(x.credit || x.src || '').split(' · ')).filter(Boolean))];
+	if (!all.length) return '';
+	return `<p class="xsmall muted rf-credit">${Z('资料：', 'Data: ')}${all
+		.map((c) =>
+			/openstreetmap/i.test(c) ? `<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">${esc(c)}</a>` : esc(c),
+		)
+		.join(
+			' · ',
+		)}${REFILL.checked ? Z(` · ${Time.shortDate(REFILL.checked, 'zh')} 核对`, ` · checked ${Time.shortDate(REFILL.checked, 'en')}`) : ''}</p>`;
+}
+function refillPill(pk, date, at) {
+	if (!REFILL.spots.length) return '';
+	const { list, shut } = Refill.listNear(refillNear(pk), date, REFILL_RULE, REFILL_REACH, 3);
+	if (!list.length && !shut) return '';
+	const badge = list.length ? `${Math.max(10, Math.round(list[0][1] / 10) * 10)}m` : icon('snow');
+	const sr = list.length ? '' : ` aria-label="${Z(`装水：附近 ${shut} 个冬天关闭`, `Refill: ${shut} nearby closed for winter`)}"`;
+	return `<button type="button" class="near-pill is-refill" data-refill="${esc(pk)}|${date || ''}|${at == null ? '' : at}"${sr}>${icon('drop')}<span>${Z('装水', 'Refill')}</span><b>${badge}</b></button>`;
+}
+/** a refill spot's hours on `date` and whether it's open at `m` minutes (now, when `isNow`), as one line, or '' */
+function refillHours(x, date, m, isNow) {
+	const wd = date ? Time.weekdayIndex(date) + 1 : null;
+	const rs = wd ? Refill.dayRanges(x.hours, wd) : null;
+	const open = wd && m != null ? Refill.openAt(x.hours, wd, m) : null;
+	const when = isNow || m == null ? '' : ` ${hm(m)}`;
+	const state =
+		open == null
+			? ''
+			: `<span class="rf-open${open ? '' : ' is-shut'}">${open ? Z(`${when.trim() || '现在'}开着`, `Open${when || ' now'}`) : Z(`${when.trim() || '现在'}没开`, `Closed${when || ' now'}`)}</span>`;
+	const hrs =
+		rs == null
+			? x.hours_note
+				? escText(x.hours_note)
+				: ''
+			: rs.length
+				? keepRanges(esc(`${Time.shortDate(date, lang)} ${rs.map((r) => r.join('–')).join(', ')}`))
+				: Z('当天休息', 'closed that day');
+	return hrs || state ? `<span class="spot-t">${icon('clock')} ${hrs}${hrs && state ? ' · ' : ''}${state}</span>` : '';
+}
+/** what water a spot gives and how to ask, one line each */
+const refillMore = (x) => {
+	const water = refillWater(x);
+	return `${water.length ? `<span class="spot-t">${icon('drop')} ${esc(water.join(' · '))}</span>` : ''}${x.how ? `<span class="spot-t">${escText(x.how)}</span>` : ''}`;
+};
+const refillKindTag = (x) => `<span class="spot-k rf-k${x.kind === 'tap' ? '' : ' is-in'}">${esc(refillKind(x))}</span>`;
+/** one refill spot as a row: its name, a shop or a tap, how far, its hours that day and whether it's open then */
+function refillRow(x, dm, date, m, isNow) {
+	const walk = Math.max(1, Math.round(walkMinM(dm)));
+	return `<li class="spot rf-spot"><div class="spot-main"><span class="spot-n">${escText(refillName(x))}</span><span class="spot-m">${refillKindTag(x)}${distLabel(dm / 1000)} · ${Z(`走路约${walk}分钟`, `~${walk} min walk`)}</span>${refillHours(x, date, m, isNow)}${refillMore(x)}</div><span class="spot-a">${x.site ? extI(x.site, Z('资料', 'Info'), 'info') : ''}${extI(gmDir(`${x.lat},${x.lng}`, 'walking'), Z('走路去', 'Walk there'), 'route')}</span></li>`;
+}
+/** a refill spot's card on the map: today's hours on a trip day (else the first day's), and the way there */
+function refillCard(x) {
+	const date = refillDay();
+	const now = tpNow();
+	const isNow = date === now.date;
+	return `<article class="hang rf-card"><p class="hang-name">${icon('drop')} ${escText(refillName(x))}</p><p class="spot-m">${refillKindTag(x)}${x.address ? escText(x.address) : Z('装水', 'Refill')}</p>${refillHours(x, date, isNow ? now.mins : null, isNow)}${refillMore(x)}<div class="links-row">${extI(gmSearch(`${x.lat},${x.lng}`), Z('地图', 'Map'), 'pin')}${extI(gmDir(`${x.lat},${x.lng}`, 'walking'), Z('路线', 'Directions'), 'route')}${x.site ? extI(x.site, Z('资料', 'Info'), 'info') : ''}</div>${refillCredits([x])}</article>`;
+}
+// a refill pin (17-map-maplibre.js pinSVG, the map's legend): a drop in its own fixed colour, the same in both themes
+// (DESIGN.md, nearby icons), ringed in white so it reads on a light and a dark map
+const REFILL_PIN =
+	'<path d="M0-8.6C3.4-4.4 6.2-1.4 6.2 1.8a6.2 6.2 0 0 1-12.4 0C-6.2-1.4-3.4-4.4 0-8.6z" fill="#0a84c1" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><path d="M-2.7 2.3a2.9 2.9 0 0 0 2.5 2.7" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/>';
+function refillSheet(pk, date, at) {
+	const now = tpNow();
+	const isNow = !!date && date === now.date;
+	const m = isNow ? now.mins : at;
+	const { list, shut, more } = Refill.listNear(refillNear(pk), date || null, REFILL_RULE, REFILL_REACH, 3);
+	const nm = placeTitle(pk);
+	return `<h3 class="spots-h">${icon('drop')}${esc(Z(`${nm} · 附近装水`, `Refill near ${nm}`))}</h3>
+      <p class="xsmall muted">${Z('可以免费装水的地方，按距离排。带上自己的水瓶。', 'Free places to fill a bottle, nearest first. Bring your own.')}</p>
+      ${shut ? `<p class="callout rf-winter">${icon('snow')}<span><b>${Z(`冬天关闭 ${shut} 个`, `${shut} closed for winter`)}</b>${Z('：户外的饮水台冬天关水，这里不列出。店家和室内的照常。', ': outdoor taps are turned off for the winter, so they’re left out. Shops and indoor taps stay open.')}</span></p>` : ''}
+      ${list.length ? `<ul class="spots">${list.map(([x, dm]) => refillRow(x, dm, date, m, isNow)).join('')}</ul>` : `<p class="small">${Z(`${REFILL_REACH} 米内没有开着的装水点。`, `Nothing open within ${REFILL_REACH} m.`)}</p>`}
+      ${more ? `<p class="xsmall">${Z(`${REFILL_REACH} 米内还有 ${more} 个：在地图上选「装水」看全部。`, `${more} more within ${REFILL_REACH} m: pick Refill on the map to see them all.`)}</p>` : ''}
+      ${refillCredits(list.map(([x]) => x))}`;
 }
 // drink stands or sit-down spots within a short walk of a planned place, nearest first
 const spotsNear = (pk, rest, date) =>

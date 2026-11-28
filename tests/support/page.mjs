@@ -428,6 +428,18 @@ export async function openPart(page, which = 0) {
 	return sheet;
 }
 
+/** Opens a day's ⋯ sheet from its card (copy for chat, copy link, the map, and what this phone changed: share it, back
+ *  to the original plan) and returns the sheet. */
+export async function openDayMenu(page, day) {
+	await goToView(page, day);
+	const btn = page.locator(`#${day} .lantern .l-more`);
+	await btn.scrollIntoViewIfNeeded();
+	await btn.click();
+	const sheet = page.locator(`dialog#${day}-p-menu`);
+	await expect(sheet).toBeVisible();
+	return sheet;
+}
+
 /** Brings what a locator (or selector) names on screen the way a reader gets there: its view first (by the address,
  *  as a tab or a shared link does), then its sheet when it lives in one, then scrolled into sight. */
 export async function show(page, target) {

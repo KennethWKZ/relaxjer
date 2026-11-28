@@ -270,14 +270,16 @@ same; only the colours and the drawings change. Without one, the page is the sky
   to a fixed-time note), a clash with a fixed time, and, on
   a day that already has four added stops, a word before one more.
 - **On the day:** an added stop shows "Added" (or "Added by …" with group sync), its address, any warning, the distance
-  and walk or taxi time from the stop before, Change and Remove, and the drinks, rest spots and toilets near it. It
-  appears on the map too, with Change on its card.
+  and walk or taxi time from the stop before, Change and Remove, and the drinks, rest spots, toilets and refill points
+  near it. It appears on the map too, with Change on its card.
 - **Undo.** Removing a stop asks first, then shows Undo on the toast for 8 seconds.
-- **Share without sync.** "Share my added stops" makes a link ("Share my changes" once you've skipped a stop: the skips
-  go in the link too); opening it on another phone offers "N shared stops → Add to my plan", skipping ones it already
-  has.
-- **Back to the original plan** clears added stops, skipped stops, flight changes and push-backs (ticks stay), after
-  asking, with Undo. With group sync it's a planner's button.
+- **Share without sync.** In a day's ⋯ sheet, under "My changes", "Share my added stops" makes a link ("Share my
+  changes" once you've skipped a stop: the skips go in the link too); opening it on another phone offers "N shared stops
+  → Add to my plan", skipping ones it already has. With group sync it isn't there: every phone already has them.
+- **Back to the original plan** (the same ⋯ sheet, in red, and at the end of the settings) clears added stops, skipped
+  stops, flight changes and push-backs (ticks stay), after asking, with Undo. With group sync that row clears only the
+  stops this phone added; putting everyone's plan back is a planner's, in the Group sync sheet. Both rows show only once
+  this phone has changed something; nothing about them sits under the day's stops.
 
 ## A day that splits
 
@@ -315,14 +317,20 @@ itself is the planner's: it's in the trip's data, and nobody makes one on the pa
 ## Near each stop, and near me
 
 - **Under every stop:** meal chips at meal stops (sorted by rating, Tabelog's lower scale counted against Google's,
-  "N closed today", "near the hotel"), and pills for drinks, rest spots (seats and air-conditioning) and toilets, each
-  opening a list sorted by distance with that day's hours, the walk, the rating and a tip.
+  "N closed today", "near the hotel"), and pills for drinks, rest spots (seats and air-conditioning), toilets and water refill, each opening a list sorted by distance with
+  that day's hours, the walk, the rating and a tip. Each pill shows when its own data is there: a trip with toilets and no
+  drinks still shows its toilets.
+- **Refill (装水):** free places to fill a bottle within 600 m, the nearest three: a tap, a shop that fills one, or a
+  public indoor place, with the walk, that day's hours and whether it's open when the group is there (now, on today's
+  stops), what water it gives and how to ask, and whose data it is. The pill shows the nearest one's distance. In a cold
+  place's winter, outdoor taps are turned off: on those days they're left out and counted ("3 closed for winter"), and
+  shops and indoor taps stay. Refill is also a kind on the map, and a tab near me.
 - **How to order a drink:** sugar, ice, toppings and price, where the destination has a drink culture (Taiwan's).
 - **Toilets:** the place's own (and whether it's accessible), public toilets by distance, shops that let you ask (buy
   something first), and station toilets, with the metro's tip where it has one (Taipei's free pass inside the gates).
   Cards say "has a toilet" or the nearest public one.
-- **Food & drinks:** Find food near me, Drinks, Sit and rest, Toilets near me, and breakfast and late-night food near the
-  hotel. Near me picks the meal by the clock, lists what's within 2.5 km (else the nearest six), hides what's closed
+- **Food & drinks:** Find food near me, Drinks, Sit and rest, Toilets near me, Refill near me (when the trip has refill
+  points), and breakfast and late-night food near the hotel. Near me picks the meal by the clock, lists what's within 2.5 km (else the nearest six), hides what's closed
   today (with a count), and gives the walk and directions. Without location it starts from the plan's current stop or
   the hotel, and "Start from somewhere else" lets you choose.
 
@@ -338,7 +346,8 @@ itself is the planner's: it's in the trip's data, and nobody makes one on the pa
 - **Filters:** one button names what the map shows (all days or one, it opens on today; then the kind, when one is
   picked) and opens a sheet with every day, every kind and an area button for each part of the trip; a tap applies it
   and closes the sheet. With one day picked, its pins stand out and the other days' stay on the map, quieter. The kinds
-  are sights, food, wishlist, drinks, rest spots, toilets, metro, bike share and bus. The sheet ends with what the pins
+  are sights, food, wishlist, drinks, rest spots, toilets, refill (a blue drop; outdoor taps shut for the winter aren't
+  drawn), metro, bike share and bus. The sheet ends with what the pins
   mean: shape is the type and colour is the day.
 - **Search and list:** search the map, or list what's on it with a count, by type or nearest first. A search also
   finds the shop box's supermarkets and pharmacies, which have no pin of their own, and works before the map has
@@ -555,6 +564,9 @@ Everything above that isn't listed here is on every page. The fields are in
 | The place finder, place details, the add sheet's look first                                | on every page with `geo.json`; the best day reads the days' stops, their times, `freeFrom`, and the place's hours and `closed_dates` from the data refresh                                                                               |
 | Group sync, names, planners, Recently removed, join requests                               | `sync-setup`, then building with `--sync`; an approval trip also needs anonymous sign-in and the web API key                                                                                                                             |
 | Positions, hours, route legs, food, drinks, toilets                                        | the data refresh (`data-sync`)                                                                                                                                                                                                           |
+| Refill under each stop, its kind on the map, Refill near me                                | `refill.json`, from the data refresh's free `refill` step (`pipeline.json` `steps`): OpenStreetMap, plus the trip's own `refill-*.json`                                                                                                  |
+| Outdoor taps left out in winter, "N closed for winter"                                     | the city pack's `refillWinter` (Sapporo: November to April); without one, only taps OpenStreetMap marks seasonal, December to February                                                                                                   |
+| Share my changes and Back to the original plan in a day's ⋯                                | something this phone added or changed (a stop, a skip, a flight time, a push-back); Share only without group sync                                                                                                                        |
 | The map and its pins, Map in the bottom bar                                                | `geo.json` (from the data refresh)                                                                                                                                                                                                       |
 | The forecast                                                                               | the data refresh, for trip days within 16 days (`forecast_spots`, `forecastSpot`)                                                                                                                                                        |
 | Today's route                                                                              | `DAYS[i].route`, with the legs from the data refresh                                                                                                                                                                                     |

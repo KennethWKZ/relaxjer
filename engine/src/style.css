@@ -1329,16 +1329,11 @@ li.stop {
 	gap: 8px;
 	margin-top: 8px;
 }
-/* a link whose label is longer than its row (a source's full name) wraps inside its button, never past the card; the
-   day's share and reset buttons too ("Back to the original plan (clear what I added or changed)" ran off a phone) */
-.links-row > .mlink,
-.mine-bar > .mlink {
+/* a link whose label is longer than its row (a source's full name) wraps inside its button, never past the card */
+.links-row > .mlink {
 	max-width: 100%;
 	white-space: normal;
 	text-align: left;
-}
-.mine-bar > .mlink svg.i {
-	flex: none;
 }
 /* the Now card's two actions share one row, a long label wrapping inside its button: stacked, the second one dropped
    below an iPhone's first screen (390 × 664) in English */
@@ -4451,6 +4446,66 @@ svg.i.flip {
 .callout.ok {
 	margin-top: 10px;
 }
+
+/* water refill (ADR-20261128-water-refill): the drop in its own fixed colour, the same in both themes (DESIGN.md, nearby
+   icons); the words say a tap or a shop, the tag's tint is the second cue */
+.near-pill.is-refill svg.i {
+	color: #0a84c1;
+}
+.near-pill.is-refill b svg.i {
+	width: 13px;
+	height: 13px;
+	vertical-align: -2px;
+	color: var(--ink-2);
+}
+.spot-k.rf-k {
+	background: color-mix(in srgb, #0a84c1 14%, transparent);
+	color: #075f8c;
+}
+.spot-k.rf-k.is-in {
+	background: var(--paper-3);
+	color: var(--ink-2);
+}
+.rf-open {
+	white-space: nowrap;
+	font-weight: 750;
+	color: var(--good);
+}
+.rf-open.is-shut {
+	color: var(--bad);
+}
+.rf-spot .spot-main {
+	cursor: default;
+}
+.rf-winter {
+	background: color-mix(in srgb, #0a84c1 10%, var(--paper));
+	border: 1px solid color-mix(in srgb, #0a84c1 30%, var(--rule));
+	font-weight: 600;
+}
+.rf-winter svg.i {
+	color: #0a84c1;
+}
+.rf-credit {
+	margin-top: 12px;
+}
+.rf-credit a {
+	color: var(--link);
+}
+.rf-card .spot-m {
+	margin: 2px 0 6px;
+}
+.rf-card .spot-t {
+	display: block;
+	margin-top: 2px;
+}
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme='light']) .spot-k.rf-k:not(.is-in) {
+		color: #8fd0f5;
+	}
+}
+:root[data-theme='dark'] .spot-k.rf-k:not(.is-in) {
+	color: #8fd0f5;
+}
 @media (max-width: 599px) {
 	.stop-drink:has(> :nth-child(3)) {
 		grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -5082,11 +5137,6 @@ dialog.toc {
 	font-weight: 750;
 	vertical-align: 2px;
 }
-.mine-bar {
-	list-style: none;
-	margin: 4px 0 0;
-	padding-left: calc(4.6rem + 28px);
-}
 
 /* a day that splits: part of the group's own plan hangs, folded, where the string forks. A dashed knot in the day's
    colour (it can move, so never the seal); a quiet "rejoins here" on the stop they come back to */
@@ -5180,11 +5230,6 @@ dialog.toc {
 }
 .split-back svg.i {
 	flex: none;
-}
-@media (max-width: 599px) {
-	.mine-bar {
-		padding-left: 0;
-	}
 }
 .add-btn {
 	color: var(--mine-ink);
@@ -5686,11 +5731,6 @@ svg.i.pf-plus {
 }
 .reset-btn {
 	color: #b3261e;
-}
-.mine-bar {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 6px;
 }
 
 /* slow phones: sections far off-screen skip layout and paint until scrolled near.
@@ -7610,13 +7650,20 @@ details.stop-x[open] > summary > .chev {
 	color: var(--ink-2);
 	font-variant-numeric: tabular-nums;
 }
+/* a must-do note: the flag stays on its first line and the words wrap beside it (a hanging indent), never under it */
 .stop-do {
+	flex-wrap: nowrap;
 	gap: 6px;
 	align-items: flex-start;
 	font-weight: 650;
 	color: var(--ink);
 }
+.stop-do > span {
+	flex: 1;
+	min-width: 0;
+}
 .stop-do svg.i {
+	flex: none;
 	margin-top: 3px;
 	color: color-mix(in srgb, var(--c) 60%, var(--ink));
 }

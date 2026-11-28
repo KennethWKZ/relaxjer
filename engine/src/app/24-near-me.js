@@ -5,6 +5,33 @@ const mealNow = () => {
 };
 let near = { meal: null, from: null, label: '', gps: false, note: '' };
 function nearItems(from, meal, date) {
+	if (meal === 'refill') {
+		// free water refill (refill.json): an outdoor tap shut for winter today counts as closed, and is left out
+		const wd = date ? Time.weekdayIndex(date) + 1 : null;
+		const now = tpNow().mins;
+		return REFILL.spots
+			.map((x) => {
+				const rs = wd ? Refill.dayRanges(x.hours, wd) : null;
+				const open = wd ? Refill.openAt(x.hours, wd, now) : null;
+				const hrs = rs ? (rs.length ? rs.map((r) => r.join('–')).join(', ') : Z('今天休息', 'closed today')) : x.hours_note || '';
+				const state = open == null ? '' : open ? Z('现在开着', 'open now') : Z('现在没开', 'closed now');
+				return {
+					wish: false,
+					name: refillName(x),
+					meta: [refillKind(x), ...refillWater(x)].join(' · '),
+					lat: x.lat,
+					lng: x.lng,
+					meals: ['refill'],
+					closed: !!date && Refill.shutFor(x, date, REFILL_RULE),
+					hours: [hrs, state].filter(Boolean).join(' · '),
+					rating: null,
+					q: `${x.lat},${x.lng}`,
+					href: '',
+				};
+			})
+			.map((x) => ({ ...x, k: km(from, x) }))
+			.sort((a, b) => a.k - b.k);
+	}
 	if (meal === 'wc') {
 		// public toilets + planned places with their own + shops that lend theirs
 		const seen = new Set();
@@ -117,6 +144,7 @@ function renderNear() {
 	const date = TRIP_DATES.includes(now.date) ? now.date : null;
 	const meal = near.meal || mealNow();
 	const tabs = Object.keys(MEAL_NAMES)
+		.filter((m) => m !== 'refill' || REFILL.spots.length)
 		.map((m) => `<button type="button" class="seg-btn" data-near-meal="${m}" aria-pressed="${m === meal}">${esc(L(MEAL_NAMES[m]))}</button>`)
 		.join('');
 	let body = `<p class="small muted">${esc(near.note || Z('正在取得你的位置…', 'Finding where you are…'))}</p>`;
@@ -137,18 +165,21 @@ function renderNear() {
           <div class="links-row">${ext(gmDir(x.q, x.k < 1.5 ? 'walking' : 'transit', origin), Z('怎么去', 'Directions'), 'route')}${x.href ? `<a class="mlink" href="${x.href}">${icon('info')}${Z('详情', 'Details')}</a>` : ''}</div></li>`,
 					)
 					.join('')}</ul>
-        ${hidden ? `<p class="xsmall">${Z(`今天有 ${hidden} 家休息，已经不列出来。`, `${hidden} closed today and left out.`)}</p>` : ''}`;
+        ${hidden ? `<p class="xsmall">${meal === 'refill' ? Z(`冬天关闭 ${hidden} 个户外饮水台，已经不列出来。`, `${hidden} outdoor taps closed for winter and left out.`) : Z(`今天有 ${hidden} 家休息，已经不列出来。`, `${hidden} closed today and left out.`)}</p>` : ''}${meal === 'refill' ? refillCredits(list) : ''}`;
 	}
 	const starts = [...new Set([...HOTELS, ...DAYS.flatMap((d) => d.schedule.map((it) => it.place).filter(Boolean))])].filter(
 		(pid) => placeLL(pid) && PLACES[pid],
 	);
-	box.innerHTML = `<div class="toc-head"><h2 id="near-h">${meal === 'wc' ? Z('附近厕所', 'Toilets near me') : meal === 'drink' ? Z('附近饮料', 'Drinks near me') : meal === 'rest' ? Z('附近坐下歇脚', 'Sit & rest near me') : Z('附近吃什么', 'Food near me')}</h2><button type="button" class="icon-btn" data-close aria-label="${Z('关闭', 'Close')}">${icon('x')}</button></div>
+	box.innerHTML = `<div class="toc-head"><h2 id="near-h">${meal === 'refill' ? Z('附近装水', 'Refill near me') : meal === 'wc' ? Z('附近厕所', 'Toilets near me') : meal === 'drink' ? Z('附近饮料', 'Drinks near me') : meal === 'rest' ? Z('附近坐下歇脚', 'Sit & rest near me') : Z('附近吃什么', 'Food near me')}</h2><button type="button" class="icon-btn" data-close aria-label="${Z('关闭', 'Close')}">${icon('x')}</button></div>
       ${near.from ? `<p class="small">${icon('pin')} ${Z('起点：', 'From: ')}${esc(near.label)}</p>` : ''}
       ${near.far ? `<p class="near-far">${icon('info')}<span>${esc(Z(`你现在不在${CITY[0]}，所以距离先从酒店算。到了${CITY[0]}会自动用你的位置。`, `You’re not in ${CITY[1]} yet, so distances start from the hotel. Once you’re there, it uses where you are.`))}</span></p>` : ''}
       <div class="map-ctrl near-meals" role="group" aria-label="${Z('哪一餐', 'Which meal')}">${tabs}</div>
       ${body}
       <details class="more"><summary>${icon('pin')}${Z('换一个起点', 'Start from somewhere else')}${icon('chev', 'chev')}</summary><div class="more-body"><div class="pills">${`<button type="button" class="tag pinbtn" data-near-gps>${Z('我的位置', 'My location')}</button>`}${starts.map((pid) => `<button type="button" class="tag pinbtn" data-near-from="${pid}">${esc(L(PLACES[pid].name))}</button>`).join('')}</div></div></details>
       <p class="xsmall">${Z('位置只在本机算距离，不上传。距离为直线，步行时间为估计。', 'Location used on this device only for distance; never uploaded. Straight-line distances; walking times estimated.')}</p>`;
+	// the picked tab in sight: Refill and Toilets sit past the meals, beyond a phone's width
+	const on = box.querySelector('[data-near-meal][aria-pressed="true"]');
+	if (on && on.parentElement) on.parentElement.scrollLeft = Math.max(0, on.offsetLeft - on.parentElement.offsetLeft - 16);
 }
 function nearFrom(pid, why) {
 	near.from = placeLL(pid);

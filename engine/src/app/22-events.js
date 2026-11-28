@@ -6,6 +6,12 @@ document.addEventListener('click', (e) => {
 		openSheet(wcSheet(t.dataset.wc));
 		return;
 	}
+	if (t.matches('[data-refill]')) {
+		// water refill near a stop: place | its day | the stop's start in minutes (05-render-small-parts.js)
+		const [pk, date, at] = t.dataset.refill.split('|');
+		openSheet(refillSheet(pk, date || null, at === '' ? null : +at));
+		return;
+	}
 	if (t.matches('[data-spots]')) {
 		// the list of drink stands / rest spots near a stop, in the bottom sheet
 		const [pk, k, date] = t.dataset.spots.split('|');
@@ -691,6 +697,7 @@ document.addEventListener('click', (e) => {
 		return;
 	}
 	if (t.matches('[data-mine-share]')) {
+		closeDialog(t.closest('dialog.bsheet')); // a day's ⋯ sheet
 		const url = mineShareURL();
 		const skips = Object.keys(skipsAll()).length > 0;
 		const text = skips

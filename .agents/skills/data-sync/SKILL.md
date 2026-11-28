@@ -1,6 +1,6 @@
 ---
 name: data-sync
-description: Refresh a RelaxJer trip's outside data with the pipeline — Google places, pins, hours and route legs, drinks and rest spots, toilets, metro and bike share, shops, the weather forecast and a link check — then rebuild. Use when a trip folder is new, before a trip, during a trip ("update the hours", "refresh the weather"), or when places look wrong. Dry run first, then --write.
+description: Refresh a RelaxJer trip's outside data with the pipeline — Google places, pins, hours and route legs, drinks and rest spots, toilets, free water refill points, metro and bike share, shops, the weather forecast and a link check — then rebuild. Use when a trip folder is new, before a trip, during a trip ("update the hours", "refresh the weather"), or when places look wrong. Dry run first, then --write.
 ---
 
 # Data sync: `pnpm resync`
@@ -14,8 +14,15 @@ Read first: `pipeline/README.md` (commands, folders), `memory-bank/standards/pat
   `~/.config/relaxjer/google-places.key` (mode 600). Without one, run with `--no-google`: weather and link checks still
   work.
 - What the trip searches for lives in `trips/<slug>/pipeline.json` ([every key](../../../pipeline/README.md#pipelinejson)): `steps`, `chains`, `shops`, `pin_queries`,
-  `forecast_spots`, `stations`, `skip_nearby`, `no_hours`, `area`. The steps look themselves up in the trip's region
-  pack, then its country pack, then `pipeline/steps/`.
+  `forecast_spots`, `stations`, `skip_nearby`, `no_hours`, `area`, `refill`. The steps look themselves up in the trip's
+  own `pipeline/` folder, then its region pack, then its country pack, then `pipeline/steps/`.
+- **A private step in the trip folder** (`trips/<slug>/pipeline/<name>.py`) pulls a source the public repo must not carry,
+  and runs with the others when `steps` names it, before the repo's step of the same name; it never leaves the trip
+  folder ([how it runs](../../../pipeline/README.md#a-private-step-in-the-trip-folder)). A failing one stops the run.
+- **Water refill** (`refill`, free, opt in): OpenStreetMap's drinking water near the trip's places plus the trip's own
+  `refill-*.json`, merged into `refill.json`. Name it after the step that writes a `refill-*.json`
+  (`"steps": [..., "refill-<src>", "refill"]`). It asks OpenStreetMap a few small queries, cached for 30 days; when
+  Overpass is busy it keeps the last answer and says so. Read its "N listed twice, counted once" and "left out" lines.
 
 Before advising on a route or a drive time, and before any run that pays for calls, follow
 [research](../../../knowledge/research.md) (Google's times first, the winter buffer, saying the calls and their cost).

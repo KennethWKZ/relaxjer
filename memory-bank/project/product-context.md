@@ -87,7 +87,7 @@ planners, is in [`guides/trip-page.md`](../../guides/trip-page.md).
     clash and deadline checks, a caution when a day already has 4 added stops, and Undo on the toast after a removal (every page). A place picked
     from the add sheet's list opens first (what the page knows of it, with Add), and Back finds the list as it was. With group sync, a link isn't
     needed: they reach every phone marked with who added them. Each phone changes or removes only the stops it added,
-    and "Remove the N stops I added" clears them; a planner can change any, clear one phone's, block one, and put the
+    and "Remove the N stops I added" (in a day's ⋯ sheet and the settings) clears them; a planner can change any, clear one phone's, block one, and put the
     whole plan back. A phone's "Recently removed" list (30 kept, the newest 10 shown) offers Put back. Only added stops
     are guarded: skips, pushed-back times, flight changes and ticks stay open to every phone;
   - skipping a planned stop: anyone can, except a flight or the lodging; a fixed time asks once more. It folds into one
@@ -96,7 +96,7 @@ planners, is in [`guides/trip-page.md`](../../guides/trip-page.md).
     done by itself, and never moves a fixed time;
   - a day that splits: part of the group takes its own plan for a few hours, forked from the day's string with its
     go / wait / skip rule, and the stop where they come back says so.
-- **Near each stop, and "near me":** food, drinks, rest spots and toilets (plus places that let you borrow a toilet),
+- **Near each stop, and "near me":** food, drinks, rest spots, toilets (plus places that let you borrow a toilet) and free water refill (a tap, a shop or an indoor place, outdoor taps left out in a cold winter),
   the group's wishlist where it fits, and the optional plans the trip suggests at that stop, which open over the day.
 - **Each day:** Now and Next on a trip day (a countdown and the to-dos coming due before it), Copy for chat and Copy
   link (in the day's ⋯), today's route as one line with a whole-route link (in its Route tile), decide-on-the-day options (an option that goes somewhere

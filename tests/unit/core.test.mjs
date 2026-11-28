@@ -11,6 +11,7 @@ import * as Sky from '../../engine/src/core/sky.mjs';
 import * as Way from '../../engine/src/core/way.mjs';
 import * as Wish from '../../engine/src/core/wish.mjs';
 import * as Rating from '../../engine/src/core/rating.mjs';
+import * as Refill from '../../engine/src/core/refill.mjs';
 
 test('Time: clock parsing and formatting', () => {
 	assert.equal(Time.clockMinutes('09:05'), 545);
@@ -709,4 +710,72 @@ test('Rating: Tabelog and Google sort on one scale', () => {
 		hits.sort(Rating.byScore((x) => [x.rating, x.rsrc])).map((x) => x.rating),
 		[3.6, 4.2],
 	);
+});
+
+test('Refill: a window may run over New Year, and only an outdoor tap shuts for winter', () => {
+	assert.equal(Refill.inWindow('2027-02-20', ['11-01', '04-30']), true);
+	assert.equal(Refill.inWindow('2027-04-30', ['11-01', '04-30']), true); // ends included
+	assert.equal(Refill.inWindow('2027-05-01', ['11-01', '04-30']), false);
+	assert.equal(Refill.inWindow('2027-07-01', ['06-01', '08-31']), true);
+	assert.equal(Refill.inWindow('2027-07-01', null), false);
+	const rule = ['11-01', '04-30'];
+	const tap = { kind: 'tap', lat: 43, indoor: null, seasonal: null };
+	assert.equal(Refill.shutFor(tap, '2027-02-20', rule), true, 'a tap not known to be indoors counts as outdoors');
+	assert.equal(Refill.shutFor(tap, '2027-06-10', rule), false, 'outside the window');
+	assert.equal(Refill.shutFor({ ...tap, indoor: true }, '2027-02-20', rule), false);
+	assert.equal(Refill.shutFor({ ...tap, seasonal: false }, '2027-02-20', rule), false, 'marked open all year');
+	assert.equal(Refill.shutFor({ ...tap, kind: 'shop' }, '2027-02-20', rule), false);
+	assert.equal(Refill.shutFor({ ...tap, kind: 'shelter' }, '2027-02-20', rule), false);
+	// no pack rule: only a tap OpenStreetMap marks seasonal, in the default winter (south of the equator, June to August)
+	assert.equal(Refill.shutFor(tap, '2027-02-20', null), false);
+	assert.equal(Refill.shutFor({ ...tap, seasonal: true }, '2027-02-20', null), true);
+	assert.equal(Refill.shutFor({ ...tap, seasonal: true }, '2027-03-10', null), false);
+	assert.equal(Refill.shutFor({ ...tap, seasonal: true, lat: -33 }, '2027-07-10', null), true);
+	assert.equal(Refill.shutFor({ ...tap, seasonal: true }, null, rule), false, 'no day: nothing to judge');
+});
+
+test('Refill: open at a time, from hours by ISO weekday, past midnight included', () => {
+	const week = (o, c) => ({ days: Object.fromEntries([1, 2, 3, 4, 5, 6, 7].map((d) => [String(d), d === 7 ? [] : [[o, c]]])), known: true });
+	const shop = week('10:00', '22:00');
+	assert.equal(Refill.openAt(shop, 1, 9 * 60 + 59), false);
+	assert.equal(Refill.openAt(shop, 1, 10 * 60), true);
+	assert.equal(Refill.openAt(shop, 1, 22 * 60), false, 'closes at its closing time');
+	assert.equal(Refill.openAt(shop, 7, 12 * 60), false, 'closed on Sunday (an empty list)');
+	assert.deepEqual(Refill.dayRanges(shop, 7), []);
+	assert.equal(Refill.openAt(null, 1, 600), null, 'no hours: not known');
+	assert.equal(Refill.openAt({ ...shop, known: false }, 1, 600), null);
+	const late = week('11:00', '02:00'); // runs into the next day
+	assert.equal(Refill.openAt(late, 2, 23 * 60), true);
+	assert.equal(Refill.openAt(late, 3, 60), true, 'Tuesday night, at one on Wednesday');
+	assert.equal(Refill.openAt(late, 1, 60), false, 'Sunday was closed, so nothing runs into Monday');
+	assert.equal(Refill.openAt(week('18:00', '26:00'), 2, 90), true, 'a range written past 24:00');
+	assert.equal(Refill.openAt(week('00:00', '24:00'), 4, 0), true);
+});
+
+test('Refill: a place lists its nearest three within reach, leaving out and counting what winter shuts', () => {
+	const rule = ['11-01', '04-30'];
+	const s = (kind, extra = {}) => ({ kind, lat: 43, ...extra });
+	const near = [
+		[s('tap'), 80],
+		[s('shop'), 300],
+		[s('tap', { indoor: true }), 120],
+		[s('tap'), 590],
+		[s('shelter'), 450],
+		[s('shop'), 700], // beyond 600 m
+		[s('shop'), 500],
+	];
+	const winter = Refill.listNear(near, '2027-02-20', rule);
+	assert.deepEqual(
+		winter.list.map(([, m]) => m),
+		[120, 300, 450],
+	);
+	assert.equal(winter.shut, 2, 'the two outdoor taps within 600 m');
+	assert.equal(winter.more, 1);
+	const summer = Refill.listNear(near, '2027-07-10', rule);
+	assert.deepEqual(
+		summer.list.map(([, m]) => m),
+		[80, 120, 300],
+	);
+	assert.equal(summer.shut, 0);
+	assert.deepEqual(Refill.listNear([], '2027-02-20', rule), { list: [], shut: 0, more: 0 });
 });
