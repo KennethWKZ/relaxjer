@@ -9,6 +9,7 @@ import * as Wrap from '../../engine/src/core/wrap.mjs';
 import * as Fit from '../../engine/src/core/fit.mjs';
 import * as Sky from '../../engine/src/core/sky.mjs';
 import * as Way from '../../engine/src/core/way.mjs';
+import * as Wish from '../../engine/src/core/wish.mjs';
 import * as Rating from '../../engine/src/core/rating.mjs';
 
 test('Time: clock parsing and formatting', () => {
@@ -601,6 +602,27 @@ test('Way: the group walks at the trip’s pace (TRIP.walkPace), the seniors’ 
 	for (const ok of [undefined, null, 1, 1.25, 2]) assert.equal(Way.paceProblem(ok), '', `${ok} is a pace`);
 	for (const bad of [0.5, 0, -1, 2.5, '1.4', true, NaN, Infinity, [1]])
 		assert.match(Way.paceProblem(bad), /TRIP\.walkPace must be a number from 1 to 2/, `${String(bad)} is not a pace`);
+});
+
+test('Wish: a wishlist day can name its meal, and a stop suggests the item only at that meal', () => {
+	// meant for day 3's dinner: not offered at day 3's lunch, which can be a long way off
+	const dinner = [{ day: 'd2' }, { day: 'd3', meal: 'dinner' }];
+	assert.equal(Wish.fitsStop(dinner, 'd3', ['dinner']), true);
+	assert.equal(Wish.fitsStop(dinner, 'd3', ['lunch']), false);
+	assert.equal(Wish.fitsStop(dinner, 'd3', ['dinner', 'supper']), true, 'a stop serving several meals');
+	assert.equal(Wish.fitsStop(dinner, 'd2', ['lunch']), true, 'no meal named: every meal that day, as before');
+	assert.equal(Wish.fitsStop(dinner, 'd4', ['dinner']), false, 'another day');
+	assert.equal(Wish.fitsStop([{ day: 'd3', meal: ['lunch', 'snack'] }], 'd3', ['snack']), true, 'a list of meals');
+	for (const none of [undefined, null, []]) assert.equal(Wish.fitsStop(none, 'd3', ['lunch']), false);
+	// the contract: a meal the page knows, or a list of them
+	assert.deepEqual(Wish.fitMealProblems('w-a', dinner), []);
+	assert.deepEqual(Wish.fitMealProblems('w-a', [{ day: 'd3', meal: ['lunch', 'snack'] }]), []);
+	for (const bad of ['Dinner', 'brunch', '', [], ['lunch', 'tea'], 3])
+		assert.match(
+			Wish.fitMealProblems('w-a', [{ day: 'd3', meal: bad }])[0] || '',
+			/wish w-a: fits\[0\]\.meal must be one of/,
+			`${JSON.stringify(bad)} is not a meal`,
+		);
 });
 
 test('Rating: Tabelog and Google sort on one scale', () => {

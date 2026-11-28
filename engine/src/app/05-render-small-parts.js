@@ -155,7 +155,7 @@ function stopWish(d, c, meals) {
 		.map((w) => {
 			const br = wBest(w);
 			const k = c && br && br.lat ? km(c, { lat: +br.lat, lng: +br.lng }) : null;
-			return { w, br, k, onDay: (w.fits || []).some((f) => f.day === d.id) };
+			return { w, br, k, onDay: Wish.fitsStop(w.fits, d.id, meals) }; // a fits entry may name its meal (core/wish.mjs)
 		})
 		.filter((x) => x.br && !(x.br.closed_dates || []).includes(d.date) && ((x.k != null && x.k <= 1.2) || x.onDay))
 		.sort((a, b) => (a.k == null ? 99 : a.k) - (b.k == null ? 99 : b.k))
