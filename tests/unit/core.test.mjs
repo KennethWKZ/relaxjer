@@ -9,6 +9,7 @@ import * as Wrap from '../../engine/src/core/wrap.mjs';
 import * as Fit from '../../engine/src/core/fit.mjs';
 import * as Sky from '../../engine/src/core/sky.mjs';
 import * as Way from '../../engine/src/core/way.mjs';
+import * as Rating from '../../engine/src/core/rating.mjs';
 
 test('Time: clock parsing and formatting', () => {
 	assert.equal(Time.clockMinutes('09:05'), 545);
@@ -600,4 +601,36 @@ test('Way: the group walks at the trip’s pace (TRIP.walkPace), the seniors’ 
 	for (const ok of [undefined, null, 1, 1.25, 2]) assert.equal(Way.paceProblem(ok), '', `${ok} is a pace`);
 	for (const bad of [0.5, 0, -1, 2.5, '1.4', true, NaN, Infinity, [1]])
 		assert.match(Way.paceProblem(bad), /TRIP\.walkPace must be a number from 1 to 2/, `${String(bad)} is not a pace`);
+});
+
+test('Rating: Tabelog and Google sort on one scale', () => {
+	// Tabelog 3.0 sits with a typical Google 3.8, its "very good" 3.5 with a very good Google 4.4
+	assert.equal(Rating.score(3, 'Tabelog'), 3.8);
+	assert.ok(Math.abs(Rating.score(3.5, 'Tabelog') - 4.4) < 1e-9);
+	assert.ok(Math.abs(Rating.score('3.5', '食べログ') - 4.4) < 1e-9, 'a rating kept as text, the Japanese site name');
+	assert.equal(Rating.score(4.3, 'Google Maps'), 4.3);
+	assert.equal(Rating.score(4.3), 4.3, 'no source reads as Google-like stars');
+	for (const none of [undefined, null, '', 0, 'n/a']) assert.equal(Rating.score(none, 'Tabelog'), 0, `${String(none)} is no rating`);
+	// the case that sent the fix: a Google 4.3 chain branch no longer outranks a Tabelog 3.67 or 3.82
+	const list = [
+		{ n: 'chain', rating: 4.3, rating_source: 'Google' },
+		{ n: 'ramen', rating: 3.67, rating_source: 'Tabelog' },
+		{ n: 'unrated' },
+		{ n: 'curry', rating: 3.82, rating_source: 'Tabelog' },
+		{ n: 'cafe', rating: 4.7, rating_source: 'Google Maps' },
+		{ n: 'plain', rating: 3.4, rating_source: 'Tabelog' },
+	];
+	assert.deepEqual(
+		list.sort(Rating.byScore()).map((x) => x.n),
+		['curry', 'cafe', 'ramen', 'chain', 'plain', 'unrated'],
+	);
+	// another shape, read through pick
+	const hits = [
+		{ rating: 4.2, rsrc: 'Google Maps' },
+		{ rating: 3.6, rsrc: 'Tabelog' },
+	];
+	assert.deepEqual(
+		hits.sort(Rating.byScore((x) => [x.rating, x.rsrc])).map((x) => x.rating),
+		[3.6, 4.2],
+	);
 });

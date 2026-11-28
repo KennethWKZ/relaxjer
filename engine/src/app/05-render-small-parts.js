@@ -131,7 +131,7 @@ const more = (n) =>
 function mealGroup(d, it, meal, slots) {
 	const spec = slots.map((x) => x.split(':'));
 	const all = (EXTRA.food || []).filter((f) => spec.some(([sl, only]) => f.slot === sl && (!only || mealsOf(f).includes(only))));
-	const opts = all.filter((f) => !f.paused && !(f.closed_dates || []).includes(d.date)).sort((a, b) => (+b.rating || 0) - (+a.rating || 0));
+	const opts = all.filter((f) => !f.paused && !(f.closed_dates || []).includes(d.date)).sort(Rating.byScore()); // Tabelog and Google on one scale (core/rating.mjs)
 	const hidden = all.length - opts.length;
 	const pts = opts.filter((f) => f.lat && f.lng);
 	const c = pts.length
