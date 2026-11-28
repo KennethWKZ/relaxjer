@@ -1386,6 +1386,7 @@ function secDay(d, today) {
 	// row starts at too (Plan.roomAfter), and the flight home
 	const room = Plan.roomAfter(d.schedule.map((it) => parseT(it.t || '')));
 	const closes = room.map((ok, i) => !ok || !!(d.schedule[i].rel && Array.isArray(d.schedule[i].rel.dep) && d.schedule[i].rel.dep[0] === 0));
+	const drives = driveStopsAt(d); // a long drive's rest stops, folded under the row it drives in (05-render-small-parts.js)
 	const planned = d.schedule.map((it, i) => {
 		// skipped: folded into the day's "N skipped" line (skipFoldHTML), or, right after the skip, greyed where it was with
 		// the suggestion to move the next stops earlier (07-skip.js)
@@ -1435,6 +1436,7 @@ function secDay(d, today) {
 			splitBack(d, it),
 			acts ? `<div class="stop-acts">${acts}</div>` : '',
 			nearOpts(d, it, sid),
+			driveStopsFold(d, sid, drives.get(i)),
 		]
 			.join('')
 			.trim();

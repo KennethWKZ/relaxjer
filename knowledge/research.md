@@ -42,6 +42,9 @@ closures, crowds, charter agencies and their quotes.
 - **Winter drives show a buffer.** On snow, a drive shows Google's time and a just-in-case range of two to three times
   it. The day is planned on Google's time with an early start; the buffer is never a reason to cut a sight or change a
   hotel. Flag a day whose buffered end runs past dark or a booked dinner, with the fallback.
+- **For a long drive, list the rest stops along the route** (the `drive-stops` step: service areas, roadside stations,
+  petrol, with their hours that day), and plan a break about every 90–120 minutes of driving. The page shows the stops
+  for reference; a break the group wants in the plan is its own stop, written like any other.
 
 ## What a data run costs
 

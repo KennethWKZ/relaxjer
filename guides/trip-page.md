@@ -404,6 +404,12 @@ itself is the planner's: it's in the trip's data, and nobody makes one on the pa
   one, the phone, "please take us here" (in the local language where the country pack has one, Chinese otherwise), Copy address and Google
   Maps. On a trip day it's one tap from the current and the next stop in the plan; every place also has it in its
   place sheet.
+- **Stops on the way (沿途休息):** a drive of 90 minutes or more folds its rest stops under the row the group drives in
+  ("5 stops on the way · 2 open 24 h"), shut until tapped: each service area, parking area, roadside station or petrol
+  station in order along the way, how far in (minutes and km), whether it's open 24 hours or its hours that day, and
+  Directions there. In winter it says which are open 24 h. They're for reference, "in case we need one": nothing is
+  planned around them and no time moves. On the day, while the drive is under way, the one ahead by the clock (not
+  your location) is marked **Next**.
 - **Directions** links open the phone's maps app in the right mode (walk, transit, drive, bike).
 - **Google Maps or Apple Maps:** "Open maps in" in More (the Sections menu on a computer) switches every Map and Directions link on this
   phone to Apple Maps (at the place's pin, with transit, drive or walk), and back. The whole-day route stays on Google
@@ -575,6 +581,7 @@ Everything above that isn't listed here is on every page. The fields are in
 | Positions, hours, route legs, food, drinks, toilets                                        | the data refresh (`data-sync`)                                                                                                                                                                                                           |
 | Refill under each stop, its kind on the map, Refill near me                                | `refill.json`, from the data refresh's free `refill` step (`pipeline.json` `steps`): OpenStreetMap, plus the trip's own `refill-*.json`                                                                                                  |
 | Outdoor taps left out in winter, "N closed for winter"                                     | the city pack's `refillWinter` (Sapporo: November to April); without one, only taps OpenStreetMap marks seasonal, December to February                                                                                                   |
+| Stops on the way under a long drive, Next while it’s under way                             | `drive-stops.json`, from the data refresh's `drive-stops` step (`pipeline.json` `steps`, after `apply`) for each drive of 90 min or more; the searches come from the country pack's `driveStops` (Japan)                                 |
 | Share my changes and Back to the original plan in a day's ⋯                                | something this phone added or changed (a stop, a skip, a flight time, a push-back); Share only without group sync                                                                                                                        |
 | The map and its pins, Map in the bottom bar                                                | `geo.json` (from the data refresh)                                                                                                                                                                                                       |
 | The forecast                                                                               | the data refresh, for trip days within 16 days (`forecast_spots`, `forecastSpot`)                                                                                                                                                        |

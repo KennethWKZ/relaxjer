@@ -28,6 +28,8 @@ country pack, then here; a trip's own step is how a private source stays out of 
     metro    the city's metro network for the offline hint (destinations/tw/regions/taipei)
     transit  bike-share and bus stops (destinations/tw/regions/taipei)
     shops    the trip's shopping list for the free day
+    drive-stops  rest stops along each long drive (service areas, roadside stations, petrol), for reference; a trip
+             opts in by naming it after apply (destinations/jp has the searches)
   Free (no Google call; a trip opts in by naming it):
     refill   free water refill points: OpenStreetMap, plus the trip's own refill-*.json files
   Weather: Open-Meteo daily forecast (free, no key) for pipeline.json "forecast_spots" on trip days within 16 days.
@@ -47,8 +49,9 @@ DEFAULT_STEPS = ['pins', 'fetch', 'apply', 'drinks', 'toilets', 'metro', 'transi
 TITLE = {'pins': 'Google: planned-place pins + ids', 'fetch': 'Google: fetch', 'apply': 'Google: apply', 'drinks': 'Google: drink shops near every stop',
          'toilets': 'Google: toilets (public, own restroom, borrowable)', 'metro': 'Metro network (Google stations + ride times; stop order from OpenStreetMap)',
          'transit': 'Transport pins: bike share + bus stops', 'shops': 'Shopping places for the free day (Google)',
-         'refill': "Free water refill points (OpenStreetMap + the trip's own refill-*.json)"}
-TAIL = {'pins': 6, 'drinks': 4, 'toilets': 4, 'metro': 4, 'transit': 3, 'shops': 3, 'refill': 8}
+         'refill': "Free water refill points (OpenStreetMap + the trip's own refill-*.json)",
+         'drive-stops': 'Google: rest stops along each long drive (for reference)'}
+TAIL = {'pins': 6, 'drinks': 4, 'toilets': 4, 'metro': 4, 'transit': 3, 'shops': 3, 'refill': 8, 'drive-stops': 8}
 def script(name):
     """a step's file: the trip's own <trip>/pipeline/<name>.py first (gitignored with the trip, for a source the public
     repo must not carry), then the region pack, the country pack, and pipeline/steps"""

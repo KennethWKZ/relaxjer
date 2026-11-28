@@ -1,4 +1,4 @@
-/* Demo trip: a fictional party of six, five days in Sapporo and Otaru (Sat – Wed, February).
+/* Demo trip: a fictional party of six, six days in Sapporo and Otaru, with a day's drive to Asahikawa (Sat – Thu, February).
    Dates live only in date fields, never in text: the live demo moves them into each visitor's own year
    (engine/src/app/01-demo-year.js), and a date written into a sentence would stay behind.
    Synthetic and safe to publish. Hotel, flights, shops, restaurants and prices are invented; landmarks are public places.
@@ -8,10 +8,10 @@
 const TRIP = {
 	name: ['札幌示范行', 'Sapporo demo trip'],
 	start: '2027-02-06',
-	end: '2027-02-10',
+	end: '2027-02-11',
 	brand: '札幌示范行', // brush lettering, page title, home-screen name
 	brandShort: '札幌行', // the header's name on a phone too narrow for the whole brand
-	description: '示范：六人札幌五天 · Demo: five days in Sapporo for 6',
+	description: '示范：六人札幌六天 · Demo: six days in Sapporo for 6',
 	pax: 6, // party size: every "for 6" figure also shows a share each
 	tz: 'Asia/Tokyo', // the destination's clock, whatever the phone says
 	// the destination pack: destinations/jp (tax-free, native layer) + regions/sapporo (subway, taxi meter, IC card, Snow Light Path look)
@@ -29,6 +29,7 @@ const TRIP = {
 		{ id: 'otaru', name: ['小樽', 'Otaru'], bbox: [140.95, 43.15, 141.05, 43.23] },
 		{ id: 'ski', name: ['雪场与定山渓', 'Ski area and Jōzankei'], bbox: [141.08, 42.94, 141.24, 43.1] },
 		{ id: 'airport', name: ['机场', 'Airport'], bbox: [141.6, 42.75, 141.7, 42.84] },
+		{ id: 'asahikawa', name: ['去旭川的路', 'The drive to Asahikawa'], bbox: [141.3, 43.0, 142.55, 43.82] },
 	],
 	shopDays: [
 		// {dN} = that day's date, {back} = the time to collect the bags on the last day
@@ -45,7 +46,7 @@ const TRIP = {
 	],
 	kml: { optional: '备选 Optional', transport: ['hotel', 'cts', 'airportStn', 'sapStn'] },
 	addStopNote: [
-		'第5天上午是最后一次出门。只存在这支手机；用「分享」把链接发给大家。',
+		'第6天上午是最后一次出门。只存在这支手机；用「分享」把链接发给大家。',
 		'The last morning is a free walk. Saved on this phone; use Share to send it to the others.',
 	],
 	hotelSlots: ['bk-hotel'],
@@ -93,6 +94,7 @@ const PLACES = {
 	teine: { name: ['札幌手稻雪场', 'Sapporo Teine'], maps: 'Sapporo Teine ski resort', trad: 'サッポロテイネ', roma: 'Sapporo Teine' },
 	jozankei: { name: ['定山渓温泉', 'Jōzankei Onsen'], maps: 'Jozankei Onsen', trad: '定山渓温泉', roma: 'Jōzankei Onsen' },
 	moiwa: { name: ['藻岩山缆车', 'Mount Moiwa Ropeway'], maps: 'Mount Moiwa Ropeway', trad: '藻岩山ロープウェイ', roma: 'Moiwayama Rōpuwei' },
+	zoo: { name: ['旭山动物园', 'Asahiyama Zoo'], maps: 'Asahiyama Zoo', trad: '旭山動物園', roma: 'Asahiyama Dōbutsuen' },
 };
 
 const SITES = {
@@ -107,9 +109,9 @@ const SITES = {
 };
 
 const FACTS = [
-	{ k: ['日期', 'Dates'], v: ['二月，周六到周三，五天', 'A five-day trip in February, Saturday to Wednesday'] },
+	{ k: ['日期', 'Dates'], v: ['二月，周六到周四，六天', 'A six-day trip in February, Saturday to Thursday'] },
 	{ k: ['人数', 'Party'], v: ['6人（两人走得慢一些）', '6 people, two of us walk more slowly'] },
-	{ k: ['住宿', 'Stay'], v: ['示范旅店 大通（4晚）', 'Sample Inn Odori (4 nights)'], place: 'hotel' },
+	{ k: ['住宿', 'Stay'], v: ['示范旅店 大通（5晚）', 'Sample Inn Odori (5 nights)'], place: 'hotel' },
 	{ k: ['节奏', 'Pace'], v: ['每天2–3个地方，午后休息', '2–3 stops a day, a rest after lunch'] },
 ];
 
@@ -744,6 +746,82 @@ const DAYS = [
 		date: '2027-02-10',
 		dow: ['三', 'Wed'],
 		c: 5,
+		motif: 'zoo',
+		foodSlots: ['bk-hotel'],
+		freeEvening: true,
+		wish: '看企鹅',
+		gloss: ['', 'Penguins'],
+		mealAt: [[/早餐/, [['breakfast', ['bk-hotel']]]]],
+		// a long drive each way: the page lists the rest stops on the way (drive-stops.json), for reference only
+		route: [
+			['hotel', 'zoo', 'driving'],
+			['zoo', 'hotel', 'driving'],
+		],
+		title: ['开车去旭山动物园，当天来回', 'A day drive to Asahiyama Zoo and back'],
+		short: ['旭山动物园', 'Asahiyama Zoo'],
+		focus: ['单程开车约两小时，雪天多留时间', 'About two hours each way by car; allow more in snow'],
+		photos: [],
+		wear: ['厚外套 + 防滑鞋 + 帽子', 'Thick coat + grippy boots + a hat'],
+		budgetChip: ['约 ¥39,600–47,600', '~¥39,600–47,600'],
+		schedule: [
+			{ t: '07:30', what: ['酒店早餐', 'Breakfast at the hotel'], place: 'hotel', note: ['早点吃，八点半出发', 'Eat early; we leave at 08:30'] },
+			{
+				t: '08:30',
+				icon: 'car',
+				what: ['取车，开车去旭川', 'Pick up the car and drive to Asahikawa'],
+				place: 'hotel',
+				note: ['走道央自动车道，约两小时；累了就在服务区停', 'The Dō-Ō Expressway, about two hours; stop at a service area if anyone needs a break'],
+			},
+			{
+				t: '~10:45–13:30',
+				what: ['旭山动物园：企鹅散步（示范时间）', 'Asahiyama Zoo: the penguin walk (demo times)'],
+				place: 'zoo',
+				note: ['企鹅散步只在冬天，时间以园方公告为准', 'The penguin walk runs in winter only; check the zoo’s own times'],
+			},
+			{ t: '13:30–14:15', what: ['午餐：园内餐厅（示范）', 'Lunch at the zoo café (demo)'] },
+			{
+				t: '14:30',
+				icon: 'car',
+				what: ['开车回札幌', 'Drive back to Sapporo'],
+				place: 'zoo',
+				note: ['天黑得早，四点半以后路更滑', 'It gets dark early; the roads are icier after 16:30'],
+			},
+			{ t: '~17:00', what: ['回到酒店，还车', 'Back at the hotel; return the car'], place: 'hotel', note: ['晚上自由活动', 'A free evening'] },
+		],
+		blocks: [
+			{
+				type: 'text',
+				icon: 'car',
+				tile: ['怎么走', 'Getting there'],
+				h: ['今天怎么走', 'Getting there today'],
+				p: [
+					[
+						'七人座租车，一位司机开去、一位开回。冬天路滑，比地图的时间多留一倍。',
+						'A seven-seat rental car, one driver each way. Winter roads are slippery: allow twice the map’s time.',
+					],
+				],
+			},
+			{
+				type: 'budget',
+				h: ['第5天花费（估计）', 'Day 5 spend (estimate)'],
+				rows: [
+					[['租车一天（示范价）', 'Car hire, one day (demo price)'], ['≈¥18,000–22,000 / 六人', '≈¥18,000–22,000 for 6'], 'car'],
+					[['高速费和油费', 'Tolls and fuel'], ['≈¥9,000–11,000 / 六人', '≈¥9,000–11,000 for 6'], 'car'],
+					[['动物园门票', 'Zoo tickets'], ['¥6,600 / 六人', '¥6,600 for 6'], 'ticket'],
+					[['午餐', 'Lunch'], ['¥6,000–8,000 / 六人', '¥6,000–8,000 for 6'], 'food'],
+				],
+				total: ['约 ¥39,600–47,600 / 六人', '~¥39,600–47,600 for 6'],
+				min: 39600,
+				max: 47600,
+			},
+		],
+	},
+	{
+		id: 'd6',
+		n: 6,
+		date: '2027-02-11',
+		dow: ['四', 'Thu'],
+		c: 6,
 		motif: 'plane',
 		foodSlots: ['bk-hotel'],
 		wish: '回家',
@@ -834,7 +912,7 @@ const DAYS = [
 			},
 			{
 				type: 'budget',
-				h: ['第5天花费（估计）', 'Day 5 spend (estimate)'],
+				h: ['第6天花费（估计）', 'Day 6 spend (estimate)'],
 				rows: [
 					[['计程车去机场', 'Taxis to the airport'], ['≈¥18,500–21,500 / 六人', '≈¥18,500–21,500 for 6'], 'car'],
 					[['早餐', 'Breakfast'], ['¥3,000–4,000 / 六人', '¥3,000–4,000 for 6'], 'food'],
@@ -862,7 +940,7 @@ const OPTIONAL = [
 			['冷，缆车里也要穿厚外套', 'Cold; keep the thick coat on in the cabin'],
 		],
 		cost: ['缆车 **≈¥10,000** / 六人', 'Ropeway **≈¥10,000** for 6'],
-		note: ['第1天晚上或第5天上午都可以。', 'Fits the Day 1 evening, or a clear morning on Day 5.'],
+		note: ['第1天晚上或第6天上午都可以。', 'Fits the Day 1 evening, or a clear morning on Day 6.'],
 	},
 ];
 
@@ -882,7 +960,7 @@ const BUDGET = {
 			ref: 'DEMO-H6P4',
 		},
 		{
-			label: ['酒店（四晚）', 'Hotel, four nights'],
+			label: ['酒店（五晚）', 'Hotel, five nights'],
 			cat: 'lodging',
 			min: 7200,
 			max: 7200,
@@ -903,6 +981,7 @@ const BUDGET = {
 		// still to come: estimates in the trip's currency
 		[['机场来回', 'Airport, both ways'], '≈¥26,000–30,000', 26000, 30000, 'airport', 'transport'],
 		[['雪场缆车', 'Lift passes'], '≈¥4,000–6,000', 4000, 6000, 'activity'],
+		[['租车一天、高速和油费', 'Car hire for a day, tolls and fuel'], '≈¥27,000–33,000', 27000, 33000, 'car'],
 		[['市内交通', 'Local transport'], '≈¥6,000–9,000', 6000, 9000, 'transport'],
 		[['门票与活动', 'Tickets and activities'], '≈¥4,000–6,000', 4000, 6000, 'tickets'],
 		[['吃饭（含早餐）', 'Meals (with breakfasts)'], '≈¥50,000–66,000', 50000, 66000, 'food'],
@@ -981,7 +1060,7 @@ const FLIGHTS = {
 		no: 'XX 802',
 		dep: '13:40',
 		arr: '17:30',
-		date: '2027-02-10',
+		date: '2027-02-11',
 		from: ['新千岁', 'New Chitose'],
 		to: ['香港', 'Hong Kong'],
 		dur: '4h 50m',

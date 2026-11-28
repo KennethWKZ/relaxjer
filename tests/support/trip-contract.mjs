@@ -527,6 +527,52 @@ export function checkRefill(data) {
 	return bad;
 }
 
+const DRIVE_KINDS = ['sa', 'pa', 'roadside', 'fuel', 'store'];
+/** drive-stops.json (pipeline/steps/drive-stops.py, ADR-20261128-drive-stops): each long drive's rest stops in the shape
+ *  the page reads, keyed by the day's leg ("d5:0") with the leg it was found for. Returns problems, [] for a trip
+ *  without the file. */
+export function checkDriveStops(data) {
+	if (data == null) return [];
+	if (typeof data !== 'object' || !data.legs || typeof data.legs !== 'object' || Array.isArray(data.legs))
+		return ['drive-stops.json: needs a "legs" object'];
+	const bad = [];
+	if (data.checked != null && !/^\d{4}-\d{2}-\d{2}$/.test(data.checked)) bad.push('drive-stops.json checked: YYYY-MM-DD');
+	if (data.src != null && typeof data.src !== 'string') bad.push('drive-stops.json src: text');
+	const num = (v) => typeof v === 'number' && Number.isFinite(v) && v >= 0;
+	for (const [k, l] of Object.entries(data.legs)) {
+		const at = `drive-stops.json ${k}`;
+		if (!/^d\d{1,3}:\d{1,2}$/.test(k)) bad.push(`${at}: a day's leg key, like d5:0`);
+		if (!l || typeof l !== 'object') {
+			bad.push(`${at}: not an object`);
+			continue;
+		}
+		if (typeof l.from !== 'string' || typeof l.to !== 'string' || l.mode !== 'driving')
+			bad.push(`${at}: from, to and mode "driving" (the leg it was found for)`);
+		if (!num(l.min)) bad.push(`${at}: min, the drive's minutes`);
+		if (l.km != null && !num(l.km)) bad.push(`${at}: km is a number`);
+		if (!Array.isArray(l.stops)) {
+			bad.push(`${at}: needs a "stops" list`);
+			continue;
+		}
+		let prev = -1;
+		l.stops.forEach((s, i) => {
+			const w = `${at} stop ${i}`;
+			if (!s || typeof s !== 'object') return bad.push(`${w}: not an object`);
+			if (typeof s.name !== 'string' || !s.name.trim()) bad.push(`${w}: name`);
+			if (!DRIVE_KINDS.includes(s.kind)) bad.push(`${w}: kind must be one of ${DRIVE_KINDS.join('|')}`);
+			if (!num(s.km) || !num(s.min)) bad.push(`${w}: km and min from the start`);
+			else if (s.km < prev) bad.push(`${w}: stops run in order along the way`);
+			else prev = s.km;
+			if (!(typeof s.lat === 'number' && typeof s.lng === 'number' && Math.abs(s.lat) <= 90 && Math.abs(s.lng) <= 180)) bad.push(`${w}: lat and lng`);
+			for (const f of ['h24', 'shut']) if (s[f] != null && s[f] !== true) bad.push(`${w}: ${f} is true or left out`);
+			if (s.hours != null && !/^\d{1,2}:\d{2}–\d{1,2}:\d{2}(, \d{1,2}:\d{2}–\d{1,2}:\d{2})*$/.test(s.hours))
+				bad.push(`${w}: hours like "07:00–22:00"`);
+			if (s.dir != null && !['up', 'down'].includes(s.dir)) bad.push(`${w}: dir is up or down`);
+		});
+	}
+	return bad;
+}
+
 /** the tax refund coupons' images the trip names but its img/ folder lacks (ADR-20261128-tax-refund) */
 export function taxImagesMissing(dir) {
 	const { TAX } = loadTrip(dir);

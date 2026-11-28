@@ -460,6 +460,76 @@ function refillSheet(pk, date, at) {
       ${more ? `<p class="xsmall">${Z(`${REFILL_REACH} 米内还有 ${more} 个：在地图上选「装水」看全部。`, `${more} more within ${REFILL_REACH} m: pick Refill on the map to see them all.`)}</p>` : ''}
       ${refillCredits(list.map(([x]) => x))}`;
 }
+/* rest stops along a long drive (drive-stops.json, ADR-20261128-drive-stops): reference only, "in case we need one".
+   They fold under the row the group is in while it drives (Drives.legRows), closed until tapped: a service area or a
+   parking area, a roadside station, a petrol station, in order along the way with how far in, its kind, and its hours
+   that day. Nothing is planned or timed from them. On the day, while the drive is under way, the one ahead by the clock
+   is marked Next (markToday, 10-now-next.js) */
+const DRIVE_STOPS = { checked: null, legs: {}, ...(window.DRIVE_STOPS || {}) };
+const DRIVE_KIND = {
+	sa: ['服务区', 'Service area', 'food'],
+	pa: ['停车区', 'Parking area', 'parking'],
+	roadside: ['道之驿', 'Roadside station', 'bag'],
+	fuel: ['加油站', 'Fuel', 'fuel'],
+	store: ['便利店', 'Convenience store', 'coffee'],
+};
+/** a day's long drives by the row their stops show under: Map(row index → [{ li, leg, e, dep }]) */
+function driveStopsAt(d) {
+	const out = new Map();
+	const legs = LEGS[d.id] && dayLegs(d); // as the group now goes: a skipped place's legs joined over (07-skip.js)
+	if (!legs || !Object.keys(DRIVE_STOPS.legs).length) return out;
+	const rows = Drives.legRows(
+		d.schedule.map((it) => ({ place: it.place, t: it.t })),
+		legs,
+	);
+	legs.forEach((leg, li) => {
+		// the leg it was found for, joined the same way: a reordered day keeps no stops for another road
+		const e = leg[2] === 'driving' && rows[li] && Plan.storedLeg(DRIVE_STOPS.legs, d.id, li, leg);
+		if (!e || !Array.isArray(e.stops) || !e.stops.length) return;
+		const at = rows[li].at;
+		out.set(at, [...(out.get(at) || []), { li, leg, e, dep: rows[li].dep }]);
+	});
+	return out;
+}
+const nbsp = (t) => t.replace(/ /g, '\u00a0'); // "1 h 14 min" kept on one line
+/** one rest stop as a row: its kind, its name, how far in, its hours that day, and the way there */
+function driveStopRow(s) {
+	const k = DRIVE_KIND[s.kind] || DRIVE_KIND.store;
+	const when = s.h24
+		? `<span class="drv-24">${Z('24 小时', 'Open 24 h')}</span>`
+		: s.shut
+			? `<span class="spot-t">${Z('当天休息', 'Closed that day')}</span>`
+			: s.hours
+				? `<span class="spot-t">${icon('clock')} ${keepRanges(esc(Z(`当天 ${s.hours}`, `That day ${s.hours}`)))}</span>`
+				: '';
+	return `<li class="spot drv-stop" data-min="${+s.min}"><span class="drv-ic" aria-hidden="true">${icon(k[2])}</span><div class="spot-main"><span class="spot-n">${escText(s.name)}<span class="drv-flag"></span></span><span class="spot-m"><span class="spot-k drv-k">${Z(k[0], k[1])}</span>${esc(Z(`出发后约 ${nbsp(durText(s.min))} · ${s.km}\u00a0km`, `≈ ${nbsp(durText(s.min))} · ${s.km}\u00a0km in`))}</span>${when}</div><span class="spot-a">${extI(gmDir(`${s.lat},${s.lng}`, 'driving'), Z('导航', 'Directions'), 'route')}</span></li>`;
+}
+/** a row's long drives, each folded to "N stops on the way": what the fold lists, and when the drive sets off, so the
+ *  page can mark the next one on the day */
+function driveStopsFold(d, sid, list) {
+	if (!list || !list.length) return '';
+	const isDay = d.date === tpNow().date;
+	return list
+		.map(({ li, leg, e, dep }) => {
+			const key = `${sid}-drv${li}`;
+			const open = optsOpen.has(key) ? optsOpen.get(key) : false; // reference only: shut until asked for
+			const n = e.stops.length;
+			const all24 = e.stops.filter((s) => s.h24);
+			const to = isHotel(leg[1]) ? Z('酒店', 'the hotel') : L(PLACES[leg[1]].name);
+			const lat = e.stops[0].lat;
+			const winter = Refill.inWindow(d.date, Pack.refillWinter || Refill.defaultWinter(lat));
+			const head = `<p class="xsmall muted drv-lead">${esc(Z(`开车去${to}约 ${durText(e.min)}${e.km ? ` · ${e.km} km` : ''}（Google 的时间）`, `To ${to}: about ${durText(e.min)}${e.km ? `, ${e.km} km` : ''} (Google's time)`))}</p>`;
+			const cold =
+				winter && all24.length
+					? `<p class="callout drv-winter">${icon('snow')}<span>${esc(Z(`冬天天黑得早，24 小时开的：${all24.map((s) => s.name).join('、')}`, `Dark early in winter. Open 24 h: ${all24.map((s) => s.name).join(', ')}`))}</span></p>`
+					: '';
+			const note = `<p class="xsmall muted">${Z('只是参考，不在行程里：想停就停。', 'For reference, not part of the plan: stop when you need to.')}${isDay && dep != null ? Z('「下一个」按出发后的时间估，不看定位；路上慢的话可能还没到。', ' “Next” is guessed from the time since setting off, not your location; on a slow road you may not be there yet.') : ''}</p>`;
+			const credit = `<p class="xsmall muted">${Z('资料：', 'Data: ')}${esc(DRIVE_STOPS.src || 'Google Maps')}${DRIVE_STOPS.checked ? Z(` · ${Time.shortDate(DRIVE_STOPS.checked, 'zh')} 核对`, ` · checked ${Time.shortDate(DRIVE_STOPS.checked, 'en')}`) : ''}</p>`;
+			const timed = isDay && dep != null ? ` data-drv-dep="${dep}" data-drv-len="${+e.min}"` : '';
+			return `<div class="stop-near stop-dstops"${timed}><button type="button" class="sn-tog" data-opts="${key}" aria-expanded="${open}" aria-controls="${key}">${icon('car')}<span class="sn-h">${Z(`沿途休息 · ${n} 个`, `${n} stop${n > 1 ? 's' : ''} on the way`)}${all24.length ? `<small>${Z(` · ${all24.length} 个 24 小时`, ` · ${all24.length} open 24 h`)}</small>` : ''}</span>${icon('chev', 'chev')}</button><div class="sn-list drv-list" id="${key}"${open ? '' : ' hidden'}>${head}${cold}<ol class="spots drv-stops">${e.stops.map(driveStopRow).join('')}</ol>${note}${credit}</div></div>`;
+		})
+		.join('');
+}
 // drink stands or sit-down spots within a short walk of a planned place, nearest first
 const spotsNear = (pk, rest, date) =>
 	DRINKS.filter((x) => isRest(x) === rest && nearOf(x, pk) != null && !(date && (x.closed_dates || []).includes(date))).sort(

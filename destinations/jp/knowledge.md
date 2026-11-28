@@ -97,6 +97,17 @@ Learned while pricing a winter one-way rental, Sapporo to Asahikawa, for four pe
   an ETC card, and the pick-up and return shops. Pick-up shops near a station are often a short walk away: two drivers
   can collect the car without the bags while the others wait with them at the hotel's entrance.
 
+## Driving: rest stops along an expressway
+
+- **A service area usually has twins, one each side of the expressway**, signed 上り and 下り, and only the one on your
+  side can be reached. 上り runs toward the road's legal start, which on most roads is Tokyo's way, "with some
+  exceptions" (NEXCO East's FAQ, 高速道路の上りと下り、起点と終点の定義, https://www.cs3.e-nexco.co.jp/faq/s/article/823;
+  read 2026-11-28 through a quote of it at https://kitaheiku-blog.com/highway/, since the FAQ page renders by script).
+  In Hokkaido the Dō-Ō Expressway runs 上り from Sapporo south toward Ōnuma-kōen, and Sapporo to Otaru is 上り too, so a
+  straight line toward Tokyo can't tell the side. The `drive-stops` step keeps the twin on the left of the way the
+  drive runs (Japan drives on the left), which needs no rule about where a road starts.
+- Plan a break about every 90–120 minutes on a long drive; in winter the page says which stops are open 24 hours.
+
 ## Sights with look-alikes and traps (Hokkaido)
 
 - **Biei's "lone tree" usually means the Christmas Tree** (クリスマスツリーの木): one narrow spruce alone in a field. The
@@ -131,8 +142,8 @@ Learned while pricing a winter one-way rental, Sapporo to Asahikawa, for four pe
   signs and taxi screens. The pipeline reads Google's Japanese hours (`月曜日: 7時00分～17時00分`, `24 時間営業`,
   `定休日`), drops "日本、〒…" from addresses, and keeps station names as signed (大通駅, never 大通駅站). Checked on a
   trip refresh, 2026-11-17.
-- Steps outside Taiwan: `pins`, `fetch`, `apply`, `toilets`, `shops` (no tea-shop, metro or bike-share step yet), and
-  the free `refill` for water refill points.
+- Steps outside Taiwan: `pins`, `fetch`, `apply`, `toilets`, `shops` (no tea-shop, metro or bike-share step yet),
+  `drive-stops` for rest stops along each long drive (after `apply`), and the free `refill` for water refill points.
 
 ## Water refill
 

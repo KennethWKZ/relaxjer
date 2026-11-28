@@ -13,6 +13,7 @@ import * as Wish from '../../engine/src/core/wish.mjs';
 import * as Rating from '../../engine/src/core/rating.mjs';
 import * as Refill from '../../engine/src/core/refill.mjs';
 import * as Tax from '../../engine/src/core/tax.mjs';
+import * as Drives from '../../engine/src/core/drives.mjs';
 
 test('Time: clock parsing and formatting', () => {
 	assert.equal(Time.clockMinutes('09:05'), 545);
@@ -909,4 +910,57 @@ test('Tax: the coupon viewer fits the whole coupon, and a zoom doubles it withou
 		{ turned: false, scale: 0, w: 0, h: 0, iw: 0, ih: 0 },
 		'not loaded yet',
 	);
+});
+
+test('Drives: a drive’s stops show under the row the group is in while it drives, and it sets off when the refresh asked', () => {
+	// a "Leave for …" row at the start, the arrival later: the stops show under the leaving row
+	const leave = [
+		{ place: 'hotel', t: '08:30' },
+		{ place: 'hotel', t: '~10:50' },
+		{ place: 'zoo', t: '~12:50–15:00' },
+		{ place: 'hotel', t: '17:30' },
+	];
+	assert.deepEqual(
+		Drives.legRows(leave, [
+			['hotel', 'zoo', 'driving'],
+			['zoo', 'hotel', 'driving'],
+		]),
+		[
+			{ at: 1, dep: 650 },
+			{ at: 2, dep: 900 },
+		],
+	);
+	// a "Drive to …" row at the destination, timed when the row before ends: the stops show under that row
+	const driveTo = [
+		{ place: 'hotel', t: ['07:30–08:30', '07:30–08:30'] },
+		{ place: 'zoo', t: '08:30' },
+		{ place: 'zoo', t: '10:45–13:00' },
+	];
+	assert.deepEqual(Drives.legRows(driveTo, [['hotel', 'zoo', 'driving']]), [{ at: 1, dep: 510 }]);
+	// a destination the schedule never reaches: nothing; a row with no clock before it: no set-off time
+	assert.deepEqual(Drives.legRows(leave, [['hotel', 'nowhere', 'driving']]), [null]);
+	assert.deepEqual(
+		Drives.legRows(
+			[
+				{ place: 'a', t: ['早上', 'Morning'] },
+				{ place: 'b', t: '13:00' },
+			],
+			[['a', 'b', 'driving']],
+		),
+		[{ at: 0, dep: null }],
+	);
+	assert.deepEqual(Drives.legRows([{ place: 'b', t: '09:00' }], [['a', 'b', 'driving']]), [{ at: 0, dep: null }], 'the first row');
+	assert.deepEqual(Drives.legRows(undefined, undefined), []);
+});
+
+test('Drives: the next stop on a drive under way is the first still ahead by the clock, and none before or long after', () => {
+	const stops = [{ min: 35 }, { min: 70 }, { min: 110 }];
+	assert.equal(Drives.nextStop(stops, 0, 130), 0, 'just set off');
+	assert.equal(Drives.nextStop(stops, 40, 130), 1);
+	assert.equal(Drives.nextStop(stops, 70, 130), 2, 'level with one: the one after');
+	assert.equal(Drives.nextStop(stops, 115, 130), -1, 'every stop behind');
+	assert.equal(Drives.nextStop(stops, -5, 130), -1, 'not set off yet');
+	assert.equal(Drives.nextStop(stops, 200, 130), -1, 'should long have arrived');
+	assert.equal(Drives.nextStop(stops, null, 130), -1, 'no set-off time');
+	assert.deepEqual(Drives.kinds, ['sa', 'pa', 'roadside', 'fuel', 'store']);
 });

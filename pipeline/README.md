@@ -30,15 +30,15 @@ Needs [uv](https://docs.astral.sh/uv/) (it installs Python 3.13 and the two depe
 node. Google calls use **your own key** ([ADR-20260930-google-keys](../memory-bank/standards/decisions/ADR-20260930-google-keys.md)): `~/.config/relaxjer/google-places.key` (mode 600), with Places API
 (New) and Routes API on. It runs from your machine only and never goes into a page.
 
-| Where                                        | What                                                                                                                                                                                                                       |
-| -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `resync.py`                                  | runs the trip's steps (`pipeline.json` "steps"), the weather forecast and the link check                                                                                                                                   |
-| `steps/`                                     | generic steps: `pins`, `fetch`, `apply` (Google details, hours, ratings, nearest metro, route legs), `toilets`, `shops`; `refill` (free: OpenStreetMap and the trip's own files, no Google); `images` runs by hand (below) |
-| `trips/<slug>/pipeline/`                     | the trip's own private steps ([below](#a-private-step-in-the-trip-folder)), gitignored with the trip                                                                                                                       |
-| `destinations/<cc>/pipeline/`                | country steps: `tw/drinks.py` (tea-shop chains, Taiwan classics, sit-down spots)                                                                                                                                           |
-| `destinations/<cc>/regions/<city>/pipeline/` | city steps: `taipei/metro.py` (the MRT / LRT network), `taipei/transit.py` (YouBike, bus stops)                                                                                                                            |
-| `lib/`                                       | the trip (read through `trip-data.mjs`, the way the page's build reads it), Google calls + cache, opening hours                                                                                                            |
-| `tests/`                                     | offline tests on the demo trip (`pnpm test:pipeline`)                                                                                                                                                                      |
+| Where                                        | What                                                                                                                                                                                                                                                                         |
+| -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `resync.py`                                  | runs the trip's steps (`pipeline.json` "steps"), the weather forecast and the link check                                                                                                                                                                                     |
+| `steps/`                                     | generic steps: `pins`, `fetch`, `apply` (Google details, hours, ratings, nearest metro, route legs), `toilets`, `shops`, `drive-stops` (rest stops along each long drive); `refill` (free: OpenStreetMap and the trip's own files, no Google); `images` runs by hand (below) |
+| `trips/<slug>/pipeline/`                     | the trip's own private steps ([below](#a-private-step-in-the-trip-folder)), gitignored with the trip                                                                                                                                                                         |
+| `destinations/<cc>/pipeline/`                | country steps: `tw/drinks.py` (tea-shop chains, Taiwan classics, sit-down spots)                                                                                                                                                                                             |
+| `destinations/<cc>/regions/<city>/pipeline/` | city steps: `taipei/metro.py` (the MRT / LRT network), `taipei/transit.py` (YouBike, bus stops)                                                                                                                                                                              |
+| `lib/`                                       | the trip (read through `trip-data.mjs`, the way the page's build reads it), Google calls + cache, opening hours                                                                                                                                                              |
+| `tests/`                                     | offline tests on the demo trip (`pnpm test:pipeline`)                                                                                                                                                                                                                        |
 
 A step is looked up in the trip's own `pipeline/` folder, then its region pack, then its country pack, then `steps/`. Without `"steps"`, a trip runs
 Taiwan's list (`pins`, `fetch`, `apply`, `drinks`, `toilets`, `metro`, `transit`, `shops`), so a trip anywhere else names
@@ -74,20 +74,21 @@ synthetic example:
 }
 ```
 
-| Key              | What it does                                                                                                                                                                                         |
-| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `steps`          | the steps to run, in order (Taiwan's list when left out)                                                                                                                                             |
-| `google`         | the language and region Google answers in (default `zh-TW`, `TW`)                                                                                                                                    |
-| `area`           | `[south, west, north, east]`: where to look for every branch of a chain (chains need it)                                                                                                             |
-| `chains`         | chains whose branches the page lists: `id` (a wishlist entry's id), `queries`, the names a branch `must` contain (a list), the `prefix` / `prefix_en` stripped from a branch's name, `default_label` |
-| `pin_queries`    | `{ place key: Google search }`, used when a place has no Google id yet, the lookup fails, or the id is a car park, a building or an inn (a hand-checked id goes in `PLACES[k].gpid`)                 |
-| `stations`       | place keys that are themselves a station or terminal (no "nearest station" for them)                                                                                                                 |
-| `no_hours`       | place keys that are districts or streets: a building's hours say nothing about them                                                                                                                  |
-| `areas`          | district and street place keys: drinks and rest spots are searched in a wider circle                                                                                                                 |
-| `skip_nearby`    | `{ step: [place keys] }`: places that don't need that step's nearby search (an airport has its own toilets)                                                                                          |
-| `shops`          | the shop box: `[search, kind, why zh, why en, tax refund]`, the refund `'yes'`, `'no'` or `'some'`, searched near the hotel; names come from Google                                                  |
-| `forecast_spots` | `{ spot: [lat, lng] }` for the weather forecast; a day reads `DAYS[i].forecastSpot`, else `TRIP.forecastSpot`                                                                                        |
-| `refill`         | the `refill` step: `radius` (metres from a place a spot may be, default 1000), `osm: false` (only the trip's own `refill-*.json`), `overpass` (the OpenStreetMap servers asked, in order)            |
+| Key              | What it does                                                                                                                                                                                                     |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `steps`          | the steps to run, in order (Taiwan's list when left out)                                                                                                                                                         |
+| `google`         | the language and region Google answers in (default `zh-TW`, `TW`)                                                                                                                                                |
+| `area`           | `[south, west, north, east]`: where to look for every branch of a chain (chains need it)                                                                                                                         |
+| `chains`         | chains whose branches the page lists: `id` (a wishlist entry's id), `queries`, the names a branch `must` contain (a list), the `prefix` / `prefix_en` stripped from a branch's name, `default_label`             |
+| `pin_queries`    | `{ place key: Google search }`, used when a place has no Google id yet, the lookup fails, or the id is a car park, a building or an inn (a hand-checked id goes in `PLACES[k].gpid`)                             |
+| `stations`       | place keys that are themselves a station or terminal (no "nearest station" for them)                                                                                                                             |
+| `no_hours`       | place keys that are districts or streets: a building's hours say nothing about them                                                                                                                              |
+| `areas`          | district and street place keys: drinks and rest spots are searched in a wider circle                                                                                                                             |
+| `skip_nearby`    | `{ step: [place keys] }`: places that don't need that step's nearby search (an airport has its own toilets)                                                                                                      |
+| `shops`          | the shop box: `[search, kind, why zh, why en, tax refund]`, the refund `'yes'`, `'no'` or `'some'`, searched near the hotel; names come from Google                                                              |
+| `forecast_spots` | `{ spot: [lat, lng] }` for the weather forecast; a day reads `DAYS[i].forecastSpot`, else `TRIP.forecastSpot`                                                                                                    |
+| `refill`         | the `refill` step: `radius` (metres from a place a spot may be, default 1000), `osm: false` (only the trip's own `refill-*.json`), `overpass` (the OpenStreetMap servers asked, in order)                        |
+| `drive_stops`    | the `drive-stops` step: `min_drive` (minutes, default 90), `off_m` (metres off the road a stop may be, default 800), `fuel_gap_km` (default 15), `search` (in place of the country pack's `driveStops` searches) |
 
 The refresh's steps expect `geo.json`, `extra.json`, `wish-a.json` and `wish-b.json` in the trip folder; an empty
 wishlist is `{ "items": [] }`. A food slot or a wishlist branch with `hours_lock: true` keeps its own hours instead of Google's (a pop-up inside a
@@ -104,6 +105,20 @@ source, written by a step of the trip's own, below), counts a spot two sources l
 `refill.radius` of a place, and writes `refill.json` ([the spot shape](../memory-bank/standards/trip-format.md#water-refill-refilljson))
 with `--write`. Which spots are near a stop, open then, or shut for winter is the page's to work out. Put it after the
 step that writes a `refill-*.json`: `"steps": [..., "refill-<src>", "refill"]`.
+
+## Rest stops along a long drive (`drive-stops`)
+
+Opt in by naming it in `steps`, after `apply` ([ADR-20261128-drive-stops](../memory-bank/standards/decisions/ADR-20261128-drive-stops.md)).
+For each day's driving leg whose Google time in `geo.json` is `drive_stops.min_drive` minutes or more (90 by default),
+and only for the drive that time was asked for, it asks Compute Routes once for the route line (high quality), then
+Places Text Search once per search in the country pack's `driveStops` with `searchAlongRouteParameters`: service
+areas, parking areas, roadside stations and petrol stations in Japan, convenience stores only while fewer than four
+stops were found. About six calls a drive, all through `lib/google.py`'s cache and its 200-call stop, so a rerun
+pays nothing. `lib/drive_stops.py` keeps the places open for business within `off_m` of the road; of a service area's
+two twins (signed 上り and 下り) the one on the side the car keeps to (the pack's `side`; across the expressway is the
+other carriageway's); each facility once; petrol stations `fuel_gap_km` apart, a 24-hour one first. It writes
+`drive-stops.json` ([the stop shape](../memory-bank/standards/trip-format.md#rest-stops-along-a-long-drive-drive-stopsjson))
+with `--write`. A decide option's own route isn't searched. The page lists them for reference only.
 
 ## A private step in the trip folder
 

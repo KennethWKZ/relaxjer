@@ -27,7 +27,9 @@ lessons in [`../../../knowledge/data-hygiene.md`](../../../knowledge/data-hygien
   ([pipeline README](../../../pipeline/README.md#a-private-step-in-the-trip-folder)). A trip's own step writes a side file
   a generic step merges (`refill-<src>.json` → `refill`), so the repo's code never names the source.
 - What a trip searches for (its chains, shopping list, weather spots, which places are stations or districts) goes in
-  `trips/<slug>/pipeline.json`, never in a step.
+  `trips/<slug>/pipeline.json`, never in a step. What a country's roads are called and how they are signed goes in its
+  pack, which `lib/trip.py` reads as `PACK` (the `drive-stops` step's `driveStops`,
+  [ADR-20261128-drive-stops](../decisions/ADR-20261128-drive-stops.md)).
 - Read the trip through `lib/` (the build's own evaluation of `data.js`), never by regex.
 - Keep the output stable. Sort what you write, and never depend on set or dict order (Python's hash seed reshuffled a
   list once).

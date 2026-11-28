@@ -14,11 +14,16 @@ Read first: `pipeline/README.md` (commands, folders), `memory-bank/standards/pat
   `~/.config/relaxjer/google-places.key` (mode 600). Without one, run with `--no-google`: weather and link checks still
   work.
 - What the trip searches for lives in `trips/<slug>/pipeline.json` ([every key](../../../pipeline/README.md#pipelinejson)): `steps`, `chains`, `shops`, `pin_queries`,
-  `forecast_spots`, `stations`, `skip_nearby`, `no_hours`, `area`, `refill`. The steps look themselves up in the trip's
+  `forecast_spots`, `stations`, `skip_nearby`, `no_hours`, `area`, `refill`, `drive_stops`. The steps look themselves up in the trip's
   own `pipeline/` folder, then its region pack, then its country pack, then `pipeline/steps/`.
 - **A private step in the trip folder** (`trips/<slug>/pipeline/<name>.py`) pulls a source the public repo must not carry,
   and runs with the others when `steps` names it, before the repo's step of the same name; it never leaves the trip
   folder ([how it runs](../../../pipeline/README.md#a-private-step-in-the-trip-folder)). A failing one stops the run.
+- **Rest stops along a long drive** (`drive-stops`, Google, opt in): name it after `apply`. For each drive of 90 min or
+  more it asks one route line and about five searches along it (the country pack's `driveStops`; Japan has them),
+  cached like every Google call. Say the calls and their cost before the first run, as for any paid step. Read its
+  lines: each drive with its stops by kind and km. The page lists them for reference only; never plan a break from
+  them or move a time.
 - **Water refill** (`refill`, free, opt in): OpenStreetMap's drinking water near the trip's places plus the trip's own
   `refill-*.json`, merged into `refill.json`. Name it after the step that writes a `refill-*.json`
   (`"steps": [..., "refill-<src>", "refill"]`). It asks OpenStreetMap a few small queries, cached for 30 days; when

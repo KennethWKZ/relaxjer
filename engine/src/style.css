@@ -4458,6 +4458,62 @@ svg.i.flip {
 	vertical-align: -2px;
 	color: var(--ink-2);
 }
+/* rest stops along a long drive (ADR-20261128-drive-stops): the same rows as the spots, with the kind's icon at the
+   front; the one ahead on a drive under way gets the Next flag and the day's colour down its edge, two cues */
+.drv-list {
+	gap: 6px;
+}
+.drv-lead {
+	margin: 2px 0 0;
+}
+.drv-stops {
+	margin-top: 4px;
+}
+.drv-stop {
+	align-items: center;
+}
+.drv-ic {
+	display: grid;
+	place-items: center;
+	flex: none;
+	width: 32px;
+	height: 32px;
+	margin-left: 10px;
+	border-radius: 8px;
+	background: var(--paper-2);
+	color: var(--ink-2);
+}
+.drv-ic svg.i {
+	width: 18px;
+	height: 18px;
+}
+.drv-stop .spot-main {
+	padding-left: 0;
+	cursor: default;
+}
+.drv-flag:not(:empty) {
+	margin-left: 6px;
+}
+.drv-24 {
+	justify-self: start;
+	padding: 0 6px;
+	border-radius: 6px;
+	background: var(--ink);
+	color: var(--paper);
+	font-size: var(--fs-xs);
+	font-weight: 750;
+}
+.spot-k.drv-k {
+	background: var(--paper-3);
+	color: var(--ink-2);
+}
+.drv-stop.is-next {
+	border-color: var(--c, var(--ink-2));
+	box-shadow: inset 4px 0 0 var(--c, var(--ink-2));
+}
+.drv-winter {
+	margin: 0;
+}
 .spot-k.rf-k {
 	background: color-mix(in srgb, #0a84c1 14%, transparent);
 	color: #075f8c;
@@ -4505,6 +4561,17 @@ svg.i.flip {
 }
 :root[data-theme='dark'] .spot-k.rf-k:not(.is-in) {
 	color: #8fd0f5;
+}
+/* a rest stop's kind stays neutral in the dark too (the drink spots' plum is theirs) */
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme='light']) .spot-k.drv-k {
+		background: var(--paper-3);
+		color: var(--ink-2);
+	}
+}
+:root[data-theme='dark'] .spot-k.drv-k {
+	background: var(--paper-3);
+	color: var(--ink-2);
 }
 @media (max-width: 599px) {
 	.stop-drink:has(> :nth-child(3)) {

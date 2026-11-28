@@ -79,6 +79,20 @@ function markToday() {
 						? `<span class="flag ghost">${Z('下一站', 'Next')}</span>`
 						: '';
 	});
+	// a long drive under way: the rest stop ahead by the minutes since it set off (Drives.nextStop; no location read)
+	$$(`#${day.id} .stop-dstops[data-drv-dep]`).forEach((box) => {
+		const rows = $$('.drv-stop', box);
+		const k = Drives.nextStop(
+			rows.map((li) => ({ min: +li.dataset.min })),
+			now.mins - +box.dataset.drvDep,
+			+box.dataset.drvLen,
+		);
+		rows.forEach((li, j) => {
+			li.classList.toggle('is-next', j === k);
+			const f = $('.drv-flag', li);
+			if (f) f.innerHTML = j === k ? `<span class="flag ghost">${Z('下一个', 'Next')}</span>` : '';
+		});
+	});
 	const ol = $(`#${day.id} .sched`);
 	if (!ol) return;
 	const n = $$('.stop.done', ol).length;

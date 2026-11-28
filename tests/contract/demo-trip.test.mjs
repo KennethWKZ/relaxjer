@@ -6,6 +6,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { DEMO_TRIP, DEMO_TRIPS, ROOT } from '../support/stage.mjs';
 import {
+	checkDriveStops,
 	checkRefill,
 	checkTrip,
 	loadTrip,
@@ -90,6 +91,36 @@ test('a coupon may leave out its last day: one that prints no end date has none'
 	assert.ok(!checkTrip(trip).some((p) => p.startsWith('TAX.coupons')), checkTrip(trip).join('\n'));
 });
 
+test('the contract catches a broken drive-stops.json', () => {
+	assert.deepEqual(checkDriveStops(null), [], 'no file: nothing to check');
+	const good = readJSON(path.join(ROOT, 'examples', 'demo-sapporo'), 'drive-stops.json');
+	assert.ok(Object.keys(good.legs).length >= 1, 'the Sapporo demo has a long drive');
+	const leg = Object.values(good.legs)[0];
+	const broken = {
+		checked: 'Feb',
+		legs: {
+			day5: { ...leg },
+			'd5:9': {
+				...leg,
+				mode: 'walking',
+				stops: [{ ...leg.stops[1] }, { ...leg.stops[0] }, { ...leg.stops[0], kind: 'cafe', h24: 'yes', hours: '7am' }],
+			},
+		},
+	};
+	const problems = checkDriveStops(broken).join('\n');
+	for (const want of [
+		'checked: YYYY-MM-DD',
+		"day5: a day's leg key",
+		'mode "driving"',
+		'in order along the way',
+		'kind must be one of',
+		'h24 is true',
+		'hours like',
+	])
+		assert.ok(problems.includes(want), `${want}\nin:\n${problems}`);
+	assert.deepEqual(checkDriveStops({ legs: [] }), ['drive-stops.json: needs a "legs" object']);
+});
+
 test('the contract catches a broken refill.json', () => {
 	assert.deepEqual(checkRefill(null), [], 'no file: nothing to check');
 	const good = readJSON(DEMO_TRIP, 'refill.json');
@@ -142,6 +173,10 @@ for (const dir of dirs) {
 
 	test('refill.json, when the trip has one, follows the spot shape' + at, () => {
 		assert.deepEqual(checkRefill(readJSON(dir, 'refill.json')), []);
+	});
+
+	test('drive-stops.json, when the trip has one, follows the stop shape' + at, () => {
+		assert.deepEqual(checkDriveStops(readJSON(dir, 'drive-stops.json')), []);
 	});
 
 	test("every tax refund coupon's image is in the trip's img folder" + at, () => {

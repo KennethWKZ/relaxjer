@@ -97,7 +97,9 @@ planners, is in [`guides/trip-page.md`](../../guides/trip-page.md).
   - a day that splits: part of the group takes its own plan for a few hours, forked from the day's string with its
     go / wait / skip rule, and the stop where they come back says so.
 - **Near each stop, and "near me":** food, drinks, rest spots, toilets (plus places that let you borrow a toilet) and free water refill (a tap, a shop or an indoor place, outdoor taps left out in a cold winter),
-  the group's wishlist where it fits, and the optional plans the trip suggests at that stop, which open over the day.
+  the group's wishlist where it fits, and the optional plans the trip suggests at that stop, which open over the day. A
+  long drive lists its rest stops on the way (service areas, roadside stations, petrol, with their hours that day), for
+  reference only, and marks the next one by the clock while it's under way.
 - **Each day:** Now and Next on a trip day (a countdown and the to-dos coming due before it), Copy for chat and Copy
   link (in the day's ⋯), today's route as one line with a whole-route link (in its Route tile), decide-on-the-day options (an option that goes somewhere
   with its own route line and leg minutes), and the rain plan.
