@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.15.0](https://github.com/KennethWKZ/relaxjer/compare/v1.14.0...v1.15.0) (2026-11-28)
+
+
+### ✨ Features
+
+* **engine:** a glance layer first, details on tap, and the features that came with it ([#119](https://github.com/KennethWKZ/relaxjer/issues/119)) ([c8fbacb](https://github.com/KennethWKZ/relaxjer/commit/c8fbacb6104963452d5c83793dcf83a0cd9e2904))
+
+
+### 🐛 Bug Fixes
+
+* **engine:** a wishlist day can name its meal, and a stop offers the item only then ([#117](https://github.com/KennethWKZ/relaxjer/issues/117)) ([6a209b1](https://github.com/KennethWKZ/relaxjer/commit/6a209b1ed674389720527bfd29c69c0ad142a329))
+* **engine:** rank Tabelog and Google ratings on one scale ([#116](https://github.com/KennethWKZ/relaxjer/issues/116)) ([17ea70a](https://github.com/KennethWKZ/relaxjer/commit/17ea70a0092724e2256d1fb37ef44a0e4bb6aed6))
+
+
+### 📝 Documentation
+
+* **agents:** skills and roles write and check the page glance first ([#120](https://github.com/KennethWKZ/relaxjer/issues/120)) ([eaf95d6](https://github.com/KennethWKZ/relaxjer/commit/eaf95d68c6634fc89cc8b8005cde949b60d5d52c))
+
 ## [1.14.0](https://github.com/KennethWKZ/relaxjer/compare/v1.13.1...v1.14.0) (2026-11-27)
 
 
