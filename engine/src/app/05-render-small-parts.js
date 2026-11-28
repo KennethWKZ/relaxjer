@@ -154,7 +154,26 @@ function mealGroup(d, it, meal, slots) {
 	return { html, c };
 }
 // wishlist food that suits any of this stop's meals: one list, distances from one point
-function stopWish(d, c, meals) {
+/** a far wishlist chip's way there (Reach, ADR-20261128-near-me-all): the distance under 1.2 km, as before; past it the
+ *  metro from the stop's station to the place's, a drive on a day that goes by car, else "far" with the distance */
+function wishHint(d, it, x) {
+	if (x.k == null) return Z('今天顺路', 'on today’s route');
+	const st = (pk) => (pk && GEO && GEO.places && GEO.places[pk] ? GEO.places[pk].mrt : null);
+	// the stop's own place, else (a meal row with none) the last place the day reached before it
+	const at = it && (it.place || [...d.schedule.slice(0, d.schedule.indexOf(it))].reverse().find((s) => s.place)?.place);
+	const legs = LEGS[d.id] || [];
+	const driving = legs.some((l) => l[2] === 'driving') && !legs.some((l) => l[2] === 'transit');
+	const from = st(at);
+	const to = x.br.mrt;
+	const rideKm = from && to && from.lat != null && to.lat != null ? km(from, to) : null;
+	const r = Reach.reach({ km: x.k, walkMin: walkMinM(x.k * 1000), driveMin: taxiMin(x.k), driving, from, to, rideKm, walkOf: walkMinM });
+	if (r.mode === 'walk') return distLabel(x.k);
+	if (r.mode === 'drive') return Z(`车程 · 约 ${r.min} 分钟`, `Drive · ≈ ${r.min} min`);
+	if (r.mode === 'far') return Z(`远 · ${distLabel(x.k)}`, `Far · ${distLabel(x.k)}`);
+	const ride = r.mode === 'train' ? ['火车', 'train'] : METRO;
+	return Z(`${ride[0]} · 约 ${r.min} 分钟`, `${Cap(ride[1])} · ≈ ${r.min} min`);
+}
+function stopWish(d, c, meals, it) {
 	const wl = WISH.filter((w) => w.status !== 'closed' && WISH_FOOD.has(w.kind) && (w.meals || []).some((m) => meals.includes(m)))
 		.map((w) => {
 			const br = wBest(w);
@@ -165,7 +184,7 @@ function stopWish(d, c, meals) {
 		.sort((a, b) => (a.k == null ? 99 : a.k) - (b.k == null ? 99 : b.k))
 		.slice(0, 8);
 	return wl.length
-		? `<p class="eat-h">${icon('star')}${Z('想吃清单', 'Wishlist')}</p><div class="eat-row">${wl.map((x) => `<a class="eat-chip is-wish" href="#wish-${esc(x.w.id)}">${esc(wName(x.w))} <span class="eat-r">${x.k == null || x.k > 1.2 ? `${Z('今天顺路', 'on today’s route')}${x.k != null ? ' · ' + distLabel(x.k) : ''}` : distLabel(x.k)}</span></a>`).join('')}${more(wl.length)}</div>`
+		? `<p class="eat-h">${icon('star')}${Z('想吃清单', 'Wishlist')}</p><div class="eat-row">${wl.map((x) => `<a class="eat-chip is-wish" href="#wish-${esc(x.w.id)}">${esc(wName(x.w))} <span class="eat-r">${esc(wishHint(d, it, x))}</span></a>`).join('')}${more(wl.length)}</div>`
 		: '';
 }
 const NEAR_KINDS = new Set(['shop', 'market', 'souvenir', 'sight', 'temple', 'nature', 'hotspring']);
@@ -570,6 +589,7 @@ function mealEats(d, it) {
 		d,
 		ref,
 		hit[1].map(([meal]) => meal),
+		it,
 	);
 	if (!html.length && !wish) return '';
 	return `<div class="stop-eat">${html.join('<hr class="eat-sep">')}${wish ? `${html.length ? '<hr class="eat-sep">' : ''}${wish}` : ''}</div>`;

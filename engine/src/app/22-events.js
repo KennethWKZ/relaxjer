@@ -40,7 +40,7 @@ document.addEventListener('click', (e) => {
 		return;
 	}
 	if (t.matches('[data-near-meal]')) {
-		near.meal = t.dataset.nearMeal;
+		nearPick(t.dataset.nearMeal);
 		renderNear();
 		return;
 	}

@@ -334,6 +334,14 @@ itself is the planner's: it's in the trip's data, and nobody makes one on the pa
   points), and breakfast and late-night food near the hotel. Near me picks the meal by the clock, lists what's within 2.5 km (else the nearest six), hides what's closed
   today (with a count), and gives the walk and directions. Without location it starts from the plan's current stop or
   the hotel, and "Start from somewhere else" lets you choose.
+- **All (全部):** the first tab near me lists every place to eat or drink at once (each meal's food and wishlist food,
+  the drinks and rest spots), nearest first, with the wishlist's tag; what's shut right now by its hours is left out and
+  counted ("4 closed now"), and a place whose hours can't be read stays in. Once you pick All, this phone opens on it
+  next time; pick a meal and it goes back to the meal for the hour.
+- **A wishlist chip past a short walk** (more than 1.2 km from a meal stop) says how to get there instead of only how
+  far: "MRT · ≈ 20 min" from the stop's station to the place's (the walks in and out at the group's pace and a ride
+  between, an estimate), "Drive · ≈ 25 min" on a day that goes by car, or "Far · 5.0 km" where neither end has a
+  station. A tap opens its card, which names the station. Under 1.2 km it keeps its distance.
 
 ## The map
 
@@ -581,6 +589,8 @@ Everything above that isn't listed here is on every page. The fields are in
 | Positions, hours, route legs, food, drinks, toilets                                        | the data refresh (`data-sync`)                                                                                                                                                                                                           |
 | Refill under each stop, its kind on the map, Refill near me                                | `refill.json`, from the data refresh's free `refill` step (`pipeline.json` `steps`): OpenStreetMap, plus the trip's own `refill-*.json`                                                                                                  |
 | Outdoor taps left out in winter, "N closed for winter"                                     | the city pack's `refillWinter` (Sapporo: November to April); without one, only taps OpenStreetMap marks seasonal, December to February                                                                                                   |
+| All near me (every place to eat or drink, open now)                                        | on every page with food, wishlist food or drinks; "closed now" reads each place’s hours (Google’s week, or the English hours line)                                                                                                       |
+| A wishlist chip’s metro or drive time past 1.2 km                                          | the nearest station (`mrt`) on the meal stop's place in `geo.json` and on the wishlist branch, from the data refresh; a drive on a day whose route drives and takes no transit                                                           |
 | Stops on the way under a long drive, Next while it’s under way                             | `drive-stops.json`, from the data refresh's `drive-stops` step (`pipeline.json` `steps`, after `apply`) for each drive of 90 min or more; the searches come from the country pack's `driveStops` (Japan)                                 |
 | Share my changes and Back to the original plan in a day's ⋯                                | something this phone added or changed (a stop, a skip, a flight time, a push-back); Share only without group sync                                                                                                                        |
 | The map and its pins, Map in the bottom bar                                                | `geo.json` (from the data refresh)                                                                                                                                                                                                       |

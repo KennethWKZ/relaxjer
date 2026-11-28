@@ -99,7 +99,8 @@ planners, is in [`guides/trip-page.md`](../../guides/trip-page.md).
 - **Near each stop, and "near me":** food, drinks, rest spots, toilets (plus places that let you borrow a toilet) and free water refill (a tap, a shop or an indoor place, outdoor taps left out in a cold winter),
   the group's wishlist where it fits, and the optional plans the trip suggests at that stop, which open over the day. A
   long drive lists its rest stops on the way (service areas, roadside stations, petrol, with their hours that day), for
-  reference only, and marks the next one by the clock while it's under way.
+  reference only, and marks the next one by the clock while it's under way. Near me's All lists every place to eat or
+  drink that's open now; a far wishlist chip says the metro or the drive, not only the distance.
 - **Each day:** Now and Next on a trip day (a countdown and the to-dos coming due before it), Copy for chat and Copy
   link (in the day's ⋯), today's route as one line with a whole-route link (in its Route tile), decide-on-the-day options (an option that goes somewhere
   with its own route line and leg minutes), and the rain plan.

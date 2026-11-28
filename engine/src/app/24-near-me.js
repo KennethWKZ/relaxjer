@@ -4,7 +4,26 @@ const mealNow = () => {
 	return m < 300 ? 'supper' : m < 630 ? 'breakfast' : m < 900 ? 'lunch' : m < 1230 ? 'dinner' : 'supper';
 };
 let near = { meal: null, from: null, label: '', gps: false, note: '' };
+const NEAR_ALL = ['全部', 'All']; // every place to eat or drink, open now (ADR-20261128-near-me-all)
+/** a tab picked: All, or a meal, is remembered on this phone, so the next Find food near me opens on All again, or on
+ *  the meal for the hour (store 'nearTab') */
+function nearPick(meal) {
+	near.meal = meal;
+	if (meal === 'all' || ['breakfast', 'lunch', 'dinner', 'supper', 'snack'].includes(meal)) store.set('nearTab', meal === 'all' ? 'all' : 'meal');
+}
 function nearItems(from, meal, date) {
+	if (meal === 'all') {
+		// the food slots and wishlist food of every meal, and the drinks and rest spots, each once; one shut right now by
+		// its hours counts as closed (an hours line Opening can't read stays in)
+		const now = tpNow();
+		const wd = Time.weekdayIndex(now.date);
+		const seen = new Set();
+		return ['breakfast', 'lunch', 'dinner', 'supper', 'snack', 'drink', 'rest']
+			.flatMap((m) => nearItems(from, m, date))
+			.filter((x) => !seen.has(x.href || x.q) && seen.add(x.href || x.q))
+			.map((x) => ({ ...x, closed: x.closed || Opening.openAt(Opening.weekOf(x.week || x.hoursEn), wd, now.mins) === false }))
+			.sort((a, b) => a.k - b.k);
+	}
 	if (meal === 'refill') {
 		// free water refill (refill.json): an outdoor tap shut for winter today counts as closed, and is left out
 		const wd = date ? Time.weekdayIndex(date) + 1 : null;
@@ -72,6 +91,7 @@ function nearItems(from, meal, date) {
 			meals: [meal],
 			closed: !!date && (x.closed_dates || []).includes(date),
 			hours: lang === 'en' ? x.hours_en : x.hours_zh,
+			week: x.week,
 			rating: x.rating,
 			q: `${x.name_trad} ${x.address_trad || ''}`,
 			href: `#${x.id}`,
@@ -89,6 +109,7 @@ function nearItems(from, meal, date) {
 							meals: [meal],
 							closed: !!date && (br.closed_dates || []).includes(date),
 							hours: lang === 'en' ? br.hours_en : br.hours_zh,
+							hoursEn: br.hours_en,
 							q: wQuery(br, w),
 							href: `#wish-${w.id}`,
 						}
@@ -108,6 +129,7 @@ function nearItems(from, meal, date) {
 			meals: mealsOf(f),
 			closed: !!f.paused || (!!date && (f.closed_dates || []).includes(date)),
 			hours: lang === 'en' ? f.hours_en : f.hours_zh,
+			hoursEn: f.hours_en,
 			rating: f.rating,
 			href: '#' + foodId(f),
 			q: f.maps_query || f.address_trad,
@@ -125,6 +147,7 @@ function nearItems(from, meal, date) {
 						meals: w.meals || ['snack'],
 						closed: !!date && (br.closed_dates || []).includes(date),
 						hours: lang === 'en' ? br.hours_en : br.hours_zh,
+						hoursEn: br.hours_en,
 						rating: w.rating,
 						href: '#wish-' + w.id,
 						q: wQuery(br, w),
@@ -142,10 +165,13 @@ function renderNear() {
 	if (!box) return;
 	const now = tpNow();
 	const date = TRIP_DATES.includes(now.date) ? now.date : null;
-	const meal = near.meal || mealNow();
-	const tabs = Object.keys(MEAL_NAMES)
+	const meal = near.meal || (store.get('nearTab', '') === 'all' ? 'all' : mealNow());
+	const tabs = ['all', ...Object.keys(MEAL_NAMES)]
 		.filter((m) => m !== 'refill' || REFILL.spots.length)
-		.map((m) => `<button type="button" class="seg-btn" data-near-meal="${m}" aria-pressed="${m === meal}">${esc(L(MEAL_NAMES[m]))}</button>`)
+		.map(
+			(m) =>
+				`<button type="button" class="seg-btn" data-near-meal="${m}" aria-pressed="${m === meal}">${esc(L(m === 'all' ? NEAR_ALL : MEAL_NAMES[m]))}</button>`,
+		)
 		.join('');
 	let body = `<p class="small muted">${esc(near.note || Z('正在取得你的位置…', 'Finding where you are…'))}</p>`;
 	if (near.from) {
@@ -165,12 +191,12 @@ function renderNear() {
           <div class="links-row">${ext(gmDir(x.q, x.k < 1.5 ? 'walking' : 'transit', origin), Z('怎么去', 'Directions'), 'route')}${x.href ? `<a class="mlink" href="${x.href}">${icon('info')}${Z('详情', 'Details')}</a>` : ''}</div></li>`,
 					)
 					.join('')}</ul>
-        ${hidden ? `<p class="xsmall">${meal === 'refill' ? Z(`冬天关闭 ${hidden} 个户外饮水台，已经不列出来。`, `${hidden} outdoor taps closed for winter and left out.`) : Z(`今天有 ${hidden} 家休息，已经不列出来。`, `${hidden} closed today and left out.`)}</p>` : ''}${meal === 'refill' ? refillCredits(list) : ''}`;
+        ${hidden ? `<p class="xsmall near-hidden">${meal === 'refill' ? Z(`冬天关闭 ${hidden} 个户外饮水台，已经不列出来。`, `${hidden} outdoor taps closed for winter and left out.`) : meal === 'all' ? Z(`现在没开 ${hidden} 家，已经不列出来。`, `${hidden} closed now and left out.`) : Z(`今天有 ${hidden} 家休息，已经不列出来。`, `${hidden} closed today and left out.`)}</p>` : ''}${meal === 'refill' ? refillCredits(list) : ''}`;
 	}
 	const starts = [...new Set([...HOTELS, ...DAYS.flatMap((d) => d.schedule.map((it) => it.place).filter(Boolean))])].filter(
 		(pid) => placeLL(pid) && PLACES[pid],
 	);
-	box.innerHTML = `<div class="toc-head"><h2 id="near-h">${meal === 'refill' ? Z('附近装水', 'Refill near me') : meal === 'wc' ? Z('附近厕所', 'Toilets near me') : meal === 'drink' ? Z('附近饮料', 'Drinks near me') : meal === 'rest' ? Z('附近坐下歇脚', 'Sit & rest near me') : Z('附近吃什么', 'Food near me')}</h2><button type="button" class="icon-btn" data-close aria-label="${Z('关闭', 'Close')}">${icon('x')}</button></div>
+	box.innerHTML = `<div class="toc-head"><h2 id="near-h">${meal === 'all' ? Z('附近现在开着的', 'Open near me now') : meal === 'refill' ? Z('附近装水', 'Refill near me') : meal === 'wc' ? Z('附近厕所', 'Toilets near me') : meal === 'drink' ? Z('附近饮料', 'Drinks near me') : meal === 'rest' ? Z('附近坐下歇脚', 'Sit & rest near me') : Z('附近吃什么', 'Food near me')}</h2><button type="button" class="icon-btn" data-close aria-label="${Z('关闭', 'Close')}">${icon('x')}</button></div>
       ${near.from ? `<p class="small">${icon('pin')} ${Z('起点：', 'From: ')}${esc(near.label)}</p>` : ''}
       ${near.far ? `<p class="near-far">${icon('info')}<span>${esc(Z(`你现在不在${CITY[0]}，所以距离先从酒店算。到了${CITY[0]}会自动用你的位置。`, `You’re not in ${CITY[1]} yet, so distances start from the hotel. Once you’re there, it uses where you are.`))}</span></p>` : ''}
       <div class="map-ctrl near-meals" role="group" aria-label="${Z('哪一餐', 'Which meal')}">${tabs}</div>

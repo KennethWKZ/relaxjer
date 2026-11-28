@@ -1,5 +1,5 @@
 ---
-total_decisions: 48
+total_decisions: 49
 last_updated: 2026-11-28
 ---
 
@@ -19,16 +19,17 @@ merged id never changes; a new ADR that collides takes a fresh slug.
 
 How a trip becomes the page: the views, the sections, the day logic and the packs. Patterns: [engine.md](./patterns/engine.md).
 
-| ADR                                                                                     | Date       | Status   | Rule                                                                                                                                                 |
-| --------------------------------------------------------------------------------------- | ---------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [ADR-20261007-split-follows-pushback](decisions/ADR-20261007-split-follows-pushback.md) | 2026-10-07 | accepted | A split fork moves like a flexible stop: push-backs before it shift it, and its rejoin keeps its stop planned time.                                  |
-| [ADR-20261117-native-layer](decisions/ADR-20261117-native-layer.md)                     | 2026-11-17 | accepted | A pack sets the native language and the 'please take us here' card text, and the engine reads them from the pack, never a constant.                  |
-| [ADR-20261122-currency-switch](decisions/ADR-20261122-currency-switch.md)               | 2026-11-22 | accepted | Currency conversion happens while the text is drawn, in one pure function that reads each amount's own symbol, so NT$ is never read as $.            |
-| [ADR-20261122-day-views](decisions/ADR-20261122-day-views.md)                           | 2026-11-22 | amended  | Each tab is its own view with its own #address and Back step; a day's planning cards open as sheets from one-line summaries; TRIP.sky picks the sky. |
-| [ADR-20261122-place-finder-best-day](decisions/ADR-20261122-place-finder-best-day.md)   | 2026-11-22 | amended  | A place finder ranks each day's stops by straight-line distance to the place, counting only stops a new stop can follow.                             |
-| [ADR-20261124-finder-google-distance](decisions/ADR-20261124-finder-google-distance.md) | 2026-11-24 | accepted | With a key, the finder asks Google once per place for the way from the group: metres by road and the walk at the group pace, or the ride.            |
-| [ADR-20261127-trip-walk-pace](decisions/ADR-20261127-trip-walk-pace.md)                 | 2026-11-27 | accepted | TRIP.walkPace (a number from 1 to 2) scales every walking time the page shows; left out, the seniors' pace; 1 is Google's own time.                  |
-| [ADR-20261128-skip-planned-stops](decisions/ADR-20261128-skip-planned-stops.md)         | 2026-11-28 | accepted | Anyone may skip a planned stop but a flight or the lodging; it folds away, syncs with who, undoes, and only suggests moving later stops earlier.     |
+| ADR                                                                                     | Date       | Status   | Rule                                                                                                                                                  |
+| --------------------------------------------------------------------------------------- | ---------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [ADR-20261007-split-follows-pushback](decisions/ADR-20261007-split-follows-pushback.md) | 2026-10-07 | accepted | A split fork moves like a flexible stop: push-backs before it shift it, and its rejoin keeps its stop planned time.                                   |
+| [ADR-20261117-native-layer](decisions/ADR-20261117-native-layer.md)                     | 2026-11-17 | accepted | A pack sets the native language and the 'please take us here' card text, and the engine reads them from the pack, never a constant.                   |
+| [ADR-20261122-currency-switch](decisions/ADR-20261122-currency-switch.md)               | 2026-11-22 | accepted | Currency conversion happens while the text is drawn, in one pure function that reads each amount's own symbol, so NT$ is never read as $.             |
+| [ADR-20261122-day-views](decisions/ADR-20261122-day-views.md)                           | 2026-11-22 | amended  | Each tab is its own view with its own #address and Back step; a day's planning cards open as sheets from one-line summaries; TRIP.sky picks the sky.  |
+| [ADR-20261122-place-finder-best-day](decisions/ADR-20261122-place-finder-best-day.md)   | 2026-11-22 | amended  | A place finder ranks each day's stops by straight-line distance to the place, counting only stops a new stop can follow.                              |
+| [ADR-20261124-finder-google-distance](decisions/ADR-20261124-finder-google-distance.md) | 2026-11-24 | accepted | With a key, the finder asks Google once per place for the way from the group: metres by road and the walk at the group pace, or the ride.             |
+| [ADR-20261127-trip-walk-pace](decisions/ADR-20261127-trip-walk-pace.md)                 | 2026-11-27 | accepted | TRIP.walkPace (a number from 1 to 2) scales every walking time the page shows; left out, the seniors' pace; 1 is Google's own time.                   |
+| [ADR-20261128-near-me-all](decisions/ADR-20261128-near-me-all.md)                       | 2026-11-28 | accepted | Near me: an All tab (every food and drink place, open now by its hours), remembered per phone; a wishlist chip past 1.2 km shows metro, drive or far. |
+| [ADR-20261128-skip-planned-stops](decisions/ADR-20261128-skip-planned-stops.md)         | 2026-11-28 | accepted | Anyone may skip a planned stop but a flight or the lodging; it folds away, syncs with who, undoes, and only suggests moving later stops earlier.      |
 
 ## trip-data
 

@@ -14,6 +14,8 @@ import * as Rating from '../../engine/src/core/rating.mjs';
 import * as Refill from '../../engine/src/core/refill.mjs';
 import * as Tax from '../../engine/src/core/tax.mjs';
 import * as Drives from '../../engine/src/core/drives.mjs';
+import * as Opening from '../../engine/src/core/opening.mjs';
+import * as Reach from '../../engine/src/core/reach.mjs';
 
 test('Time: clock parsing and formatting', () => {
 	assert.equal(Time.clockMinutes('09:05'), 545);
@@ -963,4 +965,49 @@ test('Drives: the next stop on a drive under way is the first still ahead by the
 	assert.equal(Drives.nextStop(stops, 200, 130), -1, 'should long have arrived');
 	assert.equal(Drives.nextStop(stops, null, 130), -1, 'no set-off time');
 	assert.deepEqual(Drives.kinds, ['sa', 'pa', 'roadside', 'fuel', 'store']);
+});
+
+test('Opening: a week of hours from Google’s week or the refresh’s English line, and open at a moment', () => {
+	const g = Opening.weekOf(['10:00–22:00', '10:00–22:00', 'closed', '10:00–14:00,17:00–22:00', '24h', '18:00–02:00', '10:00–22:00']);
+	assert.equal(Opening.openAt(g, 0, 9 * 60 + 59), false);
+	assert.equal(Opening.openAt(g, 0, 10 * 60), true);
+	assert.equal(Opening.openAt(g, 2, 12 * 60), false, 'closed that day');
+	assert.equal(Opening.openAt(g, 3, 15 * 60), false, 'between its two openings');
+	assert.equal(Opening.openAt(g, 4, 3 * 60), true, 'open 24 h');
+	assert.equal(Opening.openAt(g, 5, 23 * 60), true, 'a late night');
+	assert.equal(Opening.openAt(g, 6, 60), true, 'past midnight, from the night before');
+	assert.equal(Opening.openAt(g, 6, 3 * 60), false);
+	const line = Opening.weekOf('Mon–Tue, Thu–Fri, Sun 11:00–14:00, 17:00–21:00; Sat 24 h; closed Wed');
+	assert.equal(Opening.openAt(line, 0, 12 * 60), true);
+	assert.equal(Opening.openAt(line, 0, 15 * 60), false);
+	assert.equal(Opening.openAt(line, 2, 12 * 60), false);
+	assert.equal(Opening.openAt(line, 5, 4 * 60), true);
+	assert.equal(Opening.openAt(Opening.weekOf('Daily 07:00–23:00'), 3, 22 * 60), true);
+	assert.equal(Opening.openAt(Opening.weekOf('Open 24 h'), 1, 0), true);
+	assert.equal(Opening.openAt(Opening.weekOf('11:00–21:00'), 4, 21 * 60), false, 'a bare range: every day');
+	assert.equal(Opening.weekOf('Mon–Fri 11:00–21:00'), null, 'the weekend unknown');
+	assert.equal(Opening.weekOf('ask at the desk'), null);
+	assert.equal(Opening.openAt(null, 0, 600), null, 'unknown, never closed');
+});
+
+test('Reach: a walk under 1.2 km, the metro when both ends have a station, a drive on a car day, else far', () => {
+	const st = (zh, m, more = {}) => ({ zh, en: zh, lat: 43, lng: 141, min: 3, m, walk: true, ...more });
+	const a = st('A', 300);
+	const b = st('B', 450);
+	const walkOf = (m) => m / 50; // the page's walk at the group's pace, here 50 m a minute
+	const go = { km: 3.6, walkMin: 61, driveMin: 21, rideKm: 3.4, walkOf };
+	assert.deepEqual(Reach.reach({ km: 0.8, walkMin: 13.6, driveMin: 12 }), { mode: 'walk', min: 14, km: 0.8 });
+	const m = Reach.reach({ ...go, from: a, to: b });
+	assert.equal(m.mode, 'metro');
+	assert.equal(m.station, b);
+	assert.equal(m.min, Math.round(6 + Reach.rideMin(3.4) + 9), 'walk in and out at the group pace, and the ride');
+	assert.equal(Reach.rideMin(3.4), 13, 'a wait, then about 25 km/h');
+	assert.equal(Reach.reach({ ...go, from: a, to: { ...b, train: true } }).mode, 'train');
+	assert.deepEqual(Reach.reach({ ...go, driving: true, from: a, to: b }), { mode: 'drive', min: 21, km: 3.6 });
+	assert.deepEqual(Reach.reach({ ...go, km: 5, from: a, to: null }), { mode: 'far', km: 5 }, 'no station at the far end');
+	assert.deepEqual(Reach.reach({ ...go, km: 5, from: a, to: { ...b, walk: false } }), { mode: 'far', km: 5 }, 'a station too far to walk');
+	assert.deepEqual(Reach.reach({ ...go, km: 5, from: a, to: { ...a } }), { mode: 'far', km: 5 }, 'the same station');
+	assert.deepEqual(Reach.reach({ ...go, km: 5, from: a, to: b, rideKm: null }), { mode: 'far', km: 5 }, 'no distance between them');
+	assert.equal(Reach.reach({ km: null }), null);
+	assert.equal(Reach.WALK_KM, 1.2);
 });
