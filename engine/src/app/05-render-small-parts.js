@@ -573,8 +573,8 @@ function routeLine(scope, legs, nm, label = Z('今天的路线', "Today's route"
 	return `<ol ${attrs} aria-label="${esc(label)}">${items}</ol>`;
 }
 function routeCard(day) {
-	const legs = LEGS[day.id];
-	if (!legs) return '';
+	const legs = LEGS[day.id] && dayLegs(day); // as the group now goes: a skipped place's legs joined over (07-skip.js)
+	if (!legs || !legs.length) return '';
 	const nm = (pid) => L(PLACES[pid].name);
 	const rows = routeLine(day.id, legs, nm);
 	const ids = [legs[0][0], ...legs.map((l) => l[1])];

@@ -461,7 +461,7 @@ function fitFor(info) {
 		d.schedule.forEach((it, i) => {
 			const ll = llOfStop(it);
 			if ((info.pid && it.place === info.pid) || near(ll)) planned = true;
-			else if (ll && can[i]) {
+			else if (ll && can[i] && !it._skip) {
 				const r = eff[i];
 				stops.push({
 					...ll,

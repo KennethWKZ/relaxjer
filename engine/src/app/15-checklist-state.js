@@ -97,12 +97,17 @@ function buildPins() {
 	ALL_SHOPS.forEach((s) => {
 		if (s.day) (dayOfPlace[s.place] = dayOfPlace[s.place] || []).push(s.day);
 	});
+	// the days a place is skipped on (every stop of that day there skipped, ADR-20261128-skip-planned-stops): its pin stays,
+	// quieter, and the map's list marks it on those days
+	const skipDays = {};
+	DAYS.forEach((d) => skipPlaces(d).forEach((p) => (skipDays[p] = skipDays[p] || []).push(d.id)));
 	Object.keys(PLACES).forEach((pid) => {
 		const g = GEO.places && GEO.places[pid];
 		if (!g || seen.has(pid)) return;
 		seen.add(pid);
 		const type = isHotel(pid) ? 'hotel' : shopListOf(pid) ? 'shop' : 'place';
 		const days = (dayOfPlace[pid] || []).filter(() => !isHotel(pid));
+		const off = skipDays[pid] || [];
 		pins.push({
 			pid,
 			type,
@@ -110,6 +115,8 @@ function buildPins() {
 			lat: g.lat,
 			lng: g.lng,
 			days,
+			skipDays: off,
+			skipped: days.length > 0 && days.every((d) => off.includes(d)),
 			name: L(PLACES[pid].name),
 			q: PLACES[pid].maps,
 		});

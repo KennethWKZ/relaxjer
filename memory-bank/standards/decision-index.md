@@ -1,5 +1,5 @@
 ---
-total_decisions: 44
+total_decisions: 45
 last_updated: 2026-11-28
 ---
 
@@ -28,6 +28,7 @@ How a trip becomes the page: the views, the sections, the day logic and the pack
 | [ADR-20261122-place-finder-best-day](decisions/ADR-20261122-place-finder-best-day.md)   | 2026-11-22 | amended  | A place finder ranks each day's stops by straight-line distance to the place, counting only stops a new stop can follow.                             |
 | [ADR-20261124-finder-google-distance](decisions/ADR-20261124-finder-google-distance.md) | 2026-11-24 | accepted | With a key, the finder asks Google once per place for the way from the group: metres by road and the walk at the group pace, or the ride.            |
 | [ADR-20261127-trip-walk-pace](decisions/ADR-20261127-trip-walk-pace.md)                 | 2026-11-27 | accepted | TRIP.walkPace (a number from 1 to 2) scales every walking time the page shows; left out, the seniors' pace; 1 is Google's own time.                  |
+| [ADR-20261128-skip-planned-stops](decisions/ADR-20261128-skip-planned-stops.md)         | 2026-11-28 | accepted | Anyone may skip a planned stop but a flight or the lodging; it folds away, syncs with who, undoes, and only suggests moving later stops earlier.     |
 
 ## trip-data
 
@@ -81,7 +82,7 @@ How the page looks, moves and reads: type, colour, illustrations, motion, names 
 | [ADR-20261124-bottom-app-bar](decisions/ADR-20261124-bottom-app-bar.md)                 | 2026-11-24 | amended  | Below 1024 px a bottom bar (Today, Days, Map, More) replaces the date strip and the Sections button, and the sky’s Pause moves into More.                       |
 | [ADR-20261124-grouped-lists](decisions/ADR-20261124-grouped-lists.md)                   | 2026-11-24 | amended  | The rail, Days, More and the Sections sheet are grouped lists: cards of 52 px rows split by inset hairlines, each row ending in ›, a value with ⌃⌄, or nothing. |
 | [ADR-20261124-map-first-search](decisions/ADR-20261124-map-first-search.md)             | 2026-11-24 | amended  | Search results and the finder lie over the map (sheet or side panel); a picked place is framed with the group and marked, no line; filters behind one button.   |
-| [ADR-20261128-progressive-disclosure](decisions/ADR-20261128-progressive-disclosure.md) | 2026-11-28 | accepted | Glance layer open (Now/Next, hotel, week, day card, one-line stops); lists fold with a count; single parts are icon tiles; one money number.                    |
+| [ADR-20261128-progressive-disclosure](decisions/ADR-20261128-progressive-disclosure.md) | 2026-11-28 | amended  | Glance layer open (Now/Next, hotel, week, day card, one-line stops); lists fold with a count; single parts are icon tiles; one money number.                    |
 
 <details>
 <summary>Superseded or deprecated (1)</summary>

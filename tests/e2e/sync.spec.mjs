@@ -3,7 +3,7 @@
 // offline keeps its changes and sends them later; personal ticks never leave the phone; and when the planner ends sync,
 // the page says so and keeps working on its own copy.
 import { test, expect } from '../support/fixtures.mjs';
-import { show } from '../support/page.mjs';
+import { show, SKIP, skipStop } from '../support/page.mjs';
 import { TEST_PLANNER_CODE } from '../support/global-setup.mjs';
 import { STORE_KEY } from '../support/store-key.mjs';
 import {
@@ -390,6 +390,27 @@ test.describe('group sync', { tag: '@demo' }, () => {
 		await openSyncSheet(page);
 		await sheet(page).locator('.sync-row', { hasText: 'Demo Oops Stop' }).locator('[data-gone-back]').click();
 		await expect(there, 'put back for everyone').toBeAttached({ timeout: 15_000 });
+	});
+
+	// ADR-20261128-skip-planned-stops: skipping is open to every phone, not only planners and not only the one that skipped
+	test('anyone skips a planned stop: every phone folds it, Recently removed says who, and anyone puts it back', async ({ page }) => {
+		await openSync(b.page);
+		await openSync(page);
+		await setName(page, 'Lee');
+		await skipStop(page, 'd3-s4'); // Day 3's Thermal Valley
+		await expect(page.locator('#toast')).toContainText('on everyone’s page');
+		await expect(b.page.locator(SKIP.sum('d3')), 'folded on the other phone too').toContainText('1 skipped', { timeout: 15_000 });
+		await expect(b.page.locator(SKIP.onString('d3-s4'))).toHaveCount(0);
+		await expect(b.page.locator(SKIP.row('d3-s4'))).toContainText('skipped by Lee');
+		await expect(b.page.locator('#toast')).toContainText('Lee skipped Thermal Valley');
+
+		// the other phone, no planner and not the one that skipped it, finds it in Recently removed and puts it back
+		await openSyncSheet(b.page);
+		const gone = sheet(b.page).locator('.sync-row', { hasText: 'Thermal Valley' });
+		await expect(gone).toContainText('skipped by Lee');
+		await gone.locator('[data-unskip]').click();
+		await expect(page.locator(SKIP.fold('d3')), 'back on every phone').toHaveCount(0, { timeout: 15_000 });
+		await expect(page.locator(SKIP.onString('d3-s4'))).toHaveCount(1);
 	});
 
 	test('“Remove the stops I added” takes only this phone’s; who added what is in the sheet', async ({ page }) => {

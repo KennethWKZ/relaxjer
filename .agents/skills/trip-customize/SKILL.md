@@ -25,6 +25,12 @@ change lands).
 - **Ids are forever on a published page.** A checklist item's id, a shop list's id or a day's id is a key on every
   phone; renaming one unticks it everywhere. Change the text, keep the id. Ticks in a day card's checklist and a shop
   list's checks are kept by position: add new ones at the end, never in between.
+- **A skip on the trip lives on the phones, not in the data.** Anyone can skip a planned stop on the page (Skip in the
+  opened stop) and put it back (ADR-20261128-skip-planned-stops); a skip is keyed to the stop's time, name and place as
+  written, so editing any of those in the data puts a skipped stop back on every phone. When the planner wants a stop
+  gone for good, remove it from the data; when they only changed their mind on the day, leave the data alone. Flights
+  and the lodging can't be skipped on the page: a stop about the hotel or a flight with no `place` gets `icon: 'bed'` or
+  `'plane'` so it can't be either.
 - Never invent a booking, a price or a budget. An estimate is marked "≈" and says where it came from.
 - Never describe people by family relationship, in either language: "the group", "seniors", "adults", "one of us".
 

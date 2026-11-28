@@ -3,7 +3,7 @@ id: ADR-20261128-progressive-disclosure
 date: 2026-11-28
 title: 'The Page Shows a Glance Layer and Hides the Rest: Folds for Lists, Icon Tiles for Single Parts, One-Line Stops'
 domain: design
-status: accepted
+status: amended
 decision: 'Glance layer open (Now/Next, hotel, week, day card, one-line stops); lists fold with a count; single parts are icon tiles; one money number.'
 tags: [engine, trip-data]
 supersedes: [ADR-20261127-stop-detail-fold]
@@ -159,3 +159,12 @@ in `DESIGN.md`, and [ADR-20261127-stop-detail-fold](ADR-20261127-stop-detail-fol
 You're adding anything a day, Today, Days or the map shows; deciding whether something is open, a fold or a tile;
 adding a hint or a banner the page repeats; writing a stop's note, `todo` or `icon`, a block's `tile` or a day's `short`;
 or changing how money shows on the glance layer or a day's row.
+
+## Amendment 2026-11-28
+
+An opened stop's labelled icons end in **Skip** (跳过) on every stop but a flight or the lodging, and a stop whose
+place is closed that day says so under its name with Skip beside it
+([ADR-20261128-skip-planned-stops](ADR-20261128-skip-planned-stops.md)). A day's skipped stops are a fold, the kind for a
+list: one row on the string at the schedule's foot, "N skipped", with its count and a chevron that turns, each inside
+with Put back. Right after a skip, the stop stays greyed where it was with the suggestion to move the next stops
+earlier, until it's taken or declined.

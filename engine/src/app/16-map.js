@@ -20,9 +20,13 @@ function mapListHTML() {
 		items: pins.filter((p) => p.days.includes(d.id) && p.type !== 'mrt' && !p.drink && !p.wc),
 	}));
 	const other = pins.filter((p) => !p.days.length && p.type !== 'mrt' && !p.drink && !p.wc);
-	const btn = (p) => `<button type="button" class="tag pinbtn" data-pick="${p.pid}" data-q="${esc(p.q || p.name)}">${esc(p.name)}</button>`;
+	// a place the group skips that day reads struck through, its pin quieter (ADR-20261128-skip-planned-stops)
+	const btn = (p, day) =>
+		(p.skipDays || []).includes(day)
+			? `<button type="button" class="tag pinbtn is-skipped" data-pick="${p.pid}" data-q="${esc(p.q || p.name)}">${esc(p.name)}<span class="sr-only"> ${Z('（已跳过）', '(skipped)')}</span></button>`
+			: `<button type="button" class="tag pinbtn" data-pick="${p.pid}" data-q="${esc(p.q || p.name)}">${esc(p.name)}</button>`;
 	const fold = (id, h, items, open, style = '') =>
-		`<details class="ml-day" data-ml="${id}"${open ? ' open' : ''}${style}><summary class="ml-h">${h}<span class="fold-n">${items.length}</span>${icon('chev', 'chev')}</summary><div class="pills">${items.map(btn).join('')}</div></details>`;
+		`<details class="ml-day" data-ml="${id}"${open ? ' open' : ''}${style}><summary class="ml-h">${h}<span class="fold-n">${items.length}</span>${icon('chev', 'chev')}</summary><div class="pills">${items.map((p) => btn(p, id)).join('')}</div></details>`;
 	return (
 		byDay
 			.map(({ d, items }) =>

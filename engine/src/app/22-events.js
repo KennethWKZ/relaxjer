@@ -526,6 +526,27 @@ document.addEventListener('click', (e) => {
 		);
 		return;
 	}
+	// skipping a planned stop (07-skip.js, ADR-20261128-skip-planned-stops): open to anyone, with or without group sync
+	if (t.matches('[data-skip]')) {
+		const [dy, i] = t.dataset.skip.split('|');
+		skipStop(dy, +i);
+		return;
+	}
+	if (t.matches('[data-unskip]')) {
+		unskip(t.dataset.unskip);
+		return;
+	}
+	if (t.matches('[data-skip-pull]')) {
+		const [dy, key] = t.dataset.skipPull.split('|');
+		skipPull(dy, key);
+		return;
+	}
+	if (t.matches('[data-skip-keep]')) {
+		// No thanks: the suggestion goes, the skipped stop joins the day's fold at the next redraw
+		skipAsk = null;
+		whenSettled(() => mineRerender());
+		return;
+	}
 	if (t.matches('[data-gone-back]')) {
 		const e = (store.get('syncGone', []) || []).find((y) => y && y.x && y.x.id === t.dataset.goneBack);
 		if (!e || MINE[e.x.id]) return;
@@ -573,7 +594,7 @@ document.addEventListener('click', (e) => {
 			syncSheetRefresh();
 			return;
 		}
-		// what goes with the block: its added stops, and the pushed-back times, flight changes and shared ticks it
+		// what goes with the block: its added stops, and the pushed-back times, flight changes, shared ticks and skips it
 		// changed last, back to the original plan. Undo puts all of it back
 		const theirs = mineAll().filter((x) => stopOwner(x) === dev);
 		const last = Object.entries((syncMeta() || {}).known || {})
@@ -582,10 +603,14 @@ document.addEventListener('click', (e) => {
 		const shifts = last.filter((r) => r.startsWith('shift:')).map((r) => r.slice(6));
 		const flts = last.filter((r) => r === 'flt:arr' || r === 'flt:dep');
 		const ticks = last.filter((r) => r.startsWith('tick:')).map((r) => r.slice(5));
-		const other = shifts.length + flts.length + ticks.length;
+		const skipped = last
+			.filter((r) => r.startsWith('skip:'))
+			.map((r) => r.slice(5))
+			.filter((k) => skipsAll()[k]);
+		const other = shifts.length + flts.length + ticks.length + skipped.length;
 		const ask = Z(
-			`停用${name}？它加的 ${theirs.length} 个行程${other ? `和最后改的 ${other} 处（推迟时间、航班、勾选）` : ''}会改回原计划，之后它的改动大家都看不到。规划人可以再恢复。`,
-			`Block ${name}? Its ${theirs.length} added stop${theirs.length === 1 ? '' : 's'}${other ? ` and the ${other} change${other === 1 ? '' : 's'} it made last (pushed-back times, flights, ticks)` : ''} go back to the original plan, and from now on its changes are ignored on every device. A planner can unblock it.`,
+			`停用${name}？它加的 ${theirs.length} 个行程${other ? `和最后改的 ${other} 处（推迟时间、航班、勾选、跳过的站）` : ''}会改回原计划，之后它的改动大家都看不到。规划人可以再恢复。`,
+			`Block ${name}? Its ${theirs.length} added stop${theirs.length === 1 ? '' : 's'}${other ? ` and the ${other} change${other === 1 ? '' : 's'} it made last (pushed-back times, flights, ticks, skipped stops)` : ''} go back to the original plan, and from now on its changes are ignored on every device. A planner can unblock it.`,
 		);
 		if (!confirm(ask)) return;
 		const was = {
@@ -594,6 +619,7 @@ document.addEventListener('click', (e) => {
 			fltArr: store.get('fltArr', ''),
 			fltDep: store.get('fltDep', ''),
 			checks: store.get('checks', {}) || {},
+			skips: skipsAll(),
 		};
 		const roles = { ...was.roles };
 		delete roles[dev];
@@ -608,6 +634,11 @@ document.addEventListener('click', (e) => {
 			store.set('shift', sh);
 		}
 		for (const f of flts) store.set(f === 'flt:arr' ? 'fltArr' : 'fltDep', '');
+		if (skipped.length) {
+			const sk = { ...was.skips };
+			for (const k of skipped) delete sk[k];
+			store.set('skips', sk);
+		}
 		if (ticks.length) {
 			const ck = { ...was.checks };
 			for (const k of ticks) delete ck[k];
@@ -625,6 +656,7 @@ document.addEventListener('click', (e) => {
 				if (shifts.length)
 					store.set('shift', { ...(store.get('shift', {}) || {}), ...Object.fromEntries(shifts.map((d) => [d, was.shift[d]]).filter(([, v]) => v)) });
 				for (const f of flts) store.set(f === 'flt:arr' ? 'fltArr' : 'fltDep', f === 'flt:arr' ? was.fltArr : was.fltDep);
+				if (skipped.length) store.set('skips', { ...skipsAll(), ...Object.fromEntries(skipped.map((k) => [k, was.skips[k]])) });
 				if (ticks.length) {
 					const ck = { ...(store.get('checks', {}) || {}) };
 					for (const k of ticks) if (was.checks[k]) ck[k] = true;
@@ -660,8 +692,12 @@ document.addEventListener('click', (e) => {
 	}
 	if (t.matches('[data-mine-share]')) {
 		const url = mineShareURL();
-		const text = Z(`我加的${CITY[0]}行程：打开链接就能加入你的页面`, `My added ${CITY[1]} stops: open the link to add them`);
-		if (navigator.share) navigator.share({ title: Z('我加的行程', 'My added stops'), text, url }).catch(() => {});
+		const skips = Object.keys(skipsAll()).length > 0;
+		const text = skips
+			? Z(`我的${CITY[0]}行程改动：打开链接就能加入你的页面`, `My changes to the ${CITY[1]} plan: open the link to add them`)
+			: Z(`我加的${CITY[0]}行程：打开链接就能加入你的页面`, `My added ${CITY[1]} stops: open the link to add them`);
+		if (navigator.share)
+			navigator.share({ title: skips ? Z('我的行程改动', 'My changes') : Z('我加的行程', 'My added stops'), text, url }).catch(() => {});
 		else if (navigator.clipboard)
 			navigator.clipboard.writeText(url).then(() => toast(Z('链接已复制，贴到群里', 'Link copied: paste it in the chat')));
 		return;
@@ -676,9 +712,15 @@ document.addEventListener('click', (e) => {
 			}
 		});
 		mineSet(list);
+		// and the stops the sender skipped (still ones this page lets the group skip)
+		const sk = mineIncomingSkips.filter((k) => SKIP_AT[k] && !skipsAll()[k]);
+		if (sk.length) store.set('skips', { ...skipsAll(), ...Object.fromEntries(sk.map((k) => [k, { at: Date.now() }])) });
 		mineIncoming = null;
+		mineIncomingSkips = [];
 		closeDialog($('#placeSheet'));
-		whenSettled(() => mineRerender(Z(`已加入 ${n} 个`, `Added ${n}`)));
+		whenSettled(() =>
+			mineRerender(sk.length ? Z(`已加入 ${n} 个，跳过 ${sk.length} 站`, `Added ${n}, skipped ${sk.length}`) : Z(`已加入 ${n} 个`, `Added ${n}`)),
+		);
 		return;
 	}
 	if (t.matches('[data-gsearch]')) {

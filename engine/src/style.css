@@ -1329,11 +1329,16 @@ li.stop {
 	gap: 8px;
 	margin-top: 8px;
 }
-/* a link whose label is longer than its row (a source's full name) wraps inside its button, never past the card */
-.links-row > .mlink {
+/* a link whose label is longer than its row (a source's full name) wraps inside its button, never past the card; the
+   day's share and reset buttons too ("Back to the original plan (clear what I added or changed)" ran off a phone) */
+.links-row > .mlink,
+.mine-bar > .mlink {
 	max-width: 100%;
 	white-space: normal;
 	text-align: left;
+}
+.mine-bar > .mlink svg.i {
+	flex: none;
 }
 /* the Now card's two actions share one row, a long label wrapping inside its button: stacked, the second one dropped
    below an iPhone's first screen (390 × 664) in English */
@@ -7665,6 +7670,136 @@ details.stop-x[open] ~ .stop-drv {
 	color: var(--ink-3);
 }
 
+/* a skipped planned stop (ADR-20261128-skip-planned-stops). It leaves the string and folds, with the day's others, into
+   one quiet row on the string at the schedule's foot ("2 skipped"): a dashed ring holding the skip mark, a 48 px summary
+   with its count and a chevron that turns. Opened, each is a greyed line struck through, with Put back. Right after a
+   skip it stays greyed where it was, with the suggestion to move the next stops earlier */
+.stop.skip-fold .knot-ic,
+.stop.skip-ask .knot-ic {
+	border-style: dashed;
+	border-color: color-mix(in srgb, var(--ink-3) 70%, var(--paper));
+	color: var(--ink-3);
+}
+details.skip-x > summary {
+	list-style: none;
+}
+details.skip-x > summary::-webkit-details-marker {
+	display: none;
+}
+.skip-sum {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	align-items: center;
+	column-gap: 8px;
+	min-height: 48px;
+	padding: 10px 0;
+	font-weight: 700;
+	color: var(--ink-2);
+	cursor: pointer;
+	-webkit-tap-highlight-color: transparent;
+}
+.skip-sum > .chev {
+	width: 20px;
+	height: 20px;
+	color: var(--ink-3);
+	stroke-width: 2.3;
+	transition: rotate 200ms var(--ease-out);
+}
+details.skip-x[open] > .skip-sum > .chev {
+	rotate: 180deg;
+}
+.skip-list {
+	list-style: none;
+	margin: 0 0 10px;
+	padding: 0;
+}
+.skip-row {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr) auto;
+	align-items: center;
+	gap: 4px 10px;
+	min-height: 52px;
+	padding: 4px 0;
+	border-top: 1px solid var(--rule);
+}
+.skip-t,
+.skip-ask .stop-t s {
+	font-size: var(--fs-sm);
+	font-weight: 750;
+	color: var(--ink-3);
+	font-variant-numeric: tabular-nums;
+	text-decoration: line-through;
+}
+.skip-m {
+	display: grid;
+	gap: 2px;
+	min-width: 0;
+}
+.skip-m .stop-name,
+.skip-line .skip-n {
+	color: var(--ink-3);
+	text-decoration: line-through;
+	text-decoration-thickness: 1.5px;
+	overflow-wrap: anywhere;
+}
+.skip-tag {
+	display: inline-block;
+	margin-left: 8px;
+	padding: 1px 7px;
+	border-radius: 6px;
+	background: var(--paper-3);
+	color: var(--ink-2);
+	font-size: var(--fs-xs);
+	font-weight: 750;
+	vertical-align: 2px;
+	text-decoration: none;
+}
+.skip-by {
+	font-size: var(--fs-xs);
+	font-weight: 650;
+	color: var(--ink-3);
+}
+.skip-line {
+	margin: 0;
+	padding: 12px 0 8px;
+	font-weight: 700;
+}
+.skip-box {
+	display: grid;
+	gap: 8px;
+	margin: 0 0 12px;
+	padding: 12px 14px;
+	border-radius: var(--r-md);
+	background: var(--paper);
+	border: 1px solid color-mix(in srgb, var(--link) 40%, var(--rule));
+}
+.skip-box .late-h .i {
+	color: var(--link);
+}
+.skip-box .small,
+.skip-box .links-row {
+	margin: 0;
+}
+/* a place shut that day, and a clash after a push back: Skip right there, beside the reason */
+.stop-b > .warn.stop-shut,
+.stop-b > .warn.stop-clash {
+	flex-wrap: wrap;
+	align-items: center;
+	row-gap: 4px;
+}
+.stop-b > .warn.stop-shut > span,
+.stop-b > .warn.stop-clash > span {
+	flex: 1 1 12rem;
+}
+.dd-stop.is-skipped .dd-n {
+	color: var(--ink-3);
+	text-decoration: line-through;
+}
+.pinbtn.is-skipped {
+	color: var(--ink-3);
+	text-decoration: line-through;
+}
+
 /* labelled icon buttons: a place's actions on the way (the hotel card, an opened stop) */
 .ibtns {
 	display: flex;
@@ -8369,8 +8504,15 @@ details.pay[open] > summary > .chev {
 	opacity: 0.4;
 	scale: 0.8;
 }
+/* a place the group skips on every day it's on (ADR-20261128-skip-planned-stops): its pin stays, as quiet as another
+   day's */
+.lpin.lpin-skip > svg {
+	opacity: 0.4;
+	scale: 0.8;
+}
 @media (prefers-contrast: more) {
-	.lpin.lpin-quiet > svg {
+	.lpin.lpin-quiet > svg,
+	.lpin.lpin-skip > svg {
 		opacity: 0.6;
 	}
 }

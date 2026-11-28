@@ -146,10 +146,10 @@ count and a chevron that opens in place). Search still finds what's inside eithe
   hotel, a flight, shopping: read from the stop, or the planner's `icon`) and its name. A **fixed time** (a flight, a
   show, a booked table) keeps its red 定 seal and its whole time on a second line. A note the group must act on (wear a
   hat, book ahead: the stop's `todo`) stays as a short second line. Tap a stop to open it: its whole time, its note and
-  longer note, its Map, Directions and Show driver as labelled icons, and **Nearby and more** for its sheet (the local
-  words, a photo where there is one, the shop box, and the food, drinks, rest spots and toilets near it). Search finds
-  what's inside a stop and opens it. On the stop under way and the next one, **Show driver** stays under the row, so
-  it's one tap in a taxi. On a trip day the stops on now and next are tagged, past ones dim, and two or more done stops
+  longer note, its Map, Directions and Show driver as labelled icons, **Nearby and more** for its sheet (the local
+  words, a photo where there is one, the shop box, and the food, drinks, rest spots and toilets near it), and **Skip**
+  (below). Search finds what's inside a stop and opens it. On the stop under way and the next one, **Show driver**
+  stays under the row, so it's one tap in a taxi. On a trip day the stops on now and next are tagged, past ones dim, and two or more done stops
   fold into "N done" (Hide done folds them again). A free day can number its steps instead of giving times.
 - **The cards**, as the plan needs them: option A, B or more to decide on the day (each with its cost, when
   to pick it, and its own map or website link, such as a hotel or a van to book; an option that goes somewhere can
@@ -215,12 +215,28 @@ same; only the colours and the drawings change. Without one, the page is the sky
 
 ## Fixed times and running late
 
+- **Skip a stop.** Plans change: a place is closed, it rains, everyone's tired. Open any planned stop and tap **Skip**
+  (跳过). A booked one (a fixed time) asks once more: "This one is booked. Skip it anyway?". The stop leaves the day's
+  string and folds, with the day's other skips, into one line at its foot, **"2 skipped"**; open it to see each one
+  struck through and **Put back** (放回来). The toast has **Undo** for 8 seconds. A skipped stop is out of Now and Next,
+  the running-late check and the day's route (the way round it shows no minutes until the next data refresh); its pin
+  stays on the map, quieter, and search still finds it, marked skipped. The day's cost line stays as it was: a stop
+  carries no cost of its own. Flights and the hotel can't be skipped: nothing tied to a flight (landing, the airport
+  train, leaving for the airport, check-in), nothing at the airport or at one of the trip's hotels, and no stop the
+  planner marked as a flight or a bed. Anyone can skip and put back, not only a planner.
+- **Move the next stops earlier?** Right after a skip, the stop stays greyed where it was and the page asks "Move the
+  next stops 90 min earlier?", with what that means. Tap it and the next stops move up to the next fixed time, which
+  never moves; No thanks leaves the times as they are. The day's banner then says "Moved 90 min earlier", with Back to
+  the planned times. Putting the stop back moves those stops back too.
+- **Closed that day.** When the data refresh knows a stop's place is shut on its day, the stop says **Closed today**
+  (or **Closed that day** before the trip) under its name, with **Skip this stop** right there.
 - **Push the rest of the day back.** "Running late? Push the rest back" opens a sheet: from which stop, and by how
   long (15–90 minutes). Flexible stops move; fixed ones hold, and the push stops at the next fixed time. A banner then
   says what moved ("+30 min from … until …", or "to the end of the day", each moved stop showing "was HH:MM"), warns if
-  a stop now runs into a fixed time ("shorten or skip"), and offers Adjust or Back to the planned times. On a day that
-  splits, the fork and the rejoin move with the stops; the times inside each plan (pick-up, return by) stay as planned.
-  Nothing after "leave for the airport" can be pushed. With group sync, a push reaches every phone.
+  a stop now runs into a fixed time ("shorten or skip", with Skip beside it), and offers Adjust or Back to the planned
+  times. On a day that splits, the fork and the rejoin move with the stops; the times inside each plan (pick-up,
+  return by) stay as planned. Nothing after "leave for the airport" can be pushed. With group sync, a push reaches
+  every phone.
 - **The running-late check.** With the phone's location, the page sees when you're 15 minutes or more behind the plan
   near a stop and offers "Push back N min" or No thanks (after No thanks it asks again only when you fall 20 minutes
   further behind). It never moves anything by itself. If a fixed time is about to
@@ -257,10 +273,11 @@ same; only the colours and the drawings change. Without one, the page is the sky
   and walk or taxi time from the stop before, Change and Remove, and the drinks, rest spots and toilets near it. It
   appears on the map too, with Change on its card.
 - **Undo.** Removing a stop asks first, then shows Undo on the toast for 8 seconds.
-- **Share without sync.** "Share my added stops" makes a link; opening it on another phone offers "N shared stops →
-  Add to my plan", skipping ones it already has.
-- **Back to the original plan** clears added stops, flight changes and push-backs (ticks stay), after asking, with
-  Undo. With group sync it's a planner's button.
+- **Share without sync.** "Share my added stops" makes a link ("Share my changes" once you've skipped a stop: the skips
+  go in the link too); opening it on another phone offers "N shared stops → Add to my plan", skipping ones it already
+  has.
+- **Back to the original plan** clears added stops, skipped stops, flight changes and push-backs (ticks stay), after
+  asking, with Undo. With group sync it's a planner's button.
 
 ## A day that splits
 
@@ -436,29 +453,32 @@ itself is the planner's: it's in the trip's data, and nobody makes one on the pa
 
 Off unless the planner sets it up for the trip (the `sync-setup` skill). With it:
 
-- **What's shared:** added stops, pushed-back times, flight changes and ticks in shared lists reach every phone. The
-  rest (the language, the theme, personal ticks, which split plan a device shows) stays on each device.
+- **What's shared:** added stops, skipped stops, pushed-back times, flight changes and ticks in shared lists reach
+  every phone. The rest (the language, the theme, personal ticks, which split plan a device shows) stays on each
+  device.
 - **Your name.** The first open asks for a name once, a moment after the page shows (Not now is fine); until then a bar
   under the header asks again, and Later hides it for a day. The add-stop sheet asks too. The keyboard's Done key saves
   the name (while a Chinese input method is still picking characters, its Enter is left to it). A name given later goes onto
   the stops you already added, on every phone. A planner's name can't be taken, except by another of that planner's
   devices once it has given the planner code.
 - **Who can change what.** Each phone changes or removes only the stops it added ("only the person who added it, or a
-  planner"), and "Remove the N stops I added" clears them. Pushed-back times, flight changes and ticks stay open to
-  everyone.
+  planner"), and "Remove the N stops I added" clears them. Skipping a planned stop, pushed-back times, flight changes
+  and ticks stay open to everyone.
 - **Planners** (a device that gave the planner code under "I'm a planner") can change anyone's stops, remove one
-  phone's, put the whole group back on the original plan, make another phone a planner, and block a stray phone: its
-  stops and last changes go back to the plan, and what it writes next reaches nobody. Undo brings it all back, and
-  Unblock sends what waited.
+  phone's, put the whole group back on the original plan (skips too), make another phone a planner, and block a stray
+  phone: its stops and last changes (its skips included) go back to the plan, and what it writes next reaches nobody.
+  Undo brings it all back, and Unblock sends what waited.
 - **The Group sync sheet** (a row in More, or the Sections menu on a computer): what syncs, your name, the planner box, when it last synced or
   how many changes are waiting, Sync now (it says when it's working and when it's up to date), "The group", and
-  **Recently removed** (the newest 10, with who removed each and Put back).
+  **Recently removed or skipped** (the newest 10, with who removed or skipped each, and Put back: a removed stop by the
+  phone that added it or a planner, a skipped one by anyone).
 - **The group** lists each person once. Someone on a phone, a tablet and a laptop under one name shows that name with
   each device under it: what kind it is ("iPhone · home-screen app", "Mac · Chrome", "Android · OPPO Browser"), its
   badges (This one, Planner), how many stops it added and when it last changed something. Every browser is its own
   device: an iPhone's Safari and its home-screen copy are two. Blocked devices fold away under **Blocked devices (N)**
   at the end, with Unblock inside.
-- **Others' changes** show as a toast: "Ana added … · Day 3 19:30", a push-back, a new landing time, a tick.
+- **Others' changes** show as a toast: "Ana added … · Day 3 19:30", "Ana skipped …", a push-back, a new landing time,
+  a tick.
 - **While you were away:** what the group changed while your page was closed or in the background waits in a card on
   Today, newest first, each with when and a way to its day; a toast says how many, with See. It stays, in either
   language, until you tap **Got it**, and it's only on your device. The first open on a device shows none: everything
@@ -548,6 +568,8 @@ Everything above that isn't listed here is on every page. The fields are in
 | A day's short name on its row (the week, Days, the rail, the map's list)                   | `DAYS[i].short`; without it, the first place of the day's `title` and how many                                                                                                                                                           |
 | A day's forecast on its row                                                                | the forecast from the data refresh, for days inside it (`forecast_spots`, `forecastSpot`); nothing after it ends                                                                                                                         |
 | The red diamond beside a day's date                                                        | a stop with `fixed: true` on that day                                                                                                                                                                                                    |
+| Skip on a stop, and which stops have none                                                  | every planned stop has it, except one tied to the flights (`rel`), at an airport terminal (`AIRPORT.terminals`), at a hotel (`TRIP.hotel`, `DAYS[i].hotel`), or with `icon: 'plane'` or `'bed'`; `fixed: true` asks once more            |
+| Closed today on a stop, with Skip                                                          | the place's `closed_dates` in `geo.json`, from the data refresh (`data-sync`)                                                                                                                                                            |
 | A stop's kind on the string, a note kept in sight                                          | a stop's `icon` (else read from the stop), and `todo` for a note the group must act on                                                                                                                                                   |
 | A card's one-line summary, the option chosen                                               | worked out from each card; `sum` on a card for the planner's own words, `pick` on a `decide` card for the chosen option                                                                                                                  |
 | The currency button, Amounts and rate                                                      | `TRIP.currency`: a `home` currency that isn't the trip's own `sym`, and a `rate`                                                                                                                                                         |

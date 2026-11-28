@@ -102,3 +102,11 @@ the phone being online at the same moment as the others.
 
 You're changing what the page shares or how it merges, the sync rules, `pnpm sync`, or anything else that sends a trip's
 state off the phone.
+
+## Amendment 2026-11-28
+
+Two changes to what syncs, from [ADR-20261128-skip-planned-stops](ADR-20261128-skip-planned-stops.md): a skipped planned
+stop is a record, `skip:<key>` (who skipped it, when, and the move earlier it took; null when it's put back), and a
+day's `shift:` record may hold a move earlier after a skip as a negative minute count beside the push-backs. A phone on
+an older build ignores the first and keeps only the push-backs of the second until it updates. The database rules are
+unchanged: they can't tell one sealed record from another.

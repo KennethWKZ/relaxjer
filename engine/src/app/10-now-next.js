@@ -63,6 +63,7 @@ function markToday() {
 	if (!day) return;
 	const { cur, next } = nowNext(day, now.mins);
 	day.schedule.forEach((it, i) => {
+		if (it._skip) return; // its row is in the day's skipped fold
 		const li = $(`#${day.id}-s${i}`);
 		if (!li) return;
 		const s = li.dataset.s != null ? +li.dataset.s : null;

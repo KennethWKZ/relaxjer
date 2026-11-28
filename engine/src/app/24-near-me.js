@@ -168,7 +168,7 @@ function nearAnchor() {
 		const i0 = (cur || next || { i: -1 }).i;
 		const cand = day.schedule
 			.map((it, i) => ({ it, i }))
-			.filter((x) => x.it.place && GEO.places[x.it.place])
+			.filter((x) => x.it.place && GEO.places[x.it.place] && !x.it._skip)
 			.sort((a, b) => Math.abs(a.i - i0) - Math.abs(b.i - i0) || a.i - b.i);
 		if (i0 >= 0 && cand.length) k = cand[0].it.place;
 	}

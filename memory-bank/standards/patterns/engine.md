@@ -1,6 +1,6 @@
 ---
 created: 2026-10-01
-updated: 2026-10-01
+updated: 2026-11-28
 ---
 
 # Engine
@@ -53,6 +53,15 @@ pack export instead, document it in `trip-format.md`, and have the contract chec
   (`foldHTML`, a native `details`), and a stop is a `details.stop-x` whose open state is kept in `stopOpen`. A part's sheet, and a stop's sheet, is a closed list: it's
   built the first time it opens, or when search or a jump needs it (`lazyFill`, `lazyFor`), so code that reads inside
   a sheet must not assume it's drawn, and the page-wide e2e audits fill them first (`fillAll`).
+- A planned stop can be skipped (`07-skip.js`, [ADR-20261128-skip-planned-stops](../decisions/ADR-20261128-skip-planned-stops.md)).
+  Who may is `canSkip` (the rule is `Plan.skippable`: never a flight-tied stop, a terminal, a hotel, `icon: 'plane'` or
+  `'bed'`, or the flight-only day); the state is `store` `skips` under each stop's `_key` (`Plan.stopKeys`), and
+  `applySkips()` marks each stop's `_skip` in `render()` before the moves are worked out. Anything that walks
+  `day.schedule` to find where the group is going, the next stop, the stop before, or a deadline skips a stop with
+  `_skip` (Now and Next, the late check, clashes, the push-back sheet, the add sheet, the finder); anything that lists
+  the plan shows it marked (Days, Copy for chat, the map's list, the fold). The day's route is `dayLegs(d)`, never
+  `LEGS[d.id]` directly, where it means how the group goes now. A move earlier is a negative `min` in `shift`
+  (`shiftNudge`); `Plan.validPushes` and `Sync.cleanRecord` keep both signs.
 - A hint the page repeats goes through `hint(id)` (`01-storage.js`, rule `Plan.hintForm`): it answers `full` the first
   time this phone shows it (and for the rest of that page view), `line` after, `gone` once `hintGone(id)` ran (its ✕).
   The record is `store` `hints`, per phone, never synced. Give the feature a home in More's settings before adding a ✕
@@ -104,8 +113,10 @@ pack export instead, document it in `trip-format.md`, and have the contract chec
 - The role helpers (`syncMeta`, `syncIsPlanner`, `syncIsBlocked`, `ownsStop`, `canEditStop`) are `function` declarations
   in `26-sync.js` that sections 07, 22 and 23 call, so the hoisting rule above applies to them.
 - With group sync, every removal goes through `mineSet` and offers Undo (`undoPutBack`), and every entry point that
-  edits or removes a stop checks `canEditStop` first. Only stops are guarded: shifts, flight changes and ticks aren't
-  ([ADR-20261002-sync-planners](../decisions/ADR-20261002-sync-planners.md)).
+  edits or removes a stop checks `canEditStop` first. Only added stops are guarded: skips, shifts, flight changes and
+  ticks aren't ([ADR-20261002-sync-planners](../decisions/ADR-20261002-sync-planners.md), amended 2026-11-28). A skip
+  goes through `skipSet` (`store` `skips`), so the wrapper sends it as a `skip:` record and logs it into `syncGone`
+  (`Sync.skipLog`); Back to the original plan, a block and its Undo carry `skips` with the other changes.
 - On an approval trip (`SYNC_GATE`, ADR-20261127-sync-approval) `people`, `roles`, `blocks` and `kits` come from the
   database's `devices/` and `planners/` entries (`Sync.groupOf`), written back quietly; the page neither sends nor takes
   `who:`, `role:`, `block:` or `kit:` records there (`Sync.ungated`). A planner's change to a device goes through
@@ -124,3 +135,4 @@ Each rule above rests on a decision. The decision and its reasons live in its AD
 - [ADR-20261122-place-finder-best-day](../decisions/ADR-20261122-place-finder-best-day.md): A place finder ranks each day's stops by straight-line distance to the place, counting only stops a new stop can follow.
 - [ADR-20261124-finder-google-distance](../decisions/ADR-20261124-finder-google-distance.md): With a key, the finder asks Google once per place for the way from the group: metres by road and the walk at the group pace, or the ride.
 - [ADR-20261127-trip-walk-pace](../decisions/ADR-20261127-trip-walk-pace.md): TRIP.walkPace (a number from 1 to 2) scales every walking time the page shows; left out, the seniors' pace; 1 is Google's own time.
+- [ADR-20261128-skip-planned-stops](../decisions/ADR-20261128-skip-planned-stops.md): Anyone may skip a planned stop but a flight or the lodging; it folds away, syncs with who, undoes, and only suggests moving later stops earlier.

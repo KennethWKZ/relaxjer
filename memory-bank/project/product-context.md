@@ -51,6 +51,11 @@ code that makes the first one.
 7. **A senior removes a stop by mistake:** Undo on the toast puts it back for 8 seconds. After that, with group sync,
    the phone that added the stop finds it under "Recently removed" and taps Put back; a planner can put back any.
    Every page has the Undo; the list is group sync only.
+8. **A place turns out closed, or the group is tired:** anyone opens the stop and taps Skip (a booked one asks once
+   more). It folds into "1 skipped" at the day's foot, Undo is on the toast, and the page offers to move the next stops
+   earlier, which happens only if someone taps it. With group sync every phone sees it, and Recently removed says who
+   skipped it; anyone can put it back. Flights and the hotel can't be skipped
+   ([ADR-20261128-skip-planned-stops](../standards/decisions/ADR-20261128-skip-planned-stops.md)).
 
 ## The Quality Bar
 
@@ -83,8 +88,12 @@ planners, is in [`guides/trip-page.md`](../../guides/trip-page.md).
     from the add sheet's list opens first (what the page knows of it, with Add), and Back finds the list as it was. With group sync, a link isn't
     needed: they reach every phone marked with who added them. Each phone changes or removes only the stops it added,
     and "Remove the N stops I added" clears them; a planner can change any, clear one phone's, block one, and put the
-    whole plan back. A phone's "Recently removed" list (30 kept, the newest 10 shown) offers Put back. Only stops are
-    guarded: pushed-back times, flight changes and ticks stay open to every phone;
+    whole plan back. A phone's "Recently removed" list (30 kept, the newest 10 shown) offers Put back. Only added stops
+    are guarded: skips, pushed-back times, flight changes and ticks stay open to every phone;
+  - skipping a planned stop: anyone can, except a flight or the lodging; a fixed time asks once more. It folds into one
+    "N skipped" line with Put back, leaves Now and Next, the late check and the route, keeps its pin quieter, and comes
+    back with Undo; a stop closed that day says so with Skip beside it. Moving the next stops earlier is offered, never
+    done by itself, and never moves a fixed time;
   - a day that splits: part of the group takes its own plan for a few hours, forked from the day's string with its
     go / wait / skip rule, and the stop where they come back says so.
 - **Near each stop, and "near me":** food, drinks, rest spots and toilets (plus places that let you borrow a toilet),

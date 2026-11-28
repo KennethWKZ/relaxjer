@@ -152,7 +152,7 @@ function mineClash(dayId, t) {
 	if (!d || m == null) return null;
 	return (
 		d.schedule.find((it) => {
-			if (!it.fixed) return false;
+			if (!it.fixed || it._skip) return false; // a skipped booking holds nothing
 			const pt = parseT(it.t || '');
 			if (pt.s == null) return false;
 			return m >= pt.s - 45 && m <= (pt.e != null ? pt.e : pt.s + 30);
@@ -163,11 +163,12 @@ const llOfStop = (it) => (it.place ? placeLL(it.place) : it.lat != null ? { lat:
 
 /* running late: push the rest of a day back. Fixed items (flights, the show, the charter pickup, checkout) never move
      and re-anchor the day, so a shift runs from its first stop up to the next fixed item. Stored per date as
-     [{ from: planned start in minutes, min }]; the reset button clears it. The page only suggests; nothing moves by itself. */
+     [{ from: planned start in minutes, min }]; the reset button clears it. The page only suggests; nothing moves by itself.
+     A skipped stop's suggestion moves the next ones earlier the same way, as a negative min (07-skip.js), and a skipped
+     fixed time no longer holds a move */
 const shiftsOf = (date) => {
 	const all = store.get('shift', {});
-	const l = all && all[date];
-	return Array.isArray(l) ? l.filter((x) => x && x.from != null && x.min > 0) : [];
+	return Plan.validPushes(all && all[date]);
 };
 function shiftSet(date, list) {
 	const all = store.get('shift', {}) || {};
@@ -182,7 +183,7 @@ const shiftTxt = (t, m) => {
 // minutes a planned start s0 moves on day d: every shift that begins at or before it with no fixed item in between
 function shiftAt(d, s0, segs = shiftsOf(d.date)) {
 	if (s0 == null || !segs.length) return 0;
-	const fx = d.schedule.filter((it) => it.fixed && it._s0 != null).map((it) => it._s0);
+	const fx = d.schedule.filter((it) => it.fixed && !it._skip && it._s0 != null).map((it) => it._s0);
 	return segs.reduce((m, g) => (g.from <= s0 && !fx.some((f) => f > g.from && f <= s0) ? m + g.min : m), 0);
 }
 function applyShifts() {
@@ -200,13 +201,13 @@ function applyShifts() {
 			it.t = it._sh ? shiftTxt(it._base, it._sh) : it._base;
 			it._clash = null;
 		});
-		// a pushed item that now runs into the next fixed time
+		// a pushed item that now runs into the next fixed time (skipped ones aren't on the way)
 		d.schedule.forEach((it, i) => {
-			if (!it._sh) return;
-			const nf = d.schedule.slice(i + 1).find((x) => x.fixed && x._s0 != null);
+			if (!it._sh || it._skip) return;
+			const nf = d.schedule.slice(i + 1).find((x) => x.fixed && !x._skip && x._s0 != null);
 			if (!nf) return;
 			const pt = parseT(it.t);
-			const nx = d.schedule.slice(i + 1).find((x) => x._s0 != null);
+			const nx = d.schedule.slice(i + 1).find((x) => x._s0 != null && !x._skip);
 			const end = pt.e != null ? pt.e : nx && nx !== nf ? parseT(nx.t).s : pt.s + 15;
 			if (end > nf._s0 || pt.s + 15 > nf._s0) it._clash = nf;
 		});
@@ -225,7 +226,8 @@ function lateCheck() {
 	const now = tpNow();
 	const d = DAYS.find((x) => x.date === now.date);
 	if (!d || !meLL || farAway() || meAcc > 400) return null;
-	const rows = d.schedule.map((it, i) => ({ it, i, s: parseT(it.t || '').s, ll: llOfStop(it) })).filter((r) => r.s != null);
+	// a skipped stop isn't where the group is heading, so it's neither the target nor a deadline
+	const rows = d.schedule.map((it, i) => ({ it, i, s: parseT(it.t || '').s, ll: llOfStop(it) })).filter((r) => r.s != null && !r.it._skip);
 	const at = rows.filter((r) => r.ll && km(meLL, r.ll) <= 0.35 && r.s <= now.mins + 20).pop(); // the latest planned place we are standing at
 	const after = (r) => (at ? r.i > at.i : r.s > now.mins - 15) && km(meLL, r.ll) > 0.35;
 	const arr = (r) => {
@@ -271,7 +273,7 @@ function lateHTML() {
 	}
 	const tot = segs.reduce((a, g) => a + g.min, 0);
 	const on = segs.length
-		? `<p class="shift-on">${icon('clock')}<span>${esc(Z(`今天后面已顺延 +${tot} 分`, `Today's rest pushed back +${tot} min`))}</span><button type="button" class="mlink" data-shift-edit="${d.id}">${Z('调整', 'Adjust')}</button><button type="button" class="mlink" data-shift-clear="${d.date}">${Z('恢复原时间', 'Undo')}</button></p>`
+		? `<p class="shift-on">${icon('clock')}<span>${esc(tot < 0 ? Z(`今天后面已提早 ${-tot} 分`, `Today's rest moved ${-tot} min earlier`) : tot ? Z(`今天后面已顺延 +${tot} 分`, `Today's rest pushed back +${tot} min`) : Z('今天后面的时间改过', "Today's times changed"))}</span><button type="button" class="mlink" data-shift-edit="${d.id}">${Z('调整', 'Adjust')}</button><button type="button" class="mlink" data-shift-clear="${d.date}">${Z('恢复原时间', 'Undo')}</button></p>`
 		: '';
 	const ask = !box
 		? `<div class="late-ask">${!segs.length ? `<button type="button" class="mlink" data-shift-edit="${d.id}">${icon('clock')}${Z('跑慢了？把后面往后推', 'Running late? Push the rest back')}</button>` : ''}${!meLL && navigator.geolocation && !window.DEMO_CLOCK && !geoAsk() ? `<button type="button" class="mlink" data-late-loc>${icon('pin')}${Z('用我的位置检查进度', 'Check progress from my location')}</button>` : ''}</div>`
@@ -282,10 +284,24 @@ function lateHTML() {
 function shiftBanner(d) {
 	const segs = shiftsOf(d.date);
 	if (!segs.length) return '';
-	const first = d.schedule.filter((it) => it._sh).sort((a, b) => a._s0 - b._s0)[0];
-	const nf = first && d.schedule.find((it) => it.fixed && it._s0 > first._s0);
+	const first = d.schedule.filter((it) => it._sh && !it._skip).sort((a, b) => a._s0 - b._s0)[0];
+	const nf = first && d.schedule.find((it) => it.fixed && !it._skip && it._s0 > first._s0);
 	const tot = segs.reduce((a, g) => a + g.min, 0);
-	return `<div class="shift-bar"><p>${icon('clock')}<span>${first ? esc(Z(`已顺延：从「${stopName(first)}」起 +${tot} 分${nf ? `，到 ${L(nf.t)}「${stopName(nf)}」固定行程为止` : '，一直到当天结束'}。`, `Pushed back +${tot} min from ${stopName(first)}${nf ? ` until the fixed ${L(nf.t)} ${stopName(nf)}` : ' to the end of the day'}.`)) : esc(Z(`已顺延 +${tot} 分`, `Pushed back +${tot} min`))}</span></p><div class="links-row"><button type="button" class="mlink" data-shift-edit="${d.id}">${Z('调整', 'Adjust')}</button><button type="button" class="mlink" data-shift-clear="${d.date}">${Z('恢复原时间', 'Back to planned times')}</button></div></div>`;
+	// pushed back, or moved earlier after a skipped stop (a negative total), or both and evened out
+	const until = nf
+		? Z(`，到 ${L(nf.t)}「${stopName(nf)}」固定行程为止`, ` until the fixed ${L(nf.t)} ${stopName(nf)}`)
+		: Z('，一直到当天结束', ' to the end of the day');
+	const said =
+		tot < 0
+			? first
+				? Z(`已提早：从「${stopName(first)}」起 ${-tot} 分${until}。`, `Moved ${-tot} min earlier from ${stopName(first)}${until}.`)
+				: Z(`已提早 ${-tot} 分`, `Moved ${-tot} min earlier`)
+			: !tot
+				? Z('时间改过，前后抵消了', 'Times changed, evening out')
+				: first
+					? Z(`已顺延：从「${stopName(first)}」起 +${tot} 分${until}。`, `Pushed back +${tot} min from ${stopName(first)}${until}.`)
+					: Z(`已顺延 +${tot} 分`, `Pushed back +${tot} min`);
+	return `<div class="shift-bar"><p>${icon('clock')}<span>${esc(said)}</span></p><div class="links-row"><button type="button" class="mlink" data-shift-edit="${d.id}">${Z('调整', 'Adjust')}</button><button type="button" class="mlink" data-shift-clear="${d.date}">${Z('恢复原时间', 'Back to planned times')}</button></div></div>`;
 }
 // pick the first stop to move and by how much
 function shiftSheet(dayId) {
@@ -294,7 +310,9 @@ function shiftSheet(dayId) {
 	const now = tpNow();
 	const today = now.date === d.date;
 	const run = d.schedule.findIndex((it) => it.fixed && it.rel && it.rel.dep); // once we leave for the airport, nothing after it moves
-	const rows = d.schedule.map((it, i) => ({ it, i })).filter((r) => r.it._s0 != null && !r.it.fixed && !r.it.step && (run < 0 || r.i < run));
+	const rows = d.schedule
+		.map((it, i) => ({ it, i }))
+		.filter((r) => r.it._s0 != null && !r.it.fixed && !r.it.step && !r.it._skip && (run < 0 || r.i < run));
 	const pick = today ? rows.filter((r) => parseT(r.it.t).s >= now.mins - 30) : rows;
 	const def = (pick[0] || rows[0] || {}).i;
 	const segs = shiftsOf(d.date);
@@ -305,20 +323,30 @@ function shiftSheet(dayId) {
       <div class="seg shift-min" role="radiogroup">${[15, 30, 45, 60, 90].map((m) => `<button type="button" class="seg-btn" role="radio" aria-checked="${m === 30}" data-shift-min="${m}">${m}${Z('分', ' min')}</button>`).join('')}</div>
       <div class="links-row"><button type="button" class="go-btn" data-shift-go="${d.id}">${icon('clock')}${Z('往后推', 'Push back')}</button>${segs.length ? `<button type="button" class="go-btn ghost" data-shift-clear="${d.date}">${Z('恢复原时间', 'Back to planned times')}</button>` : ''}</div></div>`);
 }
-function shiftAdd(dayId, from, min) {
-	const d = dayById[dayId];
-	if (!d || from == null || !(min > 0)) return;
-	const segs = shiftsOf(d.date);
+/** moves a day's stops from a planned start by min (a push back > 0, a pull earlier < 0), adding to a move already
+ *  there; a move that comes back to 0 goes */
+function shiftNudge(date, from, min) {
+	const segs = shiftsOf(date);
 	const g = segs.find((x) => x.from === from);
 	if (g) g.min += min;
 	else segs.push({ from, min });
-	shiftSet(d.date, segs);
+	shiftSet(
+		date,
+		segs.filter((x) => x.min !== 0),
+	);
+}
+function shiftAdd(dayId, from, min) {
+	const d = dayById[dayId];
+	if (!d || from == null || !(min > 0)) return;
+	shiftNudge(d.date, from, min);
 	store.set('lateNo', null);
 	const sh = $('#placeSheet');
 	if (sh && sh.open) closeDialog(sh);
 	whenSettled(() => mineRerender(Z(`后面行程已往后推 ${min} 分`, `Pushed back ${min} min`)));
 }
-function mineMerge(d, planned) {
+// the day's string: its planned stops, its added ones slotted in by time, then the fold of skipped stops (tail), and the
+// bar to share or clear what this phone changed
+function mineMerge(d, planned, tail = '') {
 	const segs = shiftsOf(d.date);
 	const rawDay = d.schedule.map((it) => parseT(it.t || ''));
 	const mine = mineAll()
@@ -328,8 +356,10 @@ function mineMerge(d, planned) {
 			return m ? { ...x, t: hm(tMin(x.t) + m) } : x;
 		})
 		.sort((a, b) => Plan.minuteOn(rawDay, tMin(a.t)) - Plan.minuteOn(rawDay, tMin(b.t)));
-	if (!mine.length) return planned.join('');
-	const rows = d.schedule.map((it, i) => ({ ...parseT(it.t || ''), html: planned[i], ll: llOfStop(it) }));
+	const skipped = d.schedule.some((it) => it._skip);
+	if (!mine.length && !skipped) return planned.join('');
+	// a skipped stop isn't the stop before an added one: the group doesn't go there
+	const rows = d.schedule.map((it, i) => ({ ...parseT(it.t || ''), html: planned[i], ll: it._skip ? null : llOfStop(it) }));
 	mine.forEach((x) => {
 		const m = tMin(x.t);
 		const at = Plan.slotFor(rows, m); // an untimed "Evening: back to the hotel" stays after it
@@ -339,12 +369,13 @@ function mineMerge(d, planned) {
 			.find((r) => r.ll);
 		rows.splice(at, 0, { s: m, ll: x, html: mineStopHTML(d, x, prev && prev.ll) });
 	});
-	// with group sync everyone already has every added stop, so the share link would only resend other people's
+	// with group sync everyone already has every added stop and skip, so the share link would only resend other people's
+	const changed = Object.keys(skipsAll()).length > 0;
 	const share = SYNC
 		? ''
-		: `<button type="button" class="mlink" data-mine-share="${d.id}">${icon('link')}${Z('把我加的分享给大家', 'Share my added stops')}</button>`;
+		: `<button type="button" class="mlink" data-mine-share="${d.id}">${icon('link')}${changed ? Z('把我的改动分享给大家', 'Share my changes') : Z('把我加的分享给大家', 'Share my added stops')}</button>`;
 	const bar = share + resetBtn();
-	return rows.map((r) => r.html).join('') + (bar ? `<li class="mine-bar">${bar}</li>` : '');
+	return rows.map((r) => r.html).join('') + tail + (bar ? `<li class="mine-bar">${bar}</li>` : '');
 }
 /* Day 6: the free afternoon, worked back from the flight. Checked bags for 5: at the airport 3 h before take-off
      (most counters close 60 min before); hotel → airport ~60 min door to door (+15 by train via A1); 45 min to collect bags. */
@@ -697,7 +728,7 @@ function gapContext(dayId, key) {
 	const on = (m) => Plan.minuteOn(raw, m); // the last day runs past midnight
 	const later = (m) =>
 		[
-			...rows.filter((r) => r.s != null && !r.closes).map((r) => r.s),
+			...rows.filter((r, k) => r.s != null && !r.closes && !d.schedule[k]._skip).map((r) => r.s),
 			...mineAll()
 				.filter((y) => y.day === d.id)
 				.map((y) => on(tMin(y.t))),
@@ -874,7 +905,7 @@ function addLegNote() {
 		return;
 	}
 	const raw = d.schedule.map((it) => parseT(it.t || ''));
-	let rows = d.schedule.map((it, i) => ({ ...raw[i], ll: llOfStop(it), name: stopName(it) }));
+	let rows = d.schedule.map((it, i) => ({ ...raw[i], ll: it._skip ? null : llOfStop(it), name: stopName(it) })); // skipped: not on the way
 	mineAll()
 		.filter((x) => x.day === day && x.id !== addItem.id)
 		.sort((a, b) => Plan.minuteOn(raw, tMin(a.t)) - Plan.minuteOn(raw, tMin(b.t)))
@@ -971,10 +1002,17 @@ function putBack(stops, extra) {
 		if (extra.fltDep && !store.get('fltDep', '')) store.set('fltDep', extra.fltDep);
 		if (extra.shift && Object.keys(extra.shift).length) store.set('shift', { ...extra.shift, ...(store.get('shift', {}) || {}) });
 		if (extra.lateNo != null && store.get('lateNo', null) == null) store.set('lateNo', extra.lateNo);
+		if (extra.skips && Object.keys(extra.skips).length) store.set('skips', { ...extra.skips, ...skipsAll() });
 	}
 	const n = stops.length;
 	whenSettled(() =>
-		mineRerender(n === 1 ? Z(`已放回「${stops[0].name}」`, `Put back ${stops[0].name}`) : Z(`已放回 ${n} 个行程`, `Put back ${n} stops`)),
+		mineRerender(
+			!n
+				? Z('已撤销', 'Undone')
+				: n === 1
+					? Z(`已放回「${stops[0].name}」`, `Put back ${stops[0].name}`)
+					: Z(`已放回 ${n} 个行程`, `Put back ${n} stops`),
+		),
 	);
 	if (SYNC) syncSheetRefresh();
 }
@@ -994,7 +1032,8 @@ function resetAll() {
 	const n = mineAll().length;
 	const f = !!(store.get('fltArr', '') || store.get('fltDep', ''));
 	const sh = Object.keys(store.get('shift', {}) || {}).length;
-	if (!n && !f && !sh) {
+	const sk = Object.keys(skipsAll()).length;
+	if (!n && !f && !sh && !sk) {
 		toast(Z('现在就是原计划，没有要恢复的', 'Already the original plan'));
 		return;
 	}
@@ -1004,6 +1043,7 @@ function resetAll() {
 				? Z(`删除全组加的 ${n} 个行程`, `remove all ${n} added stop${n > 1 ? 's' : ''}, everyone’s`)
 				: Z(`删除我加的 ${n} 个行程`, `remove ${n} added stop${n > 1 ? 's' : ''}`)
 			: '',
+		sk ? Z(`放回跳过的 ${sk} 站`, `put back ${sk} skipped stop${sk > 1 ? 's' : ''}`) : '',
 		f ? Z('航班改回原定时间', 'put the flights back to the booked times') : '',
 		sh ? Z('取消往后推的时间', 'undo the pushed-back times') : '',
 	]
@@ -1018,8 +1058,11 @@ function resetAll() {
 		fltDep: store.get('fltDep', ''),
 		shift: store.get('shift', {}) || {},
 		lateNo: store.get('lateNo', null),
+		skips: skipsAll(),
 	};
 	mineSet([]);
+	store.set('skips', {});
+	skipAsk = null;
 	store.set('fltArr', '');
 	store.set('fltDep', '');
 	store.set('shift', {});
@@ -1040,9 +1083,13 @@ function ownClearBtn() {
 		? `<button type="button" class="mlink reset-btn" data-mine-clear-own>${icon('x')}${Z(`删除我加的 ${n} 个行程`, `Remove the ${n} stop${n > 1 ? 's' : ''} I added`)}</button>`
 		: '';
 }
-// anything on this phone that the original plan doesn't have: added stops, flight changes, pushed-back times
+// anything on this phone that the original plan doesn't have: added stops, skipped stops, flight changes, moved times
 const resetAllNeeded = () =>
-	mineAll().length || store.get('fltArr', '') || store.get('fltDep', '') || Object.keys(store.get('shift', {}) || {}).length;
+	mineAll().length ||
+	Object.keys(skipsAll()).length ||
+	store.get('fltArr', '') ||
+	store.get('fltDep', '') ||
+	Object.keys(store.get('shift', {}) || {}).length;
 const resetAllBtn = () =>
 	resetAllNeeded()
 		? `<button type="button" class="mlink reset-btn" data-reset-all>${icon('x')}${Z('恢复原计划（清除我加的和改过的）', 'Back to the original plan (clear what I added or changed)')}</button>`
@@ -1063,7 +1110,8 @@ function mineRerender(msg, act) {
 	spotRestore(sp);
 	if (msg) toast(msg, act);
 }
-// share: my stops in a link (#add=…); opening it offers to add them
+// share: my stops in a link (#add=…), and the stops I skip after it (&skip=key_key, ADR-20261128-skip-planned-stops);
+// opening it offers to add them. A link from before skips has no &skip and imports as it always did
 const b64u = (str) =>
 	btoa(unescape(encodeURIComponent(str)))
 		.replace(/\+/g, '-')
@@ -1072,7 +1120,8 @@ const b64u = (str) =>
 const unb64u = (str) => decodeURIComponent(escape(atob(str.replace(/-/g, '+').replace(/_/g, '/'))));
 function mineShareURL() {
 	const pack = mineAll().map((x) => [x.day, x.t, x.name, +x.lat.toFixed(6), +x.lng.toFixed(6), x.gpid || '', x.addr || '']);
-	return `${(window.SHARE_URL || location.href).split('#')[0]}#add=${b64u(JSON.stringify(pack))}`;
+	const skips = Object.keys(skipsAll()).filter((k) => Plan.SKIP_KEY.test(k));
+	return `${(window.SHARE_URL || location.href).split('#')[0]}#add=${b64u(JSON.stringify(pack))}${skips.length ? `&skip=${skips.join('_')}` : ''}`;
 }
 function mineImportOffer() {
 	const m = /[#&]add=([\w-]+)/.exec(location.hash);
@@ -1083,7 +1132,14 @@ function mineImportOffer() {
 	} catch {
 		return;
 	}
-	if (!Array.isArray(pack) || !pack.length) return;
+	if (!Array.isArray(pack)) return;
+	// the stops the sender skipped that this phone still has on: only ones this page knows and lets the group skip
+	const sk = /[#&]skip=([\w-]+)/.exec(location.hash);
+	const skips = (sk ? sk[1].split('_') : []).filter((k) => {
+		const at = SKIP_AT[k];
+		return at && canSkip(at.d, at.d.schedule[at.i]) && !skipsAll()[k];
+	});
+	if (!pack.length && !skips.length) return;
 	history.replaceState(history.state, '', location.pathname + location.search);
 	const items = pack
 		.filter((r) => Array.isArray(r) && dayById[r[0]] && tMin(r[1]) != null)
@@ -1096,13 +1152,19 @@ function mineImportOffer() {
 			gpid: r[5] || null,
 			addr: String(r[6] || '').slice(0, 120),
 		}));
-	if (!items.length) return;
+	if (!items.length && !skips.length) return;
 	mineIncoming = items;
+	mineIncomingSkips = skips;
+	const skipRows = skips.map((k) => {
+		const { d, i } = SKIP_AT[k];
+		return `<li class="spot"><div class="spot-main"><span class="spot-n">${escText(stopName(d.schedule[i]))}</span><span class="spot-m">Day ${d.n} · ${esc(skipTime(d.schedule[i]))} · ${Z('跳过', 'skip')}</span></div></li>`;
+	});
 	openSheet(
-		`<h3 class="spots-h">${icon('plus')}${Z(`收到 ${items.length} 个别人加的行程`, `${items.length} shared stops`)}</h3><ul class="spots">${items.map((x) => `<li class="spot"><div class="spot-main"><span class="spot-n">${esc(x.name)}</span><span class="spot-m">Day ${dayById[x.day].n} · ${esc(x.t)}</span></div></li>`).join('')}</ul><div class="links-row"><button type="button" class="go-btn" data-mine-import>${icon('check')}${Z('加入我的行程', 'Add to my plan')}</button></div>`,
+		`<h3 class="spots-h">${icon('plus')}${items.length ? Z(`收到 ${items.length} 个别人加的行程`, `${items.length} shared stops`) : Z(`收到跳过的 ${skips.length} 站`, `${skips.length} shared skip${skips.length > 1 ? 's' : ''}`)}</h3>${items.length ? `<ul class="spots">${items.map((x) => `<li class="spot"><div class="spot-main"><span class="spot-n">${esc(x.name)}</span><span class="spot-m">Day ${dayById[x.day].n} · ${esc(x.t)}</span></div></li>`).join('')}</ul>` : ''}${skips.length ? `${items.length ? `<p class="sub-h">${Z(`也跳过 ${skips.length} 站`, `And skip ${skips.length}`)}</p>` : ''}<ul class="spots">${skipRows.join('')}</ul>` : ''}<div class="links-row"><button type="button" class="go-btn" data-mine-import>${icon('check')}${Z('加入我的行程', 'Add to my plan')}</button></div>`,
 	);
 }
 let mineIncoming = null;
+let mineIncomingSkips = [];
 let flightT = 0;
 
 /* the band of sky at the top of a view (a world with a live sky, ADR-20261122-day-views): the sky behind, snow falling
@@ -1167,7 +1229,7 @@ function eachOne(min, max, est) {
 // the day's one line of facts: time on the way, what it costs each, the forecast (where no sky shows it), a rain plan
 function dayFacts(d, sky) {
 	const out = [];
-	const legs = LEGS[d.id];
+	const legs = LEGS[d.id] && dayLegs(d); // without the places the group skips
 	if (legs) {
 		const LT = (GEO && GEO.legs) || {};
 		let tot = 0;
@@ -1215,6 +1277,9 @@ function secDay(d, today) {
 	const room = Plan.roomAfter(d.schedule.map((it) => parseT(it.t || '')));
 	const closes = room.map((ok, i) => !ok || !!(d.schedule[i].rel && Array.isArray(d.schedule[i].rel.dep) && d.schedule[i].rel.dep[0] === 0));
 	const planned = d.schedule.map((it, i) => {
+		// skipped: folded into the day's "N skipped" line (skipFoldHTML), or, right after the skip, greyed where it was with
+		// the suggestion to move the next stops earlier (07-skip.js)
+		if (it._skip) return skipAskHTML(d, i);
 		const t = it.step ? String(it.step) : L(it.t || '');
 		const pt = parseT(it.t || '');
 		const cls = ['stop', it.fixed && 'fixed', it.key && 'key', it.todo && 'todo'].filter(Boolean).join(' ');
@@ -1251,6 +1316,7 @@ function secDay(d, today) {
 			more
 				? `<button type="button" class="ibtn stop-more" data-part="${sid}-more" aria-haspopup="dialog" aria-expanded="false">${ibtn('more', Z('附近和更多', 'Nearby & more'))}</button>`
 				: '',
+			canSkip(d, it) ? skipAct(d, i) : '', // not on a flight or the lodging (ADR-20261128-skip-planned-stops)
 		].join('');
 		const inner = [
 			range && !it.fixed ? range : '',
@@ -1275,7 +1341,8 @@ function secDay(d, today) {
 		const knot = it.fixed ? '' : `<span class="knot-ic" aria-hidden="true">${icon(stopIcon(d, it))}</span>`;
 		return `<li class="${cls}${it._sh ? ' shifted' : ''}${more ? ' has-more' : ''}" id="${sid}" ${pt.s != null ? `data-s="${pt.s}"` : ''}><div class="stop-t">${tStart(t) === t ? esc(t) : `<span aria-hidden="true">${esc(tStart(t))}</span><span class="sr-only">${esc(t)}</span>`}${it._sh ? `<span class="t-was">${esc(Z(`原 ${tStart(L(it._base))}`, `was ${tStart(L(it._base))}`))}</span>` : ''}</div><div class="stop-knot">${knot}</div><div class="stop-b">
         ${head}
-        ${it._clash ? `<p class="warn">${icon('alert')}${esc(Z(`推迟后会撞到 ${L(it._clash.t)}「${stopName(it._clash)}」：这一项缩短或跳过`, `Now runs into the fixed ${L(it._clash.t)} ${stopName(it._clash)}: shorten or skip this`))}</p>` : ''}
+        ${it._clash ? `<p class="warn stop-clash">${icon('alert')}<span>${esc(Z(`推迟后会撞到 ${L(it._clash.t)}「${stopName(it._clash)}」：这一项缩短或跳过`, `Now runs into the fixed ${L(it._clash.t)} ${stopName(it._clash)}: shorten or skip this`))}</span>${canSkip(d, it) ? `<button type="button" class="mlink" data-skip="${d.id}|${i}">${icon('skip')}<span>${Z('跳过', 'Skip')}</span></button>` : ''}</p>` : ''}
+        ${skipShutHTML(d, it, i, isToday)}
         ${it.place ? `<div class="stop-drv"><button type="button" class="mlink" data-driver="${it.place}">${icon('car')}${Z('给司机看', 'Show driver')}</button></div>` : ''}
         ${moreSheet}</div></li>`;
 	});
@@ -1285,7 +1352,7 @@ function secDay(d, today) {
 		const at = d.schedule.reduce((k, it, j) => (parseT(it.t || '').s != null && parseT(it.t || '').s <= fork ? j : k), -1);
 		if (at >= 0) planned[at] += splitHTML(d);
 	}
-	const sched = mineMerge(d, planned);
+	const sched = mineMerge(d, planned, skipFoldHTML(d));
 	const foodSlots = d.foodSlots || []; // the day's researched food slots (extra.json food[].slot)
 	const tickets = d.tickets || []; // the day's ticket/booking cards (ids in extra.json tickets)
 	const tixOk = tickets.map((t) => (EXTRA.tickets || []).find((x) => x.id === t)).filter(Boolean);

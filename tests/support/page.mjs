@@ -595,3 +595,32 @@ export const SITE = {
 	theme: '.nav-theme',
 	shot: '.desk .phone img',
 };
+
+/** Skipping a planned stop (ADR-20261128-skip-planned-stops): its Skip in the opened stop, the day's "N skipped" fold
+ *  with each skipped stop's row (it keeps the stop's id) and Put back, the suggestion after a skip, a closed-day line. */
+export const SKIP = {
+	act: (sid) => `#${sid} .stop-acts [data-skip]`,
+	fold: (day) => `#${day} .skip-fold`,
+	sum: (day) => `#${day} .skip-fold .skip-sum`,
+	row: (sid) => `li.skip-row#${sid}`,
+	back: (sid) => `li.skip-row#${sid} [data-unskip]`,
+	ask: (day) => `#${day} .skip-ask`,
+	pull: (day) => `#${day} .skip-ask [data-skip-pull]`,
+	keep: (day) => `#${day} .skip-ask [data-skip-keep]`,
+	shut: (sid) => `#${sid} .stop-shut`,
+	onString: (sid) => `#${sid} > .stop-b > details.stop-x`,
+};
+/** Opens a planned stop on its day and taps its Skip (a fixed one's confirm is the caller's to answer). */
+export async function skipStop(page, sid) {
+	await show(page, `#${sid}`);
+	const row = page.locator(SKIP.onString(sid));
+	if (!(await row.evaluate((d) => d.open))) await row.locator('> summary').click();
+	await page.locator(SKIP.act(sid)).click();
+}
+/** Opens a day's fold of skipped stops (on its view) and returns it. */
+export async function openSkipFold(page, day) {
+	const fold = page.locator(`${SKIP.fold(day)} details.skip-x`);
+	await show(page, fold);
+	if (!(await fold.evaluate((d) => d.open))) await fold.locator('> summary').click();
+	return fold;
+}

@@ -668,11 +668,11 @@ function mountLive(url) {
 			const p = x.p;
 			const b = document.createElement('button');
 			b.type = 'button';
-			b.className = 'lpin';
+			b.className = p.skipped ? 'lpin lpin-skip' : 'lpin'; // skipped on every day it's on: quieter, still there
 			b.dataset.type = p.type;
 			b.dataset.pid = p.pid;
 			b.dataset.days = p.days.join(' ');
-			b.setAttribute('aria-label', p.name);
+			b.setAttribute('aria-label', p.skipped ? `${p.name} ${Z('（已跳过）', '(skipped)')}` : p.name);
 			b.innerHTML = pinSVG(p);
 			x.b = b;
 			x.mk = new maplibregl.Marker({ element: b, anchor: 'center' }).setLngLat([p.lng, p.lat]).addTo(m);

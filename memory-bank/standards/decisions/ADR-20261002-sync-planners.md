@@ -129,3 +129,12 @@ devices to tidy it.
   uses, which they could see across a table anyway. Any device can claim any kind, so the kind identifies nothing.
   Operational: no migration; phones on an older build ignore `kit:` records, and a device's kind arrives with its next
   name or change. Cost: one small record per device.
+
+## Amendment 2026-11-28
+
+Planned stops can now be skipped, and **anyone may skip one or put it back**, not only planners
+([ADR-20261128-skip-planned-stops](ADR-20261128-skip-planned-stops.md); Kenneth chose this on 2026-11-28). "Only stops
+are guarded" means the stops the group added: a skip is open to every phone, like pushed-back times, flight changes and
+ticks, because it's one per stop, can be undone, and goes on Recently removed with who skipped it. Flights and the
+lodging can't be skipped at all, and a fixed time asks once more. Blocking a phone also puts back the skips it made
+last; "Back to the original plan, for everyone" puts back every skip.

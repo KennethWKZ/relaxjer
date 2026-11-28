@@ -92,7 +92,7 @@ function dayFold(d, today, open) {
 	const stops = d.schedule
 		.map(
 			(it, i) =>
-				`<a class="dd-stop${it.fixed ? ' is-fixed' : ''}" href="#${d.id}-s${i}"><span class="dd-t">${esc(it.step ? String(it.step) : tStart(L(it.t || '')))}</span><span class="dd-k" aria-hidden="true">${it.fixed ? '<i class="dd-seal"></i>' : icon(stopIcon(d, it))}</span><span class="dd-n">${escText(stopName(it))}</span></a>`,
+				`<a class="dd-stop${it.fixed ? ' is-fixed' : ''}${it._skip ? ' is-skipped' : ''}" href="#${d.id}-s${i}"><span class="dd-t">${esc(it.step ? String(it.step) : tStart(L(it.t || '')))}</span><span class="dd-k" aria-hidden="true">${it._skip ? icon('skip') : it.fixed ? '<i class="dd-seal"></i>' : icon(stopIcon(d, it))}</span><span class="dd-n">${escText(stopName(it))}${it._skip ? `<span class="skip-tag"> ${Z('已跳过', 'Skipped')}</span>` : ''}</span></a>`,
 		)
 		.join('');
 	return `<details class="dd" data-dd="${d.id}" style="${colorVars(d.c)}"${open ? ' open' : ''}><summary class="rl dd-h" data-day="${d.id}">${dayMark(d)}<span class="rl-t"><b>${dateTag(d.date, d.dow, false)} · Day ${d.n}${daySeal(d)}${today === d.date ? ` <span class="flag">${Z('今天', 'Today')}</span>` : ''}</b><small>${esc(dayShort(d))}</small></span>${dayWx(
