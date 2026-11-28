@@ -1,6 +1,6 @@
 ---
 created: 2026-10-01
-updated: 2026-11-24
+updated: 2026-11-28
 ---
 
 # Frontend: Design and UX Rules
@@ -40,11 +40,16 @@ states and its feedback, as 25 testable rules with sources.
   more columns (from 1024 px the week rail sits beside it: navigation, not a second reading column).
 - **One part of the trip at a time** ([ADR-20261122-day-views](../decisions/ADR-20261122-day-views.md)). A day or a
   section is a view a few phone screens long; what the group plans or reads rarely (a decision, a table, a budget, the
-  rules) goes behind a summary button whose one line says what's inside, and opens in a sheet that scrolls on its own
-  and closes with Back. Back returns to the exact view and place; a new jump opens its view first.
-- **A stop's note is one short line; the rest folds** ([ADR-20261127-stop-detail-fold](../decisions/ADR-20261127-stop-detail-fold.md)).
-  What everyone needs at the stop goes in `note`; directions, phrases and backups go in `detail`, a native fold shut
-  below 600 px and open above, a tap either way. Never fold the note itself.
+  rules) opens in a sheet that scrolls on its own and closes with Back. Back returns to the exact view and place; a new
+  jump opens its view first.
+- **A glance layer, and the rest one tap away** ([ADR-20261128-progressive-disclosure](../decisions/ADR-20261128-progressive-disclosure.md)).
+  Open by default: Now and Next, tonight's hotel, the week, a day's card and its string of stops, one line each.
+  Everything else is a **fold** when it's a list you scan (`foldHTML`: a native `details`, a big heading, its count, a
+  turning chevron) or a **tile** when it's one part you open and close (`partsHTML`: an icon over a short word that opens
+  its sheet; two rows at most on a phone, then More). Never a new summary button, never a sideways row of tiles. A
+  stop is one line (start time, its kind on the string, its name); its note opens with it, unless it's `todo` (something
+  the group must do), which stays as a short second line. Money on the glance layer is one number, each person's share
+  (`eachOne`). Labels stay under every icon; sentences move into the sheet.
 - **A phone and a tablet get around by the bottom bar** ([ADR-20261124-bottom-app-bar](../decisions/ADR-20261124-bottom-app-bar.md)).
   Below 1024 px, Today, Days, Map and More (an icon over a short label) replace the date strip and the Sections button;
   a desktop keeps the rail. Nothing on a phone scrolls sideways to reach a part of the trip. Anything fixed to the foot
@@ -79,7 +84,7 @@ states and its feedback, as 25 testable rules with sources.
   framed and marked by both maps from the same helpers (`frameFrom`, `destMark`, `nameSide` in 21-place-finder.js),
   and no line or distance is drawn to it: the finder's Directions gives the real way. The sheet's half height fits a
   short list whole (Nothing found and its Google row included), and once the keyboard goes the map is lined up again
-  (`stageAfterKeyboard`). Anything new on the Map view goes in the pane, the chip row or the Filters sheet, never as a
+  (`stageAfterKeyboard`). Anything new on the Map view goes in the pane or the Filters sheet, never as a
   block between the search and the map; a new row above the map means changing the stage's height formula.
 - **The phone keyboard never hides the field being typed in.** A bottom sheet with a text field moves up to sit on the
   keyboard while it's open, and the focused field scrolls into view (`.kb-up` in `19-back-button.js`;
@@ -98,7 +103,8 @@ states and its feedback, as 25 testable rules with sources.
   checks the engine on every commit, and `pnpm publish:trip` checks the built page before it uploads. Art files the
   build base64-encodes (`themes/*-art/*.svg`) are exempt.
 - **Never describe people by family relationship** in any copy.
-- **Avoid the travel-app defaults:** stock hero photos, a teal accent, grids of identical icon cards.
+- **Avoid the travel-app defaults:** stock hero photos, a teal accent, decorative grids of identical feature cards. The
+  tiles are controls, not decoration: each opens its own sheet and says what it is in its word.
 
 ## Checking a UI change
 
@@ -188,4 +194,4 @@ Each rule above rests on a decision. The decision and its reasons live in its AD
 - [ADR-20261124-bottom-app-bar](../decisions/ADR-20261124-bottom-app-bar.md): Below 1024 px a bottom bar (Today, Days, Map, More) replaces the date strip and the Sections button, and the sky’s Pause moves into More.
 - [ADR-20261124-grouped-lists](../decisions/ADR-20261124-grouped-lists.md): The rail, Days, More and the Sections sheet are grouped lists: cards of 52 px rows split by inset hairlines, each row ending in ›, a value with ⌃⌄, or nothing.
 - [ADR-20261124-map-first-search](../decisions/ADR-20261124-map-first-search.md): Search results and the finder lie over the map (sheet or side panel); a picked place is framed with the group and marked, no line; filters behind one button.
-- [ADR-20261127-stop-detail-fold](../decisions/ADR-20261127-stop-detail-fold.md): A stop splits its text into note (always shown) and detail, a native fold: shut below 600 px, open from 600 px, a tap either way.
+- [ADR-20261128-progressive-disclosure](../decisions/ADR-20261128-progressive-disclosure.md): Glance layer open (Now/Next, hotel, week, day card, one-line stops); lists fold with a count; single parts are icon tiles; one money number.

@@ -196,3 +196,29 @@ export function storedLeg(legs, scope, i, [from, to, mode, ...rest]) {
 	const own = rest.find((x) => typeof x === 'number');
 	return own > 0 ? { min: own, own: true } : null;
 }
+
+/** a day's one-line name when its data gives none (days[].short; ADR-20261128-progressive-disclosure): the first place
+ *  of its title's route and how many there are, never a word cut in half: "小樽运河等3处", "Otaru Canal +2 more". A title
+ *  with no route is its own name */
+export function shortFromTitle(title, lang) {
+	const t = String(title || '').trim();
+	const parts = t
+		.split(/\s*→\s*/)
+		.map((x) => x.trim())
+		.filter(Boolean);
+	if (parts.length < 2) return t;
+	return lang === 'en' ? `${parts[0]} +${parts.length - 1} more` : `${parts[0]}等${parts.length}处`;
+}
+
+/** a repeated hint (the location ask, the header's Install; ADR-20261128-progressive-disclosure): in full the first
+ *  time this phone shows it, one line on every later page view, and never again once dismissed. `seen` is what the phone
+ *  keeps for it ('seen', 'gone' or nothing); `fullNow` that it already showed in full in this page view, so a redraw a
+ *  minute later doesn't shrink it under the reader's eyes */
+export function hintForm(seen, fullNow) {
+	if (seen === 'gone') return 'gone';
+	return !seen || fullNow ? 'full' : 'line';
+}
+
+/** the kinds a stop can be drawn as on its string (DAYS[].schedule[].icon, ADR-20261128-progressive-disclosure): each an
+ *  icon the page has. The page reads the kind from the stop when the data names none */
+export const stopKinds = ['food', 'train', 'bus', 'car', 'van', 'walk', 'bike', 'plane', 'bed', 'bag', 'sight', 'ticket', 'coffee', 'star'];

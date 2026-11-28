@@ -203,6 +203,33 @@ function placeLinks(pid, opts = {}) {
 	if (!opts.noDriver) out.push(`<button type="button" class="mlink" data-driver="${pid}">${icon('car')}${Z('给司机看', 'Show driver')}</button>`);
 	return out.join('');
 }
+/* labelled icon buttons (ADR-20261128-progressive-disclosure): a place's few actions on the way, each an icon over its
+   word at the Label size, 56 px tall: map, directions, show the driver, call, copy the local name, website. On the hotel
+   card and an opened stop; the words stay at every width (seniors read them; affordances rule 9) */
+const ibtn = (ic, label) => `${icon(ic)}<span class="ibtn-l">${esc(label)}</span>`;
+function placeActs(pid, opts = {}) {
+	const p = PLACES[pid];
+	if (!p) return '';
+	const a = (href, ic, label) => `<a class="ibtn" href="${esc(href)}" target="_blank" rel="noopener">${ibtn(ic, label)}</a>`;
+	const b = (attrs, ic, label) => `<button type="button" class="ibtn" ${attrs}>${ibtn(ic, label)}</button>`;
+	const lg = nativeLang();
+	const out = [
+		a(gmSearch(p.maps), 'pin', Z('地图', 'Map')),
+		a(gmDir(p.maps, opts.mode || 'transit'), 'route', Z('路线', 'Directions')),
+		opts.noDriver ? '' : b(`data-driver="${pid}"`, 'car', Z('给司机看', 'Show driver')),
+		p.tel ? `<a class="ibtn" href="tel:${esc(String(p.tel).replace(/[^\d+]/g, ''))}">${ibtn('phone', Z('打电话', 'Call'))}</a>` : '',
+		lg && p.trad && opts.copyName
+			? b(
+					`data-native="${esc(p.trad)}" aria-label="${esc(Z(`复制${L(Pack.native.name) || lg}：${p.trad}`, `Copy ${L(Pack.native.name) || lg}: ${p.trad}`))}"`,
+					'copy',
+					Z('复制名字', 'Copy name'),
+				)
+			: '',
+	];
+	const s = siteFor(pid);
+	if (s && !opts.noSite) out.push(a(s, 'ext', Z('官网', 'Website')));
+	return `<div class="ibtns">${out.join('')}</div>`;
+}
 /* the native layer: the destination's own words (Japanese in Japan) beside the page's two languages, one tap to copy
    them, so the group can match a sign, a menu or a map search to what the page says. On only when the pack names the
    language (Pack.native); a pack without it (Taiwan, whose names the group already reads) shows nothing new. */

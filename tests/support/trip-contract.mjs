@@ -4,12 +4,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import { names as MOTIFS } from '../../engine/src/core/motif.mjs';
+import { stopKinds as STOP_ICONS } from '../../engine/src/core/plan.mjs';
 import { MODES as SKIES } from '../../engine/src/core/sky.mjs';
 import { paceProblem } from '../../engine/src/core/way.mjs';
 import { fitMealProblems } from '../../engine/src/core/wish.mjs';
 
 // read when present: the themed shop lists (SNOW is the older single-list form)
-export const OPTIONAL_GLOBALS = ['SHOPLISTS', 'SNOW'];
+export const OPTIONAL_GLOBALS = ['SHOPLISTS', 'SNOW', 'INSURANCE'];
 export const REQUIRED = [
 	'TRIP',
 	'PLACES',
@@ -122,6 +123,9 @@ export function checkTrip(trip) {
 		if (d.n !== i + 1) bad(`${d.id}: n is ${d.n}, expected ${i + 1}`);
 		// the day's lantern colour: the page has seven (--l1…--l7), and the My Maps export one per colour
 		if (!(Number.isInteger(d.c) && d.c >= 1 && d.c <= 7)) bad(`${d.id}: c (its lantern colour) must be 1–7, got ${JSON.stringify(d.c)}`);
+		// the day's short name on its row (ADR-20261128-progressive-disclosure): a few words, [zh, en]
+		if (d.short != null && !(isLabel(d.short) && [...d.short[0]].length <= 10 && d.short[1].length <= 24))
+			bad(`${d.id}: short must be [zh, en], at most 10 characters in Chinese and 24 in English, got ${JSON.stringify(d.short)}`);
 		// the day's activity mark: one the engine draws (engine/src/core/motif.mjs), named by the planner, never free text
 		if (d.motif != null && !MOTIFS.includes(d.motif)) bad(`${d.id}: motif ${JSON.stringify(d.motif)} must be one of ${MOTIFS.join('|')}`);
 		// photos are optional; when set, a list of photo ids (img/credits.json)
@@ -136,9 +140,14 @@ export function checkTrip(trip) {
 			if (it.place && !PLACES[it.place]) bad(`${where}: unknown place "${it.place}"`);
 			// a link is a SITES key, an in-page anchor (#airport) or a URL
 			if (it.link && !SITES[it.link] && !/^(#|https?:\/\/)/.test(it.link)) bad(`${where}: unknown site "${it.link}"`);
-			// a longer note that folds under the short one (ADR-20261127-stop-detail-fold): the short line always shows
+			// a longer note, shown under the note when the stop is opened (ADR-20261128-progressive-disclosure)
 			if (it.detail != null && !isLabel(it.detail)) bad(`${where}: detail must be [zh, en]`);
-			if (it.detail != null && !it.note) bad(`${where}: detail folds under the note, so the stop needs a note too`);
+			if (it.detail != null && !it.note) bad(`${where}: detail goes under the note, so the stop needs a note too`);
+			// a note the group must act on stays visible under the stop's one line, so it needs a note to show
+			if (it.todo != null && typeof it.todo !== 'boolean') bad(`${where}: todo must be true or false`);
+			if (it.todo && !it.note) bad(`${where}: todo keeps the note in sight, so the stop needs a note`);
+			// the stop's kind on the string, when the page shouldn't read it from the stop: one the engine draws
+			if (it.icon != null && !STOP_ICONS.includes(it.icon)) bad(`${where}: icon ${JSON.stringify(it.icon)} must be one of ${STOP_ICONS.join('|')}`);
 			if (it.rel) {
 				const o = it.rel.arr || it.rel.dep;
 				if (!Array.isArray(o)) bad(`${where}: rel needs arr or dep offsets`);
@@ -183,6 +192,9 @@ export function checkTrip(trip) {
 			if (b.type === 'budget' && !(b.min <= b.max)) bad(`${d.id} budget block: min ${b.min} > max ${b.max}`);
 			// a block's summary button (ADR-20261122-day-views): its own line, and the option a decision has settled on
 			if (b.sum != null && !isLabel(b.sum)) bad(`${d.id} ${b.type} block: sum must be [zh, en]`);
+			// its tile's word (ADR-20261128-progressive-disclosure): short, so it fits under the icon in both languages
+			if (b.tile != null && !(isLabel(b.tile) && [...b.tile[0]].length <= 6 && b.tile[1].length <= 16))
+				bad(`${d.id} ${b.type} block: tile must be [zh, en], at most 6 characters in Chinese and 16 in English`);
 			if (b.pick != null && !(b.type === 'decide' && (b.opts || []).some((o) => o.k === b.pick)))
 				bad(`${d.id} ${b.type} block: pick ${JSON.stringify(b.pick)} must be the k of one of its options (decide blocks only)`);
 		}
@@ -299,11 +311,99 @@ export function checkTrip(trip) {
 		if (!f || minutes(f.dep) == null || minutes(f.arr) == null || !/^\d{4}-\d\d-\d\d$/.test(f.date || ''))
 			bad(`FLIGHTS.${k} needs dep, arr (HH:MM) and date`);
 	}
-	if (!(BUDGET.totalMin <= BUDGET.totalMax)) bad(`BUDGET.totalMin ${BUDGET.totalMin} > totalMax ${BUDGET.totalMax}`);
-	const rowsMin = BUDGET.rows.reduce((a, r) => a + r[2], 0);
-	const rowsMax = BUDGET.rows.reduce((a, r) => a + r[3], 0);
-	if (rowsMin !== BUDGET.totalMin || rowsMax !== BUDGET.totalMax)
-		bad(`BUDGET rows add up to ${rowsMin}–${rowsMax}, totals say ${BUDGET.totalMin}–${BUDGET.totalMax}`);
+	// the budget (ADR-20261128-budget-paid-insurance): an estimate row [label, text, min, max, anchor?] in the trip's
+	// currency, or an object row: one payment { label, min, max, cur, paid, via, ref, est, anchor }, a payment in parts
+	// { label, parts: [{ amt, cur, paid, via, label }] }, or one with no price yet { label, tbd: true, via }
+	const homeCode = TRIP.currency && TRIP.currency.home;
+	const curOK = (c) => c == null || ((c === 'home' || c === homeCode) && homeCode);
+	const isoDay = (d) => /^\d{4}-\d\d-\d\d$/.test(d || '');
+	const viaOK = (v) => v == null || isLabel(v) || (typeof v === 'string' && !!v.trim());
+	const legacy = BUDGET.rows.every(Array.isArray);
+	BUDGET.rows.forEach((r, i) => {
+		const w = `BUDGET.rows[${i}]`;
+		if (Array.isArray(r)) {
+			if (!(isLabel(r[0]) && typeof r[1] === 'string' && Number.isFinite(r[2]) && r[2] <= r[3])) bad(`${w}: [label, text, min, max] with min ≤ max`);
+			return;
+		}
+		if (!r || typeof r !== 'object' || !isLabel(r.label)) return bad(`${w}: label must be [zh, en]`);
+		if (!curOK(r.cur)) bad(`${w}: cur must be 'home' or ${JSON.stringify(homeCode)} (a trip with a home currency), or left out for the trip's`);
+		if (!viaOK(r.via)) bad(`${w}: via must be [zh, en] or a name`);
+		if (r.ref != null && !(typeof r.ref === 'string' && r.ref.trim())) bad(`${w}: ref must be the booking number as text`);
+		if (r.tbd) {
+			if (r.min != null || r.max != null || r.parts || r.paid) bad(`${w}: a row with no price yet (tbd) has no amount, parts or payment date`);
+			return;
+		}
+		if (r.parts != null) {
+			if (!(Array.isArray(r.parts) && r.parts.length)) return bad(`${w}: parts must be a list of payments`);
+			if (r.min != null || r.max != null || r.paid != null) bad(`${w}: a row paid in parts takes its amounts and dates from them`);
+			r.parts.forEach((pt, j) => {
+				if (!(Number.isFinite(pt.amt) && pt.amt > 0)) bad(`${w}.parts[${j}]: amt must be a number above 0`);
+				if (!curOK(pt.cur)) bad(`${w}.parts[${j}]: cur must be 'home' or ${JSON.stringify(homeCode)}, or left out`);
+				if (pt.paid != null && !isoDay(pt.paid)) bad(`${w}.parts[${j}]: paid must be a date (YYYY-MM-DD)`);
+				if (!viaOK(pt.via)) bad(`${w}.parts[${j}]: via must be [zh, en] or a name`);
+				if (pt.label != null && !isLabel(pt.label)) bad(`${w}.parts[${j}]: label must be [zh, en]`);
+			});
+			return;
+		}
+		if (!(Number.isFinite(r.min) && Number.isFinite(r.max) && r.min >= 0 && r.min <= r.max)) bad(`${w}: needs min ≤ max (or parts, or tbd)`);
+		if (r.paid != null) {
+			if (!isoDay(r.paid)) bad(`${w}: paid must be a date (YYYY-MM-DD)`);
+			if (r.min !== r.max) bad(`${w}: a paid row has its exact amount (min = max), never a range`);
+		}
+	});
+	// travel insurance (optional): a closed list of fields, and never an ID number, an address or a birth date, since the
+	// page is shared with the whole group (ADR-20261128-budget-paid-insurance)
+	const { INSURANCE } = trip;
+	if (INSURANCE != null) {
+		const PERSONAL = /^(ic|nric|mykad|id|idno|id_?number|passport\w*|dob|birth\w*|address\w*|addr|ssn|national_?id)$/i;
+		const personal = (o, at) => {
+			if (Array.isArray(o)) return o.forEach((x, i) => personal(x, `${at}[${i}]`));
+			if (o && typeof o === 'object')
+				for (const [k, v] of Object.entries(o)) {
+					if (PERSONAL.test(k)) bad(`${at}.${k}: no ID numbers, addresses or birth dates in INSURANCE (the page is shared with the group)`);
+					personal(v, `${at}.${k}`);
+				}
+		};
+		personal(INSURANCE, 'INSURANCE');
+		const only = (o, keys, at) => Object.keys(o || {}).forEach((k) => keys.includes(k) || PERSONAL.test(k) || bad(`${at}: unknown field ${k}`));
+		const tel = (t) => typeof t === 'string' && /^\+?\d[\d ()-]{5,}$/.test(t.trim());
+		only(INSURANCE, ['policies', 'claims'], 'INSURANCE');
+		if (!(Array.isArray(INSURANCE.policies) && INSURANCE.policies.length)) bad('INSURANCE.policies must list at least one policy');
+		(INSURANCE.policies || []).forEach((p, i) => {
+			const w = `INSURANCE.policies[${i}]`;
+			only(p, ['name', 'insurer', 'plan', 'who', 'from', 'to', 'covers', 'note', 'site', 'app', 'contacts'], w);
+			if (!isLabel(p.name)) bad(`${w}: name must be [zh, en]`);
+			if (!(typeof p.insurer === 'string' && p.insurer.trim())) bad(`${w}: insurer is the company's name`);
+			for (const k of ['plan', 'who', 'note']) if (p[k] != null && !isLabel(p[k])) bad(`${w}: ${k} must be [zh, en]`);
+			for (const k of ['from', 'to']) if (p[k] != null && !/^\d{4}-\d\d-\d\d$/.test(p[k])) bad(`${w}: ${k} must be a date (YYYY-MM-DD)`);
+			if (p.from && p.to && p.to < p.from) bad(`${w}: to is before from`);
+			if (p.covers != null && !(Array.isArray(p.covers) && p.covers.every(isLabel))) bad(`${w}: covers must be a list of [zh, en]`);
+			if (p.site != null && !(SITES[p.site] || /^https:\/\//.test(p.site))) bad(`${w}: site must be a SITES key or an https link`);
+			if (p.app != null) {
+				only(p.app, ['name', 'note'], `${w}.app`);
+				if (!(typeof p.app.name === 'string' && p.app.name.trim()) || (p.app.note != null && !isLabel(p.app.note)))
+					bad(`${w}.app: a name, and a [zh, en] note`);
+			}
+			(p.contacts || []).forEach((c, j) => {
+				only(c, ['label', 'tel', 'wa', 'when'], `${w}.contacts[${j}]`);
+				if (!isLabel(c.label) || !tel(c.tel) || (c.wa != null && !tel(c.wa)) || (c.when != null && !isLabel(c.when)))
+					bad(`${w}.contacts[${j}]: a [zh, en] label, a phone number (tel, and wa for WhatsApp) and a [zh, en] when`);
+			});
+		});
+		(INSURANCE.claims || []).forEach((g, i) => {
+			only(g, ['h', 'items'], `INSURANCE.claims[${i}]`);
+			if (!isLabel(g.h) || !(Array.isArray(g.items) && g.items.length && g.items.every(isLabel)))
+				bad(`INSURANCE.claims[${i}]: an h and its items, each [zh, en]`);
+		});
+	}
+	// an estimate-only budget keeps its hand-written totals, and they add up
+	if (legacy) {
+		if (!(BUDGET.totalMin <= BUDGET.totalMax)) bad(`BUDGET.totalMin ${BUDGET.totalMin} > totalMax ${BUDGET.totalMax}`);
+		const rowsMin = BUDGET.rows.reduce((a, r) => a + r[2], 0);
+		const rowsMax = BUDGET.rows.reduce((a, r) => a + r[3], 0);
+		if (rowsMin !== BUDGET.totalMin || rowsMax !== BUDGET.totalMax)
+			bad(`BUDGET rows add up to ${rowsMin}–${rowsMax}, totals say ${BUDGET.totalMin}–${BUDGET.totalMax}`);
+	}
 	// both UI languages present everywhere (an empty zh gloss is allowed: the brush lettering carries it)
 	for (const { path: p, pair } of bilingualPairs(trip))
 		if (!pair[1].trim() || (!pair[0].trim() && !/gloss$/.test(p))) bad(`${p}: both languages needed, got ${JSON.stringify(pair)}`);

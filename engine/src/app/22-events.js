@@ -135,8 +135,9 @@ document.addEventListener('click', (e) => {
 		openDialog($('#days'));
 		// the day on screen (else today) in sight, in a long trip's list
 		requestAnimationFrame(() => {
-			const row = $('#days [aria-current]') || ($('#days .flag') || {}).parentElement;
-			if (row && row.closest('a')) row.closest('a').scrollIntoView({ block: 'center', behavior: 'instant' });
+			const row = $('#days details[open]') || $('#days [aria-current]') || ($('#days .flag') || {}).parentElement;
+			const at = row && row.closest('.dd, a');
+			if (at) at.scrollIntoView({ block: 'nearest', behavior: 'instant' });
 		});
 		return;
 	}
@@ -214,8 +215,15 @@ document.addEventListener('click', (e) => {
 		jumpTo(((searchState.idx < 0 ? 0 : searchState.idx + (t.id === 'search-next' ? 1 : -1)) + n) % n);
 		return;
 	}
-	if (t.matches('[data-copy-day]')) return copy(dayText(dayById[t.dataset.copyDay]), Z('已复制，可以贴到群组', 'Copied; paste it into the chat'));
-	if (t.matches('[data-copy-link]')) return copy(linkFor(t.dataset.copyLink), Z('链接已复制', 'Link copied'));
+	// the day's ⋯ sheet closes as it acts, so the message shows over the page (a sheet is above everything else)
+	if (t.matches('[data-copy-day]')) {
+		closeDialog(t.closest('dialog'));
+		return copy(dayText(dayById[t.dataset.copyDay]), Z('已复制，可以贴到群组', 'Copied; paste it into the chat'));
+	}
+	if (t.matches('[data-copy-link]')) {
+		closeDialog(t.closest('dialog'));
+		return copy(linkFor(t.dataset.copyLink), Z('链接已复制', 'Link copied'));
+	}
 	if (t.matches('[data-driver]')) return openDriver(t.dataset.driver);
 	if (t.matches('[data-native]')) return copy(t.dataset.native, Z(`已复制：${t.dataset.native}`, `Copied: ${t.dataset.native}`));
 	if (t.id === 'drv-copy') return copy(t.dataset.text, Z('地址已复制', 'Address copied'));
@@ -225,9 +233,16 @@ document.addEventListener('click', (e) => {
 	}
 	if (t.matches('[data-map-day]')) {
 		const f = t.dataset.mapDay;
-		mapView = 'list';
-		mapFull(true);
-		withMap(() => map.filter(f));
+		const dlg = t.closest('dialog');
+		const go = () => {
+			mapView = 'list';
+			mapFull(true);
+			withMap(() => map.filter(f));
+		};
+		if (dlg) {
+			closeDialog(dlg);
+			whenSettled(go);
+		} else go();
 		return;
 	}
 	// the map's day and area live in a sheet behind one button (ADR-20261124-map-first-search): a pick applies and
@@ -335,8 +350,16 @@ document.addEventListener('click', (e) => {
 		return;
 	}
 	if (t.matches('[data-geo-no]')) {
-		store.set('geoNo', tpNow().date);
+		hintGone('geo');
 		renderNow();
+		toast(Z('不再提示。设置里还能打开定位', 'It won’t ask again. Settings can still turn location on'));
+		return;
+	}
+	if (t.matches('[data-geo-row]')) {
+		// Location in the settings: the steps when the browser said no, else the browser's own ask
+		closeDialog(t.closest('dialog'));
+		if (geoState === 'denied') whenSettled(() => geoHelp());
+		else locateMe(() => renderNow());
 		return;
 	}
 	if (t.matches('[data-geo-help]')) {
@@ -680,6 +703,7 @@ document.addEventListener('click', (e) => {
 		// works before the map has loaded too: remembered, applied when it is ready
 		const c = t.dataset.cat;
 		mapView = 'list'; // a category the person picks: the page's places in it
+		closeDialog(t.closest('dialog'));
 		const go = () => {
 			if (c === 'all') {
 				mapCat = 'all';
@@ -690,6 +714,7 @@ document.addEventListener('click', (e) => {
 		else {
 			mapCat = c;
 			$$('[data-cat]').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.cat === c)));
+			mapFiltSync();
 			mapListSync();
 			withMap(go);
 		}
@@ -917,6 +942,9 @@ function rateSet(v) {
 	$$('[data-cvt]').forEach((el) => {
 		el.textContent = cvPlain(el.dataset.cvt);
 	});
+	// the budget's glance (what's paid, what's still to come) is worked out in the home currency: drawn again
+	const bg = $('#budget-glance');
+	if (bg) bg.outerHTML = budgetGlance();
 	if (homeFirst) {
 		const bars = $('#budget-bars'),
 			air = $('#airport-bars');

@@ -58,6 +58,16 @@ export function roundHome(v) {
 	return Math.round(v / step) * step;
 }
 
+/**
+ * Each person's share of a group range as one number, for the glance layer (ADR-20261128-progressive-disclosure): the
+ * middle of the range divided by the group, rounded as roundHome rounds (to the nearest 10 under 10,000). The page marks
+ * it "about"; the range and the group's figure stay in the detail.
+ */
+export function glanceShare(min, max, pax) {
+	if (!(pax > 0) || !(max >= min)) return 0;
+	return roundHome((min + max) / 2 / pax);
+}
+
 const homeNum = (v) => roundHome(v).toLocaleString('en-US', { maximumFractionDigits: 2 });
 
 /** "RM 100" / "RM 100–140": a figure in the trip's currency, in the home currency (rate: one home unit in the trip's) */
@@ -65,6 +75,46 @@ export function homeAmount(min, max, rate, home) {
 	const a = homeNum(min / rate),
 		b = homeNum(max / rate);
 	return a === b ? `${home} ${a}` : `${home} ${a}–${b}`;
+}
+
+/**
+ * A budget's rows as what's been paid and what's still to come (ADR-20261128-budget-paid-insurance). A row is an
+ * estimate in the trip's currency, [label, text, min, max, anchor?], or an object: { label, min, max, cur, paid, via,
+ * ref, est, anchor } for one payment, { label, parts: [{ amt, cur, paid, via, label }] } for one paid in parts (a deposit
+ * now, the balance on the day), or { label, tbd: true } for one whose price isn't known yet. `cur` 'home' (or the home
+ * code) is the group's home currency, else the trip's. Sums come back in the home currency (`rate`: the trip's units for
+ * one home unit; without a home currency pass rate 1 and home null), approx when any figure in them was converted. A
+ * paid amount is exact; a row with no price is listed but never counted, so the page never invents a number.
+ */
+export function budgetTally(rows, { rate = 1, home = null } = {}) {
+	const isHome = (c) => c === 'home' || (home != null && c === home);
+	const toHome = (v, c) => (isHome(c) || !(rate > 0) ? v : v / rate);
+	const out = { paid: 0, paidApprox: false, todo: [0, 0], todoApprox: false, paidItems: [], todoItems: [], tbdItems: [] };
+	for (const raw of rows || []) {
+		const row = Array.isArray(raw) ? { label: raw[0], text: raw[1], min: raw[2], max: raw[3], anchor: raw[4] } : raw;
+		if (!row) continue;
+		if (row.tbd) {
+			out.tbdItems.push({ row });
+			continue;
+		}
+		const pieces = Array.isArray(row.parts)
+			? row.parts.map((part) => ({ part, min: part.amt, max: part.amt, cur: part.cur ?? row.cur, paid: part.paid }))
+			: [{ part: null, min: row.min, max: row.max, cur: row.cur, paid: row.paid }];
+		for (const p of pieces) {
+			const conv = home != null && !isHome(p.cur);
+			if (p.paid) {
+				out.paid += toHome(p.min, p.cur);
+				out.paidApprox = out.paidApprox || conv;
+				out.paidItems.push({ row, part: p.part, amt: p.min, cur: p.cur, paid: p.paid });
+			} else {
+				out.todo[0] += toHome(p.min, p.cur);
+				out.todo[1] += toHome(p.max, p.cur);
+				out.todoApprox = out.todoApprox || conv;
+				out.todoItems.push({ row, part: p.part, min: p.min, max: p.max, cur: p.cur });
+			}
+		}
+	}
+	return out;
 }
 
 /** "≈ RM 100" / "≈ RM 100–140": the home-currency line under a figure */

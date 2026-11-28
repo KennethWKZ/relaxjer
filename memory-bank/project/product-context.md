@@ -57,7 +57,17 @@ code that makes the first one.
 What every trip page keeps. It came from the first trip, and the tests characterise it. Every part of the page, for
 planners, is in [`guides/trip-page.md`](../../guides/trip-page.md).
 
-- **Costs:** per-person costs next to group totals, both converted to the home currency (the rate is editable, in the
+- **A glance layer, the rest one tap away** (ADR-20261128-progressive-disclosure): Now and Next, tonight's hotel,
+  the week, a day's card and its stops stay open, one line each; lists fold under a big heading with their count, and
+  single parts are tiles (an icon over its word) that open their sheets. Words stay under every icon. A cost on the
+  glance layer is one number, each person's share, marked "about"; the range and the group's figure are in the sheet.
+  A day reads the same on every list: a short name, the seal on a day with a fixed time, the forecast while it has one.
+  A hint the page repeats (the location ask, Install) shows in full once, then one row, and its ✕ is for good; the
+  feature stays in More's settings.
+- **Money spent and to come:** the budget leads with what the group has paid (home currency) and one line for what's
+  still to come; a price not known yet is shown as such, never guessed. The group's insurance is one tap from Today,
+  with its hotline numbers as buttons and no one's ID details on the page.
+- **Costs:** per-person costs next to group totals in the detail sheets, both converted to the home currency (the rate is editable, in the
   budget and the Sections menu, and resets to the trip's). A currency switch beside the language switch shows every
   figure in the trip's currency, including amounts inside notes, in the home currency first, never losing the
   original (beside it or on the line under it), rounded to what a rate can claim; other currencies, times and
@@ -67,7 +77,7 @@ planners, is in [`guides/trip-page.md`](../../guides/trip-page.md).
   - times tied to the flights, and a flight-delay editor;
   - a running-late re-plan that uses location and time, only suggests, never moves anything by itself, with fixed items
     anchoring the day;
-  - your own added stops: a per-day button, a "+" under each timeline dot that lands right after its stop, a
+  - your own added stops: a per-day button, Add after in an opened stop that lands right after it, a
     getting-there check (walk ×1.4, taxi, metro; "Use HH:MM" when too early; when to leave for the next timed stop),
     clash and deadline checks, a caution when a day already has 4 added stops, and Undo on the toast after a removal (every page). A place picked
     from the add sheet's list opens first (what the page knows of it, with Add), and Back finds the list as it was. With group sync, a link isn't
@@ -80,17 +90,18 @@ planners, is in [`guides/trip-page.md`](../../guides/trip-page.md).
 - **Near each stop, and "near me":** food, drinks, rest spots and toilets (plus places that let you borrow a toilet),
   the group's wishlist where it fits, and the optional plans the trip suggests at that stop, which open over the day.
 - **Each day:** Now and Next on a trip day (a countdown and the to-dos coming due before it), Copy for chat and Copy
-  link, today's route as one line with a whole-route link, decide-on-the-day options (an option that goes somewhere
+  link (in the day's ⋯), today's route as one line with a whole-route link (in its Route tile), decide-on-the-day options (an option that goes somewhere
   with its own route line and leg minutes), and the rain plan.
 - **One part at a time** (ADR-20261122-day-views): each day and each section is its own view with its own address,
   so a long trip never becomes one long page: a day fits in a few phone screens. Back steps through the views and
   restores each one's scroll; every jump (Now and Next, search, the map, the Sections menu, a link) opens its view
-  first. A day's planning cards are summary buttons with a one-line summary, each opening a sheet that scrolls on its
-  own and closes with Back; big Previous day and Next day buttons end every day. On a phone and a tablet a bottom bar
+  first. A day's planning cards are tiles, each opening a sheet that scrolls on its own, says in one line what's
+  inside, and closes with Back; big Previous day and Next day buttons end every day. On a phone and a tablet a bottom bar
   (Today, Days, Map, More) is on every view, like an app's, and nothing needs a sideways scroll to reach; a computer has
   the week rail and the Sections button. Every list that goes somewhere (Days, More, the rail, the Sections menu) is
   one grouped list, as a phone's own settings: full-width rows of 52 px or more, each ending in › if it goes somewhere,
-  in its value and ⌃⌄ if it changes in place (ADR-20261124-grouped-lists).
+  in its value and ⌃⌄ if it changes in place (ADR-20261124-grouped-lists); Days folds every day to one line, with one
+  open.
 - **Map:**
   - Google first, MapLibre as fallback;
   - Map and Directions links in Google Maps or Apple Maps, chosen per phone;

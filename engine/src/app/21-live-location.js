@@ -156,36 +156,38 @@ function geoBusy(b) {
 	b.innerHTML = `${icon('pin')}${Z('正在定位…', 'Finding you…')}`;
 }
 function geoAsk() {
-	if (store.get('geoNo', null) === tpNow().date) return '';
 	if (window.DEMO_CLOCK) return ''; // a live-demo visitor isn't on the trip: where they are can't say if the group is late
-	const card = (title, text, action) =>
-		`<div class="geo-ask"><p class="late-h">${icon('pin')}<span>${title}</span></p>
-      <p class="small">${text}</p>
-      <div class="links-row">${action}<button type="button" class="go-btn ghost" data-geo-no>${Z('今天先不用', 'Not today')}</button></div></div>`;
-	const help = (kind) =>
-		`<button type="button" class="go-btn" data-geo-help${kind ? `="${kind}"` : ''}>${icon('info')}${Z('怎么打开', 'How to turn it on')}</button>`;
+	if (hintState('geo') === 'gone') return '';
+	// a repeated hint (ADR-20261128-progressive-disclosure): in full the first time on this phone (what it does, where the
+	// position stays, the button), then one row (a pin, a few words, the button, ✕); ✕ puts it away for good, and
+	// Location in More's settings turns it on from there. A phone that keeps forgetting gets its reason the same way
+	const card = (title, text, action, short, act) =>
+		hint('geo') === 'full'
+			? `<div class="geo-ask is-full"><p class="geo-l">${icon('pin')}<span>${title}</span></p>${text ? `<p class="geo-why">${text}</p>` : ''}${action}${geoX()}</div>`
+			: `<div class="geo-ask is-line"><p class="geo-l">${icon('pin')}<span>${short}</span></p>${act}${geoX()}</div>`;
+	const help = (kind, short) =>
+		`<button type="button" class="go-btn" data-geo-help${kind ? `="${kind}"` : ''}${short ? ` aria-label="${Z('怎么打开', 'How to turn it on')}"` : ''}>${icon('info')}${short ? Z('怎么开', 'How') : Z('怎么打开', 'How to turn it on')}</button>`;
 	const turnOn = `<button type="button" class="go-btn" data-geo-on>${icon('pin')}${Z('打开定位', 'Turn on location')}</button>`;
+	const turnOnShort = `<button type="button" class="go-btn" data-geo-on aria-label="${Z('打开定位', 'Turn on location')}">${icon('pin')}${Z('打开', 'Turn on')}</button>`;
 	// until the browser answers, go by this phone's last answer (geoWatch keeps it), so the card is there from the first
 	// paint instead of pushing the page down a moment after it opens
 	const st = geoState === 'pending' ? store.get('geoSeen', 'pending') : geoState;
 	if (st === 'granted' && geoCoarse)
 		return card(
-			Z('位置只有大概', 'Your location is only approximate'),
-			Z(
-				'会差一两公里，行程没法判断你是不是晚了。打开「精确位置」就好。',
-				'It can be off by a kilometre or two, so the plan can’t tell if you’re running late. Turn on Precise location to fix it.',
-			),
+			Z('位置只有大概：打开精确位置', 'Location is only approximate: turn on Precise'),
+			'',
 			help('precise'),
+			Z('位置只有大概', 'Only approximate'),
+			help('precise', true),
 		);
 	if (['none', 'pending', 'granted'].includes(st) || meLL) return '';
 	if (st === 'denied')
 		return card(
-			Z('这个页面的定位是关着的', 'Location is off for this page'),
-			Z(
-				'打开后，地图会显示你在哪，也会帮你看赶不赶得上下一站。',
-				'With it on, the map shows where you are and the plan checks whether you’ll make the next stop.',
-			),
+			Z('定位关着：打开后晚了会提醒你', 'Location is off: turn it on to hear when you’re late'),
+			'',
 			help(),
+			Z('定位关着', 'Location is off'),
+			help('', true),
 		);
 	// said yes before, asked again: the phone forgot (Safari on "Ask", or Chrome's "Only this time")
 	if (store.get('geoOk', false))
@@ -203,13 +205,31 @@ function geoAsk() {
 						)
 					: Z('浏览器没有记住上次的选择。', 'The browser didn’t keep last time’s answer.'),
 			turnOn,
+			Z('手机又在问定位', 'Asked again'),
+			turnOnShort,
 		);
 	return card(
-		Z('打开定位，行程会提醒你是不是晚了', 'Turn on location so the plan can tell you when you’re running late'),
-		Z('地图也会显示你在哪。位置只留在这台设备上。', 'The map also shows where you are. Your position stays on this device.'),
+		Z('打开定位，晚了会提醒你', 'Turn on location to hear when you’re running late'),
+		Z('位置只留在这台手机，不会传出去；地图也会标出你在哪。', 'It stays on this phone and is never sent anywhere; the map shows where you are too.'),
 		turnOn,
+		Z('晚了会提醒你', 'Late alerts'),
+		turnOnShort,
 	);
 }
+// its ✕: away for good on this phone (Location in More's settings still turns it on)
+const geoX = () =>
+	`<button type="button" class="icon-btn geo-x" data-geo-no aria-label="${Z('不再提示（设置里还能打开）', 'Don’t show again (Settings still has it)')}">${icon('x')}</button>`;
+// Location as a row of the settings (23-sections-menu.js): while it isn't on, on a phone that can, outside the demo
+const geoRow = () =>
+	navigator.geolocation && !window.DEMO_CLOCK && geoState !== 'granted' && !meLL
+		? actRow(
+				'toc-geo',
+				'data-geo-row',
+				'pin',
+				Z('打开定位', 'Turn on location'),
+				Z('晚了会提醒你，位置只留在这台手机', 'Late alerts; it stays on this phone'),
+			)
+		: '';
 function geoHelp(kind) {
 	const ios = isIOS();
 	if (kind === 'precise') {
@@ -327,6 +347,9 @@ const catOK = (p, c) =>
 const dayOK = (p, d) =>
 	d === 'all' || p.days.includes(d) || p.type === 'hotel' || !!p.always || (['mrt', 'bike', 'bus', 'wc'].includes(p.type) && mapCat === p.type);
 const pinShown = (p) => catOK(p, mapCat) && dayOK(p, mapDay);
+// a pin of another day while one day is picked: still drawn, but quieter (ADR-20261128-progressive-disclosure), so the
+// day's own pins stand out and the rest of the trip stays in sight; the list and the count keep to the day
+const pinQuiet = (p) => mapDay !== 'all' && p.days.length > 0 && catOK(p, mapCat) && !dayOK(p, mapDay);
 const inFilter = (p, f) =>
 	p.drink || p.wc
 		? f === p.type || (f !== 'all' && p.days.includes(f))
@@ -740,9 +763,11 @@ function mountLive(url) {
 				mapListSync();
 				const show = (x) => pinShown(x.p);
 				markers.forEach((x) => {
-					if (show(x)) {
+					const q = !show(x) && pinQuiet(x.p);
+					if (show(x) || q) {
 						mkOf(x);
 						x.b.style.display = '';
+						x.b.classList.toggle('lpin-quiet', q);
 					} else if (x.b) x.b.style.display = 'none';
 				});
 				$$('[data-filter]').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.filter === mapDay)));

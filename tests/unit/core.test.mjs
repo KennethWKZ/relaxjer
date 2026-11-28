@@ -23,6 +23,51 @@ test('Time: clock parsing and formatting', () => {
 	assert.deepEqual(Time.timesIn('After the show'), { s: null, e: null });
 });
 
+test('Money: a budget tallies what was paid (in the home currency) and what is still to come', () => {
+	const rows = [
+		{ label: ['机票', 'Flights'], min: 4200, max: 4200, cur: 'home', paid: '2026-12-02', via: 'AirAsia MOVE' },
+		{ label: ['酒店', 'Hotel'], min: 2350, max: 2350, cur: 'RM', paid: '2026-11-24' }, // the home code works as 'home'
+		{
+			label: ['包车', 'Charter'],
+			parts: [
+				{ amt: 1560, paid: '2027-02-20' }, // the deposit, in the trip's currency
+				{ amt: 3900 }, // the balance, on the day
+			],
+		},
+		[['吃饭', 'Meals'], 'NT$7,800–15,600', 7800, 15600],
+		{ label: ['加购行李', 'Extra baggage'], tbd: true },
+	];
+	const t = Money.budgetTally(rows, { rate: 7.8, home: 'RM' });
+	assert.equal(t.paid, 4200 + 2350 + 200); // 1,560 / 7.8
+	assert.equal(t.paidApprox, true, 'the deposit was converted');
+	assert.deepEqual(t.todo, [500 + 1000, 500 + 2000]); // the balance and the meals, converted
+	assert.equal(t.todoApprox, true);
+	assert.equal(t.paidItems.length, 3);
+	assert.equal(t.todoItems.length, 2);
+	assert.equal(t.tbdItems.length, 1, 'a row with no price is listed');
+	// and never counted
+	assert.deepEqual(Money.budgetTally([{ label: ['x', 'x'], tbd: true }], { rate: 7.8, home: 'RM' }).todo, [0, 0]);
+	// home-currency payments alone are exact
+	assert.equal(Money.budgetTally(rows.slice(0, 2), { rate: 7.8, home: 'RM' }).paidApprox, false);
+	// a trip without a home currency keeps its own figures
+	assert.deepEqual(Money.budgetTally([[['a', 'a'], 'x', 100, 200]]).todo, [100, 200]);
+});
+
+test("Plan: a day's one-line name falls back to the first place of its route and how many", () => {
+	assert.equal(Plan.shortFromTitle('猫空缆车 → 音乐会', 'zh'), '猫空缆车等2处');
+	assert.equal(Plan.shortFromTitle('Dihua Street → free shopping → airport', 'en'), 'Dihua Street +2 more');
+	assert.equal(Plan.shortFromTitle('Free day', 'en'), 'Free day'); // no route: the title is its own name
+	assert.equal(Plan.shortFromTitle('  ', 'zh'), '');
+});
+
+test('Plan: a repeated hint is full the first time, one line after, and gone once dismissed', () => {
+	assert.equal(Plan.hintForm(undefined, false), 'full'); // never shown on this phone
+	assert.equal(Plan.hintForm('seen', true), 'full'); // shown in full in this page view: a redraw keeps it so
+	assert.equal(Plan.hintForm('seen', false), 'line'); // a later page view
+	assert.equal(Plan.hintForm('gone', false), 'gone'); // its ✕
+	assert.equal(Plan.hintForm('gone', true), 'gone'); // put away in this very view
+});
+
 test('Time: dates and labels', () => {
 	assert.equal(Time.dayNumber('2027-03-14') - Time.dayNumber('2027-03-13'), 1);
 	assert.equal(Time.addDays('2027-02-28', 1), '2027-03-01');
@@ -145,6 +190,15 @@ test('Money: converted figures claim no more precision than a rate gives', () =>
 	assert.equal(Money.roundHome(509090), 509000);
 	assert.equal(Money.homeAmount(10, 10, 38.97, 'RM'), 'RM 0.3');
 	assert.equal(Money.homeAmount(781000, 1075000, 38.97, 'RM'), 'RM 20,000–27,600');
+});
+
+test("Money: the glance layer's one number is each person's share of the range's middle", () => {
+	assert.equal(Money.glanceShare(23900, 29900, 6), 4480); // ¥3,980–4,980 each → about ¥4,480
+	assert.equal(Money.glanceShare(3000, 4500, 5), 750);
+	assert.equal(Money.glanceShare(500, 500, 5), 100); // a single figure stays itself
+	assert.equal(Money.glanceShare(60000, 90000, 2), 37500); // three significant figures above 10,000
+	assert.equal(Money.glanceShare(100, 50, 5), 0); // a range that runs backwards says nothing
+	assert.equal(Money.glanceShare(100, 200, 0), 0);
 });
 
 test('Money: which trips can show their figures in the home currency', () => {

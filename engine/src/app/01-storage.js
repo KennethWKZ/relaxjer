@@ -25,6 +25,21 @@ const store = {
 	},
 };
 
+// repeated hints (Plan.hintForm): what this phone has seen of each, in store 'hints' ({ id: 'seen' | 'gone' }), never
+// synced. hint(id) says how to draw it now and records the first showing; hintGone(id) is its ✕
+const HINT_FULL = new Set();
+function hint(id) {
+	const all = store.get('hints', {}) || {};
+	const form = Plan.hintForm(all[id], HINT_FULL.has(id));
+	if (form === 'full' && !HINT_FULL.has(id)) {
+		HINT_FULL.add(id);
+		if (!all[id]) store.set('hints', { ...all, [id]: 'seen' });
+	}
+	return form;
+}
+const hintState = (id) => (store.get('hints', {}) || {})[id] || 'new';
+const hintGone = (id) => store.set('hints', { ...(store.get('hints', {}) || {}), [id]: 'gone' });
+
 try {
 	// WebKit (every iPhone browser, and Safari) answers yes to overflow-anchor but doesn't hold the scroll position, so
 	// sections drawing late there make the page jump; only Chromium-family browsers get section skipping

@@ -188,9 +188,9 @@ function nearWish(d, it) {
 		? `<div class="stop-near"><span class="sn-h">${icon('star')}${Z('附近想去', 'Nearby')}</span>${rows.map((x) => `<a class="eat-chip is-wish${x.w.must ? ' must' : ''}" href="#wish-${esc(x.w.id)}">${mustB(x.w)}${esc(wName(x.w))} <span class="eat-r">${distLabel(x.k)}</span></a>`).join('')}</div>`
 		: '';
 }
-// optional plans the trip suggests at this stop (OPTIONAL[].near): a tap opens the card over the day. The row folds to
-// its count ("3 nearby options") behind a chevron: closed by default on a phone, where the day's string comes first,
-// open on a wider screen; a tap opens or closes it, remembered per stop for this page view only (optsOpen), never stored
+// optional plans the trip suggests at this stop (OPTIONAL[].near): a tap opens the card over the day. They sit inside
+// the opened stop (ADR-20261128-progressive-disclosure), so their row starts open; a tap folds it, remembered per stop
+// for this page view only (optsOpen), never stored
 const optsOpen = new Map();
 function nearOpts(d, it, sid) {
 	if (!it.place) return '';
@@ -201,7 +201,7 @@ function nearOpts(d, it, sid) {
 		return { o, k: at && to ? km(at, to) : null };
 	});
 	if (!rows.length) return '';
-	const open = optsOpen.has(sid) ? optsOpen.get(sid) : !matchMedia('(max-width: 599px)').matches;
+	const open = optsOpen.has(sid) ? optsOpen.get(sid) : true;
 	const n = rows.length;
 	return `<div class="stop-near stop-opts"><button type="button" class="sn-tog" data-opts="${sid}" aria-expanded="${open}" aria-controls="${sid}-opts">${icon('list')}<span class="sn-h">${Z(`附近可选 ${n}`, `${n} nearby option${n > 1 ? 's' : ''}`)}</span>${icon('chev', 'chev')}</button><div class="sn-list" id="${sid}-opts"${open ? '' : ' hidden'}>${rows.map((x) => `<a class="eat-chip is-opt" href="#${esc(x.o.id)}">${esc(L(x.o.short || x.o.name))}${x.k != null ? ` <span class="eat-r">${distLabel(x.k)}</span>` : ''}</a>`).join('')}</div></div>`;
 }
@@ -213,19 +213,26 @@ function optsToggle(b) {
 	const list = document.getElementById(b.getAttribute('aria-controls'));
 	if (list) list.hidden = !open;
 }
-// a stop's longer note (schedule[].detail, trip-format.md) folds under its short one: closed on a phone, where the
-// day's string comes first, open on a wider screen, and a tap folds or unfolds it on any screen, remembered per stop for
-// this page view (detailOpen); a reload reopens the folds that were open, as for every fold (spotSave). A native details: the page's search finds the text inside and opens it
-const detailOpen = new Map();
-function stopDetail(it, sid) {
-	if (!it.detail) return '';
-	const open = detailOpen.has(sid) ? detailOpen.get(sid) : !matchMedia('(max-width: 599px)').matches;
-	return `<details class="stop-detail" data-detail="${sid}"${open ? ' open' : ''}><summary class="sn-tog">${icon('info')}<span class="sn-h">${Z('更多说明', 'More details')}</span>${icon('chev', 'chev')}</summary><p class="stop-note">${fmt(it.detail)}</p></details>`;
-}
-// the reader's own tap, on the summary (Enter and Space click it too): a redraw keeps what they chose
+/* a stop is one line until it's opened (ADR-20261128-progressive-disclosure, which replaced the detail fold of
+   ADR-20261127-stop-detail-fold): a native details, so the page's search finds its note and opens it. What the reader
+   opened is kept per stop for this page view (stopOpen), so a language switch or a push-back redraw keeps it; a reload
+   reopens what was open, as for every fold (spotSave) */
+const stopOpen = new Map();
+const stopIsOpen = (sid) => !!stopOpen.get(sid);
+// the reader's own tap: on the row's summary (Enter and Space click it too), or on its time or its mark on the string,
+// so the whole row is the target (affordances rule 4)
 document.addEventListener('click', (e) => {
-	const s = e.target.closest('details.stop-detail > summary');
-	if (s) detailOpen.set(s.parentElement.dataset.detail, !s.parentElement.open);
+	const s = e.target.closest('details.stop-x > summary');
+	if (s) {
+		stopOpen.set(s.parentElement.dataset.stop, !s.parentElement.open);
+		return;
+	}
+	const side = !e.target.closest('button, a') && e.target.closest('.stop > .stop-t, .stop > .stop-knot');
+	const x = side && side.parentElement.querySelector('details.stop-x');
+	if (x) {
+		x.open = !x.open;
+		stopOpen.set(x.dataset.stop, x.open);
+	}
 });
 function nearDrinks(d, it) {
 	// a drink within a few minutes' walk: best rated first

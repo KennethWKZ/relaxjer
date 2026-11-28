@@ -3,7 +3,8 @@ id: ADR-20261127-stop-detail-fold
 date: 2026-11-27
 title: "A Stop's Longer Note Folds Under Its Short One, Shut on a Phone"
 domain: design
-status: accepted
+status: superseded
+superseded_by: ADR-20261128-progressive-disclosure
 decision: 'A stop splits its text into note (always shown) and detail, a native fold: shut below 600 px, open from 600 px, a tap either way.'
 tags: [trip-data, engine]
 ---

@@ -159,11 +159,13 @@ const canHome = () => !isStandalone() && (installEv || isIOS() || isAndroid());
 // Install as a row of the settings (23-sections-menu.js): an action, so no ›
 const homeRow = () =>
 	canHome() ? actRow('toc-home', 'data-home', 'install', Z('加到主画面', 'Add to the home screen'), Z('像 App 一样打开', 'Opens like an app')) : '';
-// the header's install button: shown until the page runs from the home screen
+// the header's install button: a repeated hint (ADR-20261128-progressive-disclosure). With its word the first time this
+// phone can install; from the next page view it lives in More (homeRow), and the header keeps the brand, search,
+// currency and language. Gone once the page runs from the home screen
 const homeSync = () => {
 	const b = $('#homeBtn');
 	if (!b) return;
-	b.hidden = !canHome();
+	b.hidden = !(canHome() && hint('home') === 'full');
 	$('.home-lab', b).textContent = Z('安装', 'Install');
 	b.setAttribute('aria-label', Z('加到主画面（像 App 一样打开）', 'Add to the home screen (opens like an app)'));
 	b.title = Z('加到主画面', 'Add to the home screen');
@@ -175,6 +177,7 @@ window.addEventListener('beforeinstallprompt', (e) => {
 });
 window.addEventListener('appinstalled', () => {
 	installEv = null;
+	hintGone('home');
 	homeSync();
 	toast(Z('已加到主画面', 'Added to the home screen'));
 });

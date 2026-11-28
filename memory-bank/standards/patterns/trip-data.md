@@ -104,3 +104,4 @@ Each rule above rests on a decision. The decision and its reasons live in its AD
 - [ADR-20261007-traffic-aware-drives](../decisions/ADR-20261007-traffic-aware-drives.md): A drive leg may carry an HH:MM time, and a drive still ahead uses Google's traffic-aware estimate for that time.
 - [ADR-20261126-own-leg-minutes](../decisions/ADR-20261126-own-leg-minutes.md): A route leg may end with the trip's own minutes, shown only when Google has no time for it; Japan's transit is never asked.
 - [ADR-20261127-decide-option-route](../decisions/ADR-20261127-decide-option-route.md): A decide option may carry its own route; its legs are stored as <day>:<k>:<i> in geo.json, apart from the day's, and drawn on its card.
+- [ADR-20261128-budget-paid-insurance](../decisions/ADR-20261128-budget-paid-insurance.md): Budget rows can be paid (date, where, ref), in the home currency, in parts, or price TBD; the glance is the paid total. INSURANCE: a tile, no IDs.

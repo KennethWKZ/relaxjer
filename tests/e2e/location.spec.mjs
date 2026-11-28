@@ -1,8 +1,10 @@
 // Location is asked for from a card that says why, never by the page on its own, and the card returns whenever the
-// browser has no "yes" on record (Safari forgets one). The install button lives in the header until the page is installed.
+// browser has no "yes" on record (Safari forgets one). Both it and the header's Install are repeated hints
+// (ADR-20261128-progressive-disclosure): in full the first time on this phone, one row (or More) after, and the card's ✕
+// puts it away for good, with Location still in More's settings.
 // Playwright can't answer a real permission prompt, so the browser's permission state and GPS are stubbed.
 import { test, expect, openTrip } from '../support/fixtures.mjs';
-import { setStored, show } from '../support/page.mjs';
+import { openSections, setStored, show } from '../support/page.mjs';
 /* global DAYS */
 
 const HERE = { latitude: 25.0339, longitude: 121.5645, accuracy: 20 };
@@ -43,13 +45,14 @@ async function stubGeo(page, state, here = HERE, answerAfter = 0) {
 
 const card = (page) => page.locator('#now .geo-ask');
 
-/** Opens the trip with its clock on a day relative to the first trip day (-3: three days before), on any trip. */
+/** Opens the trip with its clock on a day relative to the first trip day (-3: three days before), on any trip, as this
+ *  phone's first look at the location card (the opening before the clock is set has already shown it once) */
 async function openOn(page, offset, time = '10:00') {
 	await openTrip(page);
 	const first = await page.evaluate(() => DAYS[0].date);
 	const d = new Date(`${first}T12:00:00Z`);
 	d.setUTCDate(d.getUTCDate() + offset);
-	await setStored(page, { now: `${d.toISOString().slice(0, 10)} ${time}` });
+	await setStored(page, { now: `${d.toISOString().slice(0, 10)} ${time}`, hints: {} });
 }
 
 test('the page never asks for location by itself, and the card asks on a tap', async ({ page }) => {
@@ -62,10 +65,12 @@ test('the page never asks for location by itself, and the card asks on a tap', a
 	expect(await page.evaluate(() => window.__geoAsked)).toBeGreaterThan(0);
 });
 
-test('"Not today" hides the card for the rest of the day', async ({ page }) => {
+test('its ✕ puts the card away, and a reload keeps it away', async ({ page }) => {
 	await stubGeo(page, 'prompt');
 	await openOn(page, -3);
-	await card(page).getByRole('button', { name: 'Not today' }).click();
+	await card(page)
+		.getByRole('button', { name: /Don’t show again/ })
+		.click();
 	await expect(card(page)).toHaveCount(0);
 	await page.reload();
 	await expect(page.locator('#now')).not.toBeEmpty();
@@ -110,7 +115,7 @@ test('an approximate location says the late check needs precise location', async
 test('a phone that allowed location before says plainly why it asks again', async ({ page }) => {
 	await stubGeo(page, 'prompt');
 	await openOn(page, 0);
-	await setStored(page, { geoOk: true });
+	await setStored(page, { geoOk: true, hints: {} });
 	await expect(card(page)).toContainText('asking for location again');
 	await expect(card(page).getByRole('button', { name: 'Turn on location' })).toBeVisible();
 });
@@ -163,6 +168,34 @@ test('a "no" turns the card into steps to switch it back on', async ({ page }) =
 	await expect(page.locator('#placeSheet .home-steps li').first()).toBeVisible();
 });
 
+test('the location card: in full the first time, one row after, and once put away it stays away; Settings still has it', async ({ page }) => {
+	await stubGeo(page, 'prompt');
+	await openOn(page, -3);
+	const c = card(page);
+	await expect(c, 'the first time: what it does and where the position stays').toHaveClass(/is-full/);
+	await expect(c.locator('.geo-why')).toBeVisible();
+	await page.reload();
+	await expect(c, 'after: one row').toHaveClass(/is-line/);
+	const [line, btn, x] = await Promise.all([
+		c.locator('.geo-l').boundingBox(),
+		c.getByRole('button', { name: 'Turn on location' }).boundingBox(),
+		c.locator('.geo-x').boundingBox(),
+	]);
+	const mid = (b) => b.y + b.height / 2;
+	expect(Math.abs(mid(line) - mid(btn)), 'the words and the button on one row').toBeLessThan(6);
+	expect(Math.abs(mid(btn) - mid(x)), 'and the ✕ beside them').toBeLessThan(6);
+	expect(btn.height, 'a 44 px button').toBeGreaterThanOrEqual(44);
+	await c.locator('.geo-x').click();
+	await expect(c).toHaveCount(0);
+	await page.reload();
+	await expect(page.locator('#app [data-sec]').first()).toBeAttached();
+	await expect(c, 'put away for good on this phone').toHaveCount(0);
+	await openSections(page);
+	await expect(page.locator('[data-geo-row]').first(), 'Location stays in the settings').toBeVisible();
+	await page.locator('[data-geo-row]').first().click();
+	await expect.poll(() => page.evaluate(() => window.__geoAsked), { message: 'the row asks the browser' }).toBeGreaterThan(0);
+});
+
 test('the install button sits in the header and opens the steps', async ({ page }) => {
 	await openTrip(page);
 	const btn = page.locator('#bar #homeBtn');
@@ -183,4 +216,15 @@ test('the install button sits in the header and opens the steps', async ({ page 
 	// iPhone: the guide also says how to make "Allow" stick, so the page stops asking every time
 	if (await page.evaluate(() => /iPhone|iPad/.test(navigator.userAgent)))
 		await expect(page.locator('#placeSheet .home-notes')).toContainText('Settings → Apps → Safari → Location');
+	// a repeated hint: from the next opening the header keeps the brand, search, currency and language, and Install is a
+	// row in More that opens the same steps
+	await page.keyboard.press('Escape');
+	await page.reload();
+	await expect(page.locator('#app [data-sec]').first()).toBeAttached();
+	await expect(btn, 'the header lets it go after its first showing').toBeHidden();
+	await openSections(page);
+	const row = page.locator('[data-home]:not(#homeBtn)').first();
+	await expect(row).toBeVisible();
+	await row.click();
+	await expect(page.locator('#placeSheet .home-steps li').first()).toBeVisible();
 });

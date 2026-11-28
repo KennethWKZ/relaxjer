@@ -46,10 +46,18 @@ pack export instead, document it in `trip-format.md`, and have the contract chec
   bar (`renderBar`, `barMark` in `04-render-nav.js`; [ADR-20261124-bottom-app-bar](../decisions/ADR-20261124-bottom-app-bar.md))
   is the way in: Today and Map are links to their views, Days and More open sheets (`renderDays`, `renderToc('more')`),
   so every tap is a step Back undoes.
-- A planning part is a summary button plus a sheet (`partsHTML` in `06-render-blocks.js`). Its summary is read from
-  the data, generic (never a trip's names); a block's own `sum` replaces it. A part's sheet, and a stop's sheet, is a closed list: it's
+- A planning part is a tile plus a sheet (`partsHTML`, `partBtn` in `06-render-blocks.js`;
+  [ADR-20261128-progressive-disclosure](../decisions/ADR-20261128-progressive-disclosure.md)). Its word is `tileWord`
+  (the block's `tile`, its short heading, or the word for its kind), and the sheet opens with its one-line summary,
+  read from the data, generic (never a trip's names); a block's own `sum` replaces it. A list you scan is a fold
+  (`foldHTML`, a native `details`), and a stop is a `details.stop-x` whose open state is kept in `stopOpen`. A part's sheet, and a stop's sheet, is a closed list: it's
   built the first time it opens, or when search or a jump needs it (`lazyFill`, `lazyFor`), so code that reads inside
   a sheet must not assume it's drawn, and the page-wide e2e audits fill them first (`fillAll`).
+- A hint the page repeats goes through `hint(id)` (`01-storage.js`, rule `Plan.hintForm`): it answers `full` the first
+  time this phone shows it (and for the rest of that page view), `line` after, `gone` once `hintGone(id)` ran (its ✕).
+  The record is `store` `hints`, per phone, never synced. Give the feature a home in More's settings before adding a ✕
+  (the location ask has Location, `geoRow`; Install has `homeRow`). A day's row anywhere is built from `dayShort`,
+  `daySeal` and `dayWx` (`04-render-nav.js`), so the week, Days, the rail and the map's list read the same.
 - A world's sky (`24-sky.js`, `core/sky.mjs`) reads the mode from `html[data-sky]` (the build's `TRIP.sky` or the
   world's own) and never draws when it is `off`. Its Pause is the header's `#skyBtn` on a desktop and More's
   `[data-sky-toggle]` row below 1024 px; `skyBtnSync` keeps both in step. The preview build's choices go through `LOOK` (`01-storage.js`), never

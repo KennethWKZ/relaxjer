@@ -138,3 +138,10 @@ inset hairlines, each ending in › (goes somewhere), a value with ⌃⌄ (a cho
 action). A day's row keeps its date and title on two lines, with the forecast on its right. More's planning sections
 are one column, not two. More's settings now run Theme (on a phone), the sky's Pause, which maps app and Group sync,
 then Amounts and rate on a card of its own, then Install and the reset row last.
+
+## Amendment 2026-11-28
+
+[ADR-20261128-progressive-disclosure](ADR-20261128-progressive-disclosure.md): the header keeps Install only on the first
+opening where the phone can install (a repeated hint); from the next opening Install is a row in More's settings, and
+the header holds the name, Search, the theme (600 px and up), the currency and the language. More's settings also hold
+Location while it's off, the location ask's home once it's put away.

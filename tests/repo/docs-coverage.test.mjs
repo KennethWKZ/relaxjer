@@ -48,6 +48,13 @@ test('every field the demo trip uses is documented in trip-format.md', () => {
 		CHECKLIST: keys(t.CHECKLIST),
 		'a checklist item': keys(t.CHECKLIST.flatMap((g) => g.items)),
 		AIRPORT: Object.keys(t.AIRPORT),
+		'a budget row': keys(t.BUDGET.rows),
+		'a budget payment part': keys(t.BUDGET.rows.flatMap((r) => r.parts || [])),
+		INSURANCE: Object.keys(t.INSURANCE || {}),
+		'an insurance policy': keys(t.INSURANCE?.policies || []),
+		'an insurance contact': keys((t.INSURANCE?.policies || []).flatMap((p) => p.contacts || [])),
+		'an insurance app': keys((t.INSURANCE?.policies || []).map((p) => p.app)),
+		'an insurance claim group': keys(t.INSURANCE?.claims || []),
 		'FLIGHTS.ret.plan': Object.keys(t.FLIGHTS.ret.plan || {}),
 	};
 	const missing = Object.entries(used).flatMap(([where, names]) => names.filter((n) => !documented.has(n)).map((n) => `${where}: ${n}`));

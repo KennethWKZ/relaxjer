@@ -38,6 +38,7 @@ if (window.DEMO_CLOCK) {
 			typeof AIRPORT !== 'undefined' && AIRPORT,
 			typeof ENTRY !== 'undefined' && ENTRY,
 			typeof ENTRY_CHECKS !== 'undefined' && ENTRY_CHECKS,
+			typeof INSURANCE !== 'undefined' && INSURANCE,
 			// the side files (build.mjs): when hours were checked, the forecast's days
 			...['EXTRA', 'WISH', 'FORECAST', 'DRINKS', 'TOILETS', 'YB', 'BUS', 'SHOPS'].map((n) => window[n]),
 		];

@@ -163,7 +163,8 @@ test('the add sheet says a time has passed, and on the leaving day offers nothin
 	});
 	const pick = async (dayId, time) => {
 		await goToView(page, dayId);
-		await page.locator(`[data-add-gap^="${dayId}|"]:visible`).last().click(); // stops already past are folded away
+		// the last stop still to come: its Add after waits in the opened stop (ADR-20261128-progressive-disclosure)
+		await (await show(page, page.locator(`#${dayId} li.stop:not(.done) [data-add-gap^="${dayId}|"]`).last())).click();
 		const sheet = page.locator('#placeSheet');
 		await sheet.locator('[data-add-res] [data-add]').first().click();
 		await sheet.locator('[data-add-t]').fill(time);

@@ -9,7 +9,8 @@ const norm = (s) =>
 		.toLowerCase()
 		.replace(/[一-鿿]/g, (c) => t2s.get(c) || c);
 const searchState = { q: '', hits: [], idx: -1 };
-const CAND = 'h2,h3,p,li,dt,dd,th,td,figcaption,.tag,.chip,.method-name,.bar-lab,.route,.wr-name';
+// a stop's name and its must-do note are their own hits: they sit in the stop's one-line summary, not in a paragraph
+const CAND = 'h2,h3,p,li,dt,dd,th,td,figcaption,.tag,.chip,.method-name,.bar-lab,.route,.wr-name,.stop-name,.stop-do';
 const textOf = (el) => (el.matches('figcaption') ? (el.firstChild ? el.firstChild.textContent : '') : el.textContent);
 const hay = (el) => norm(textOf(el) + ' ' + (el.dataset.alt || ''));
 // shown, or would be once its view is on screen, its sheet open or its list unfolded: nothing on the way up to there hides it

@@ -13,7 +13,9 @@ test('the contract catches a broken trip', () => {
 	const trip = loadTrip(DEMO_TRIP);
 	trip.DAYS[1].schedule[2].t = '08:00'; // earlier than the stop before
 	trip.DAYS[2].schedule[0].place = 'nowhere';
-	trip.BUDGET.totalMax = 1;
+	trip.BUDGET.rows.find((r) => r.paid).max += 1; // a payment is one exact amount
+	trip.BUDGET.rows.find((r) => r.tbd).min = 100; // a row with no price yet has no amount
+	trip.INSURANCE.policies[0].passport = 'A0000000'; // the page is shared with the group
 	trip.FACTS[0].v = ['日期', ''];
 	trip.DAYS[1].route = [['hotel', 'atlantis', 'teleport']];
 	trip.DAYS[2].route = [['hotel', 'hotel', 'transit', 0]]; // the trip's own minutes are whole and above 0
@@ -30,7 +32,9 @@ test('the contract catches a broken trip', () => {
 	for (const want of [
 		'earlier than the stop before',
 		'unknown place "nowhere"',
-		'totalMin',
+		'a paid row has its exact amount',
+		'a row with no price yet',
+		'no ID numbers, addresses or birth dates in INSURANCE',
 		'both languages needed',
 		'route leg 0',
 		'd3 route leg 0: needs',
@@ -98,7 +102,11 @@ for (const dir of dirs) {
 		// Maps Platform terms limit storing Places content; a public example must not redistribute it
 		const FORBIDDEN =
 			/"(gpid|rating|reviews|userRatingCount|rating_source|businessStatus)"\s*:|googleusercontent\.com|maps\.googleapis\.com\/maps\/api\/place\/photo/;
-		for (const f of fs.readdirSync(dir)) {
+		// the trip's own files: a local build's dist/ folder (pnpm build --trip examples/…) is output, not data
+		for (const f of fs
+			.readdirSync(dir, { withFileTypes: true })
+			.filter((e) => e.isFile())
+			.map((e) => e.name)) {
 			const text = fs.readFileSync(path.join(dir, f), 'utf8');
 			assert.doesNotMatch(text, FORBIDDEN, `${f} has Google-derived fields`);
 		}

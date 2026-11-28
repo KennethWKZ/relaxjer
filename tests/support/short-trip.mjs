@@ -1,5 +1,6 @@
 // A 4-day test trip, made from the demo trip so it stays synthetic and in step with it: demo days 1, 2, 6 and 7
-// become days 1–4 (arrival, one full day, the free day + airport evening, the after-midnight flight). It proves the
+// become days 1–4 (arrival, one full day, the free day + airport evening, the after-midnight flight), with no travel
+// insurance. It proves the
 // engine reads day roles from the trip, not from fixed ids d1…d7, runs without a destination pack, and takes a
 // second hotel. Written to .cache/trips/short-trip/ (never committed).
 //   node tests/support/short-trip.mjs            → prints the folder
@@ -52,6 +53,9 @@ export function makeShortTrip(out = SHORT_TRIP) {
 		else fs.cpSync(from, path.join(out, f), { recursive: true });
 	}
 	fs.appendFileSync(path.join(out, 'data.js'), RESHAPE);
+	// no travel insurance on the short trip: the e2e on it proves the Insurance tile stays away without one
+	const data = path.join(out, 'data.js');
+	fs.writeFileSync(data, fs.readFileSync(data, 'utf8').replace(/^const INSURANCE = /m, 'const INSURANCE_LEFT_OUT = '));
 	return out;
 }
 

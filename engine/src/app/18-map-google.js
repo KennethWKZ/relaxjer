@@ -208,9 +208,12 @@ function mountGoogle() {
 			mapListSync();
 			const show = (x) => pinShown(x.p);
 			markers.forEach((x) => {
-				if (show(x)) {
+				const q = !show(x) && pinQuiet(x.p);
+				if (show(x) || q) {
 					const mk = mkOf(x);
 					if (!mk.map) mk.map = m;
+					x.b.classList.toggle('lpin-quiet', q);
+					mk.zIndex = q ? -1 : null;
 				} else if (x.mk && x.mk.map) x.mk.map = null;
 			});
 			$$('[data-filter]').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.filter === mapDay)));

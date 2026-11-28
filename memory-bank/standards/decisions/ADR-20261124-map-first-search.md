@@ -3,7 +3,7 @@ id: ADR-20261124-map-first-search
 date: 2026-11-24
 title: 'The Map View Is Map-First: Results and the Place Finder Lie Over the Map, a Sheet on a Phone and a Panel on a Wide Screen'
 domain: design
-status: accepted
+status: amended
 decision: 'Search results and the finder lie over the map (sheet or side panel); a picked place is framed with the group and marked, no line; filters behind one button.'
 tags: [engine]
 ---
@@ -136,3 +136,10 @@ can know what the direction, distance" was asked for the same day.
 Changing the Map view's layout, its search, the list pane or the place finder's placement, a picked place's framing or
 mark, the day and area filters, the full-screen map, or anything that sits at the foot of
 the screen over the map.
+
+## Amendment 2026-11-28
+
+[ADR-20261128-progressive-disclosure](ADR-20261128-progressive-disclosure.md): the categories left the chip row over the
+map for the Filters sheet, beside the days and the areas, with what the pins mean at its foot; the button names the kind
+after the day when one is picked. The intro line ("Colour is the day; shape is the type.") moved into that sheet. With
+one day picked, the other days' pins stay on the map, quieter, instead of hiding.

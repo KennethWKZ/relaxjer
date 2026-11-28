@@ -1,6 +1,6 @@
 ---
-total_decisions: 42
-last_updated: 2026-11-27
+total_decisions: 44
+last_updated: 2026-11-28
 ---
 
 # Decision Index
@@ -33,15 +33,16 @@ How a trip becomes the page: the views, the sections, the day logic and the pack
 
 A trip's data and the pipeline that refreshes it: the fields, the contract and the cost of a refresh. Patterns: [trip-data.md](./patterns/trip-data.md), [pipeline.md](./patterns/pipeline.md).
 
-| ADR                                                                                 | Date       | Status   | Rule                                                                                                                                     |
-| ----------------------------------------------------------------------------------- | ---------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| [ADR-20260930-google-keys](decisions/ADR-20260930-google-keys.md)                   | 2026-09-30 | accepted | RelaxJer ships no Google keys: each user creates their own, a referrer-restricted browser key and a separate server key, never mixed.    |
-| [ADR-20261001-day-split](decisions/ADR-20261001-day-split.md)                       | 2026-10-01 | amended  | A day can split for part of the group: DAYS[i].split names where it forks and who goes, and the trip contract checks it.                 |
-| [ADR-20261001-option-chips](decisions/ADR-20261001-option-chips.md)                 | 2026-10-01 | accepted | An optional plan attaches to a stop with OPTIONAL[i].near, shown as a dashed chip on that stop, and the contract checks the stop exists. |
-| [ADR-20261001-resync-cost-guard](decisions/ADR-20261001-resync-cost-guard.md)       | 2026-10-01 | amended  | A data refresh answers from the cache first and calls Google again only for failures that may pass on retry, never for a 404.            |
-| [ADR-20261007-traffic-aware-drives](decisions/ADR-20261007-traffic-aware-drives.md) | 2026-10-07 | amended  | A drive leg may carry an HH:MM time, and a drive still ahead uses Google's traffic-aware estimate for that time.                         |
-| [ADR-20261126-own-leg-minutes](decisions/ADR-20261126-own-leg-minutes.md)           | 2026-11-26 | accepted | A route leg may end with the trip's own minutes, shown only when Google has no time for it; Japan's transit is never asked.              |
-| [ADR-20261127-decide-option-route](decisions/ADR-20261127-decide-option-route.md)   | 2026-11-27 | accepted | A decide option may carry its own route; its legs are stored as <day>:<k>:<i> in geo.json, apart from the day's, and drawn on its card.  |
+| ADR                                                                                   | Date       | Status   | Rule                                                                                                                                               |
+| ------------------------------------------------------------------------------------- | ---------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [ADR-20260930-google-keys](decisions/ADR-20260930-google-keys.md)                     | 2026-09-30 | accepted | RelaxJer ships no Google keys: each user creates their own, a referrer-restricted browser key and a separate server key, never mixed.              |
+| [ADR-20261001-day-split](decisions/ADR-20261001-day-split.md)                         | 2026-10-01 | amended  | A day can split for part of the group: DAYS[i].split names where it forks and who goes, and the trip contract checks it.                           |
+| [ADR-20261001-option-chips](decisions/ADR-20261001-option-chips.md)                   | 2026-10-01 | accepted | An optional plan attaches to a stop with OPTIONAL[i].near, shown as a dashed chip on that stop, and the contract checks the stop exists.           |
+| [ADR-20261001-resync-cost-guard](decisions/ADR-20261001-resync-cost-guard.md)         | 2026-10-01 | amended  | A data refresh answers from the cache first and calls Google again only for failures that may pass on retry, never for a 404.                      |
+| [ADR-20261007-traffic-aware-drives](decisions/ADR-20261007-traffic-aware-drives.md)   | 2026-10-07 | amended  | A drive leg may carry an HH:MM time, and a drive still ahead uses Google's traffic-aware estimate for that time.                                   |
+| [ADR-20261126-own-leg-minutes](decisions/ADR-20261126-own-leg-minutes.md)             | 2026-11-26 | accepted | A route leg may end with the trip's own minutes, shown only when Google has no time for it; Japan's transit is never asked.                        |
+| [ADR-20261127-decide-option-route](decisions/ADR-20261127-decide-option-route.md)     | 2026-11-27 | accepted | A decide option may carry its own route; its legs are stored as <day>:<k>:<i> in geo.json, apart from the day's, and drawn on its card.            |
+| [ADR-20261128-budget-paid-insurance](decisions/ADR-20261128-budget-paid-insurance.md) | 2026-11-28 | accepted | Budget rows can be paid (date, where, ref), in the home currency, in parts, or price TBD; the glance is the paid total. INSURANCE: a tile, no IDs. |
 
 ## sync
 
@@ -69,18 +70,27 @@ Where the page and the demos are published, the keys they need, and the page sec
 
 How the page looks, moves and reads: type, colour, illustrations, motion, names and controls. Patterns: [frontend.md](./patterns/frontend.md), [affordances.md](./patterns/affordances.md).
 
-| ADR                                                                             | Date       | Status   | Rule                                                                                                                                                            |
-| ------------------------------------------------------------------------------- | ---------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [ADR-20260930-name-relaxjer](decisions/ADR-20260930-name-relaxjer.md)           | 2026-09-30 | accepted | The product is called RelaxJer: the exact name is unclaimed, so the site can rank for it, and it carries the lowest legal risk.                                 |
-| [ADR-20261002-embed-brush-font](decisions/ADR-20261002-embed-brush-font.md)     | 2026-10-02 | accepted | The build embeds the brush font's glyphs the page uses as base64 woff2, so the page renders the same offline.                                                   |
-| [ADR-20261002-landing-postcards](decisions/ADR-20261002-landing-postcards.md)   | 2026-10-02 | accepted | Each landing-page feature is a postcard: a drawn mini trip page on one spot colour, with its stamp and copy on the back.                                        |
-| [ADR-20261117-destination-themes](decisions/ADR-20261117-destination-themes.md) | 2026-11-17 | amended  | A pack may name one visual world; a city's world overrides its country's, and each world is two files in engine/src/themes/.                                    |
-| [ADR-20261121-world-motion](decisions/ADR-20261121-world-motion.md)             | 2026-11-21 | amended  | A moving part of a picture is a top-level group with data-actor, and splitArt returns the still drawing plus each moving part as its own SVG.                   |
-| [ADR-20261121-world-stickers](decisions/ADR-20261121-world-stickers.md)         | 2026-11-21 | accepted | Day colours keep text contrast at 4.5:1 or more on light paper and 3.8:1 or more on dark; tints are fixed shares of the colour.                                 |
-| [ADR-20261124-bottom-app-bar](decisions/ADR-20261124-bottom-app-bar.md)         | 2026-11-24 | amended  | Below 1024 px a bottom bar (Today, Days, Map, More) replaces the date strip and the Sections button, and the sky’s Pause moves into More.                       |
-| [ADR-20261124-grouped-lists](decisions/ADR-20261124-grouped-lists.md)           | 2026-11-24 | accepted | The rail, Days, More and the Sections sheet are grouped lists: cards of 52 px rows split by inset hairlines, each row ending in ›, a value with ⌃⌄, or nothing. |
-| [ADR-20261124-map-first-search](decisions/ADR-20261124-map-first-search.md)     | 2026-11-24 | accepted | Search results and the finder lie over the map (sheet or side panel); a picked place is framed with the group and marked, no line; filters behind one button.   |
-| [ADR-20261127-stop-detail-fold](decisions/ADR-20261127-stop-detail-fold.md)     | 2026-11-27 | accepted | A stop splits its text into note (always shown) and detail, a native fold: shut below 600 px, open from 600 px, a tap either way.                               |
+| ADR                                                                                     | Date       | Status   | Rule                                                                                                                                                            |
+| --------------------------------------------------------------------------------------- | ---------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [ADR-20260930-name-relaxjer](decisions/ADR-20260930-name-relaxjer.md)                   | 2026-09-30 | accepted | The product is called RelaxJer: the exact name is unclaimed, so the site can rank for it, and it carries the lowest legal risk.                                 |
+| [ADR-20261002-embed-brush-font](decisions/ADR-20261002-embed-brush-font.md)             | 2026-10-02 | accepted | The build embeds the brush font's glyphs the page uses as base64 woff2, so the page renders the same offline.                                                   |
+| [ADR-20261002-landing-postcards](decisions/ADR-20261002-landing-postcards.md)           | 2026-10-02 | accepted | Each landing-page feature is a postcard: a drawn mini trip page on one spot colour, with its stamp and copy on the back.                                        |
+| [ADR-20261117-destination-themes](decisions/ADR-20261117-destination-themes.md)         | 2026-11-17 | amended  | A pack may name one visual world; a city's world overrides its country's, and each world is two files in engine/src/themes/.                                    |
+| [ADR-20261121-world-motion](decisions/ADR-20261121-world-motion.md)                     | 2026-11-21 | amended  | A moving part of a picture is a top-level group with data-actor, and splitArt returns the still drawing plus each moving part as its own SVG.                   |
+| [ADR-20261121-world-stickers](decisions/ADR-20261121-world-stickers.md)                 | 2026-11-21 | accepted | Day colours keep text contrast at 4.5:1 or more on light paper and 3.8:1 or more on dark; tints are fixed shares of the colour.                                 |
+| [ADR-20261124-bottom-app-bar](decisions/ADR-20261124-bottom-app-bar.md)                 | 2026-11-24 | amended  | Below 1024 px a bottom bar (Today, Days, Map, More) replaces the date strip and the Sections button, and the sky’s Pause moves into More.                       |
+| [ADR-20261124-grouped-lists](decisions/ADR-20261124-grouped-lists.md)                   | 2026-11-24 | amended  | The rail, Days, More and the Sections sheet are grouped lists: cards of 52 px rows split by inset hairlines, each row ending in ›, a value with ⌃⌄, or nothing. |
+| [ADR-20261124-map-first-search](decisions/ADR-20261124-map-first-search.md)             | 2026-11-24 | amended  | Search results and the finder lie over the map (sheet or side panel); a picked place is framed with the group and marked, no line; filters behind one button.   |
+| [ADR-20261128-progressive-disclosure](decisions/ADR-20261128-progressive-disclosure.md) | 2026-11-28 | accepted | Glance layer open (Now/Next, hotel, week, day card, one-line stops); lists fold with a count; single parts are icon tiles; one money number.                    |
+
+<details>
+<summary>Superseded or deprecated (1)</summary>
+
+| ADR                                                                         | Date       | Status     | Rule                                                                                                                              |
+| --------------------------------------------------------------------------- | ---------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| [ADR-20261127-stop-detail-fold](decisions/ADR-20261127-stop-detail-fold.md) | 2026-11-27 | superseded | A stop splits its text into note (always shown) and detail, a native fold: shut below 600 px, open from 600 px, a tap either way. |
+
+</details>
 
 ## tooling
 

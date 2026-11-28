@@ -4,6 +4,8 @@
 
 # Builds, caches, test output
 /dist/
+# a demo built where build.mjs puts it by default (<trip>/dist)
+/examples/*/dist/
 /.cache/
 # the live demo, built into site/ only at deploy time (pages.yml) or for a local look
 /site/demo/

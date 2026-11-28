@@ -141,6 +141,7 @@ const DAYS = [
 		],
 		tickets: ['ic-buy'],
 		title: ['机场 → 札幌站 → 酒店 → 大通公园夜景', 'Airport → Sapporo Station → hotel → Odori Park lights'],
+		short: ['抵达 · 大通夜景', 'Arrive · Odori lights'],
 		focus: ['落地、入住、轻松晚餐', 'Land, check in, an easy dinner'],
 		photos: [],
 		wear: ['厚外套 + 防滑鞋', 'Thick coat + grippy boots'],
@@ -198,6 +199,7 @@ const DAYS = [
 			{
 				type: 'decide',
 				icon: 'food',
+				tile: ['晚餐', 'Dinner'],
 				h: ['第一晚吃什么', 'First night: where to eat'],
 				opts: [
 					{
@@ -268,6 +270,7 @@ const DAYS = [
 			['otaruStn', 'hotel', 'transit'],
 		],
 		title: ['小樽运河 → 堺町通 → 音乐盒堂', 'Otaru Canal → Sakaimachi → Music Box Museum'],
+		short: ['小樽一日', 'Otaru day'],
 		focus: ['坐火车去小樽，走路为主', 'A train to Otaru, mostly on foot'],
 		photos: [],
 		wear: ['厚外套 + 帽子 + 防滑鞋', 'Thick coat + hat + grippy boots'],
@@ -284,6 +287,7 @@ const DAYS = [
 				t: '10:30–12:00',
 				what: ['小樽运河散步', 'A walk along Otaru Canal'],
 				place: 'otaruCanal',
+				todo: true,
 				note: ['河边风大，戴帽子', 'Wind off the water; wear a hat'],
 			},
 			{ t: '12:00–13:15', what: ['午餐：寿司（示范）', 'Lunch: sushi (demo)'], note: ['中午前到，排队会变长', 'Arrive before noon; queues grow'] },
@@ -311,6 +315,7 @@ const DAYS = [
 			{
 				type: 'text',
 				icon: 'train',
+				tile: ['怎么走', 'Getting there'],
 				h: ['今天怎么走', 'Getting around today'],
 				p: [['JR 函馆本线往返，车程约35分钟，札幌站出发。', 'JR Hakodate Main Line there and back; about 35 min from Sapporo Station.']],
 				total: { amt: '≈¥8,900', per: ['六人往返车费', 'return fares for 6'], min: 8900, max: 8900 },
@@ -318,6 +323,7 @@ const DAYS = [
 			{
 				type: 'decide',
 				icon: 'food',
+				tile: ['晚餐', 'Dinner'],
 				h: ['晚上吃什么', 'Evening: where to eat'],
 				opts: [
 					{
@@ -369,6 +375,7 @@ const DAYS = [
 			{
 				type: 'table',
 				icon: 'sun',
+				tile: ['天气和穿着', 'Weather & wear'],
 				h: ['天气和穿着', 'Weather and clothing'],
 				cols: [
 					['时段', 'When'],
@@ -403,6 +410,7 @@ const DAYS = [
 			},
 			{
 				type: 'rain',
+				tile: ['下雪方案', 'Snow plan'],
 				h: ['下雪的话', 'If it snows hard'],
 				list: [
 					['音乐盒堂和运河的室内店多待一会儿', 'Stay longer in the indoor shops and the music box museum'],
@@ -431,6 +439,7 @@ const DAYS = [
 		],
 		tickets: ['teine-lesson'],
 		title: ['手稻雪场滑雪课 → 定山渓温泉（两人）', 'Teine ski lesson → Jōzankei Onsen (two of us)'],
+		short: ['滑雪 + 温泉', 'Ski + hot spring'],
 		focus: ['四人上山，两人去泡温泉', 'Four of us on the hill, two of us in the onsen'],
 		photos: [],
 		wear: ['雪具 + 防水手套 + 护目镜', 'Ski wear + waterproof gloves + goggles'],
@@ -483,6 +492,7 @@ const DAYS = [
 				t: '09:30',
 				what: ['租雪具，集合', 'Gear rental and meet-up'],
 				place: 'teine',
+				todo: true,
 				note: ['租雪具要排队，提早到', 'Gear rental queues; arrive early'],
 			},
 			{
@@ -579,6 +589,7 @@ const DAYS = [
 			},
 			{
 				type: 'rain',
+				tile: ['下雪方案', 'Snow plan'],
 				h: ['下雪大的话', 'If the snow is heavy'],
 				groups: [
 					{
@@ -623,6 +634,7 @@ const DAYS = [
 			['hotel', 'susukino', 'transit'],
 		],
 		title: ['二条市场 → 白色恋人公园 → 狸小路 → 汤咖喱', 'Nijo Market → Shiroi Koibito Park → Tanukikoji → soup curry'],
+		short: ['市场和购物', 'Markets & shops'],
 		focus: ['吃和逛，室内为主', 'Eat and browse, mostly indoors'],
 		photos: [],
 		wear: ['厚外套 + 防滑鞋', 'Thick coat + grippy boots'],
@@ -643,6 +655,7 @@ const DAYS = [
 			{
 				t: '12:00–13:30',
 				what: ['午餐：味噌拉面（示范）', 'Lunch: miso ramen (demo)'],
+				todo: true,
 				note: ['店小，早点去', 'A small shop; go early'],
 			},
 			{
@@ -650,6 +663,7 @@ const DAYS = [
 				what: ['狸小路购物（免税）', 'Tanukikoji shopping (tax-free)'],
 				place: 'tanuki',
 				shops: true, // the trip's shop list (shops.json) goes under this stop
+				todo: true,
 				note: ['同一家店买满 ¥5,000（税前）才能退税', 'Spend ¥5,000+ before tax in one shop for a refund'],
 			},
 			{ t: '17:00', what: ['回酒店休息', 'Back at the hotel to rest'], place: 'hotel', note: ['晚上要出门，先休息', 'Rest before going out'] },
@@ -664,6 +678,7 @@ const DAYS = [
 			{
 				type: 'text',
 				icon: 'train',
+				tile: ['怎么走', 'Getting there'],
 				h: ['今天怎么走', 'Getting around today'],
 				p: [['地铁南北线和步行，狸小路在大通站附近。', 'Subway Namboku line and walking; Tanukikoji is near Odori Station.']],
 				total: { amt: '≈¥2,500', per: ['六人当天交通', 'transport for 6, all day'], min: 2500, max: 2500 },
@@ -714,6 +729,7 @@ const DAYS = [
 			},
 			{
 				type: 'rain',
+				tile: ['下雪方案', 'Snow plan'],
 				h: ['下雪的话', 'If it snows hard'],
 				list: [
 					['狸小路有拱廊，雪天也能逛', 'Tanukikoji has an arcade; good in snow'],
@@ -740,6 +756,7 @@ const DAYS = [
 		],
 		tickets: ['airport-van'],
 		title: ['退房 → 大通公园散步 → 机场 → 回家', 'Check out → Odori Park walk → airport → home'],
+		short: ['回家', 'Home'],
 		focus: ['行李寄放，最后散步，然后去机场', 'Bags stay at the hotel, a last walk, then the airport'],
 		photos: [],
 		wear: ['厚外套 + 好走的鞋', 'Thick coat + walking shoes'],
@@ -772,6 +789,7 @@ const DAYS = [
 				rel: { dep: [-130, -105], about: 1 },
 				what: ['到机场，退税柜台', 'At the airport: tax-free counter'],
 				place: 'cts',
+				todo: true,
 				note: ['退税要在托运行李之前', 'Tax refund comes before bag check-in'],
 			},
 			{
@@ -779,6 +797,7 @@ const DAYS = [
 				rel: { dep: [-100], about: 1 },
 				what: ['托运行李，安检与出境', 'Bags checked, security and immigration'],
 				place: 'cts',
+				todo: true,
 				note: ['托运柜台起飞前60分钟关', 'Bag counters close 60 min before take-off'],
 			},
 			{
@@ -848,27 +867,51 @@ const OPTIONAL = [
 ];
 
 const BUDGET = {
-	excludes: [
-		['机票', 'Flights'],
-		['酒店（已付）', 'Hotel (paid)'],
-	],
+	// what's truly outside the plan; flights and the hotel are rows now, paid (ADR-20261128-budget-paid-insurance)
+	excludes: [['购物', 'Shopping']],
 	rows: [
+		// paid at home, in the home currency: exact amounts, with where and when (synthetic booking numbers)
+		{
+			label: ['机票（来回）', 'Flights, return'],
+			min: 16800,
+			max: 16800,
+			cur: 'home',
+			paid: '2026-11-03',
+			via: ['航空公司 App', 'Airline app'],
+			ref: 'DEMO-H6P4',
+		},
+		{
+			label: ['酒店（四晚）', 'Hotel, four nights'],
+			min: 7200,
+			max: 7200,
+			cur: 'home',
+			paid: '2026-12-14',
+			via: ['订房网站', 'Booking site'],
+			ref: 'DEMO-40917',
+		},
+		// paid in parts: a deposit in the activities app, the rest on the day
+		{
+			label: ['滑雪课（四人）', 'Ski lesson (four of us)'],
+			parts: [
+				{ amt: 7800, paid: '2026-12-08', via: ['活动平台', 'Activities app'], label: ['订金', 'Deposit'] },
+				{ amt: 11700, via: ['当天付现金', 'Cash on the day'], label: ['尾款', 'Balance'] },
+			],
+		},
+		// still to come: estimates in the trip's currency
 		[['机场来回', 'Airport, both ways'], '≈¥26,000–30,000', 26000, 30000, 'airport'],
+		[['雪场缆车', 'Lift passes'], '≈¥4,000–6,000', 4000, 6000],
 		[['市内交通', 'Local transport'], '≈¥6,000–9,000', 6000, 9000],
-		[['滑雪课与雪场（四人）', 'Ski lesson and lifts (four of us)'], '≈¥19,500–25,500', 19500, 25500],
 		[['门票与活动', 'Tickets and activities'], '≈¥4,000–6,000', 4000, 6000],
 		[['吃饭（含早餐）', 'Meals (with breakfasts)'], '≈¥50,000–66,000', 50000, 66000],
+		// planned, price not known yet: listed, never counted
+		{ label: ['加购行李（回程）', 'Extra baggage, home'], tbd: true, via: ['航空公司 App', 'Airline app'] },
 	],
-	total: ['合计 ≈¥105,500–136,500', 'Total ≈¥105,500–136,500'],
-	totalMin: 105500,
-	totalMax: 136500,
-	per: ['每人约 ¥17,600–22,800', 'about ¥17,600–22,800 each'],
 	split: ['滑雪课按人算，两人去温泉时不付课费。', 'The lesson is charged per person; the two at the onsen do not pay it.'],
 	suggest: ['公费 ¥150,000，最后多退少补。', 'A shared pot of ¥150,000; settle up at the end.'],
 	pool: 150000,
 	poolText: ['公费 ¥150,000', 'Shared pot ¥150,000'],
 	airportNote: ['JR 快速机场 + 车比整段包车接送省约 ¥10,000–14,000', 'JR Rapid Airport plus a taxi saves about ¥10,000–14,000 against a jumbo taxi'],
-	chartNote: ['虚线框 = 估算。不含购物和机票。', 'Dashed = estimate. Excludes shopping and flights.'],
+	chartNote: ['虚线框 = 估算。不含购物。', 'Dashed = estimate. Excludes shopping.'],
 };
 
 const MONEY = {

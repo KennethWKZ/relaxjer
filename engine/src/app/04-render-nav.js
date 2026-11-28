@@ -116,15 +116,30 @@ const actRow = (cls, attrs, ic, h, sub = '') =>
 	`<button type="button" class="rl rl-act ${cls}" ${attrs}>${rlTile(ic)}<span class="rl-t"><b>${h}</b>${sub ? `<small>${sub}</small>` : ''}</span></button>`;
 /** a day's row: its mark, its date (html, escaped by the caller) with a Today flag, its title under it, the forecast on
  *  the right */
-function dayRow(d, today, key, date, attrs = '') {
+/* a day as one row, the same in the week, Days, the rail, Sections and the map's list (ADR-20261128-progressive-disclosure):
+   its short name (days[].short, else the first place of its route and how many: Plan.shortFromTitle), the seal beside its
+   date when it holds a fixed time, and its forecast on the right while the day is inside the forecast (nothing after) */
+const dayShort = (d) => (d.short ? L(d.short) : Plan.shortFromTitle(L(d.title), lang));
+const daySeal = (d) =>
+	d.schedule.some((it) => it.fixed) ? `<i class="day-seal" role="img" aria-label="${Z('有固定时间', 'Has a fixed time')}"></i>` : '';
+function dayWx(d) {
 	const fc = fcOf(d);
+	if (!fc) return '';
+	const w = Sky.wordFor(fc.code, false);
+	const say = Z(
+		`${dateLabel(d.date, d.dow)} 预报${L(w.name)}，最高 ${fc.tmax}°`,
+		`${dateLabel(d.date, d.dow)} forecast: ${L(w.name)}, high ${fc.tmax}°`,
+	);
+	return `<span class="day-wx" role="img" aria-label="${esc(say)}">${icon(w.icon)}<span aria-hidden="true">${fc.tmax}°</span></span>`;
+}
+function dayRow(d, today, key, date, attrs = '') {
 	return railRow(
 		d.id,
 		dayMark(d),
-		`${date}${today === d.date ? ` <span class="flag">${Z('今天', 'Today')}</span>` : ''}`,
-		[esc(L(d.title))],
+		`${date}${daySeal(d)}${today === d.date ? ` <span class="flag">${Z('今天', 'Today')}</span>` : ''}`,
+		[esc(dayShort(d))],
 		` style="${colorVars(d.c)}" ${key}="${d.id}"${attrs}`,
-		fc ? `<span class="rl-fc">${icon(fcIcon(fc.code))}<span>${fc.tmin}–${fc.tmax}°</span></span>` : '',
+		dayWx(d),
 	);
 }
 function railMark() {

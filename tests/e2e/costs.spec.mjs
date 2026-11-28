@@ -1,4 +1,5 @@
 // Every group cost also shows a per-person share, and home-currency figures follow the editable rate.
+import { roundHome } from '../../engine/src/core/money.mjs';
 import { test, expect, openTrip } from '../support/fixtures.mjs';
 import { fillAll, openAllDetails, show } from '../support/page.mjs';
 
@@ -78,7 +79,7 @@ test('home-currency figures follow the rate and the rate is remembered', async (
 	const rm = page.locator('#app [data-rm]').first(); // read from its text: it may sit in another view
 	const expected = async (rate) => {
 		const [a, b] = (await rm.getAttribute('data-rm')).split(',').map(Number);
-		const r = (v) => Math.round(v < 100 ? Math.round(v) : Math.round(v / 10) * 10).toLocaleString('en-US');
+		const r = (v) => roundHome(v).toLocaleString('en-US'); // the page's own rounding (core/money.mjs)
 		return [r(a / rate), r(b / rate)];
 	};
 	await show(page, '#rate'); // the budget view
@@ -92,7 +93,7 @@ test('home-currency figures follow the rate and the rate is remembered', async (
 test('the rate takes a home currency worth far more, or far less, than the destination’s', async ({ page }) => {
 	await openTrip(page);
 	const rm = page.locator('#app [data-rm]').first(); // read from its text: it may sit in another view
-	const r = (v) => Math.round(v < 100 ? Math.round(v) : Math.round(v / 10) * 10).toLocaleString('en-US');
+	const r = (v) => roundHome(v).toLocaleString('en-US'); // the page's own rounding (core/money.mjs)
 	await show(page, '#rate'); // the budget view
 	for (const rate of [32, 0.25]) {
 		await page.locator('#rate').fill(String(rate));
@@ -101,18 +102,4 @@ test('the rate takes a home currency worth far more, or far less, than the desti
 	}
 });
 
-// the reserve line and the shared-cost rows had no home-currency figure, while the pool line had one
-test('the budget gives every shared amount in the home currency too', async ({ page }) => {
-	await openTrip(page);
-	await fillAll(page); // the budget's rows sit in a sheet
-	const missing = await page.evaluate(() => {
-		const out = [];
-		document.querySelectorAll('#budget dl.kv > div').forEach((row) => {
-			if (!row.querySelector('[data-rm]')) out.push(row.querySelector('dt')?.textContent.trim().slice(0, 30));
-		});
-		const note = document.querySelector('#budget .sec-lede ~ p.note');
-		if (note && /\d/.test(note.textContent) && !note.querySelector('[data-rm]')) out.push('reserve line');
-		return out;
-	});
-	expect(missing).toEqual([]);
-});
+// every shared amount in the budget's lists also shows in the home currency: tests/e2e/budget-insurance.spec.mjs
