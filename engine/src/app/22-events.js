@@ -6,6 +6,12 @@ document.addEventListener('click', (e) => {
 		openSheet(wcSheet(t.dataset.wc));
 		return;
 	}
+	if (t.matches('[data-refill]')) {
+		// water refill near a stop: place | its day | the stop's start in minutes (05-render-small-parts.js)
+		const [pk, date, at] = t.dataset.refill.split('|');
+		openSheet(refillSheet(pk, date || null, at === '' ? null : +at));
+		return;
+	}
 	if (t.matches('[data-spots]')) {
 		// the list of drink stands / rest spots near a stop, in the bottom sheet
 		const [pk, k, date] = t.dataset.spots.split('|');
@@ -34,7 +40,7 @@ document.addEventListener('click', (e) => {
 		return;
 	}
 	if (t.matches('[data-near-meal]')) {
-		near.meal = t.dataset.nearMeal;
+		nearPick(t.dataset.nearMeal);
 		renderNear();
 		return;
 	}
@@ -135,8 +141,9 @@ document.addEventListener('click', (e) => {
 		openDialog($('#days'));
 		// the day on screen (else today) in sight, in a long trip's list
 		requestAnimationFrame(() => {
-			const row = $('#days [aria-current]') || ($('#days .flag') || {}).parentElement;
-			if (row && row.closest('a')) row.closest('a').scrollIntoView({ block: 'center', behavior: 'instant' });
+			const row = $('#days details[open]') || $('#days [aria-current]') || ($('#days .flag') || {}).parentElement;
+			const at = row && row.closest('.dd, a');
+			if (at) at.scrollIntoView({ block: 'nearest', behavior: 'instant' });
 		});
 		return;
 	}
@@ -214,20 +221,36 @@ document.addEventListener('click', (e) => {
 		jumpTo(((searchState.idx < 0 ? 0 : searchState.idx + (t.id === 'search-next' ? 1 : -1)) + n) % n);
 		return;
 	}
-	if (t.matches('[data-copy-day]')) return copy(dayText(dayById[t.dataset.copyDay]), Z('已复制，可以贴到群组', 'Copied; paste it into the chat'));
-	if (t.matches('[data-copy-link]')) return copy(linkFor(t.dataset.copyLink), Z('链接已复制', 'Link copied'));
+	// the day's ⋯ sheet closes as it acts, so the message shows over the page (a sheet is above everything else)
+	if (t.matches('[data-copy-day]')) {
+		closeDialog(t.closest('dialog'));
+		return copy(dayText(dayById[t.dataset.copyDay]), Z('已复制，可以贴到群组', 'Copied; paste it into the chat'));
+	}
+	if (t.matches('[data-copy-link]')) {
+		closeDialog(t.closest('dialog'));
+		return copy(linkFor(t.dataset.copyLink), Z('链接已复制', 'Link copied'));
+	}
 	if (t.matches('[data-driver]')) return openDriver(t.dataset.driver);
 	if (t.matches('[data-native]')) return copy(t.dataset.native, Z(`已复制：${t.dataset.native}`, `Copied: ${t.dataset.native}`));
 	if (t.id === 'drv-copy') return copy(t.dataset.text, Z('地址已复制', 'Address copied'));
+	if (t.matches('[data-copy-text]')) return copy(t.dataset.copyText, Z(`已复制：${t.dataset.copyText}`, `Copied: ${t.dataset.copyText}`));
+	if (t.matches('[data-coupon]')) return openCoupon(t.querySelector('img'));
 	if (t.matches('[data-close]')) {
 		closeDialog(t.closest('dialog'));
 		return;
 	}
 	if (t.matches('[data-map-day]')) {
 		const f = t.dataset.mapDay;
-		mapView = 'list';
-		mapFull(true);
-		withMap(() => map.filter(f));
+		const dlg = t.closest('dialog');
+		const go = () => {
+			mapView = 'list';
+			mapFull(true);
+			withMap(() => map.filter(f));
+		};
+		if (dlg) {
+			closeDialog(dlg);
+			whenSettled(go);
+		} else go();
 		return;
 	}
 	// the map's day and area live in a sheet behind one button (ADR-20261124-map-first-search): a pick applies and
@@ -335,8 +358,16 @@ document.addEventListener('click', (e) => {
 		return;
 	}
 	if (t.matches('[data-geo-no]')) {
-		store.set('geoNo', tpNow().date);
+		hintGone('geo');
 		renderNow();
+		toast(Z('不再提示。设置里还能打开定位', 'It won’t ask again. Settings can still turn location on'));
+		return;
+	}
+	if (t.matches('[data-geo-row]')) {
+		// Location in the settings: the steps when the browser said no, else the browser's own ask
+		closeDialog(t.closest('dialog'));
+		if (geoState === 'denied') whenSettled(() => geoHelp());
+		else locateMe(() => renderNow());
 		return;
 	}
 	if (t.matches('[data-geo-help]')) {
@@ -503,6 +534,27 @@ document.addEventListener('click', (e) => {
 		);
 		return;
 	}
+	// skipping a planned stop (07-skip.js, ADR-20261128-skip-planned-stops): open to anyone, with or without group sync
+	if (t.matches('[data-skip]')) {
+		const [dy, i] = t.dataset.skip.split('|');
+		skipStop(dy, +i);
+		return;
+	}
+	if (t.matches('[data-unskip]')) {
+		unskip(t.dataset.unskip);
+		return;
+	}
+	if (t.matches('[data-skip-pull]')) {
+		const [dy, key] = t.dataset.skipPull.split('|');
+		skipPull(dy, key);
+		return;
+	}
+	if (t.matches('[data-skip-keep]')) {
+		// No thanks: the suggestion goes, the skipped stop joins the day's fold at the next redraw
+		skipAsk = null;
+		whenSettled(() => mineRerender());
+		return;
+	}
 	if (t.matches('[data-gone-back]')) {
 		const e = (store.get('syncGone', []) || []).find((y) => y && y.x && y.x.id === t.dataset.goneBack);
 		if (!e || MINE[e.x.id]) return;
@@ -550,7 +602,7 @@ document.addEventListener('click', (e) => {
 			syncSheetRefresh();
 			return;
 		}
-		// what goes with the block: its added stops, and the pushed-back times, flight changes and shared ticks it
+		// what goes with the block: its added stops, and the pushed-back times, flight changes, shared ticks and skips it
 		// changed last, back to the original plan. Undo puts all of it back
 		const theirs = mineAll().filter((x) => stopOwner(x) === dev);
 		const last = Object.entries((syncMeta() || {}).known || {})
@@ -559,10 +611,14 @@ document.addEventListener('click', (e) => {
 		const shifts = last.filter((r) => r.startsWith('shift:')).map((r) => r.slice(6));
 		const flts = last.filter((r) => r === 'flt:arr' || r === 'flt:dep');
 		const ticks = last.filter((r) => r.startsWith('tick:')).map((r) => r.slice(5));
-		const other = shifts.length + flts.length + ticks.length;
+		const skipped = last
+			.filter((r) => r.startsWith('skip:'))
+			.map((r) => r.slice(5))
+			.filter((k) => skipsAll()[k]);
+		const other = shifts.length + flts.length + ticks.length + skipped.length;
 		const ask = Z(
-			`停用${name}？它加的 ${theirs.length} 个行程${other ? `和最后改的 ${other} 处（推迟时间、航班、勾选）` : ''}会改回原计划，之后它的改动大家都看不到。规划人可以再恢复。`,
-			`Block ${name}? Its ${theirs.length} added stop${theirs.length === 1 ? '' : 's'}${other ? ` and the ${other} change${other === 1 ? '' : 's'} it made last (pushed-back times, flights, ticks)` : ''} go back to the original plan, and from now on its changes are ignored on every device. A planner can unblock it.`,
+			`停用${name}？它加的 ${theirs.length} 个行程${other ? `和最后改的 ${other} 处（推迟时间、航班、勾选、跳过的站）` : ''}会改回原计划，之后它的改动大家都看不到。规划人可以再恢复。`,
+			`Block ${name}? Its ${theirs.length} added stop${theirs.length === 1 ? '' : 's'}${other ? ` and the ${other} change${other === 1 ? '' : 's'} it made last (pushed-back times, flights, ticks, skipped stops)` : ''} go back to the original plan, and from now on its changes are ignored on every device. A planner can unblock it.`,
 		);
 		if (!confirm(ask)) return;
 		const was = {
@@ -571,6 +627,7 @@ document.addEventListener('click', (e) => {
 			fltArr: store.get('fltArr', ''),
 			fltDep: store.get('fltDep', ''),
 			checks: store.get('checks', {}) || {},
+			skips: skipsAll(),
 		};
 		const roles = { ...was.roles };
 		delete roles[dev];
@@ -585,6 +642,11 @@ document.addEventListener('click', (e) => {
 			store.set('shift', sh);
 		}
 		for (const f of flts) store.set(f === 'flt:arr' ? 'fltArr' : 'fltDep', '');
+		if (skipped.length) {
+			const sk = { ...was.skips };
+			for (const k of skipped) delete sk[k];
+			store.set('skips', sk);
+		}
 		if (ticks.length) {
 			const ck = { ...was.checks };
 			for (const k of ticks) delete ck[k];
@@ -602,6 +664,7 @@ document.addEventListener('click', (e) => {
 				if (shifts.length)
 					store.set('shift', { ...(store.get('shift', {}) || {}), ...Object.fromEntries(shifts.map((d) => [d, was.shift[d]]).filter(([, v]) => v)) });
 				for (const f of flts) store.set(f === 'flt:arr' ? 'fltArr' : 'fltDep', f === 'flt:arr' ? was.fltArr : was.fltDep);
+				if (skipped.length) store.set('skips', { ...skipsAll(), ...Object.fromEntries(skipped.map((k) => [k, was.skips[k]])) });
 				if (ticks.length) {
 					const ck = { ...(store.get('checks', {}) || {}) };
 					for (const k of ticks) if (was.checks[k]) ck[k] = true;
@@ -636,9 +699,14 @@ document.addEventListener('click', (e) => {
 		return;
 	}
 	if (t.matches('[data-mine-share]')) {
+		closeDialog(t.closest('dialog.bsheet')); // a day's ⋯ sheet
 		const url = mineShareURL();
-		const text = Z(`我加的${CITY[0]}行程：打开链接就能加入你的页面`, `My added ${CITY[1]} stops: open the link to add them`);
-		if (navigator.share) navigator.share({ title: Z('我加的行程', 'My added stops'), text, url }).catch(() => {});
+		const skips = Object.keys(skipsAll()).length > 0;
+		const text = skips
+			? Z(`我的${CITY[0]}行程改动：打开链接就能加入你的页面`, `My changes to the ${CITY[1]} plan: open the link to add them`)
+			: Z(`我加的${CITY[0]}行程：打开链接就能加入你的页面`, `My added ${CITY[1]} stops: open the link to add them`);
+		if (navigator.share)
+			navigator.share({ title: skips ? Z('我的行程改动', 'My changes') : Z('我加的行程', 'My added stops'), text, url }).catch(() => {});
 		else if (navigator.clipboard)
 			navigator.clipboard.writeText(url).then(() => toast(Z('链接已复制，贴到群里', 'Link copied: paste it in the chat')));
 		return;
@@ -653,9 +721,15 @@ document.addEventListener('click', (e) => {
 			}
 		});
 		mineSet(list);
+		// and the stops the sender skipped (still ones this page lets the group skip)
+		const sk = mineIncomingSkips.filter((k) => SKIP_AT[k] && !skipsAll()[k]);
+		if (sk.length) store.set('skips', { ...skipsAll(), ...Object.fromEntries(sk.map((k) => [k, { at: Date.now() }])) });
 		mineIncoming = null;
+		mineIncomingSkips = [];
 		closeDialog($('#placeSheet'));
-		whenSettled(() => mineRerender(Z(`已加入 ${n} 个`, `Added ${n}`)));
+		whenSettled(() =>
+			mineRerender(sk.length ? Z(`已加入 ${n} 个，跳过 ${sk.length} 站`, `Added ${n}, skipped ${sk.length}`) : Z(`已加入 ${n} 个`, `Added ${n}`)),
+		);
 		return;
 	}
 	if (t.matches('[data-gsearch]')) {
@@ -680,6 +754,7 @@ document.addEventListener('click', (e) => {
 		// works before the map has loaded too: remembered, applied when it is ready
 		const c = t.dataset.cat;
 		mapView = 'list'; // a category the person picks: the page's places in it
+		closeDialog(t.closest('dialog'));
 		const go = () => {
 			if (c === 'all') {
 				mapCat = 'all';
@@ -690,6 +765,7 @@ document.addEventListener('click', (e) => {
 		else {
 			mapCat = c;
 			$$('[data-cat]').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.cat === c)));
+			mapFiltSync();
 			mapListSync();
 			withMap(go);
 		}
@@ -917,6 +993,11 @@ function rateSet(v) {
 	$$('[data-cvt]').forEach((el) => {
 		el.textContent = cvPlain(el.dataset.cvt);
 	});
+	// the budget's glance (what's paid, what's still to come) is worked out in the home currency: drawn again
+	const bg = $('#budget-glance');
+	if (bg) bg.outerHTML = budgetGlance();
+	const bk = $('#budget-kinds'); // and so is the By kind sheet, once it's drawn
+	if (bk) bk.innerHTML = budKindsHTML();
 	if (homeFirst) {
 		const bars = $('#budget-bars'),
 			air = $('#airport-bars');
@@ -957,3 +1038,90 @@ $('#q').addEventListener('focus', () => {
 	if (searchState.q) $('#results').dataset.state = 'open';
 });
 window.addEventListener('resize', () => measureBar());
+/* a tax-refund coupon full screen, for the cashier's scanner (ADR-20261128-tax-refund): pure white, the whole coupon on
+   the screen from the full-size image (scaled by CSS only, never a smaller copy), a landscape coupon turned a quarter
+   turn on a phone held upright so it fills the long edge (Tax.turnFor); a double tap zooms in where it lands (one image
+   pixel to one screen pixel, or twice the fit) and back, and pinch zoom works. The screen stays awake while it's open
+   (Wake Lock, where the browser has it). A page can't set the brightness or lock the orientation, so it asks for the
+   first and turns the image instead of the phone. ✕, Escape and Back close it */
+let couponLock = null;
+const couponWake = () => {
+	if (!navigator.wakeLock || !$('#couponView') || !$('#couponView').open || document.visibilityState !== 'visible') return;
+	navigator.wakeLock
+		.request('screen')
+		.then((l) => {
+			couponLock = l;
+		})
+		.catch(() => {});
+};
+document.addEventListener('visibilitychange', couponWake); // the lock goes when the page is hidden: take it again
+function openCoupon(img) {
+	if (!img) return;
+	let d = $('#couponView');
+	if (!d) {
+		d = document.createElement('dialog');
+		d.id = 'couponView';
+		d.className = 'coupon-view';
+		document.body.append(d);
+		d.addEventListener('close', () => {
+			if (couponLock) couponLock.release().catch(() => {});
+			couponLock = null;
+		});
+	}
+	d.setAttribute('aria-label', img.alt);
+	d.innerHTML = `<button type="button" class="icon-btn cv-x" data-close aria-label="${Z('关闭', 'Close')}">${icon('x')}</button><div class="cv-scroll"><div class="cv-stage"><img alt="${esc(img.alt)}"></div></div><p class="cv-tip">${Z('把屏幕调亮，扫得比较快', 'Turn the brightness up for a quicker scan')}</p>`;
+	const box = d.querySelector('.cv-scroll');
+	const stage = box.querySelector('.cv-stage');
+	const big = stage.querySelector('img');
+	let zoomed = false;
+	// sizes in pixels (Tax.couponView): the stage takes the coupon's place on the screen, turned already, so the box
+	// scrolls over all of it in both directions; the image sits in its middle, turned a quarter turn when it should be
+	const lay = () => {
+		const cs = getComputedStyle(box);
+		const v = Tax.couponView({
+			imgW: big.naturalWidth,
+			imgH: big.naturalHeight,
+			boxW: box.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight),
+			boxH: box.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom),
+			viewW: innerWidth,
+			viewH: innerHeight,
+			dpr: window.devicePixelRatio,
+			zoomed,
+		});
+		box.classList.toggle('is-turned', v.turned);
+		box.classList.toggle('is-zoomed', zoomed);
+		stage.style.width = `${v.w}px`;
+		stage.style.height = `${v.h}px`;
+		big.style.width = `${v.iw}px`;
+		big.style.height = `${v.ih}px`;
+	};
+	big.addEventListener('load', lay);
+	addEventListener('resize', lay);
+	d.addEventListener('close', () => removeEventListener('resize', lay), { once: true });
+	big.src = img.currentSrc || img.src;
+	if (big.complete) lay();
+	// a double tap zooms in around the tapped point, turned or not, and back out to the whole coupon
+	const zoom = (x, y) => {
+		const r = stage.getBoundingClientRect();
+		const fx = Math.min(1, Math.max(0, (x - r.left) / r.width));
+		const fy = Math.min(1, Math.max(0, (y - r.top) / r.height));
+		zoomed = !zoomed;
+		lay();
+		if (!zoomed) return box.scrollTo(0, 0);
+		const n = stage.getBoundingClientRect();
+		box.scrollLeft += n.left + fx * n.width - x;
+		box.scrollTop += n.top + fy * n.height - y;
+	};
+	let last = 0;
+	let lx = 0;
+	let ly = 0;
+	big.addEventListener('pointerup', (e) => {
+		const now = Date.now();
+		if (now - last < 350 && Math.hypot(e.clientX - lx, e.clientY - ly) < 30) {
+			last = 0;
+			zoom(e.clientX, e.clientY);
+		} else [last, lx, ly] = [now, e.clientX, e.clientY];
+	});
+	openDialog(d);
+	whenSettled(couponWake);
+}

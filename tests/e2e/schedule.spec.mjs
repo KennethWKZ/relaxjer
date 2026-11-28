@@ -1,7 +1,7 @@
 // Timeline rules: fixed times never move; flight-tied times follow the flight; a push-back only suggests and stops at
 // the next fixed item.
 import { test, expect, openTrip } from '../support/fixtures.mjs';
-import { fillAll, goToView, optRoute, setStored, show } from '../support/page.mjs';
+import { fillAll, optRoute, setStored, show } from '../support/page.mjs';
 /* global DAYS, GEO, SITES */
 
 // tagged @demo: stop ids, times and dates are the demo trip's
@@ -117,7 +117,7 @@ test("a route leg Google can't time shows the trip's own minutes", async ({ page
 		return null;
 	});
 	test.skip(!own, 'this trip has no leg with its own minutes and no Google time');
-	await goToView(page, own.day);
+	await show(page, `#${own.day}-route`); // the day's Route tile's sheet (ADR-20261128-progressive-disclosure)
 	const leg = page.locator(`#${own.day}-route .rl-m`).nth(own.i);
 	await expect(leg.locator('small')).toHaveText(`${own.min}′`);
 	await expect(leg).toHaveAttribute('aria-label', new RegExp(`${own.min}`));

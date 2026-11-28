@@ -65,26 +65,23 @@ try {
 			writeFileSync(`${webp}.json`, `${JSON.stringify({ prompt, createdAt: new Date().toISOString() }, null, 2)}\n`);
 			console.log(`wrote ${path.relative(ROOT, webp)}`);
 		};
-		// a world's 'now' shot can open on today's card instead, so its picture leads (the page's own day tab, as below)
-		if (day) {
-			await page.locator(`.tabs a[href="#${day}"]`).tap();
+		// a view of the page by its own address (#d3, #airport), as a link on the page would open it
+		const view = async (id) => {
+			await page.goto(`http://127.0.0.1:${PORT}/trip-standalone.html#${id}`);
 			await page.waitForTimeout(3000);
-		}
+		};
+		// a world's 'now' shot can open on that day's card instead, so its picture leads
+		if (day) await view(day);
 		await shot('now');
 		if (!shots.includes('day')) {
 			if (errors.length) throw new Error(`the demo page threw: ${errors.join('; ')}`);
 			await ctx.close();
 			continue;
 		}
-		// the page's own day tab: its jump holds the landing while skipped sections draw (knowledge/engine-browser.md)
-		await page.locator('.tabs a[href="#d3"]').tap();
-		await page.waitForTimeout(3000);
+		await view('d3');
 		await shot('day');
-		await page.evaluate(() => {
-			const el = document.getElementById('airport');
-			window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY + 380, behavior: 'instant' });
-		});
-		await page.waitForTimeout(2600);
+		// the airport options, each group total with each person's share
+		await view('airport');
 		await shot('costs');
 		if (errors.length) throw new Error(`the demo page threw: ${errors.join('; ')}`);
 		await ctx.close();

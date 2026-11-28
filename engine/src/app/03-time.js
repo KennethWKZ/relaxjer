@@ -19,7 +19,8 @@ function dateTag(s, dow, mark = true) {
 }
 const parseT = (t) => Time.timesIn(L(t));
 function nowNext(day, mins) {
-	const items = day.schedule.map((it, i) => ({ it, i, ...parseT(it.t || '') })).filter((x) => x.s != null);
+	// a skipped stop is neither now nor next (ADR-20261128-skip-planned-stops)
+	const items = day.schedule.map((it, i) => ({ it, i, ...parseT(it.t || '') })).filter((x) => x.s != null && !x.it._skip);
 	let cur = null,
 		next = null;
 	for (let k = 0; k < items.length; k++) {

@@ -1,12 +1,13 @@
 /* ───────── sections ───────── */
+/* Today (ADR-20261128-progressive-disclosure): the glance layer stays open (Now and Next, tonight's hotel, the week, one
+   line a day); bookings are tiles; the trip's facts and the backup ideas are folds, shut until asked for */
 function secOverview() {
-	const hotelAddr = addrFor(hotelOf(ROLE.arrive)); // the facts' address line: the first night's hotel
 	const now = tpNow();
 	const td = DAYS.find((d) => d.date === now.date);
-	// with a live sky the trip's name, dates and today's weather sit in the sky's band at the top
+	// with a live sky the trip's name, its dates and today's weather sit in the sky's band at the top
 	const head = skyOn()
 		? bandHTML(
-				`<p class="band-meta"><span>${esc(Time.rangeLabel(TRIP.start, TRIP.end, lang))}</span><span>${esc(Z(`${PAX} 人`, `${PAX} people`))}</span>${td ? `<span class="flag">Day ${td.n}</span>` : ''}</p><h1 class="band-h">${esc(L(TRIP.name))}</h1>${td ? wxLine(td) : ''}`,
+				`<p class="band-meta"><span>${icon('calendar')}${esc(Time.rangeLabel(TRIP.start, TRIP.end, lang))}</span>${td ? `<span class="flag">Day ${td.n}</span>` : ''}</p><h1 class="band-h">${esc(L(TRIP.name))}</h1>${td ? wxLine(td) : ''}`,
 			)
 		: `<h1 class="sr-only">${esc(L(TRIP.name))}</h1>`;
 	return `<section class="sec" id="top" data-sec="top">
@@ -14,14 +15,131 @@ function secOverview() {
       ${worldArt('hero', 'world-hero')}
       <div class="now-card" id="now" aria-live="polite"></div>
       ${syncAwayHTML()}
+      ${hotelCard(hotelNow())}
       <h2 class="sub">${icon('calendar')}${Z('这一周', 'The week')}</h2>
-      <ol class="week">${DAYS.map((d) => `<li><a class="wk" href="#${d.id}" style="${colorVars(d.c)}">${dayMark(d)}<span class="wk-date">${+d.date.slice(8)}<small>${esc(Z('周' + d.dow[0], d.dow[1]))}</small></span><span class="wk-title">${esc(L(d.title))}<span class="wk-focus">${esc(L(d.focus))}</span></span>${icon('arrow', 'wk-arrow')}</a></li>`).join('')}</ol>
-      <h2 class="sub">${icon('info')}${Z('旅行资料', 'Trip facts')}</h2>
-      <dl class="facts">${FACTS.map((f) => `<div class="fact"><dt>${esc(L(f.k))}</dt><dd>${fmt(f.v)}${f.place ? `<p class="addr">${icon('pin')}<span>${escText(hotelAddr.zh)}${hotelAddr.en ? `<br><span class="xsmall">${escText(hotelAddr.en)}</span>` : ''}</span></p><p class="xsmall">${fmt(PLACES.hotel.note)} · ${Z('电话', 'Tel')} <span class="sel">${esc(PLACES.hotel.tel)}</span></p>${PLACES.hotel.gname ? `<p class="xsmall">${icon('info')} ${Z(`Google 地图仍用旧名「${esc(PLACES.hotel.gname)}」（同地址、电话）。搜新名字会出现别家酒店，请用这里的按钮或地址。`, `Google Maps still lists old name 「${esc(PLACES.hotel.gname)}」 (same address/phone). New-name search finds other hotels; use buttons/address here.`)}</p>` : ''}<div class="links-row">${placeLinks(f.place)}</div>` : ''}</dd></div>`).join('')}</dl>
-      <h2 class="sub">${icon('list')}${Z('机动备选', 'Backups if we have time')}</h2>
-      <div class="pills">${BACKUPS.map((b) => `<span class="tag">${fmt(b)}</span>`).join('')}</div>
-      <div class="links-row"><a class="mlink" href="#optional">${icon('arrow')}${Z('看备选详情', 'See the optional list')}</a></div>
+      <ol class="week">${DAYS.map((d) => `<li><a class="wk" href="#${d.id}" style="${colorVars(d.c)}">${dayMark(d)}<span class="wk-date">${+d.date.slice(8)}${daySeal(d)}<small>${esc(Z('周' + d.dow[0], d.dow[1]))}</small></span><span class="wk-title">${esc(dayShort(d))}</span>${dayWx(d)}${icon('arrow', 'wk-arrow')}</a></li>`).join('')}</ol>
+      ${partsHTML('top', topParts(), ['预订和资料', 'Bookings and info'])}
+      ${foldHTML(
+				'facts',
+				'info',
+				['旅行资料', 'Trip facts'],
+				FACTS.filter((f) => !f.place).length,
+				`<dl class="facts">${FACTS.filter((f) => !f.place)
+					.map((f) => `<div class="fact"><dt>${esc(L(f.k))}</dt><dd>${fmt(f.v)}</dd></div>`)
+					.join('')}</dl>`,
+			)}
+      ${foldHTML(
+				'backups',
+				'list',
+				['机动备选', 'Backups if we have time'],
+				BACKUPS.length,
+				`<div class="pills">${BACKUPS.map((b) => `<span class="tag">${fmt(b)}</span>`).join('')}</div><div class="links-row"><a class="mlink" href="#optional">${icon('arrow')}${Z('看备选详情', 'See the optional list')}</a></div>`,
+			)}
     </section>`;
+}
+/** a collapsed section: a big heading with its count and a chevron that turns, shut until tapped; a native details, so
+ *  search finds what's inside and opens it, and a reload reopens it (spotSave) */
+function foldHTML(id, ic, h, n, body) {
+	if (!n) return '';
+	return `<details class="fold" id="fold-${id}"><summary class="fold-h"><h2>${icon(ic)}<span>${esc(L(h))}</span></h2><span class="fold-n">${n}</span>${icon('chev', 'chev')}</summary><div class="fold-body">${body}</div></details>`;
+}
+/** tonight's hotel as a card (the first night's before the trip): its name, the nights, and its actions as labelled
+ *  icons; the address, its note and the phone fold under it (the driver card shows the address too) */
+function hotelCard(pid) {
+	const p = PLACES[pid];
+	if (!p) return '';
+	const nights = DAYS.slice(0, -1).filter((d) => hotelOf(d.id) === pid);
+	const a = addrFor(pid);
+	const span = nights.length
+		? `${esc(Time.rangeLabel(nights[0].date, DAYS[DAYS.indexOf(nights[nights.length - 1]) + 1].date, lang))} · ${Z(`${nights.length} 晚`, `${nights.length} night${nights.length > 1 ? 's' : ''}`)}`
+		: '';
+	const more = [
+		a.zh ? `<p class="addr">${icon('pin')}<span>${escText(a.zh)}${a.en ? `<br><span class="xsmall">${escText(a.en)}</span>` : ''}</span></p>` : '',
+		p.note ? `<p class="xsmall">${fmt(p.note)}</p>` : '',
+		p.tel ? `<p class="xsmall">${Z('电话', 'Tel')} <span class="sel">${esc(p.tel)}</span></p>` : '',
+		p.gname
+			? `<p class="xsmall">${icon('info')} ${Z(`Google 地图仍用旧名「${esc(p.gname)}」（同地址、电话）。搜新名字会出现别家酒店，请用这里的按钮或地址。`, `Google Maps still lists old name 「${esc(p.gname)}」 (same address/phone). New-name search finds other hotels; use buttons/address here.`)}</p>`
+			: '',
+	].join('');
+	return `<article class="hotel-card" id="hotel-card"><div class="hc-head"><span class="hc-ic" aria-hidden="true">${icon('bed')}</span><div class="hc-t"><h2 class="hc-name">${esc(L(p.name))}</h2>${span ? `<p class="hc-sub">${span}</p>` : ''}</div></div>
+      ${placeActs(pid, { copyName: true, noSite: true })}
+      ${more ? `<details class="hc-more"><summary>${icon('info')}<span>${Z('地址和说明', 'Address and notes')}</span>${icon('chev', 'chev')}</summary><div class="hc-more-b">${more}</div></details>` : ''}</article>`;
+}
+/** Today's tiles: the bookings and the parts of the trip the group looks up now and then */
+function topParts() {
+	const F = FLIGHTS;
+	const fl = (f) =>
+		f && f.no
+			? `<div class="flt-card">${icon('plane')}<div><p class="flt-no"><b>${esc(f.no)}</b> · ${esc(dateLabel(f.date))}</p><p>${esc(L(f.from || ['', '']))} → ${esc(L(f.to || ['', '']))}</p><p class="flt-t"><b>${esc(f.dep || '')}</b>${f.arr ? ` → <b>${esc(f.arr)}</b>` : ''}${f.dur ? ` · ${esc(f.dur)}` : ''}</p></div></div>`
+			: '';
+	const flights = [fl(F.out), fl(F.ret)].filter(Boolean);
+	// a tile that goes to a view: Back returns here
+	const go = (key, ic, t, href) => ({ key, icon: ic, t, h: t, href, body: ' ' });
+	return [
+		flights.length && {
+			key: 'flights',
+			icon: 'plane',
+			h: ['航班', 'Flights'],
+			t: ['航班', 'Flights'],
+			n: flights.length > 1 ? flights.length : 0,
+			body: `<div class="stack">${flights.join('')}</div>`,
+		},
+		go('airport', 'train', ['机场', 'Airport'], '#airport'),
+		go('entry', 'passport', ['入境', 'Entry'], '#entry'),
+		go('checklist', 'check', ['清单', 'Checklist'], '#checklist'),
+		go('budget', 'money', ['预算', 'Budget'], '#budget'),
+		hasTax() && {
+			key: 'tax',
+			icon: 'receipt',
+			h: TAX.h || ['退税', 'Tax refund'],
+			t: ['退税', 'Tax refund'],
+			n: taxCoupons().good.length,
+			sum: taxSum(),
+			body: taxSheetHTML(),
+			fill: () => taxSheetHTML(), // drawn when it opens: the coupons' images arrive after the first draw (imgLoad)
+		},
+		insPolicies().length && {
+			key: 'ins',
+			icon: 'shield',
+			h: ['旅游保险', 'Travel insurance'],
+			t: ['保险', 'Insurance'],
+			n: insPolicies().length > 1 ? insPolicies().length : 0,
+			sum: sumB([...new Set(insPolicies().map((p) => p.insurer))].map(esc).join(Z('、', ', '))),
+			body: insuranceHTML(),
+		},
+	].filter(Boolean);
+}
+/* the group's travel insurance (INSURANCE, ADR-20261128-budget-paid-insurance): a card per policy (who it covers, the
+   dates, what it covers, its app, the numbers to call, each a 44 px tel: link, WhatsApp as a wa.me link), then what to
+   keep for a claim, by event. The page is shared with the group: no ID numbers, addresses or birth dates, ever (the
+   contract refuses them) */
+const insPolicies = () => (typeof INSURANCE !== 'undefined' && INSURANCE && Array.isArray(INSURANCE.policies) ? INSURANCE.policies : []);
+const telHref = (t) => String(t).replace(/[^\d+]/g, '');
+function insuranceHTML() {
+	const contact = (c) =>
+		`<div class="ins-c"><span class="ins-c-t"><b>${esc(L(c.label))}</b>${c.when ? `<small>${esc(L(c.when))}</small>` : ''}</span><span class="ins-c-a"><a class="go-btn ins-tel" href="tel:${telHref(c.tel)}">${icon('phone')}<span>${esc(c.tel)}</span></a>${
+			c.wa
+				? `<a class="ins-wa" href="https://wa.me/${telHref(c.wa).replace('+', '')}" target="_blank" rel="noopener">${icon('chat')}<span>WhatsApp</span></a>`
+				: ''
+		}</span></div>`;
+	const site = (s) => (SITES[s] ? SITES[s].url : s);
+	const policy = (p) => `<article class="ins-card">
+      <p class="ins-name">${icon('shield')}<b>${fmt(p.name)}</b></p>
+      <p class="ins-by">${esc(p.insurer)}${p.plan ? ` · ${esc(L(p.plan))}` : ''}</p>
+      ${p.who ? `<p class="ins-line">${icon('users')}<span>${esc(L(p.who))}</span></p>` : ''}
+      ${p.from ? `<p class="ins-line">${icon('calendar')}<span>${esc(p.to && p.to !== p.from ? Time.rangeLabel(p.from, p.to, lang) : dateLabel(p.from))}</span></p>` : ''}
+      ${p.covers && p.covers.length ? `<ul class="ins-covers">${p.covers.map((c) => `<li>${icon('check')}<span>${esc(L(c))}</span></li>`).join('')}</ul>` : ''}
+      ${p.note ? `<p class="note">${fmt(p.note)}</p>` : ''}
+      ${p.contacts && p.contacts.length ? `<div class="ins-contacts">${p.contacts.map(contact).join('')}</div>` : ''}
+      ${p.app ? `<p class="ins-line">${icon('install')}<span><b>${esc(p.app.name)}</b>${p.app.note ? ` · ${esc(L(p.app.note))}` : ''}</span></p>` : ''}
+      ${p.site ? `<div class="links-row">${ext(site(p.site), Z('保险公司网站', "The insurer's site"))}</div>` : ''}
+    </article>`;
+	const claims = (typeof INSURANCE !== 'undefined' && INSURANCE.claims) || [];
+	return `<div class="stack">${insPolicies().map(policy).join('')}</div>${
+		claims.length
+			? `<h4 class="ins-h">${icon('list')}${Z('理赔要留的文件', 'Keep these for a claim')}</h4>${claims.map((g) => `<div class="ins-claim"><p class="ins-claim-h">${esc(L(g.h))}</p>${list(g.items)}</div>`).join('')}`
+			: ''
+	}`;
 }
 
 // forecast from scripts/resync.py (Open-Meteo), for the part of Taiwan that day is in
@@ -32,11 +150,6 @@ const fcIcon = (c) => (c >= 61 || (c >= 51 && c < 60) || c >= 80 ? 'umbrella' : 
 /** a day's forecast ({ code, tmin, tmax, rain }), or null without one */
 function fcOf(d) {
 	return (d && FC && FC.days && FC.days[d.date] && FC.days[d.date][FC_SPOT[d.id] || TRIP.forecastSpot]) || null;
-}
-function fcChip(d) {
-	const f = fcOf(d);
-	if (!f) return '';
-	return `<span class="chip" title="${esc(Z(`天气预报（${FC.checked} 查）`, `Forecast (checked ${FC.checked})`))}">${icon(fcIcon(f.code))}${f.tmin}–${f.tmax}° · ${Z('雨', 'rain')} ${f.rain}%</span>`;
 }
 const tMin = (t) => {
 	const m = /^(\d{1,2}):(\d{2})$/.exec(t || '');
@@ -49,7 +162,7 @@ function mineClash(dayId, t) {
 	if (!d || m == null) return null;
 	return (
 		d.schedule.find((it) => {
-			if (!it.fixed) return false;
+			if (!it.fixed || it._skip) return false; // a skipped booking holds nothing
 			const pt = parseT(it.t || '');
 			if (pt.s == null) return false;
 			return m >= pt.s - 45 && m <= (pt.e != null ? pt.e : pt.s + 30);
@@ -60,11 +173,12 @@ const llOfStop = (it) => (it.place ? placeLL(it.place) : it.lat != null ? { lat:
 
 /* running late: push the rest of a day back. Fixed items (flights, the show, the charter pickup, checkout) never move
      and re-anchor the day, so a shift runs from its first stop up to the next fixed item. Stored per date as
-     [{ from: planned start in minutes, min }]; the reset button clears it. The page only suggests; nothing moves by itself. */
+     [{ from: planned start in minutes, min }]; the reset button clears it. The page only suggests; nothing moves by itself.
+     A skipped stop's suggestion moves the next ones earlier the same way, as a negative min (07-skip.js), and a skipped
+     fixed time no longer holds a move */
 const shiftsOf = (date) => {
 	const all = store.get('shift', {});
-	const l = all && all[date];
-	return Array.isArray(l) ? l.filter((x) => x && x.from != null && x.min > 0) : [];
+	return Plan.validPushes(all && all[date]);
 };
 function shiftSet(date, list) {
 	const all = store.get('shift', {}) || {};
@@ -79,7 +193,7 @@ const shiftTxt = (t, m) => {
 // minutes a planned start s0 moves on day d: every shift that begins at or before it with no fixed item in between
 function shiftAt(d, s0, segs = shiftsOf(d.date)) {
 	if (s0 == null || !segs.length) return 0;
-	const fx = d.schedule.filter((it) => it.fixed && it._s0 != null).map((it) => it._s0);
+	const fx = d.schedule.filter((it) => it.fixed && !it._skip && it._s0 != null).map((it) => it._s0);
 	return segs.reduce((m, g) => (g.from <= s0 && !fx.some((f) => f > g.from && f <= s0) ? m + g.min : m), 0);
 }
 function applyShifts() {
@@ -97,13 +211,13 @@ function applyShifts() {
 			it.t = it._sh ? shiftTxt(it._base, it._sh) : it._base;
 			it._clash = null;
 		});
-		// a pushed item that now runs into the next fixed time
+		// a pushed item that now runs into the next fixed time (skipped ones aren't on the way)
 		d.schedule.forEach((it, i) => {
-			if (!it._sh) return;
-			const nf = d.schedule.slice(i + 1).find((x) => x.fixed && x._s0 != null);
+			if (!it._sh || it._skip) return;
+			const nf = d.schedule.slice(i + 1).find((x) => x.fixed && !x._skip && x._s0 != null);
 			if (!nf) return;
 			const pt = parseT(it.t);
-			const nx = d.schedule.slice(i + 1).find((x) => x._s0 != null);
+			const nx = d.schedule.slice(i + 1).find((x) => x._s0 != null && !x._skip);
 			const end = pt.e != null ? pt.e : nx && nx !== nf ? parseT(nx.t).s : pt.s + 15;
 			if (end > nf._s0 || pt.s + 15 > nf._s0) it._clash = nf;
 		});
@@ -122,7 +236,8 @@ function lateCheck() {
 	const now = tpNow();
 	const d = DAYS.find((x) => x.date === now.date);
 	if (!d || !meLL || farAway() || meAcc > 400) return null;
-	const rows = d.schedule.map((it, i) => ({ it, i, s: parseT(it.t || '').s, ll: llOfStop(it) })).filter((r) => r.s != null);
+	// a skipped stop isn't where the group is heading, so it's neither the target nor a deadline
+	const rows = d.schedule.map((it, i) => ({ it, i, s: parseT(it.t || '').s, ll: llOfStop(it) })).filter((r) => r.s != null && !r.it._skip);
 	const at = rows.filter((r) => r.ll && km(meLL, r.ll) <= 0.35 && r.s <= now.mins + 20).pop(); // the latest planned place we are standing at
 	const after = (r) => (at ? r.i > at.i : r.s > now.mins - 15) && km(meLL, r.ll) > 0.35;
 	const arr = (r) => {
@@ -168,7 +283,7 @@ function lateHTML() {
 	}
 	const tot = segs.reduce((a, g) => a + g.min, 0);
 	const on = segs.length
-		? `<p class="shift-on">${icon('clock')}<span>${esc(Z(`今天后面已顺延 +${tot} 分`, `Today's rest pushed back +${tot} min`))}</span><button type="button" class="mlink" data-shift-edit="${d.id}">${Z('调整', 'Adjust')}</button><button type="button" class="mlink" data-shift-clear="${d.date}">${Z('恢复原时间', 'Undo')}</button></p>`
+		? `<p class="shift-on">${icon('clock')}<span>${esc(tot < 0 ? Z(`今天后面已提早 ${-tot} 分`, `Today's rest moved ${-tot} min earlier`) : tot ? Z(`今天后面已顺延 +${tot} 分`, `Today's rest pushed back +${tot} min`) : Z('今天后面的时间改过', "Today's times changed"))}</span><button type="button" class="mlink" data-shift-edit="${d.id}">${Z('调整', 'Adjust')}</button><button type="button" class="mlink" data-shift-clear="${d.date}">${Z('恢复原时间', 'Undo')}</button></p>`
 		: '';
 	const ask = !box
 		? `<div class="late-ask">${!segs.length ? `<button type="button" class="mlink" data-shift-edit="${d.id}">${icon('clock')}${Z('跑慢了？把后面往后推', 'Running late? Push the rest back')}</button>` : ''}${!meLL && navigator.geolocation && !window.DEMO_CLOCK && !geoAsk() ? `<button type="button" class="mlink" data-late-loc>${icon('pin')}${Z('用我的位置检查进度', 'Check progress from my location')}</button>` : ''}</div>`
@@ -179,10 +294,24 @@ function lateHTML() {
 function shiftBanner(d) {
 	const segs = shiftsOf(d.date);
 	if (!segs.length) return '';
-	const first = d.schedule.filter((it) => it._sh).sort((a, b) => a._s0 - b._s0)[0];
-	const nf = first && d.schedule.find((it) => it.fixed && it._s0 > first._s0);
+	const first = d.schedule.filter((it) => it._sh && !it._skip).sort((a, b) => a._s0 - b._s0)[0];
+	const nf = first && d.schedule.find((it) => it.fixed && !it._skip && it._s0 > first._s0);
 	const tot = segs.reduce((a, g) => a + g.min, 0);
-	return `<div class="shift-bar"><p>${icon('clock')}<span>${first ? esc(Z(`已顺延：从「${stopName(first)}」起 +${tot} 分${nf ? `，到 ${L(nf.t)}「${stopName(nf)}」固定行程为止` : '，一直到当天结束'}。`, `Pushed back +${tot} min from ${stopName(first)}${nf ? ` until the fixed ${L(nf.t)} ${stopName(nf)}` : ' to the end of the day'}.`)) : esc(Z(`已顺延 +${tot} 分`, `Pushed back +${tot} min`))}</span></p><div class="links-row"><button type="button" class="mlink" data-shift-edit="${d.id}">${Z('调整', 'Adjust')}</button><button type="button" class="mlink" data-shift-clear="${d.date}">${Z('恢复原时间', 'Back to planned times')}</button></div></div>`;
+	// pushed back, or moved earlier after a skipped stop (a negative total), or both and evened out
+	const until = nf
+		? Z(`，到 ${L(nf.t)}「${stopName(nf)}」固定行程为止`, ` until the fixed ${L(nf.t)} ${stopName(nf)}`)
+		: Z('，一直到当天结束', ' to the end of the day');
+	const said =
+		tot < 0
+			? first
+				? Z(`已提早：从「${stopName(first)}」起 ${-tot} 分${until}。`, `Moved ${-tot} min earlier from ${stopName(first)}${until}.`)
+				: Z(`已提早 ${-tot} 分`, `Moved ${-tot} min earlier`)
+			: !tot
+				? Z('时间改过，前后抵消了', 'Times changed, evening out')
+				: first
+					? Z(`已顺延：从「${stopName(first)}」起 +${tot} 分${until}。`, `Pushed back +${tot} min from ${stopName(first)}${until}.`)
+					: Z(`已顺延 +${tot} 分`, `Pushed back +${tot} min`);
+	return `<div class="shift-bar"><p>${icon('clock')}<span>${esc(said)}</span></p><div class="links-row"><button type="button" class="mlink" data-shift-edit="${d.id}">${Z('调整', 'Adjust')}</button><button type="button" class="mlink" data-shift-clear="${d.date}">${Z('恢复原时间', 'Back to planned times')}</button></div></div>`;
 }
 // pick the first stop to move and by how much
 function shiftSheet(dayId) {
@@ -191,7 +320,9 @@ function shiftSheet(dayId) {
 	const now = tpNow();
 	const today = now.date === d.date;
 	const run = d.schedule.findIndex((it) => it.fixed && it.rel && it.rel.dep); // once we leave for the airport, nothing after it moves
-	const rows = d.schedule.map((it, i) => ({ it, i })).filter((r) => r.it._s0 != null && !r.it.fixed && !r.it.step && (run < 0 || r.i < run));
+	const rows = d.schedule
+		.map((it, i) => ({ it, i }))
+		.filter((r) => r.it._s0 != null && !r.it.fixed && !r.it.step && !r.it._skip && (run < 0 || r.i < run));
 	const pick = today ? rows.filter((r) => parseT(r.it.t).s >= now.mins - 30) : rows;
 	const def = (pick[0] || rows[0] || {}).i;
 	const segs = shiftsOf(d.date);
@@ -202,20 +333,30 @@ function shiftSheet(dayId) {
       <div class="seg shift-min" role="radiogroup">${[15, 30, 45, 60, 90].map((m) => `<button type="button" class="seg-btn" role="radio" aria-checked="${m === 30}" data-shift-min="${m}">${m}${Z('分', ' min')}</button>`).join('')}</div>
       <div class="links-row"><button type="button" class="go-btn" data-shift-go="${d.id}">${icon('clock')}${Z('往后推', 'Push back')}</button>${segs.length ? `<button type="button" class="go-btn ghost" data-shift-clear="${d.date}">${Z('恢复原时间', 'Back to planned times')}</button>` : ''}</div></div>`);
 }
-function shiftAdd(dayId, from, min) {
-	const d = dayById[dayId];
-	if (!d || from == null || !(min > 0)) return;
-	const segs = shiftsOf(d.date);
+/** moves a day's stops from a planned start by min (a push back > 0, a pull earlier < 0), adding to a move already
+ *  there; a move that comes back to 0 goes */
+function shiftNudge(date, from, min) {
+	const segs = shiftsOf(date);
 	const g = segs.find((x) => x.from === from);
 	if (g) g.min += min;
 	else segs.push({ from, min });
-	shiftSet(d.date, segs);
+	shiftSet(
+		date,
+		segs.filter((x) => x.min !== 0),
+	);
+}
+function shiftAdd(dayId, from, min) {
+	const d = dayById[dayId];
+	if (!d || from == null || !(min > 0)) return;
+	shiftNudge(d.date, from, min);
 	store.set('lateNo', null);
 	const sh = $('#placeSheet');
 	if (sh && sh.open) closeDialog(sh);
 	whenSettled(() => mineRerender(Z(`后面行程已往后推 ${min} 分`, `Pushed back ${min} min`)));
 }
-function mineMerge(d, planned) {
+// the day's string: its planned stops, its added ones slotted in by time, then the fold of skipped stops (tail). Sharing
+// or clearing what this phone changed is rare, so it lives in the day's ⋯ sheet (changeRows), not under the string
+function mineMerge(d, planned, tail = '') {
 	const segs = shiftsOf(d.date);
 	const rawDay = d.schedule.map((it) => parseT(it.t || ''));
 	const mine = mineAll()
@@ -225,8 +366,10 @@ function mineMerge(d, planned) {
 			return m ? { ...x, t: hm(tMin(x.t) + m) } : x;
 		})
 		.sort((a, b) => Plan.minuteOn(rawDay, tMin(a.t)) - Plan.minuteOn(rawDay, tMin(b.t)));
-	if (!mine.length) return planned.join('');
-	const rows = d.schedule.map((it, i) => ({ ...parseT(it.t || ''), html: planned[i], ll: llOfStop(it) }));
+	const skipped = d.schedule.some((it) => it._skip);
+	if (!mine.length && !skipped) return planned.join('');
+	// a skipped stop isn't the stop before an added one: the group doesn't go there
+	const rows = d.schedule.map((it, i) => ({ ...parseT(it.t || ''), html: planned[i], ll: it._skip ? null : llOfStop(it) }));
 	mine.forEach((x) => {
 		const m = tMin(x.t);
 		const at = Plan.slotFor(rows, m); // an untimed "Evening: back to the hotel" stays after it
@@ -236,12 +379,7 @@ function mineMerge(d, planned) {
 			.find((r) => r.ll);
 		rows.splice(at, 0, { s: m, ll: x, html: mineStopHTML(d, x, prev && prev.ll) });
 	});
-	// with group sync everyone already has every added stop, so the share link would only resend other people's
-	const share = SYNC
-		? ''
-		: `<button type="button" class="mlink" data-mine-share="${d.id}">${icon('link')}${Z('把我加的分享给大家', 'Share my added stops')}</button>`;
-	const bar = share + resetBtn();
-	return rows.map((r) => r.html).join('') + (bar ? `<li class="mine-bar">${bar}</li>` : '');
+	return rows.map((r) => r.html).join('') + tail;
 }
 /* Day 6: the free afternoon, worked back from the flight. Checked bags for 5: at the airport 3 h before take-off
      (most counters close 60 min before); hotel → airport ~60 min door to door (+15 by train via A1); 45 min to collect bags. */
@@ -402,11 +540,97 @@ function freeIdeasHTML() {
       ${grp('star', Z('想去清单', 'Wishlist'), cnt(wish), wish)}${grp('flag', Z('备选景点', 'Optional sights'), cnt(opt), opt)}${shopGroups.map(({ l, rows }) => grp(l.icon, L(l.group), cnt(rows), rows)).join('')}
       <p class="xsmall muted">${Z('也可以在「地图」搜任何地方（包括 Google），点＋加入。', 'Or search anything on the map (Google too) and tap ＋.')}</p></div>`;
 }
-// tourist tax refund: the rules in five lines + which of our shops have it
+// tourist tax refund, under the shopping ideas: one row into its sheet in Today's bookings, where all of it lives
 const taxHTML = () =>
-	typeof TAX === 'undefined'
-		? ''
-		: `<details class="more idea-g tax"><summary>${icon('money')}<span>${esc(L(TAX.h))}</span>${trsMin() ? `<span class="wg-n">${trsMin()}+</span>` : ''}${icon('chev', 'chev')}</summary><div class="more-body">${list(TAX.list)}<p class="small">${fmt(TAX.shops)}</p><p class="xsmall muted">${fmt(TAX.note)}</p></div></details>`;
+	hasTax()
+		? `<a class="mlink tax-go" href="#top-p-tax">${icon('receipt')}<span>${esc(L(TAX.h || ['退税', 'Tax refund']))}</span>${trsMin() ? `<span class="wg-n">${trsMin()}+</span>` : ''}${icon('chev-r')}</a>`
+		: '';
+/* the tourist tax refund (TAX; ADR-20261128-tax-refund): a tile in Today's bookings opens it. The rules in short with the
+   pack's minimum spend and the deadline; the shop coupons, each with its barcode full width (a tap opens it full screen
+   on white for the cashier's scanner; one past its last day greys and folds to Expired); how it works, step by step;
+   to a card or in cash; and where things are at the airport, with the customs Wi-Fi. A trip with only h, list, shops and
+   note keeps those */
+function hasTax() {
+	return typeof TAX !== 'undefined' && !!TAX && typeof TAX === 'object';
+}
+const taxCoupons = () => Tax.couponsOn(hasTax() ? TAX.coupons : [], tpNow().date);
+const COUPON_FILES = window.COUPON_FILES || {};
+const couponSrc = (key) => (IMG ? IMG[key] || BLANK : IMG_LATE ? BLANK : COUPON_FILES[key] || '');
+const lbl = (v) => (Array.isArray(v) ? L(v) : String(v || '')); // a [zh, en] label, or a name that's the same in both
+function taxSum() {
+	const n = taxCoupons().good.length;
+	return [
+		trsMin() && Z(`同店同日满 ${sumB(trsMin())}`, `${sumB(trsMin())}+ in one shop, one day`),
+		n && Z(`${n} 张优惠券`, `${n} coupon${n > 1 ? 's' : ''}`),
+	]
+		.filter(Boolean)
+		.join(' · ');
+}
+function couponHTML(c, gone) {
+	const shop = esc(lbl(c.shop));
+	// a coupon that prints no end date never runs out, and says so rather than show a made-up one
+	const until = `<span class="coupon-until">${esc(c.until ? Z(`${dateLabel(c.until)} 前有效`, `until ${dateLabel(c.until)}`) : Z('没写有效期', 'No end date shown'))}</span>`;
+	const rules = !c.rules ? '' : Array.isArray(c.rules[0]) ? list(c.rules) : `<p class="note">${fmt(c.rules)}</p>`;
+	const img =
+		c.img && COUPON_FILES[c.img]
+			? `<button type="button" class="coupon-img" data-coupon="${esc(c.img)}" aria-label="${esc(Z(`${lbl(c.shop)}的优惠券：全屏给店员扫`, `${lbl(c.shop)} coupon: full screen for the cashier`))}"><img src="${couponSrc(c.img)}" data-img="${esc(c.img)}" alt="${esc(Z(`${lbl(c.shop)}优惠券和条码`, `${lbl(c.shop)} coupon and its barcode`))}" decoding="async"></button><p class="xsmall muted coupon-tip">${icon('expand')}<span>${Z('点图片全屏，给店员扫条码', 'Tap it for full screen, for the cashier to scan')}</span></p>`
+			: '';
+	const where = c.place && PLACES[c.place] ? `<div class="links-row">${placeLinks(c.place, { noDriver: true })}</div>` : '';
+	const body = `<p class="coupon-h">${fmt(c.h)}</p>${c.items && c.items.length ? `<ul class="coupon-tiers">${c.items.map((x) => `<li>${fmt(x)}</li>`).join('')}</ul>` : ''}${img}${rules}${where}`;
+	return gone
+		? `<details class="coupon is-gone" data-coupon-id="${esc(c.id)}" data-keep-shut><summary><span class="coupon-shop">${icon('ticket')}<b>${shop}</b></span><span class="coupon-badge">${Z('已过期', 'Expired')}</span>${icon('chev', 'chev')}</summary><div class="coupon-b">${body}</div></details>`
+		: `<article class="coupon" data-coupon-id="${esc(c.id)}"><p class="coupon-shop">${icon('ticket')}<b>${shop}</b>${until}</p>${body}</article>`;
+}
+function taxSheetHTML() {
+	const T = TAX;
+	const { good, gone } = taxCoupons();
+	const sec = (ic, h, body) => (body ? `<h4 class="tax-h">${icon(ic)}<span>${esc(h)}</span></h4>${body}` : '');
+	const ar = T.airport && typeof T.airport === 'object' ? T.airport : null;
+	const wifi = ar && ar.wifi && ar.wifi.ssid ? ar.wifi : null;
+	const copyBtn = (text, what) =>
+		`<button type="button" class="mlink tax-copy" data-copy-text="${esc(text)}" aria-label="${esc(Z(`复制${what}`, `Copy the ${what}`))}">${icon('copy')}<span>${Z('复制', 'Copy')}</span></button>`;
+	const places =
+		ar && Array.isArray(ar.rows) && ar.rows.length
+			? `<div class="tax-places">${ar.rows
+					.map(
+						(r) =>
+							`<div class="tax-place"><p class="tax-what"><b>${fmt(r.what)}</b></p>${r.where ? `<p class="tax-line">${icon('pin')}<span>${fmt(r.where)}</span></p>` : ''}${r.when ? `<p class="tax-line">${icon('clock')}<span>${fmt(r.when)}</span></p>` : ''}${r.note ? `<p class="note">${fmt(r.note)}</p>` : ''}</div>`,
+					)
+					.join('')}</div>`
+			: '';
+	const wf = wifi
+		? `<div class="tax-wifi"><p class="tax-what">${icon('wifi')}<b>${Z('海关 Wi-Fi', 'Customs Wi-Fi')}</b></p><p class="tax-wf"><span>${Z('名称', 'Network')}</span><code>${esc(wifi.ssid)}</code>${copyBtn(wifi.ssid, Z('名称', 'network name'))}</p>${wifi.pass ? `<p class="tax-wf"><span>${Z('密码', 'Password')}</span><code>${esc(wifi.pass)}</code>${copyBtn(wifi.pass, Z('密码', 'password'))}</p>` : ''}${wifi.note ? `<p class="note">${fmt(wifi.note)}</p>` : ''}</div>`
+		: '';
+	return [
+		trsMin() || T.deadline
+			? `<div class="tax-lead">${trsMin() ? `<p class="tax-key">${icon('money')}<span>${Z(`同一天、同一家店满 <b>${trsMin()}</b>`, `<b>${trsMin()}</b> or more in one shop, on one day`)}</span></p>` : ''}${T.deadline ? `<p class="tax-key">${icon('calendar')}<span>${fmt(T.deadline)}</span></p>` : ''}</div>`
+			: '',
+		Array.isArray(T.list) && T.list.length ? list(T.list) : '',
+		sec(
+			'ticket',
+			Z('优惠券', 'Coupons'),
+			good.length || gone.length
+				? `<div class="coupons">${good.map((c) => couponHTML(c, false)).join('')}${gone.map((c) => couponHTML(c, true)).join('')}</div>`
+				: '',
+		),
+		sec(
+			'list',
+			Z('怎么退', 'How it works'),
+			Array.isArray(T.steps) && T.steps.length ? `<ol class="tax-steps">${T.steps.map((x) => `<li>${fmt(x)}</li>`).join('')}</ol>` : '',
+		),
+		sec(
+			'card',
+			Z('退到卡，还是领现金', 'To a card, or in cash'),
+			Array.isArray(T.methods) && T.methods.length
+				? `<div class="tiers">${T.methods.map((m) => `<div class="tier"><p class="tier-h">${fmt(m.h)}</p>${list(m.items || [])}${m.note ? `<p class="note">${fmt(m.note)}</p>` : ''}</div>`).join('')}</div>`
+				: '',
+		),
+		sec('plane', ar && ar.h ? lbl(ar.h) : Z('在机场', 'At the airport'), places + wf),
+		T.shops ? `<p class="small">${fmt(T.shops)}</p>` : '',
+		T.note ? `<p class="xsmall muted">${fmt(T.note)}</p>` : '',
+		T.src ? `<p class="xsmall muted">${icon('info')} ${fmt(T.src)}</p>` : '',
+	].join('');
+}
 // which days suit coming back with bags of shopping
 function shopDaysHTML() {
 	const dl = (id) => {
@@ -437,7 +661,7 @@ function mineStopHTML(d, x, prevLL) {
 	const cl = mineClash(d.id, x.t);
 	const k = prevLL ? km(prevLL, x) : null;
 	const wk = prevLL ? Math.max(1, Math.round(walkMin(prevLL, x))) : 0;
-	return `<li class="stop mine" id="${esc(x.id)}" data-s="${tMin(x.t)}"><div class="stop-t">${esc(x.t)}</div><div class="stop-knot">${gapBtn(d, x.id)}</div><div class="stop-b">
+	return `<li class="stop mine" id="${esc(x.id)}" data-s="${tMin(x.t)}"><div class="stop-t">${esc(x.t)}</div><div class="stop-knot"></div><div class="stop-b">
       <p class="stop-name">${esc(x.name)}<span class="mine-tag">${SYNC && x.by ? esc(Z(`${x.by}${/[!-~]$/.test(x.by) ? ' ' : ''}加的`, `Added by ${x.by}`)) : Z('我加的', 'Added')}</span></p>
       ${x.addr ? `<p class="stop-note">${esc(x.addr)}</p>` : ''}
       ${cl ? `<p class="warn">${icon('alert')}${esc(Z(`接近固定行程：${L(cl.t)} ${L(cl.what).replace(/\*\*/g, '')}`, `Close to a fixed time: ${L(cl.t)} ${L(cl.what).replace(/\*\*/g, '')}`))}</p>` : ''}
@@ -451,8 +675,8 @@ function mineStopHTML(d, x, prevLL) {
 					: ''
 			}
       ${prevLL ? `<p class="stop-note">${icon(wk > 20 ? 'car' : 'walk')} ${esc(wk > 20 ? Z(`从上一站 ${distLabel(k)}：计程车约${Math.round(taxiMin(k))}分钟，或搭${METRO[0]}`, `${distLabel(k)} from the stop before: taxi ~${Math.round(taxiMin(k))} min, or the ${METRO[1]}`) : Z(`从上一站 ${distLabel(k)} · 走路约${wk}分钟`, `${distLabel(k)} from the stop before · ~${wk} min walk`))}</p>` : ''}
-      <div class="stop-links">${extI(gmSearch(x.q, x.gpid), Z('地图', 'Map'), 'pin')}${extI(gmDir(x.q, 'transit', undefined, x.gpid), Z('路线', 'Directions'), 'route')}${canEditStop(x) ? `<button type="button" class="mlink" data-mine-edit="${esc(x.id)}">${icon('clock')}<span>${Z('改时间', 'Change')}</span></button><button type="button" class="mlink" data-mine-del="${esc(x.id)}" aria-label="${Z('删除', 'Remove')}">${icon('x')}<span class="dlbl">${Z('删除', 'Remove')}</span></button>` : ''}</div>
-      ${nearDrinks(d, { place: x.id })}
+      <div class="stop-links">${extI(gmSearch(x.q, x.gpid), Z('地图', 'Map'), 'pin')}${extI(gmDir(x.q, 'transit', undefined, x.gpid), Z('路线', 'Directions'), 'route')}${addAfter(d, x.id, true)}${canEditStop(x) ? `<button type="button" class="mlink" data-mine-edit="${esc(x.id)}">${icon('clock')}<span>${Z('改时间', 'Change')}</span></button><button type="button" class="mlink" data-mine-del="${esc(x.id)}" aria-label="${Z('删除', 'Remove')}">${icon('x')}<span class="dlbl">${Z('删除', 'Remove')}</span></button>` : ''}</div>
+      ${nearDrinks(d, { place: x.id, t: x.t })}
     </div></li>`;
 }
 /* a day that splits (DAYS[].split, trip-format.md): part of the group takes its own plan for a few hours. It hangs,
@@ -578,11 +802,14 @@ function syncAddNote() {
 		? `<p class="xsmall muted">${esc(Z(`大家的页面都会看到，标着「${name}加的」。`, `Goes on everyone’s page, marked “Added by ${name}”.`))}</p>`
 		: `<p class="xsmall muted">${Z('大家的页面都会看到。', 'Goes on everyone’s page.')}</p><label class="sync-name">${Z('你的名字（大家会看到是谁加的）', 'Your name (so the group sees who added it)')}<input type="text" data-sync-name maxlength="24" autocomplete="nickname" enterkeyhint="done"></label>`;
 }
-// "+" under a dot: add a stop right after this one
-const gapBtn = (d, key) =>
+// add a stop right after this one: a labelled button in the opened stop (an added stop: in its row of links), never a
+// "+" on the string between every stop (ADR-20261128-progressive-disclosure); the day's own Add a stop sits at its end
+const addAfter = (d, key, mine) =>
 	d.id === ROLE.flight
 		? ''
-		: `<button type="button" class="knot-add" data-add-gap="${d.id}|${esc(key)}" aria-label="${Z('在这之后加一站', 'Add a stop after this')}">${icon('plus')}</button>`;
+		: mine
+			? `<button type="button" class="mlink" data-add-gap="${d.id}|${esc(key)}">${icon('plus')}<span>${Z('之后加一站', 'Add after')}</span></button>`
+			: `<button type="button" class="ibtn" data-add-gap="${d.id}|${esc(key)}">${ibtn('plus', Z('之后加一站', 'Add after'))}</button>`;
 function gapContext(dayId, key) {
 	// suggested time + the stop before, for the add sheet: a time that lands the new stop right after this knot
 	const d = dayById[dayId];
@@ -591,7 +818,7 @@ function gapContext(dayId, key) {
 	const on = (m) => Plan.minuteOn(raw, m); // the last day runs past midnight
 	const later = (m) =>
 		[
-			...rows.filter((r) => r.s != null && !r.closes).map((r) => r.s),
+			...rows.filter((r, k) => r.s != null && !r.closes && !d.schedule[k]._skip).map((r) => r.s),
 			...mineAll()
 				.filter((y) => y.day === d.id)
 				.map((y) => on(tMin(y.t))),
@@ -644,7 +871,7 @@ function addFindSheet(dayId, ctx = {}) {
 // everything addable, with a category, a rating and "closed that day" when we know it
 function addPool() {
 	if (addPins) return addPins;
-	const ok = (p) => !['wc', 'bike', 'bus', 'mrt', 'hotel', 'mine'].includes(p.type);
+	const ok = (p) => !['wc', 'refill', 'bike', 'bus', 'mrt', 'hotel', 'mine'].includes(p.type);
 	const cat = (p) => (p.type === 'shop' || p.type === 'place' ? 'place' : p.type);
 	const pins = buildPins()
 		.filter(ok)
@@ -768,7 +995,7 @@ function addLegNote() {
 		return;
 	}
 	const raw = d.schedule.map((it) => parseT(it.t || ''));
-	let rows = d.schedule.map((it, i) => ({ ...raw[i], ll: llOfStop(it), name: stopName(it) }));
+	let rows = d.schedule.map((it, i) => ({ ...raw[i], ll: it._skip ? null : llOfStop(it), name: stopName(it) })); // skipped: not on the way
 	mineAll()
 		.filter((x) => x.day === day && x.id !== addItem.id)
 		.sort((a, b) => Plan.minuteOn(raw, tMin(a.t)) - Plan.minuteOn(raw, tMin(b.t)))
@@ -865,10 +1092,17 @@ function putBack(stops, extra) {
 		if (extra.fltDep && !store.get('fltDep', '')) store.set('fltDep', extra.fltDep);
 		if (extra.shift && Object.keys(extra.shift).length) store.set('shift', { ...extra.shift, ...(store.get('shift', {}) || {}) });
 		if (extra.lateNo != null && store.get('lateNo', null) == null) store.set('lateNo', extra.lateNo);
+		if (extra.skips && Object.keys(extra.skips).length) store.set('skips', { ...extra.skips, ...skipsAll() });
 	}
 	const n = stops.length;
 	whenSettled(() =>
-		mineRerender(n === 1 ? Z(`已放回「${stops[0].name}」`, `Put back ${stops[0].name}`) : Z(`已放回 ${n} 个行程`, `Put back ${n} stops`)),
+		mineRerender(
+			!n
+				? Z('已撤销', 'Undone')
+				: n === 1
+					? Z(`已放回「${stops[0].name}」`, `Put back ${stops[0].name}`)
+					: Z(`已放回 ${n} 个行程`, `Put back ${n} stops`),
+		),
 	);
 	if (SYNC) syncSheetRefresh();
 }
@@ -876,6 +1110,7 @@ function putBack(stops, extra) {
 const undoPutBack = (stops, extra) => ({ label: Z('撤销', 'Undo'), run: () => putBack(stops, extra) });
 function removeStops(list, ask) {
 	if (!list.length || !confirm(ask(list.length))) return;
+	$$('#app dialog.bsheet[open]').forEach(closeDialog); // a day's ⋯ sheet, where it was asked for
 	const ids = new Set(list.map((x) => x.id));
 	mineSet(mineAll().filter((x) => !ids.has(x.id)));
 	const n = list.length;
@@ -888,7 +1123,8 @@ function resetAll() {
 	const n = mineAll().length;
 	const f = !!(store.get('fltArr', '') || store.get('fltDep', ''));
 	const sh = Object.keys(store.get('shift', {}) || {}).length;
-	if (!n && !f && !sh) {
+	const sk = Object.keys(skipsAll()).length;
+	if (!n && !f && !sh && !sk) {
 		toast(Z('现在就是原计划，没有要恢复的', 'Already the original plan'));
 		return;
 	}
@@ -898,6 +1134,7 @@ function resetAll() {
 				? Z(`删除全组加的 ${n} 个行程`, `remove all ${n} added stop${n > 1 ? 's' : ''}, everyone’s`)
 				: Z(`删除我加的 ${n} 个行程`, `remove ${n} added stop${n > 1 ? 's' : ''}`)
 			: '',
+		sk ? Z(`放回跳过的 ${sk} 站`, `put back ${sk} skipped stop${sk > 1 ? 's' : ''}`) : '',
 		f ? Z('航班改回原定时间', 'put the flights back to the booked times') : '',
 		sh ? Z('取消往后推的时间', 'undo the pushed-back times') : '',
 	]
@@ -912,8 +1149,11 @@ function resetAll() {
 		fltDep: store.get('fltDep', ''),
 		shift: store.get('shift', {}) || {},
 		lateNo: store.get('lateNo', null),
+		skips: skipsAll(),
 	};
 	mineSet([]);
+	store.set('skips', {});
+	skipAsk = null;
 	store.set('fltArr', '');
 	store.set('fltDep', '');
 	store.set('shift', {});
@@ -922,6 +1162,7 @@ function resetAll() {
 	if (ps && ps.open) closeDialog(ps);
 	const tc = $('#toc');
 	if (tc && tc.open) closeDialog(tc);
+	$$('#app dialog.bsheet[open]').forEach(closeDialog); // a day's ⋯ sheet, where it was asked for
 	whenSettled(() => mineRerender(Z('已恢复原计划', 'Back to the original plan'), undoPutBack(was.stops, was)));
 	if (SYNC) syncSheetRefresh();
 }
@@ -934,13 +1175,35 @@ function ownClearBtn() {
 		? `<button type="button" class="mlink reset-btn" data-mine-clear-own>${icon('x')}${Z(`删除我加的 ${n} 个行程`, `Remove the ${n} stop${n > 1 ? 's' : ''} I added`)}</button>`
 		: '';
 }
-// anything on this phone that the original plan doesn't have: added stops, flight changes, pushed-back times
+// anything on this phone that the original plan doesn't have: added stops, skipped stops, flight changes, moved times
 const resetAllNeeded = () =>
-	mineAll().length || store.get('fltArr', '') || store.get('fltDep', '') || Object.keys(store.get('shift', {}) || {}).length;
+	mineAll().length ||
+	Object.keys(skipsAll()).length ||
+	store.get('fltArr', '') ||
+	store.get('fltDep', '') ||
+	Object.keys(store.get('shift', {}) || {}).length;
 const resetAllBtn = () =>
 	resetAllNeeded()
-		? `<button type="button" class="mlink reset-btn" data-reset-all>${icon('x')}${Z('恢复原计划（清除我加的和改过的）', 'Back to the original plan (clear what I added or changed)')}</button>`
+		? `<button type="button" class="mlink reset-btn" data-reset-all>${icon('x')}${Z('恢复原计划', 'Back to the original plan')}</button>`
 		: '';
+/* what this phone changed, as rows of a day's ⋯ sheet (ADR-20261128-progressive-disclosure, amended): share it by link
+   (only without group sync, which already shares it) and back to the original plan, in red. Both act on the whole trip,
+   as they did at the foot of each day, and show only when there's something to act on. With group sync the reset row
+   clears this phone's own stops; putting everyone's plan back stays a planner's, in the Group sync sheet */
+function changeRows() {
+	const skips = Object.keys(skipsAll()).length > 0;
+	const share =
+		!SYNC && (mineAll().length || skips)
+			? actRow(
+					'',
+					'data-mine-share',
+					'link',
+					skips ? Z('把我的改动分享给大家', 'Share my changes') : Z('把我加的分享给大家', 'Share my added stops'),
+					Z('一个链接，大家打开就加进自己的页面', 'One link; opening it adds them to their page'),
+				)
+			: '';
+	return share + resetRow();
+}
 // the same two actions as the last row of the settings (23-sections-menu.js), in red: they take away (with Undo)
 function resetRow() {
 	if (SYNC) {
@@ -957,7 +1220,8 @@ function mineRerender(msg, act) {
 	spotRestore(sp);
 	if (msg) toast(msg, act);
 }
-// share: my stops in a link (#add=…); opening it offers to add them
+// share: my stops in a link (#add=…), and the stops I skip after it (&skip=key_key, ADR-20261128-skip-planned-stops);
+// opening it offers to add them. A link from before skips has no &skip and imports as it always did
 const b64u = (str) =>
 	btoa(unescape(encodeURIComponent(str)))
 		.replace(/\+/g, '-')
@@ -966,7 +1230,8 @@ const b64u = (str) =>
 const unb64u = (str) => decodeURIComponent(escape(atob(str.replace(/-/g, '+').replace(/_/g, '/'))));
 function mineShareURL() {
 	const pack = mineAll().map((x) => [x.day, x.t, x.name, +x.lat.toFixed(6), +x.lng.toFixed(6), x.gpid || '', x.addr || '']);
-	return `${(window.SHARE_URL || location.href).split('#')[0]}#add=${b64u(JSON.stringify(pack))}`;
+	const skips = Object.keys(skipsAll()).filter((k) => Plan.SKIP_KEY.test(k));
+	return `${(window.SHARE_URL || location.href).split('#')[0]}#add=${b64u(JSON.stringify(pack))}${skips.length ? `&skip=${skips.join('_')}` : ''}`;
 }
 function mineImportOffer() {
 	const m = /[#&]add=([\w-]+)/.exec(location.hash);
@@ -977,7 +1242,14 @@ function mineImportOffer() {
 	} catch {
 		return;
 	}
-	if (!Array.isArray(pack) || !pack.length) return;
+	if (!Array.isArray(pack)) return;
+	// the stops the sender skipped that this phone still has on: only ones this page knows and lets the group skip
+	const sk = /[#&]skip=([\w-]+)/.exec(location.hash);
+	const skips = (sk ? sk[1].split('_') : []).filter((k) => {
+		const at = SKIP_AT[k];
+		return at && canSkip(at.d, at.d.schedule[at.i]) && !skipsAll()[k];
+	});
+	if (!pack.length && !skips.length) return;
 	history.replaceState(history.state, '', location.pathname + location.search);
 	const items = pack
 		.filter((r) => Array.isArray(r) && dayById[r[0]] && tMin(r[1]) != null)
@@ -990,13 +1262,19 @@ function mineImportOffer() {
 			gpid: r[5] || null,
 			addr: String(r[6] || '').slice(0, 120),
 		}));
-	if (!items.length) return;
+	if (!items.length && !skips.length) return;
 	mineIncoming = items;
+	mineIncomingSkips = skips;
+	const skipRows = skips.map((k) => {
+		const { d, i } = SKIP_AT[k];
+		return `<li class="spot"><div class="spot-main"><span class="spot-n">${escText(stopName(d.schedule[i]))}</span><span class="spot-m">Day ${d.n} · ${esc(skipTime(d.schedule[i]))} · ${Z('跳过', 'skip')}</span></div></li>`;
+	});
 	openSheet(
-		`<h3 class="spots-h">${icon('plus')}${Z(`收到 ${items.length} 个别人加的行程`, `${items.length} shared stops`)}</h3><ul class="spots">${items.map((x) => `<li class="spot"><div class="spot-main"><span class="spot-n">${esc(x.name)}</span><span class="spot-m">Day ${dayById[x.day].n} · ${esc(x.t)}</span></div></li>`).join('')}</ul><div class="links-row"><button type="button" class="go-btn" data-mine-import>${icon('check')}${Z('加入我的行程', 'Add to my plan')}</button></div>`,
+		`<h3 class="spots-h">${icon('plus')}${items.length ? Z(`收到 ${items.length} 个别人加的行程`, `${items.length} shared stops`) : Z(`收到跳过的 ${skips.length} 站`, `${skips.length} shared skip${skips.length > 1 ? 's' : ''}`)}</h3>${items.length ? `<ul class="spots">${items.map((x) => `<li class="spot"><div class="spot-main"><span class="spot-n">${esc(x.name)}</span><span class="spot-m">Day ${dayById[x.day].n} · ${esc(x.t)}</span></div></li>`).join('')}</ul>` : ''}${skips.length ? `${items.length ? `<p class="sub-h">${Z(`也跳过 ${skips.length} 站`, `And skip ${skips.length}`)}</p>` : ''}<ul class="spots">${skipRows.join('')}</ul>` : ''}<div class="links-row"><button type="button" class="go-btn" data-mine-import>${icon('check')}${Z('加入我的行程', 'Add to my plan')}</button></div>`,
 	);
 }
 let mineIncoming = null;
+let mineIncomingSkips = [];
 let flightT = 0;
 
 /* the band of sky at the top of a view (a world with a live sky, ADR-20261122-day-views): the sky behind, snow falling
@@ -1017,6 +1295,76 @@ function wxLine(d, wear) {
 	if (wear) parts.push(`<span class="wx-wear">${icon('shirt')}<span>${Z('穿', 'Wear')}: ${esc(L(wear))}</span></span>`);
 	return parts.length ? `<p class="wx-line">${parts.join('')}</p>` : '';
 }
+/* ── the glance layer of a day (ADR-20261128-progressive-disclosure): its card says three things in one line of icon
+   facts, its stops are one line each, and everything else waits behind a tile or an opened stop ── */
+// a stop's kind, drawn as the mark on its string: the data's own `icon`, else read from the stop (a meal, the hotel, a
+// ride to its place, a walk, shopping), else a sight. Words of the page's own two languages only, never a place's name
+const STOP_ICONS = new Set(Plan.stopKinds);
+const MEAL_RE = /餐|饭|吃|夜市|breakfast|lunch|dinner|supper|meal|\beat\b|food|market/i;
+const GO_RE = /去|到|回|往|搭|坐|乘|\bto\b|\bride\b|\btake\b/i;
+function stopIcon(d, it) {
+	if (STOP_ICONS.has(it.icon)) return it.icon;
+	const zh = Array.isArray(it.what) ? it.what[0] : String(it.what || '');
+	const en = Array.isArray(it.what) ? it.what[1] : '';
+	const terminal = (AIRPORT.terminals || []).some((t) => t.place === it.place);
+	if (terminal && (it.fixed || it.rel)) return 'plane';
+	if (MEAL_RE.test(zh) || MEAL_RE.test(en)) return 'food';
+	if (it.place && isHotel(it.place)) return 'bed';
+	if ((MEAL_AT[d.id] || []).some(([re]) => re.test(zh))) return 'food';
+	if (GO_RE.test(zh) || GO_RE.test(en)) {
+		// a ride: the mode of the day's leg that reaches or leaves its place, else simply "on the way"
+		const leg = (LEGS[d.id] || []).find((l) => (l[1] === it.place || l[0] === it.place) && l[2] !== 'walking');
+		return leg ? MODES[leg[2]][2] : 'route';
+	}
+	if (/散步|走走|步行|walk|stroll/i.test(zh + en)) return 'walk';
+	if (/购物|买|逛街|shop/i.test(zh + en)) return 'bag';
+	return 'sight';
+}
+// a time range's start ("10:30–12:00" → "10:30"); the whole range shows when the stop opens
+const tStart = (t) => String(t).replace(/^(\D*\d{1,2}:\d{2})\s*[–-]\s*\d{1,2}:\d{2}$/, '$1');
+// minutes, said short: "45 分钟" / "45 min", "1 小时 20 分" / "1 h 20 min"
+const durText = (m) =>
+	m < 60
+		? Z(`${m} 分钟`, `${m} min`)
+		: m % 60
+			? Z(`${Math.floor(m / 60)} 小时 ${m % 60} 分`, `${Math.floor(m / 60)} h ${m % 60} min`)
+			: Z(`${m / 60} 小时`, `${m / 60} h`);
+/** each person's share of a group figure as one number on the glance layer: the middle of the range, in the currency
+ *  this phone reads, marked "about" (and the plan's estimate mark when it is one) */
+function eachOne(min, max, est) {
+	const v = Money.glanceShare(min, max, PAX);
+	const n = homeFirst ? `${esc(CUR.home)} ${Money.roundHome(v / rate).toLocaleString('en-US')}` : `${esc(CUR.sym)}${num(v)}`;
+	return Z(`每人约 ${n}${est ? '（估）' : ''}`, `≈ ${n} each${est ? ' (est.)' : ''}`);
+}
+// the day's one line of facts: time on the way, what it costs each, the forecast (where no sky shows it), a rain plan
+function dayFacts(d, sky) {
+	const out = [];
+	const legs = LEGS[d.id] && dayLegs(d); // without the places the group skips
+	if (legs) {
+		const LT = (GEO && GEO.legs) || {};
+		let tot = 0;
+		let top = null;
+		legs.forEach((leg, li) => {
+			const t = Plan.storedLeg(LT, d.id, li, leg);
+			if (!t) return;
+			const m = leg[2] === 'walking' ? Math.round(t.min * GROUP_WALK) : t.min;
+			tot += m;
+			if (!top || m > top.m) top = { m, mode: leg[2] };
+		});
+		if (tot)
+			out.push(
+				`<span class="lf">${icon(MODES[top.mode][2])}<span>${esc(Z(`路上约 ${durText(tot)}`, `~${durText(tot)} getting around`))}</span></span>`,
+			);
+	}
+	const b = d.blocks.find((x) => x.type === 'budget');
+	const span = b ? [b.min, b.max] : d.budgetChip ? numsIn(L(d.budgetChip)) : null;
+	if (span) out.push(`<span class="lf">${icon('money')}<span>${eachOne(span[0], span[1], b && b.est)}</span></span>`);
+	const f = !sky && fcOf(d);
+	if (f) out.push(`<span class="lf">${icon(fcIcon(f.code))}<span>${f.tmin}–${f.tmax}°</span></span>`);
+	const rain = d.blocks.find((x) => x.type === 'rain');
+	if (rain) out.push(`<span class="lf">${icon('umbrella')}<span>${esc(L(rain.tile || ['有雨天方案', 'Rain plan']))}</span></span>`);
+	return out.length ? `<p class="l-facts">${out.join('')}</p>` : '';
+}
 function secDay(d, today) {
 	const isToday = today === d.date;
 	const sky = skyOn();
@@ -1028,30 +1376,27 @@ function secDay(d, today) {
 		lang === 'zh'
 			? `<p class="l-title"${alt(other(d.title))}>${esc(L(d.title))}</p>`
 			: `<h2 class="l-title"${alt(other(d.title))}>${esc(L(d.title))}</h2>`;
-	const meta = `<div class="l-meta"><span>Day ${d.n}</span>${dateTag(d.date, d.dow)}${motifTag(d)}${isToday ? `<span class="flag inv">${Z('今天', 'Today')}</span>` : ''}</div>`;
+	// the date leads, big; the day's number and its mark beside it, small
+	const meta = `<div class="l-meta">${dateTag(d.date, d.dow)}<span class="l-n">Day ${d.n}</span>${motifTag(d)}${isToday ? `<span class="flag inv">${Z('今天', 'Today')}</span>` : ''}</div>`;
 	// with a live sky the day's date, wish, weather and what to wear sit in the sky's band; the card keeps the rest
 	const band = sky ? bandHTML(`${meta}${wishOnly}${wxLine(d, d.wear)}`) : '';
-	const wx = sky ? '' : fcChip(d);
-	const chips = [
-		wx,
-		d.focus && `<span class="chip">${icon('flag')}${esc(L(d.focus))}</span>`,
-		d.budgetChip && budgetChip(d),
-		!sky && d.wear && `<span class="chip">${icon('shirt')}${esc(L(d.wear))}</span>`,
-	]
-		.filter(Boolean)
-		.join('');
 	const photos = (d.photos || []).filter((p) => credit[p]); // optional: a day may have none
 	const stopsTitle = d.stepsTitle ? L(d.stepsTitle) : Z('行程', 'Schedule');
-	// no "+" where nothing can come right after: the row that closes the day (back to the hotel), a moment the next row
-	// starts at too (Plan.roomAfter), and the flight home
+	// no Add after where nothing can come right after: the row that closes the day (back to the hotel), a moment the next
+	// row starts at too (Plan.roomAfter), and the flight home
 	const room = Plan.roomAfter(d.schedule.map((it) => parseT(it.t || '')));
 	const closes = room.map((ok, i) => !ok || !!(d.schedule[i].rel && Array.isArray(d.schedule[i].rel.dep) && d.schedule[i].rel.dep[0] === 0));
+	const drives = driveStopsAt(d); // a long drive's rest stops, folded under the row it drives in (05-render-small-parts.js)
 	const planned = d.schedule.map((it, i) => {
+		// skipped: folded into the day's "N skipped" line (skipFoldHTML), or, right after the skip, greyed where it was with
+		// the suggestion to move the next stops earlier (07-skip.js)
+		if (it._skip) return skipAskHTML(d, i);
 		const t = it.step ? String(it.step) : L(it.t || '');
 		const pt = parseT(it.t || '');
-		const cls = ['stop', it.fixed && 'fixed', it.key && 'key'].filter(Boolean).join(' ');
-		// the stop's map, directions, what's near it (food, the wishlist, drinks and rest spots) and its shop box open in
-		// its own sheet: tap the row (ADR-20261122-day-views). The row keeps the time, the name, the note and its warnings
+		const cls = ['stop', it.fixed && 'fixed', it.key && 'key', it.todo && 'todo'].filter(Boolean).join(' ');
+		const sid = `${d.id}-s${i}`;
+		// the stop's sheet: what's near it (food, the wishlist, drinks and rest spots), its shop box, its local words, a
+		// photo, and its map and directions again; the opened row has the few actions used on the way
 		const more = [
 			stopNative(it),
 			it.place || it.link
@@ -1065,10 +1410,6 @@ function secDay(d, today) {
 		]
 			.join('')
 			.trim();
-		const sid = `${d.id}-s${i}`;
-		const moreBtn = more
-			? `<button type="button" class="stop-more" data-part="${sid}-more" aria-haspopup="dialog" aria-expanded="false" aria-label="${esc(`${L(it.t || '')} ${stopName(it)}: ${Z('地图、路线和附近', 'map, directions and nearby')}`)}">${icon('chev-r')}</button>`
-			: '';
 		// built the first time it opens, like a part's sheet (partSheet, 06-render-blocks.js): a long trip has a sheet per
 		// stop, and drawing them all at first paint cost a twelve-day trip ~2,900 nodes (tests/e2e/boot.spec.mjs)
 		const moreSheet = more
@@ -1077,13 +1418,45 @@ function secDay(d, today) {
 						`<div class="bsheet-head"><span class="bsheet-grip" aria-hidden="true"></span><span class="part-ic" aria-hidden="true">${icon(it.fixed ? 'clock' : 'pin')}</span><h3 class="bsheet-h" id="${sid}-more-h">${escText(stopName(it))}<small>Day ${d.n} · ${esc(dateLabel(d.date, d.dow))}${it.t ? ` · ${esc(L(it.t))}` : ''}</small></h3><button type="button" class="icon-btn bsheet-x" data-close aria-label="${Z('关闭', 'Close')}">${icon('x')}</button></div><div class="bsheet-body">${more}</div>`,
 				)}"></dialog>`
 			: '';
-		return `<li class="${cls}${it._sh ? ' shifted' : ''}${more ? ' has-more' : ''}" id="${sid}" ${pt.s != null ? `data-s="${pt.s}"` : ''}><div class="stop-t">${esc(t)}${it._sh ? `<span class="t-was">${esc(Z(`原 ${L(it._base)}`, `was ${L(it._base)}`))}</span>` : ''}</div><div class="stop-knot">${closes[i] ? '' : gapBtn(d, `${i}`)}</div><div class="stop-b">
-        <p class="stop-name"${alt(other(it.what))}>${fmt(it.what)}${it.fixed ? seal() : ''}<span class="flag-slot"></span></p>${moreBtn}
-        ${it.note ? `<p class="stop-note">${fmt(it.note)}</p>` : ''}${stopDetail(it, sid)}
-        ${splitBack(d, it)}
-        ${it._clash ? `<p class="warn">${icon('alert')}${esc(Z(`推迟后会撞到 ${L(it._clash.t)}「${stopName(it._clash)}」：这一项缩短或跳过`, `Now runs into the fixed ${L(it._clash.t)} ${stopName(it._clash)}: shorten or skip this`))}</p>` : ''}
+		// the opened stop: its whole time, its note and longer note, where the group rejoins, the few actions on the way
+		// (labelled icons), what the trip suggests near it, and its sheet
+		const range = !it.step && t !== tStart(t) ? `<p class="stop-when">${icon('clock')}<span>${esc(t)}</span></p>` : '';
+		const acts = [
+			it.place ? placeActs(it.place, { noSite: true }) : '',
+			closes[i] ? '' : addAfter(d, `${i}`),
+			more
+				? `<button type="button" class="ibtn stop-more" data-part="${sid}-more" aria-haspopup="dialog" aria-expanded="false">${ibtn('more', Z('附近和更多', 'Nearby & more'))}</button>`
+				: '',
+			canSkip(d, it) ? skipAct(d, i) : '', // not on a flight or the lodging (ADR-20261128-skip-planned-stops)
+		].join('');
+		const inner = [
+			range && !it.fixed ? range : '',
+			it.note && !it.todo ? `<p class="stop-note">${fmt(it.note)}</p>` : '',
+			it.detail ? `<p class="stop-note stop-detail">${fmt(it.detail)}</p>` : '',
+			splitBack(d, it),
+			acts ? `<div class="stop-acts">${acts}</div>` : '',
+			nearOpts(d, it, sid),
+			driveStopsFold(d, sid, drives.get(i)),
+		]
+			.join('')
+			.trim();
+		// one line, two at most: its name, and for a fixed time the seal with its range, or a note the group must act on
+		const line2 = it.fixed
+			? `<span class="stop-2">${seal()}${range ? `<span class="stop-range">${esc(t)}</span>` : ''}</span>`
+			: it.todo && it.note
+				? `<span class="stop-2 stop-do">${icon('flag')}<span>${fmt(it.note)}</span></span>`
+				: '';
+		const name = `<span class="stop-name"${alt(other(it.what))}>${fmt(it.what)}<span class="flag-slot"></span></span>${line2}`;
+		const head = inner
+			? `<details class="stop-x" data-stop="${sid}"${stopIsOpen(sid) ? ' open' : ''}><summary class="stop-sum">${name}${icon('chev', 'chev')}</summary><div class="stop-open">${inner}</div></details>`
+			: `<div class="stop-sum">${name}</div>`;
+		const knot = it.fixed ? '' : `<span class="knot-ic" aria-hidden="true">${icon(stopIcon(d, it))}</span>`;
+		return `<li class="${cls}${it._sh ? ' shifted' : ''}${more ? ' has-more' : ''}" id="${sid}" ${pt.s != null ? `data-s="${pt.s}"` : ''}><div class="stop-t">${tStart(t) === t ? esc(t) : `<span aria-hidden="true">${esc(tStart(t))}</span><span class="sr-only">${esc(t)}</span>`}${it._sh ? `<span class="t-was">${esc(Z(`原 ${tStart(L(it._base))}`, `was ${tStart(L(it._base))}`))}</span>` : ''}</div><div class="stop-knot">${knot}</div><div class="stop-b">
+        ${head}
+        ${it._clash ? `<p class="warn stop-clash">${icon('alert')}<span>${esc(Z(`推迟后会撞到 ${L(it._clash.t)}「${stopName(it._clash)}」：这一项缩短或跳过`, `Now runs into the fixed ${L(it._clash.t)} ${stopName(it._clash)}: shorten or skip this`))}</span>${canSkip(d, it) ? `<button type="button" class="mlink" data-skip="${d.id}|${i}">${icon('skip')}<span>${Z('跳过', 'Skip')}</span></button>` : ''}</p>` : ''}
+        ${skipShutHTML(d, it, i, isToday)}
         ${it.place ? `<div class="stop-drv"><button type="button" class="mlink" data-driver="${it.place}">${icon('car')}${Z('给司机看', 'Show driver')}</button></div>` : ''}
-        ${nearOpts(d, it, sid)}${moreSheet}</div></li>`;
+        ${moreSheet}</div></li>`;
 	});
 	if (d.split) {
 		// it forks after the last stop that starts by then; added stops still sort around it by time
@@ -1091,7 +1464,7 @@ function secDay(d, today) {
 		const at = d.schedule.reduce((k, it, j) => (parseT(it.t || '').s != null && parseT(it.t || '').s <= fork ? j : k), -1);
 		if (at >= 0) planned[at] += splitHTML(d);
 	}
-	const sched = mineMerge(d, planned);
+	const sched = mineMerge(d, planned, skipFoldHTML(d));
 	const foodSlots = d.foodSlots || []; // the day's researched food slots (extra.json food[].slot)
 	const tickets = d.tickets || []; // the day's ticket/booking cards (ids in extra.json tickets)
 	const tixOk = tickets.map((t) => (EXTRA.tickets || []).find((x) => x.id === t)).filter(Boolean);
@@ -1102,26 +1475,45 @@ function secDay(d, today) {
 	const wishN = (wishD.match(/class="wish-row"/g) || []).length;
 	const ideas = d.id === ROLE.free ? freeIdeasHTML() : '';
 	const BLOCK_ICON = { wear: 'shirt', budget: 'money', rain: 'umbrella' };
-	// the day's planning blocks: a summary button each under the title, the block itself in its sheet
+	// the day's route (places and how you get between them, the whole route in the maps app) and its focus: one tile
+	const route = routeCard(d);
+	const focus = d.focus ? `<p class="route-focus">${icon('flag')}<span>${esc(L(d.focus))}</span></p>` : '';
+	// the day's planning blocks: a tile each under the card, the block itself in its sheet
 	const parts = [
+		(route || focus) && {
+			key: 'route',
+			icon: 'route',
+			h: ['今天的路线', "The day's route"],
+			t: ['路线', 'Route'],
+			sum: esc(L(d.title)),
+			noSum: true,
+			body: `${focus}${route}${GEO ? `<div class="gl route-acts">${actRow('', `data-map-day="${d.id}"`, 'map', Z('在地图上看这天', 'This day on the map'))}</div>` : ''}`,
+		},
 		ideas && {
 			key: 'ideas',
 			icon: 'star',
 			h: ['自由时间去哪', 'Free-time ideas'],
+			t: ['去哪玩', 'Ideas'],
 			sum: `${sumB(Z('点＋加入行程', 'Tap ＋ to add a stop'))} · ${nItems((ideas.match(/class="more idea-g/g) || []).length, '组', 'group', 'groups')}`,
+			n: (ideas.match(/class="more idea-g/g) || []).length,
 			body: ideas,
 		},
 		tix && {
 			key: 'tickets',
 			icon: 'ticket',
 			h: ['门票与怎么订', 'Tickets & how to book'],
+			t: ['门票', 'Tickets'],
 			sum: `${sumB(nItems(tixOk.length, '张', 'ticket', 'tickets'))} · ${escText(lang === 'en' ? tixOk[0].title_en : tixOk[0].title_zh)}`,
+			n: tixOk.length > 1 ? tixOk.length : 0,
 			body: `<div class="block">${blockH('ticket', ['门票与怎么订', 'Tickets & how to book'])}<div class="stack">${tix}</div></div>`,
 		},
 		...d.blocks.map((b, i) => ({
 			key: `b${i}`,
 			icon: BLOCK_ICON[b.type] || b.icon,
 			h: b.h,
+			t: tileWord(b),
+			n: tileCount(b),
+			pick: b.type === 'decide' && !!b.pick,
 			sum: blockSum(b),
 			body: renderBlock(b, d),
 			fill: () => renderBlock(b, d),
@@ -1130,6 +1522,8 @@ function secDay(d, today) {
 			key: 'food',
 			icon: 'food',
 			h: ['去哪吃（参考）', 'Where to eat'],
+			t: ['去哪吃', 'Where to eat'],
+			n: foodN,
 			sum: sumB(nItems(foodN, '个吃饭的地方', 'place to eat', 'places to eat')),
 			body: food,
 		},
@@ -1137,24 +1531,34 @@ function secDay(d, today) {
 			key: 'wish',
 			icon: 'star',
 			h: ['顺路还可以去', 'Also nearby'],
+			t: ['想去', 'Wishlist'],
+			n: wishN,
 			sum: sumB(nItems(wishN, '个想去的地方', 'wishlist place', 'wishlist places')),
 			body: wishD,
 		},
 	].filter(Boolean);
+	// the card's ⋯: what the group does with the whole day now and then (copy it to the chat, copy its link, the map)
+	const menu = partSheet(d.id, {
+		key: 'menu',
+		icon: 'more',
+		h: [`Day ${d.n} · ${dateLabel(d.date, d.dow)}`, `Day ${d.n} · ${dateLabel(d.date, d.dow)}`],
+		body: `<div class="gl day-menu">${actRow('', `data-copy-day="${d.id}"`, 'copy', Z('复制给大家', 'Copy for chat'), Z('整天的行程，贴到群组', "The whole day, to paste in the group's chat"))}${actRow('', `data-copy-link="${d.id}"`, 'link', Z('复制链接', 'Copy link'), Z('直接打开这一天', 'Opens this day'))}${GEO ? actRow('', `data-map-day="${d.id}"`, 'map', Z('在地图上看', 'See it on the map')) : ''}</div>${(() => {
+			const ch = changeRows();
+			return ch
+				? `<p class="gl-h" id="${d.id}-mine-h">${Z('我的改动', 'My changes')}</p><div class="gl day-menu day-mine" role="group" aria-labelledby="${d.id}-mine-h">${ch}</div>`
+				: '';
+		})()}`,
+	});
 	return `<section class="day" id="${d.id}" data-sec="${d.id}" style="${colorVars(d.c)}">
       ${band}
       <div class="day-bar"><span class="sw" aria-hidden="true"></span><span class="dt">Day ${d.n} · ${dateTag(d.date, d.dow, false)}</span><span class="rt">${esc(L(d.title))}</span></div>
       <div class="lantern">
         ${worldArt(d.motif, 'day-art')}
-        ${sky ? titleOnly : `${meta}${wishOnly}${titleOnly}`}
-        <div class="l-chips">${chips}</div>
-        ${routeCard(d)}
-        <div class="l-actions">
-          <button type="button" class="l-btn" data-copy-day="${d.id}">${icon('copy')}<span class="dlbl">${Z('复制给大家', 'Copy for chat')}</span></button>
-          <button type="button" class="l-btn" data-copy-link="${d.id}">${icon('link')}<span class="dlbl">${Z('复制链接', 'Copy link')}</span></button>
-          ${GEO ? `<button type="button" class="l-btn" data-map-day="${d.id}">${icon('map')}${Z('地图', 'Map')}</button>` : ''}
-        </div>
+        ${sky ? '' : `${meta}${wishOnly}`}
+        <div class="l-head">${titleOnly}<button type="button" class="l-more" data-part="${d.id}-p-menu" aria-haspopup="dialog" aria-expanded="false" aria-controls="${d.id}-p-menu" aria-label="${Z(`Day ${d.n} 更多：复制给大家、复制链接`, `More for Day ${d.n}: copy for chat, copy link`)}">${icon('more')}</button></div>
+        ${dayFacts(d, sky)}
       </div>
+      ${menu}
       ${partsHTML(d.id, parts)}
       ${d.lede ? `<p class="day-lede">${fmt(d.lede)}</p>` : ''}
       ${d.id === ROLE.leave ? leaveBudgetHTML() : ''}${d.id === ROLE.arrive ? `<div class="block arrive-flight">${fltEditHTML('arr')}</div>` : ''}
@@ -1168,23 +1572,16 @@ function secMap() {
 	if (!GEO) return '';
 	const views = [['all', ['全部', 'All']], ...(TRIP.mapViews || []).map((v) => [v.id, v.name])]; // the trip's map areas
 	const fd = mapFiltDay(); // the day the map shows, kept across a redraw
-	// map-first (ADR-20261124-map-first-search): the search and one row of categories over the map; the day and the area
-	// in a sheet behind one button; the results and the place finder in a pane over the map (a sheet at its foot on a
-	// phone, a panel down its left on a wide stage), so a search never pushes the map away
+	// map-first (ADR-20261124-map-first-search): the search over the map, and one Filters button for the day, the kind
+	// and the area, with what the pins mean, in its sheet (ADR-20261128-progressive-disclosure); the results and the place
+	// finder in a pane over the map (a sheet at its foot on a phone, a panel down its left on a wide stage), so a search
+	// never pushes the map away
 	return `<section class="sec" id="map" data-sec="map">
       <h2 class="sec-title">${icon('map')}${Z('地图', 'Map')}</h2>
-      <p class="sec-lede map-lede">${Z('颜色是日期，形状是类型。', 'Colour is the day; shape is the type.')}</p>
       <div class="map-stage" id="mapstage">
       <div class="map-top"><p class="map-top-t">${icon('map')}${Z('地图', 'Map')}</p><button type="button" class="mlink map-exit" data-mapfull="0" aria-label="${Z('退出全屏', 'Exit full screen')}">${icon('x')}<span class="dlbl">${Z('退出全屏', 'Exit full screen')}</span></button></div>
       <div class="map-find" role="search"><label class="map-q">${icon('search')}<input id="mapq" type="search" enterkeyhint="search" autocomplete="off" placeholder="${Z('搜地图：店名、景点、厕所、饮料…', 'Search the map: name, sight, toilet, drinks…')}" aria-label="${Z('搜地图', 'Search the map')}"></label><button type="button" class="mlink map-listbtn" data-maplist aria-expanded="false" aria-controls="mappane">${icon('list')}<span class="dlbl">${Z('列表', 'List')}</span><b id="mapn"></b></button></div>
-      <div class="map-chips"><button type="button" class="seg-btn map-filt${fd ? ' dayf' : ''}" data-mapfilters data-on="${fd ? 1 : 0}" aria-haspopup="dialog" aria-controls="mapfilt"${fd ? ` style="${colorVars(fd.c)}"` : ''}>${icon('calendar')}<span id="mapfilt-l">${esc(mapFiltLabel(fd))}</span>${icon('chev-r', 'part-ch')}</button><div class="map-ctrl cats" role="group" aria-label="${Z('分类', 'Category')}">${MAP_CATS.filter(
-				([k]) => k !== 'wish' || WISH.length,
-			)
-				.map(
-					([k, l]) =>
-						`<button type="button" class="seg-btn cat" data-cat="${k}" aria-pressed="${k === 'all'}">${k === 'all' ? '' : `<span class="cat-ic" aria-hidden="true">${pinSVG({ type: k === 'place' ? 'place' : k, days: [], wish: null })}</span>`}${esc(L(l))}</button>`,
-				)
-				.join('')}</div></div>
+      <div class="map-chips"><button type="button" class="seg-btn map-filt${fd ? ' dayf' : ''}" data-mapfilters data-on="${fd || mapCat !== 'all' ? 1 : 0}" aria-haspopup="dialog" aria-controls="mapfilt"${fd ? ` style="${colorVars(fd.c)}"` : ''}>${icon('filter')}<span id="mapfilt-l">${esc(mapFiltLabel(fd))}</span>${icon('chev-r', 'part-ch')}</button></div>
       <div class="map-box" id="mapbox">
       <div class="map-pane" id="mappane" role="region" aria-label="${Z('地图列表', 'Map list')}" hidden>
         <div class="pane-head"><span class="pane-grip" aria-hidden="true"></span><div class="pane-t" id="panet" aria-live="polite"></div><button type="button" class="icon-btn pane-btn" data-pane="up" aria-label="${Z('列表拉高', 'Make the list taller')}" aria-controls="mappane">${icon('chev', 'up')}</button><button type="button" class="icon-btn pane-btn" data-pane="down" aria-label="${Z('列表放低，多看地图', 'Make the list shorter, more map')}" aria-controls="mappane">${icon('chev')}</button><button type="button" class="icon-btn pane-x" data-pane="close" aria-label="${Z('关闭列表', 'Close the list')}">${icon('x')}</button></div>
@@ -1193,7 +1590,7 @@ function secMap() {
       </div>
       <div class="map-wrap" role="region" aria-label="${Z('行程地图', 'Trip map')}"><div class="map-msg" id="mapmsg"><p>${Z('地图载入中…', 'Loading the map…')}</p></div><button type="button" class="map-full" data-mapfull="1" aria-label="${Z('全屏看地图', 'Full-screen map')}">${icon('expand')}<span class="dlbl">${Z('全屏', 'Full screen')}</span></button></div>
       </div>
-      <dialog class="sheet bsheet map-filts" id="mapfilt" aria-labelledby="mapfilt-h"><div class="bsheet-head"><span class="bsheet-grip" aria-hidden="true"></span><span class="part-ic" aria-hidden="true">${icon('calendar')}</span><h3 class="bsheet-h" id="mapfilt-h">${Z('哪天、哪一区', 'Day and area')}<small>${Z('选一个，地图就跟着变', 'Pick one; the map follows')}</small></h3><button type="button" class="icon-btn bsheet-x" data-close aria-label="${Z('关闭', 'Close')}">${icon('x')}</button></div>
+      <dialog class="sheet bsheet map-filts" id="mapfilt" aria-labelledby="mapfilt-h"><div class="bsheet-head"><span class="bsheet-grip" aria-hidden="true"></span><span class="part-ic" aria-hidden="true">${icon('calendar')}</span><h3 class="bsheet-h" id="mapfilt-h">${Z('筛选', 'Filters')}<small>${Z('选一个，地图就跟着变', 'Pick one; the map follows')}</small></h3><button type="button" class="icon-btn bsheet-x" data-close aria-label="${Z('关闭', 'Close')}">${icon('x')}</button></div>
         <div class="bsheet-body">
           <p class="sub-h" id="mapfilt-d">${Z('看哪一天的点', 'Show the pins of')}</p>
           <div class="map-pick" role="group" aria-labelledby="mapfilt-d"><button type="button" class="seg-btn" data-filter="all" aria-pressed="${!fd}">${Z('全部天', 'All days')}</button>${DAYS.filter(
@@ -1204,20 +1601,31 @@ function secMap() {
 								`<button type="button" class="seg-btn dayf" data-filter="${d.id}" style="${colorVars(d.c)}" aria-pressed="${d === fd}">Day ${d.n} · ${+d.date.slice(8)} ${esc(L(d.dow))}</button>`,
 						)
 						.join('')}</div>
+          <p class="sub-h" id="mapfilt-c">${Z('看哪一类', 'Show')}</p>
+          <div class="map-pick cats" role="group" aria-labelledby="mapfilt-c">${MAP_CATS.filter(
+						([k]) => (k !== 'wish' || WISH.length) && (k !== 'refill' || REFILL.spots.length),
+					)
+						.map(
+							([k, l]) =>
+								`<button type="button" class="seg-btn cat" data-cat="${k}" aria-pressed="${k === mapCat}">${k === 'all' ? '' : `<span class="cat-ic" aria-hidden="true">${pinSVG({ type: k === 'place' ? 'place' : k, days: [], wish: null })}</span>`}${esc(L(l))}</button>`,
+						)
+						.join('')}</div>
           <p class="sub-h" id="mapfilt-v">${Z('移到哪一区', 'Move the map to')}</p>
           <div class="map-pick" role="group" aria-labelledby="mapfilt-v">${views.map(([k, l]) => `<button type="button" class="seg-btn" data-view="${k}" aria-pressed="false">${esc(L(l))}</button>`).join('')}</div>
-        </div></dialog>
+          <p class="sub-h" id="mapfilt-k">${Z('图例：颜色是日期，形状是类型', 'What the pins mean: colour is the day, shape the type')}</p>
+          <div class="map-legend">
+          <span><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="var(--ink-2)"/></svg>${Z('景点', 'Sight')}</span>
+          <span><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="2.5" width="11" height="11" rx="3" fill="var(--ink-2)"/></svg>${Z('美食', 'Food')}</span>
+          <span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5L14.5 8L8 14.5L1.5 8Z" fill="var(--ink-2)"/></svg>${esc(SHOPLISTS_.map((l) => L(l.kind)).join(' / ') || Z('商店', 'Shop'))}</span>
+          ${WISH.length ? `<span><svg viewBox="-10 -10 20 20" aria-hidden="true"><path d="M0 -9.5L2.8 -3.2L9.4 -2.6L4.4 1.8L5.9 8.4L0 5L-5.9 8.4L-4.4 1.8L-9.4 -2.6L-2.8 -3.2Z" fill="var(--ink-2)"/></svg>${Z('想去', 'Wishlist')}</span>` : ''}
+          <span><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="#0f8a7e"/><path d="M5.4 4.8h5.2l-.8 6.4H6.2z" fill="#fff"/></svg>${Z('饮料', 'Drinks')}</span>
+          <span><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="#a0527e"/><path d="M4.4 6h5.4v2.2a2.7 2.7 0 0 1-5.4 0z" fill="#fff"/><path d="M9.8 6.8h.8a1.2 1.2 0 0 1 0 2.4h-.8" fill="none" stroke="#fff" stroke-width="1"/></svg>${Z('歇脚·甜品', 'Rest & dessert')}</span>
+          <span><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="1.5" width="13" height="13" rx="3.5" fill="#4a6fa5"/><text x="8" y="10.6" text-anchor="middle" font-size="6.5" font-weight="800" fill="#fff" font-family="system-ui,sans-serif">WC</text></svg>${Z('公厕', 'Public toilet')}</span>
+          ${REFILL.spots.length ? `<span><svg viewBox="-9.5 -10 19 19" aria-hidden="true">${REFILL_PIN}</svg>${Z('装水', 'Refill')}</span>` : ''}
+          <span><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="1.5" width="13" height="13" rx="3.5" fill="#0f5fa8"/><path d="M4.5 11.5V4.5L8 9l3.5-4.5v7" fill="none" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>${Z('捷运站', 'MRT')}</span>
+          <span><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="1.5" width="13" height="13" rx="4" fill="var(--ink)"/><path d="M4.5 9l3.5-3.5 3.5 3.5v3h-7z" fill="var(--paper)"/></svg>${Z('酒店', 'Hotel')}</span>
       </div>
-      <div class="map-legend">
-        <span><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="var(--ink-2)"/></svg>${Z('景点', 'Sight')}</span>
-        <span><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="2.5" width="11" height="11" rx="3" fill="var(--ink-2)"/></svg>${Z('美食', 'Food')}</span>
-        <span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5L14.5 8L8 14.5L1.5 8Z" fill="var(--ink-2)"/></svg>${esc(SHOPLISTS_.map((l) => L(l.kind)).join(' / ') || Z('商店', 'Shop'))}</span>
-        ${WISH.length ? `<span><svg viewBox="-10 -10 20 20" aria-hidden="true"><path d="M0 -9.5L2.8 -3.2L9.4 -2.6L4.4 1.8L5.9 8.4L0 5L-5.9 8.4L-4.4 1.8L-9.4 -2.6L-2.8 -3.2Z" fill="var(--ink-2)"/></svg>${Z('想去', 'Wishlist')}</span>` : ''}
-        <span><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="#0f8a7e"/><path d="M5.4 4.8h5.2l-.8 6.4H6.2z" fill="#fff"/></svg>${Z('饮料', 'Drinks')}</span>
-        <span><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="#a0527e"/><path d="M4.4 6h5.4v2.2a2.7 2.7 0 0 1-5.4 0z" fill="#fff"/><path d="M9.8 6.8h.8a1.2 1.2 0 0 1 0 2.4h-.8" fill="none" stroke="#fff" stroke-width="1"/></svg>${Z('歇脚·甜品', 'Rest & dessert')}</span>
-        <span><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="1.5" width="13" height="13" rx="3.5" fill="#4a6fa5"/><text x="8" y="10.6" text-anchor="middle" font-size="6.5" font-weight="800" fill="#fff" font-family="system-ui,sans-serif">WC</text></svg>${Z('公厕', 'Public toilet')}</span>
-        <span><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="1.5" width="13" height="13" rx="3.5" fill="#0f5fa8"/><path d="M4.5 11.5V4.5L8 9l3.5-4.5v7" fill="none" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>${Z('捷运站', 'MRT')}</span>
-        <span><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="1.5" width="13" height="13" rx="4" fill="var(--ink)"/><path d="M4.5 9l3.5-3.5 3.5 3.5v3h-7z" fill="var(--paper)"/></svg>${Z('酒店', 'Hotel')}</span>
+        </div></dialog>
       </div>
       <div class="map-card" id="mapcard"><p class="muted small">${Z('点一个点看详情。', 'Tap a pin to see details.')}</p></div>
       <details class="more" style="margin-top:12px" data-lazy="${lazyKey(mapListHTML)}"><summary>${icon('list')}${Z('所有地点列表', 'All places as a list')}${icon('chev', 'chev')}</summary><div class="more-body" id="maplist" data-lazy-body></div></details>
@@ -1304,22 +1712,25 @@ function airportParts(A, TERM) {
 		{
 			key: 'ways',
 			icon: 'route',
+			t: ['怎么去', 'Ways'],
 			h: ['到酒店的方法', 'Ways to the hotel'],
 			sum: `${sumB(nItems(A.methods.length, '个方法', 'way', 'ways'))}${pick ? ` · ${Z('建议', 'Pick')}: ${escText(plainText(pick.short))}` : ''}`,
 			body: methods,
 		},
-		{ key: 'route', icon: 'train', h: routeTitle, sum: sumB(nItems(A.steps.length, '步', 'step', 'steps')), body: route },
+		{ key: 'route', icon: 'train', t: ['搭车', 'By train'], h: routeTitle, sum: sumB(nItems(A.steps.length, '步', 'step', 'steps')), body: route },
 		{
 			key: 'rule',
 			icon: 'clock',
+			t: ['当天决定', 'Deciding'],
 			h: ['当天怎么决定', 'Deciding on the day'],
 			sum: esc(A.rule.map((o) => plainText(o.name)).join(' · ')),
 			body: `<div class="decide">${A.rule.map(optRow).join('')}</div>`,
 		},
-		card && { key: 'card', icon: 'card', h: Pack.transitCard, sum: escText(plainText(A.transitCard[0])), body: card },
+		card && { key: 'card', icon: 'card', t: Pack.transitCard, h: Pack.transitCard, sum: escText(plainText(A.transitCard[0])), body: card },
 		{
 			key: 'depart',
 			icon: 'plane',
+			t: ['回程', 'Going home'],
 			h: [`回程：${Time.dateLabel(departEve(), 'zh')}晚到机场`, `Going home: to the airport on ${Time.dateLabel(departEve(), 'en')}`],
 			sum: escText(plainText(A.depart.list[0] || A.depart.lede)),
 			body: depart,
@@ -1351,6 +1762,7 @@ function entryParts(E, lk) {
 		key: `r${i}`,
 		icon: r.warn ? 'alert' : 'passport',
 		h: r.h,
+		t: [bare(r.h[0]), bare(r.h[1])],
 		sum: escText(plainText(r.p)),
 		body: `<div class="tier"><p>${fmt(r.p)}</p>${r.warn ? `<p class="warn">${icon('alert')}${fmt(r.warn)}</p>` : ''}${SITES[r.site] ? `<div class="links-row">${siteLink(r.site)}</div>` : ''}</div>`,
 	}));
@@ -1358,6 +1770,7 @@ function entryParts(E, lk) {
 		key: 'lucky',
 		icon: 'star',
 		h: lk.name,
+		t: [bare(lk.name[0]), bare(lk.name[1])],
 		sum: escText(plainText(lk.period)),
 		body: `<div id="lucky">${luckyHTML(lk)}</div>`,
 	};

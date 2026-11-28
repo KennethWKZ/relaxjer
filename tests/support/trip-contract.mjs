@@ -4,12 +4,14 @@ import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import { names as MOTIFS } from '../../engine/src/core/motif.mjs';
+import { stopKinds as STOP_ICONS } from '../../engine/src/core/plan.mjs';
 import { MODES as SKIES } from '../../engine/src/core/sky.mjs';
 import { paceProblem } from '../../engine/src/core/way.mjs';
+import { budgetKinds as BUDGET_KINDS } from '../../engine/src/core/money.mjs';
 import { fitMealProblems } from '../../engine/src/core/wish.mjs';
 
 // read when present: the themed shop lists (SNOW is the older single-list form)
-export const OPTIONAL_GLOBALS = ['SHOPLISTS', 'SNOW'];
+export const OPTIONAL_GLOBALS = ['SHOPLISTS', 'SNOW', 'INSURANCE'];
 export const REQUIRED = [
 	'TRIP',
 	'PLACES',
@@ -122,6 +124,9 @@ export function checkTrip(trip) {
 		if (d.n !== i + 1) bad(`${d.id}: n is ${d.n}, expected ${i + 1}`);
 		// the day's lantern colour: the page has seven (--l1…--l7), and the My Maps export one per colour
 		if (!(Number.isInteger(d.c) && d.c >= 1 && d.c <= 7)) bad(`${d.id}: c (its lantern colour) must be 1–7, got ${JSON.stringify(d.c)}`);
+		// the day's short name on its row (ADR-20261128-progressive-disclosure): a few words, [zh, en]
+		if (d.short != null && !(isLabel(d.short) && [...d.short[0]].length <= 10 && d.short[1].length <= 24))
+			bad(`${d.id}: short must be [zh, en], at most 10 characters in Chinese and 24 in English, got ${JSON.stringify(d.short)}`);
 		// the day's activity mark: one the engine draws (engine/src/core/motif.mjs), named by the planner, never free text
 		if (d.motif != null && !MOTIFS.includes(d.motif)) bad(`${d.id}: motif ${JSON.stringify(d.motif)} must be one of ${MOTIFS.join('|')}`);
 		// photos are optional; when set, a list of photo ids (img/credits.json)
@@ -136,9 +141,14 @@ export function checkTrip(trip) {
 			if (it.place && !PLACES[it.place]) bad(`${where}: unknown place "${it.place}"`);
 			// a link is a SITES key, an in-page anchor (#airport) or a URL
 			if (it.link && !SITES[it.link] && !/^(#|https?:\/\/)/.test(it.link)) bad(`${where}: unknown site "${it.link}"`);
-			// a longer note that folds under the short one (ADR-20261127-stop-detail-fold): the short line always shows
+			// a longer note, shown under the note when the stop is opened (ADR-20261128-progressive-disclosure)
 			if (it.detail != null && !isLabel(it.detail)) bad(`${where}: detail must be [zh, en]`);
-			if (it.detail != null && !it.note) bad(`${where}: detail folds under the note, so the stop needs a note too`);
+			if (it.detail != null && !it.note) bad(`${where}: detail goes under the note, so the stop needs a note too`);
+			// a note the group must act on stays visible under the stop's one line, so it needs a note to show
+			if (it.todo != null && typeof it.todo !== 'boolean') bad(`${where}: todo must be true or false`);
+			if (it.todo && !it.note) bad(`${where}: todo keeps the note in sight, so the stop needs a note`);
+			// the stop's kind on the string, when the page shouldn't read it from the stop: one the engine draws
+			if (it.icon != null && !STOP_ICONS.includes(it.icon)) bad(`${where}: icon ${JSON.stringify(it.icon)} must be one of ${STOP_ICONS.join('|')}`);
 			if (it.rel) {
 				const o = it.rel.arr || it.rel.dep;
 				if (!Array.isArray(o)) bad(`${where}: rel needs arr or dep offsets`);
@@ -183,6 +193,9 @@ export function checkTrip(trip) {
 			if (b.type === 'budget' && !(b.min <= b.max)) bad(`${d.id} budget block: min ${b.min} > max ${b.max}`);
 			// a block's summary button (ADR-20261122-day-views): its own line, and the option a decision has settled on
 			if (b.sum != null && !isLabel(b.sum)) bad(`${d.id} ${b.type} block: sum must be [zh, en]`);
+			// its tile's word (ADR-20261128-progressive-disclosure): short, so it fits under the icon in both languages
+			if (b.tile != null && !(isLabel(b.tile) && [...b.tile[0]].length <= 6 && b.tile[1].length <= 16))
+				bad(`${d.id} ${b.type} block: tile must be [zh, en], at most 6 characters in Chinese and 16 in English`);
 			if (b.pick != null && !(b.type === 'decide' && (b.opts || []).some((o) => o.k === b.pick)))
 				bad(`${d.id} ${b.type} block: pick ${JSON.stringify(b.pick)} must be the k of one of its options (decide blocks only)`);
 		}
@@ -299,11 +312,156 @@ export function checkTrip(trip) {
 		if (!f || minutes(f.dep) == null || minutes(f.arr) == null || !/^\d{4}-\d\d-\d\d$/.test(f.date || ''))
 			bad(`FLIGHTS.${k} needs dep, arr (HH:MM) and date`);
 	}
-	if (!(BUDGET.totalMin <= BUDGET.totalMax)) bad(`BUDGET.totalMin ${BUDGET.totalMin} > totalMax ${BUDGET.totalMax}`);
-	const rowsMin = BUDGET.rows.reduce((a, r) => a + r[2], 0);
-	const rowsMax = BUDGET.rows.reduce((a, r) => a + r[3], 0);
-	if (rowsMin !== BUDGET.totalMin || rowsMax !== BUDGET.totalMax)
-		bad(`BUDGET rows add up to ${rowsMin}–${rowsMax}, totals say ${BUDGET.totalMin}–${BUDGET.totalMax}`);
+	// the budget (ADR-20261128-budget-paid-insurance): an estimate row [label, text, min, max, anchor?] in the trip's
+	// currency, or an object row: one payment { label, min, max, cur, paid, via, ref, est, anchor }, a payment in parts
+	// { label, parts: [{ amt, cur, paid, via, label }] }, or one with no price yet { label, tbd: true, via }
+	const homeCode = TRIP.currency && TRIP.currency.home;
+	const curOK = (c) => c == null || ((c === 'home' || c === homeCode) && homeCode);
+	const isoDay = (d) => /^\d{4}-\d\d-\d\d$/.test(d || '');
+	const viaOK = (v) => v == null || isLabel(v) || (typeof v === 'string' && !!v.trim());
+	const legacy = BUDGET.rows.every(Array.isArray);
+	BUDGET.rows.forEach((r, i) => {
+		const w = `BUDGET.rows[${i}]`;
+		if (Array.isArray(r)) {
+			if (!(isLabel(r[0]) && typeof r[1] === 'string' && Number.isFinite(r[2]) && r[2] <= r[3])) bad(`${w}: [label, text, min, max] with min ≤ max`);
+			// after the figures: an anchor ('airport') and the row's kind, either or both, in that order
+			if (r.slice(4).some((x) => x != null && x !== 'airport' && !BUDGET_KINDS.includes(x)))
+				bad(`${w}: after the figures, 'airport' and/or a kind, one of ${BUDGET_KINDS.join('|')}`);
+			return;
+		}
+		if (!r || typeof r !== 'object' || !isLabel(r.label)) return bad(`${w}: label must be [zh, en]`);
+		if (r.cat != null && !BUDGET_KINDS.includes(r.cat)) bad(`${w}: cat must be one of ${BUDGET_KINDS.join('|')}`);
+		if (!curOK(r.cur)) bad(`${w}: cur must be 'home' or ${JSON.stringify(homeCode)} (a trip with a home currency), or left out for the trip's`);
+		if (!viaOK(r.via)) bad(`${w}: via must be [zh, en] or a name`);
+		if (r.ref != null && !(typeof r.ref === 'string' && r.ref.trim())) bad(`${w}: ref must be the booking number as text`);
+		if (r.tbd) {
+			if (r.min != null || r.max != null || r.parts || r.paid) bad(`${w}: a row with no price yet (tbd) has no amount, parts or payment date`);
+			return;
+		}
+		if (r.parts != null) {
+			if (!(Array.isArray(r.parts) && r.parts.length)) return bad(`${w}: parts must be a list of payments`);
+			if (r.min != null || r.max != null || r.paid != null) bad(`${w}: a row paid in parts takes its amounts and dates from them`);
+			r.parts.forEach((pt, j) => {
+				if (!(Number.isFinite(pt.amt) && pt.amt > 0)) bad(`${w}.parts[${j}]: amt must be a number above 0`);
+				if (!curOK(pt.cur)) bad(`${w}.parts[${j}]: cur must be 'home' or ${JSON.stringify(homeCode)}, or left out`);
+				if (pt.paid != null && !isoDay(pt.paid)) bad(`${w}.parts[${j}]: paid must be a date (YYYY-MM-DD)`);
+				if (!viaOK(pt.via)) bad(`${w}.parts[${j}]: via must be [zh, en] or a name`);
+				if (pt.label != null && !isLabel(pt.label)) bad(`${w}.parts[${j}]: label must be [zh, en]`);
+			});
+			return;
+		}
+		if (!(Number.isFinite(r.min) && Number.isFinite(r.max) && r.min >= 0 && r.min <= r.max)) bad(`${w}: needs min ≤ max (or parts, or tbd)`);
+		if (r.paid != null) {
+			if (!isoDay(r.paid)) bad(`${w}: paid must be a date (YYYY-MM-DD)`);
+			if (r.min !== r.max) bad(`${w}: a paid row has its exact amount (min = max), never a range`);
+		}
+	});
+	// travel insurance (optional): a closed list of fields, and never an ID number, an address or a birth date, since the
+	// page is shared with the whole group (ADR-20261128-budget-paid-insurance)
+	// the tourist tax refund (ADR-20261128-tax-refund): the old h, list, shops, note, and the optional steps, methods,
+	// airport (its rows and the customs Wi-Fi), deadline, coupons and src. A coupon's `until`, when given, is a date, its id a word,
+	// its place one of the trip's places or shop lists; its image is checked against the folder (taxImagesMissing)
+	const { TAX } = trip;
+	if (TAX != null) {
+		const labels = (v) => Array.isArray(v) && v.every(isLabel);
+		const nameOK = (v) => isLabel(v) || (typeof v === 'string' && !!v.trim());
+		if (TAX.steps != null && !labels(TAX.steps)) bad('TAX.steps: a list of [zh, en]');
+		if (TAX.deadline != null && !isLabel(TAX.deadline)) bad('TAX.deadline: [zh, en]');
+		if (TAX.src != null && !isLabel(TAX.src)) bad('TAX.src: [zh, en]');
+		if (TAX.methods != null)
+			(Array.isArray(TAX.methods) ? TAX.methods : [null]).forEach((m, i) => {
+				if (!m || !isLabel(m.h) || !labels(m.items || [])) bad(`TAX.methods[${i}]: { h: [zh, en], items: [[zh, en], …], note? }`);
+				else if (m.note != null && !isLabel(m.note)) bad(`TAX.methods[${i}].note: [zh, en]`);
+			});
+		if (TAX.airport != null) {
+			const A = TAX.airport;
+			if (A.h != null && !isLabel(A.h)) bad('TAX.airport.h: [zh, en]');
+			(Array.isArray(A.rows) ? A.rows : [null]).forEach((r, i) => {
+				if (!r || !isLabel(r.what) || !isLabel(r.where)) bad(`TAX.airport.rows[${i}]: { what, where, when?, note? }, each [zh, en]`);
+				else for (const k of ['when', 'note']) if (r[k] != null && !isLabel(r[k])) bad(`TAX.airport.rows[${i}].${k}: [zh, en]`);
+			});
+			if (
+				A.wifi != null &&
+				!(
+					typeof A.wifi.ssid === 'string' &&
+					A.wifi.ssid.trim() &&
+					(A.wifi.pass == null || typeof A.wifi.pass === 'string') &&
+					(A.wifi.note == null || isLabel(A.wifi.note))
+				)
+			)
+				bad('TAX.airport.wifi: { ssid, pass?, note? }');
+		}
+		if (TAX.coupons != null) {
+			const ids = new Set();
+			const lists = new Set([...(trip.SHOPLISTS || []), ...(trip.SNOW ? [trip.SNOW] : [])].map((l) => l && l.id).filter(Boolean));
+			(Array.isArray(TAX.coupons) ? TAX.coupons : [null]).forEach((c, i) => {
+				const w = `TAX.coupons[${i}]`;
+				if (!c || typeof c !== 'object') return bad(`${w}: a coupon object`);
+				if (!/^[a-z0-9][a-z0-9-]*$/.test(c.id || '')) bad(`${w}: id must be a word (a-z, 0-9, -)`);
+				else if (ids.has(c.id)) bad(`${w}: the same id twice`);
+				ids.add(c.id);
+				if (!nameOK(c.shop)) bad(`${w}: shop must be [zh, en] or a name`);
+				if (!isLabel(c.h)) bad(`${w}: h must be [zh, en]`);
+				if (c.items != null && !labels(c.items)) bad(`${w}: items must be a list of [zh, en]`);
+				// optional: a coupon that prints no end date has none, and the trip never makes one up
+				if (c.until != null && !/^\d{4}-\d\d-\d\d$/.test(c.until)) bad(`${w}: until, when given, must be its last day, YYYY-MM-DD`);
+				if (c.img != null && !/^[a-z0-9][a-z0-9_-]*(\/[a-z0-9][a-z0-9_-]*)*$/i.test(c.img)) bad(`${w}: img must be a key like tax/coupon-shop`);
+				if (c.rules != null && !(isLabel(c.rules) || labels(c.rules))) bad(`${w}: rules must be [zh, en] or a list of them`);
+				if (c.place != null && !(PLACES[c.place] || lists.has(c.place))) bad(`${w}: place "${c.place}" is not a place or a shop list`);
+			});
+		}
+	}
+	const { INSURANCE } = trip;
+	if (INSURANCE != null) {
+		const PERSONAL = /^(ic|nric|mykad|id|idno|id_?number|passport\w*|dob|birth\w*|address\w*|addr|ssn|national_?id)$/i;
+		const personal = (o, at) => {
+			if (Array.isArray(o)) return o.forEach((x, i) => personal(x, `${at}[${i}]`));
+			if (o && typeof o === 'object')
+				for (const [k, v] of Object.entries(o)) {
+					if (PERSONAL.test(k)) bad(`${at}.${k}: no ID numbers, addresses or birth dates in INSURANCE (the page is shared with the group)`);
+					personal(v, `${at}.${k}`);
+				}
+		};
+		personal(INSURANCE, 'INSURANCE');
+		const only = (o, keys, at) => Object.keys(o || {}).forEach((k) => keys.includes(k) || PERSONAL.test(k) || bad(`${at}: unknown field ${k}`));
+		const tel = (t) => typeof t === 'string' && /^\+?\d[\d ()-]{5,}$/.test(t.trim());
+		only(INSURANCE, ['policies', 'claims'], 'INSURANCE');
+		if (!(Array.isArray(INSURANCE.policies) && INSURANCE.policies.length)) bad('INSURANCE.policies must list at least one policy');
+		(INSURANCE.policies || []).forEach((p, i) => {
+			const w = `INSURANCE.policies[${i}]`;
+			only(p, ['name', 'insurer', 'plan', 'who', 'from', 'to', 'covers', 'note', 'site', 'app', 'contacts'], w);
+			if (!isLabel(p.name)) bad(`${w}: name must be [zh, en]`);
+			if (!(typeof p.insurer === 'string' && p.insurer.trim())) bad(`${w}: insurer is the company's name`);
+			for (const k of ['plan', 'who', 'note']) if (p[k] != null && !isLabel(p[k])) bad(`${w}: ${k} must be [zh, en]`);
+			for (const k of ['from', 'to']) if (p[k] != null && !/^\d{4}-\d\d-\d\d$/.test(p[k])) bad(`${w}: ${k} must be a date (YYYY-MM-DD)`);
+			if (p.from && p.to && p.to < p.from) bad(`${w}: to is before from`);
+			if (p.covers != null && !(Array.isArray(p.covers) && p.covers.every(isLabel))) bad(`${w}: covers must be a list of [zh, en]`);
+			if (p.site != null && !(SITES[p.site] || /^https:\/\//.test(p.site))) bad(`${w}: site must be a SITES key or an https link`);
+			if (p.app != null) {
+				only(p.app, ['name', 'note'], `${w}.app`);
+				if (!(typeof p.app.name === 'string' && p.app.name.trim()) || (p.app.note != null && !isLabel(p.app.note)))
+					bad(`${w}.app: a name, and a [zh, en] note`);
+			}
+			(p.contacts || []).forEach((c, j) => {
+				only(c, ['label', 'tel', 'wa', 'when'], `${w}.contacts[${j}]`);
+				if (!isLabel(c.label) || !tel(c.tel) || (c.wa != null && !tel(c.wa)) || (c.when != null && !isLabel(c.when)))
+					bad(`${w}.contacts[${j}]: a [zh, en] label, a phone number (tel, and wa for WhatsApp) and a [zh, en] when`);
+			});
+		});
+		(INSURANCE.claims || []).forEach((g, i) => {
+			only(g, ['h', 'items'], `INSURANCE.claims[${i}]`);
+			if (!isLabel(g.h) || !(Array.isArray(g.items) && g.items.length && g.items.every(isLabel)))
+				bad(`INSURANCE.claims[${i}]: an h and its items, each [zh, en]`);
+		});
+	}
+	// an estimate-only budget keeps its hand-written totals, and they add up
+	if (legacy) {
+		if (!(BUDGET.totalMin <= BUDGET.totalMax)) bad(`BUDGET.totalMin ${BUDGET.totalMin} > totalMax ${BUDGET.totalMax}`);
+		const rowsMin = BUDGET.rows.reduce((a, r) => a + r[2], 0);
+		const rowsMax = BUDGET.rows.reduce((a, r) => a + r[3], 0);
+		if (rowsMin !== BUDGET.totalMin || rowsMax !== BUDGET.totalMax)
+			bad(`BUDGET rows add up to ${rowsMin}–${rowsMax}, totals say ${BUDGET.totalMin}–${BUDGET.totalMax}`);
+	}
 	// both UI languages present everywhere (an empty zh gloss is allowed: the brush lettering carries it)
 	for (const { path: p, pair } of bilingualPairs(trip))
 		if (!pair[1].trim() || (!pair[0].trim() && !/gloss$/.test(p))) bad(`${p}: both languages needed, got ${JSON.stringify(pair)}`);
@@ -327,4 +485,100 @@ export function pointsOutside(dir) {
 /** The wishlist's side files (wish-a.json, wish-b.json): a fits entry that names its meal names a known one. */
 export function wishProblems(dir) {
 	return ['wish-a.json', 'wish-b.json'].flatMap((f) => (readJSON(dir, f, { items: [] }).items || []).flatMap((w) => fitMealProblems(w.id, w.fits)));
+}
+
+const REFILL_KINDS = ['tap', 'shop', 'shelter'];
+const CLOCK = /^([01]?\d|2\d|3[0-5]):[0-5]\d$/; // up to 35:59: a range that runs past midnight
+/** refill.json (pipeline/steps/refill.py, ADR-20261128-water-refill): the spot shape the page reads. Returns problems,
+ *  [] for a trip without the file. */
+export function checkRefill(data) {
+	if (data == null) return [];
+	const bad = [];
+	if (typeof data !== 'object' || !Array.isArray(data.spots)) return ['refill.json: needs a "spots" list'];
+	if (data.checked != null && !/^\d{4}-\d{2}-\d{2}$/.test(data.checked)) bad.push('refill.json checked: YYYY-MM-DD');
+	const ids = new Set();
+	data.spots.forEach((s, i) => {
+		const at = `refill.json spot ${s && s.id ? s.id : i}`;
+		if (!s || typeof s !== 'object') return bad.push(`${at}: not an object`);
+		if (typeof s.id !== 'string' || !s.id) bad.push(`${at}: id must be text`);
+		else if (ids.has(s.id)) bad.push(`${at}: the same id twice`);
+		ids.add(s.id);
+		if (!(typeof s.lat === 'number' && typeof s.lng === 'number' && Math.abs(s.lat) <= 90 && Math.abs(s.lng) <= 180)) bad.push(`${at}: lat and lng`);
+		if (!REFILL_KINDS.includes(s.kind)) bad.push(`${at}: kind must be one of ${REFILL_KINDS.join('|')}`);
+		for (const k of ['indoor', 'seasonal']) if (s[k] != null && typeof s[k] !== 'boolean') bad.push(`${at}: ${k} is true, false or null`);
+		for (const k of ['name', 'address', 'hours_note', 'how', 'added', 'src'])
+			if (s[k] != null && typeof s[k] !== 'string') bad.push(`${at}: ${k} is text or null`);
+		if (typeof s.credit !== 'string' || !s.credit.trim()) bad.push(`${at}: credit (who the data is from) is needed`);
+		if (s.site != null && !/^https?:\/\//.test(s.site)) bad.push(`${at}: site is an http(s) link`);
+		if (s.water != null && !(Array.isArray(s.water) && s.water.every((w) => typeof w === 'string'))) bad.push(`${at}: water is a list of words`);
+		if (s.hours != null) {
+			const h = s.hours;
+			const ok =
+				typeof h === 'object' &&
+				typeof h.known === 'boolean' &&
+				h.days &&
+				typeof h.days === 'object' &&
+				Object.entries(h.days).every(
+					([d, rs]) => /^[1-7]$/.test(d) && Array.isArray(rs) && rs.every((r) => Array.isArray(r) && r.length === 2 && r.every((x) => CLOCK.test(x))),
+				);
+			if (!ok) bad.push(`${at}: hours are { days: { "1".."7": [["HH:MM", "HH:MM"]] }, known } ("1" is Monday) or null`);
+		}
+	});
+	return bad;
+}
+
+const DRIVE_KINDS = ['sa', 'pa', 'roadside', 'fuel', 'store'];
+/** drive-stops.json (pipeline/steps/drive-stops.py, ADR-20261128-drive-stops): each long drive's rest stops in the shape
+ *  the page reads, keyed by the day's leg ("d5:0") with the leg it was found for. Returns problems, [] for a trip
+ *  without the file. */
+export function checkDriveStops(data) {
+	if (data == null) return [];
+	if (typeof data !== 'object' || !data.legs || typeof data.legs !== 'object' || Array.isArray(data.legs))
+		return ['drive-stops.json: needs a "legs" object'];
+	const bad = [];
+	if (data.checked != null && !/^\d{4}-\d{2}-\d{2}$/.test(data.checked)) bad.push('drive-stops.json checked: YYYY-MM-DD');
+	if (data.src != null && typeof data.src !== 'string') bad.push('drive-stops.json src: text');
+	const num = (v) => typeof v === 'number' && Number.isFinite(v) && v >= 0;
+	for (const [k, l] of Object.entries(data.legs)) {
+		const at = `drive-stops.json ${k}`;
+		if (!/^d\d{1,3}:\d{1,2}$/.test(k)) bad.push(`${at}: a day's leg key, like d5:0`);
+		if (!l || typeof l !== 'object') {
+			bad.push(`${at}: not an object`);
+			continue;
+		}
+		if (typeof l.from !== 'string' || typeof l.to !== 'string' || l.mode !== 'driving')
+			bad.push(`${at}: from, to and mode "driving" (the leg it was found for)`);
+		if (!num(l.min)) bad.push(`${at}: min, the drive's minutes`);
+		if (l.km != null && !num(l.km)) bad.push(`${at}: km is a number`);
+		if (!Array.isArray(l.stops)) {
+			bad.push(`${at}: needs a "stops" list`);
+			continue;
+		}
+		let prev = -1;
+		l.stops.forEach((s, i) => {
+			const w = `${at} stop ${i}`;
+			if (!s || typeof s !== 'object') return bad.push(`${w}: not an object`);
+			if (typeof s.name !== 'string' || !s.name.trim()) bad.push(`${w}: name`);
+			if (!DRIVE_KINDS.includes(s.kind)) bad.push(`${w}: kind must be one of ${DRIVE_KINDS.join('|')}`);
+			if (!num(s.km) || !num(s.min)) bad.push(`${w}: km and min from the start`);
+			else if (s.km < prev) bad.push(`${w}: stops run in order along the way`);
+			else prev = s.km;
+			if (!(typeof s.lat === 'number' && typeof s.lng === 'number' && Math.abs(s.lat) <= 90 && Math.abs(s.lng) <= 180)) bad.push(`${w}: lat and lng`);
+			for (const f of ['h24', 'shut']) if (s[f] != null && s[f] !== true) bad.push(`${w}: ${f} is true or left out`);
+			if (s.hours != null && !/^\d{1,2}:\d{2}–\d{1,2}:\d{2}(, \d{1,2}:\d{2}–\d{1,2}:\d{2})*$/.test(s.hours))
+				bad.push(`${w}: hours like "07:00–22:00"`);
+			if (s.dir != null && !['up', 'down'].includes(s.dir)) bad.push(`${w}: dir is up or down`);
+		});
+	}
+	return bad;
+}
+
+/** the tax refund coupons' images the trip names but its img/ folder lacks (ADR-20261128-tax-refund) */
+export function taxImagesMissing(dir) {
+	const { TAX } = loadTrip(dir);
+	const coupons = TAX && Array.isArray(TAX.coupons) ? TAX.coupons : [];
+	// copied into this realm: the trip's arrays come from the vm it was read in
+	return Array.from(coupons)
+		.filter((c) => c && c.img && !['webp', 'png', 'jpg', 'jpeg', 'svg'].some((e) => fs.existsSync(path.join(dir, 'img', `${c.img}.${e}`))))
+		.map((c) => `TAX.coupons ${c.id}: no img/${c.img}.webp (or .png, .jpg, .svg)`);
 }

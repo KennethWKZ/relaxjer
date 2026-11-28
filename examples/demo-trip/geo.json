@@ -9,7 +9,7 @@
     "tpmain": { "lat": 25.0478, "lng": 121.517, "q": "Taipei Main Station" },
     "shilin": { "lat": 25.088, "lng": 121.5241, "q": "Shilin Night Market" },
     "longshan": { "lat": 25.0372, "lng": 121.4999, "q": "Lungshan Temple of Manka" },
-    "bopiliao": { "lat": 25.036, "lng": 121.502, "q": "Bopiliao Historical Block" },
+    "bopiliao": { "lat": 25.036, "lng": 121.502, "q": "Bopiliao Historical Block", "mrt": { "zh": "龙山寺站", "en": "Longshan Temple", "min": 5, "m": 400, "walk": true, "train": false, "lat": 25.0353, "lng": 121.5 } },
     "huashan": { "lat": 25.0441, "lng": 121.5294, "q": "Huashan 1914 Creative Park" },
     "beitouStn": { "lat": 25.1368, "lng": 121.5031, "q": "Xinbeitou Station" },
     "beitou": { "lat": 25.1366, "lng": 121.5069, "q": "Beitou Hot Spring Museum" },

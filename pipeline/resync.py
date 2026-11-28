@@ -17,7 +17,8 @@ under the 200-call stop. Every Google step prints how many new calls it made and
 with the total.
 Never refresh to test a key: guides/google-maps.md has a check that makes one call per API.
 
-Steps (the trip's pipeline.json "steps"; each is found in the trip's region pack, then its country pack, then here):
+Steps (the trip's pipeline.json "steps"; each is found in the trip's own pipeline/ folder, then its region pack, then its
+country pack, then here; a trip's own step is how a private source stays out of the repo):
   Google first (the user's own key, ~/.config/relaxjer/google-places.key; OpenStreetMap only as backup):
     pins     planned-place pins + place ids from Google (old pins kept as backup)
     fetch    place details, hours, ratings, the trip's chains, nearest metro + walking time, each day's route legs
@@ -27,6 +28,10 @@ Steps (the trip's pipeline.json "steps"; each is found in the trip's region pack
     metro    the city's metro network for the offline hint (destinations/tw/regions/taipei)
     transit  bike-share and bus stops (destinations/tw/regions/taipei)
     shops    the trip's shopping list for the free day
+    drive-stops  rest stops along each long drive (service areas, roadside stations, petrol), for reference; a trip
+             opts in by naming it after apply (destinations/jp has the searches)
+  Free (no Google call; a trip opts in by naming it):
+    refill   free water refill points: OpenStreetMap, plus the trip's own refill-*.json files
   Weather: Open-Meteo daily forecast (free, no key) for pipeline.json "forecast_spots" on trip days within 16 days.
   Links: every website link in the data is fetched; broken ones are listed (not changed).
 After --write: run the tests, check the page, then republish (the publish-htmlapp skill, .agents/skills/publish-htmlapp/)."""
@@ -43,14 +48,21 @@ def step(t): print(f'\n── {t} ' + '─' * max(4, 60 - len(t)))
 DEFAULT_STEPS = ['pins', 'fetch', 'apply', 'drinks', 'toilets', 'metro', 'transit', 'shops']
 TITLE = {'pins': 'Google: planned-place pins + ids', 'fetch': 'Google: fetch', 'apply': 'Google: apply', 'drinks': 'Google: drink shops near every stop',
          'toilets': 'Google: toilets (public, own restroom, borrowable)', 'metro': 'Metro network (Google stations + ride times; stop order from OpenStreetMap)',
-         'transit': 'Transport pins: bike share + bus stops', 'shops': 'Shopping places for the free day (Google)'}
-TAIL = {'pins': 6, 'drinks': 4, 'toilets': 4, 'metro': 4, 'transit': 3, 'shops': 3}
+         'transit': 'Transport pins: bike share + bus stops', 'shops': 'Shopping places for the free day (Google)',
+         'refill': "Free water refill points (OpenStreetMap + the trip's own refill-*.json)",
+         'drive-stops': 'Google: rest stops along each long drive (for reference)'}
+TAIL = {'pins': 6, 'drinks': 4, 'toilets': 4, 'metro': 4, 'transit': 3, 'shops': 3, 'refill': 8, 'drive-stops': 8}
 def script(name):
+    """a step's file: the trip's own <trip>/pipeline/<name>.py first (gitignored with the trip, for a source the public
+    repo must not carry), then the region pack, the country pack, and pipeline/steps"""
+    if not re.fullmatch(r'[a-z][a-z0-9_-]*', name): sys.exit(f'pipeline.json step "{name}": lower-case letters, digits, - and _ only')
+    own = os.path.join(S, 'pipeline', name + '.py')
+    if os.path.exists(own): return own
     cc, region = TRIP.get('destination'), TRIP.get('region')
     for d in ([f'destinations/{cc}/regions/{region}/pipeline'] if cc and region else []) + ([f'destinations/{cc}/pipeline'] if cc else []) + ['pipeline/steps']:
         p = os.path.join(REPO, d, name + '.py')
         if os.path.exists(p): return p
-    sys.exit(f'no pipeline step "{name}" for this trip (looked in its region and country packs, then pipeline/steps)')
+    sys.exit(f'no pipeline step "{name}" for this trip (looked in its own pipeline/ folder, its region and country packs, then pipeline/steps)')
 REPORT = 'RESYNC_GOOGLE_NEW_CALLS'  # the line lib/google.py prints on stderr as a step exits (google.REPORT)
 def new_calls(stderr):
     """a step's (new Google calls, US$ at list price) from its stderr, or None if it never asked Google; and the rest of stderr"""
@@ -73,7 +85,8 @@ if '--no-google' not in args:
     if DRIVES: print('--fresh-drives: each drive still ahead is asked again for its traffic prediction (two calls a drive, '
                      'US$10 per 1,000 at list price); everything else comes from the cache.')
     env = dict(os.environ, RESYNC_FRESH='1' if FRESH else '0', RESYNC_PAID='1' if PAID else '0',
-               RESYNC_FRESH_DRIVES='1' if DRIVES else '0', RESYNC_REPORT='1')
+               RESYNC_FRESH_DRIVES='1' if DRIVES else '0', RESYNC_REPORT='1',
+               PYTHONPATH=os.pathsep.join(filter(None, [HERE, os.environ.get('PYTHONPATH')])))  # a trip's own step imports lib/ too
     total = [0, 0.0]
     for name in cfg('steps', DEFAULT_STEPS):
         dry = '' if WRITE or name == 'fetch' else ' (dry run)'

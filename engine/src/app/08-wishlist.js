@@ -130,7 +130,7 @@ function secEat() {
 	return `<section class="sec" id="eat" data-sec="eat">
       <h2 class="sec-title">${icon('food')}${Z('吃喝', 'Food & drinks')}</h2>
       <p class="sec-lede">${Z('按一下，按你的位置列出附近今天有开的早餐、午餐、晚餐、宵夜、小吃。', 'One tap: nearest places open today (breakfast, lunch, dinner, late-night, snacks) by your location.')}</p>
-      <div class="links-row"><button type="button" class="go-btn" data-near>${icon('pin')}${Z('找我附近吃的', 'Find food near me')}</button><button type="button" class="go-btn ghost" data-near="drink">${icon('boba')}${Z('附近饮料', 'Drinks near me')}</button><button type="button" class="go-btn ghost" data-near="rest">${icon('coffee')}${Z('坐下歇脚', 'Sit & rest')}</button><button type="button" class="go-btn ghost" data-near="wc">${icon('wc')}${Z('附近厕所', 'Toilets near me')}</button></div>
+      <div class="links-row"><button type="button" class="go-btn" data-near>${icon('pin')}${Z('找我附近吃的', 'Find food near me')}</button><button type="button" class="go-btn ghost" data-near="drink">${icon('boba')}${Z('附近饮料', 'Drinks near me')}</button><button type="button" class="go-btn ghost" data-near="rest">${icon('coffee')}${Z('坐下歇脚', 'Sit & rest')}</button><button type="button" class="go-btn ghost" data-near="wc">${icon('wc')}${Z('附近厕所', 'Toilets near me')}</button>${REFILL.spots.length ? `<button type="button" class="go-btn ghost" data-near="refill">${icon('drop')}${Z('附近装水', 'Refill near me')}</button>` : ''}</div>
       ${drinkHowTo()}
       ${foodBlock(['bk-hotel'], ['酒店附近早餐（每天都可以）', 'Breakfast near the hotel (any day)'])}
       ${foodBlock(['sup-hotel'], ['酒店附近宵夜', 'Late-night food near the hotel'])}
@@ -165,13 +165,6 @@ function secWish() {
     </section>`;
 }
 
-function budgetChip(d) {
-	const b = d.blocks.find((x) => x.type === 'budget');
-	if (!b) return `<span class="chip">${icon('money')}${cvHtml(esc(L(d.budgetChip)))}</span>`;
-	const rm = (a, z) => `<span class="chip-rm nw" data-rm="${a},${z}">${rmText(a, z)}</span>`; // on a narrow phone the home-currency figure drops under the NT$ instead of overflowing
-	return `<a class="chip chip-link chip-2l" href="#${d.id}-budget">${icon('money')}<span class="chip-lines"><span><span class="nw">${Z('每人', 'Each')} <b>${eachText(b.min, b.max)}</b>${b.est ? Z('（估）', ' (est.)') : ''}</span> ${rm(each(b.min), each(b.max))}</span><span class="chip-sub"><span class="nw">${Z(GROUP[0], 'Group')} ${homeFirst ? money(b.min, b.max) : `${CUR.sym}${num(b.min)}–${num(b.max)}`}</span> ${rm(b.min, b.max)}</span></span></a>`;
-}
-
 // the budget chart: each day's group spend, in the trip's currency or, when the phone reads the home currency, in that
 // (its scale too). Redrawn on its own when the rate changes
 function budgetBars() {
@@ -198,32 +191,171 @@ function budgetBars() {
       ${axisHTML(ax)}`;
 }
 
+/* the budget as what's been paid and what's still to come (ADR-20261128-budget-paid-insurance): a row can be paid (its
+   date, where, a booking number), in the home currency (flights booked at home) or the trip's, in parts (a deposit now,
+   the balance on the day), or still without a price (tbd: listed, never counted). The glance is one big number, what
+   the group has paid in the home currency (converted figures marked ≈), and one line for what's still to come. A trip
+   without a home currency keeps its own; a budget with no payment yet keeps its estimate total */
+const budHome = () => Money.canSwitch(CUR);
+const budTally = () => Money.budgetTally(BUDGET.rows, { rate: budHome() ? rate : 1, home: budHome() ? CUR.home : null });
+const budIsHome = (cur) => cur === 'home' || (budHome() && cur === CUR.home);
+/** a sum in the home currency (or the trip's, without one): "≈ RM 1,230–1,560" */
+function budAmt(min, max = min, approx = false) {
+	const r = (v) => num(approx ? Money.roundHome(v) : v);
+	const body = `${r(min)}${Math.round(max) > Math.round(min) ? `–${r(max)}` : ''}`;
+	return budHome() ? `${approx ? '≈ ' : ''}${esc(CUR.home)} ${body}` : `${esc(CUR.sym)}${body}`;
+}
+/** each person's share of a sum in the home currency, always "about" */
+const budEach = (min, max = min) =>
+	budHome() ? budAmt(min / PAX, max / PAX, true) : `${esc(CUR.sym)}${num(each(min))}${max > min ? `–${num(each(max))}` : ''}`;
+/** a row's own figure, in the currency it's paid in, with the other one beside it as everywhere else */
+function budItemAmt(it, min, max) {
+	// the figure in one span: the cell is a grid, and loose text beside a span would take a row of its own
+	if (budIsHome(it.cur)) return `<span class="pay-f">${esc(CUR.home)} ${num(min)}${max > min ? `–${num(max)}` : ''}</span>`;
+	const fig = !it.part && it.row.text ? fmt(it.row.text) : money(min, max);
+	return `<span class="pay-f">${fig}</span>${budHome() ? ` <small class="rm" data-rm="${min},${max}">${rmText(min, max)}</small>` : ''}`;
+}
+const budVia = (v) => (v == null ? '' : Array.isArray(v) ? L(v) : String(v));
+function budName(it) {
+	const n = fmt(it.row.label);
+	if (!it.part) return n;
+	const pl = it.part.label ? L(it.part.label) : it.part.paid ? Z('订金', 'deposit') : Z('尾款', 'balance');
+	return `${n}<span class="pay-part"> · ${esc(pl)}</span>`;
+}
+/** the glance: what the group has paid, big, and one line for what's still to come and each person's share of it */
+function budgetGlance() {
+	const T = budTally();
+	if (!T.paidItems.length) {
+		const B = BUDGET;
+		if (B.totalMin != null)
+			return `<div id="budget-glance">${totalBox(L(B.total).replace(/^约 |^About /, ''), [Z(`主行程 · ${GROUP[0]}`, `main costs · ${GROUP[1]}`), Z(`主行程 · ${GROUP[0]}`, `main costs · ${GROUP[1]}`)], B.totalMin, B.totalMax, eachLine(B.totalMin, B.totalMax))}</div>`;
+		return `<div class="total bud-glance" id="budget-glance"><span class="per">${Z(`要花 · ${GROUP[0]}`, `To spend · ${GROUP[1]}`)}</span><span class="amt">${budAmt(T.todo[0], T.todo[1], T.todoApprox)}</span><p class="bg-todo">${Z('每人', 'Each')} <b>${budEach(T.todo[0], T.todo[1])}</b></p></div>`;
+	}
+	const todo =
+		T.todo[1] > 0
+			? `${Z('还要花', 'Still to come')} <b>${budAmt(T.todo[0], T.todo[1], T.todoApprox)}</b> · ${Z('每人', 'each')} <b>${budEach(T.todo[0], T.todo[1])}</b>`
+			: Z('都付好了', 'All paid');
+	return `<div class="total bud-glance" id="budget-glance"><span class="per">${Z(`已付 · ${GROUP[0]}`, `Paid so far · ${GROUP[1]}`)}</span><span class="amt">${budAmt(T.paid, T.paid, T.paidApprox)}</span><p class="bg-todo">${todo}</p></div>`;
+}
+/** what's been paid: each payment with where and when; a booking number waits in the opened row */
+function budPaidHTML(T) {
+	const rows = T.paidItems
+		.map((it) => {
+			const via = budVia(it.part ? it.part.via : it.row.via);
+			const ref = it.part ? it.part.ref : it.row.ref;
+			const line = [via && esc(via), it.paid && esc(dateLabel(it.paid))].filter(Boolean).join(' · ');
+			const head = `<span class="pay-n"><b>${budName(it)}</b>${line ? `<small>${line}</small>` : ''}</span><span class="pay-a">${budItemAmt(it, it.amt, it.amt)}</span>`;
+			return ref
+				? `<details class="pay"><summary class="pay-h">${head}${icon('chev', 'chev')}</summary><p class="pay-ref">${Z('订单号', 'Booking no.')} <b>${esc(ref)}</b></p></details>`
+				: `<div class="pay"><div class="pay-h">${head}</div></div>`;
+		})
+		.join('');
+	return `<div class="pay-list">${rows}</div><p class="pay-sum">${Z('合计已付', 'Paid in all')} <b>${budAmt(T.paid, T.paid, T.paidApprox)}</b> · ${Z('每人', 'each')} ${budEach(T.paid)}</p>`;
+}
+/** what's still to come: each estimate with each person's share, a balance with where it's paid, a row with no price */
+function budTodoHTML(T) {
+	const B = BUDGET;
+	const rows = T.todoItems
+		.map((it) => {
+			const via = budVia(it.part ? it.part.via : it.row.via);
+			const air =
+				it.row.anchor === 'airport' && B.airportNote ? `<span class="check-sub"><a href="#airport">${escText(L(B.airportNote))}</a></span>` : '';
+			const eachOne = budIsHome(it.cur) ? budEach(it.min, it.max) : eachText(it.min, it.max);
+			return `<div class="pay"><div class="pay-h"><span class="pay-n"><b>${budName(it)}</b>${via ? `<small>${esc(via)}</small>` : ''}${air}</span><span class="pay-a">${budItemAmt(it, it.min, it.max)}<small class="dd-each">${Z('每人', 'each')} ${eachOne}</small></span></div></div>`;
+		})
+		.join('');
+	const tbd = T.tbdItems
+		.map(
+			(it) =>
+				`<div class="pay is-tbd"><div class="pay-h"><span class="pay-n"><b>${fmt(it.row.label)}</b>${it.row.via ? `<small>${esc(budVia(it.row.via))}</small>` : ''}</span><span class="pay-a">${Z('价钱待定', 'Price TBD')}</span></div></div>`,
+		)
+		.join('');
+	const left = T.tbdItems.length ? ` · ${Z(`不含 ${T.tbdItems.length} 项价钱待定`, `not counting ${T.tbdItems.length} with no price yet`)}` : '';
+	return `<div class="pay-list">${rows}${tbd}</div>${
+		T.todoItems.length
+			? `<p class="pay-sum">${Z('合计', 'In all')} <b>${budAmt(T.todo[0], T.todo[1], T.todoApprox)}</b> · ${Z('每人', 'each')} ${budEach(T.todo[0], T.todo[1])}${left}</p>`
+			: ''
+	}`;
+}
+/* the budget by kind (ADR-20261128-budget-paid-insurance, amended): one row a kind, biggest first, each with what's been
+   paid (exact) and what's still to come (a range), in the home currency, each person's share, and a share bar: paid
+   solid, still to come dashed (an estimate), every bar against the biggest kind's. The kinds add up to the view's totals
+   (Money.budgetByKind sums the same items), and the foot says so */
+function budKindsHTML() {
+	const K = Money.budgetByKind(BUDGET.rows, { rate: budHome() ? rate : 1, home: budHome() ? CUR.home : null });
+	const T = budTally();
+	const top = Math.max(1, ...K.map((k) => k.paid + k.todo[1]));
+	const rows = K.map((k) => {
+		const [ic, name] = BUD_KIND[k.cat] || BUD_KIND.other;
+		const lines = [
+			k.paid > 0 ? `${Z('已付', 'Paid')} <b>${budAmt(k.paid, k.paid, k.paidApprox)}</b>` : '',
+			k.todo[1] > 0 ? `${Z('还要付', 'To pay')} <b>${budAmt(k.todo[0], k.todo[1], k.todoApprox)}</b>` : '',
+			k.tbd ? Z(`${k.tbd} 项价钱待定`, `${k.tbd} with no price yet`) : '',
+		].filter(Boolean);
+		const all = [k.paid + k.todo[0], k.paid + k.todo[1]];
+		const pct = Math.round(k.share * 100);
+		const paidW = ((k.paid / top) * 100).toFixed(1);
+		const todoW = ((k.todo[1] / top) * 100).toFixed(1);
+		return `<li class="kind" data-kind="${k.cat}" data-share="${k.share.toFixed(4)}"><span class="kind-ic" aria-hidden="true">${icon(ic)}</span><div class="kind-b"><p class="kind-h"><b>${esc(L(name))}</b><span class="kind-pct">${all[1] > 0 ? `${pct}%` : Z('待定', 'TBD')}</span></p><span class="kind-bar" role="img" aria-label="${esc(Z(`占总数约 ${pct}%`, `about ${pct}% of the whole`))}"><span class="kb-paid" style="width:${paidW}%"></span><span class="kb-todo" style="width:${todoW}%"></span></span><p class="kind-m">${lines.join(' · ')}</p>${all[1] > 0 ? `<p class="kind-each">${Z('每人', 'Each')} ${budEach(all[0], all[1])}</p>` : ''}</div></li>`;
+	}).join('');
+	const key = `<p class="kind-key" aria-hidden="true"><span class="kk kk-paid"></span>${Z('已付', 'Paid')}<span class="kk kk-todo"></span>${Z('还要付（估）', 'Still to pay (est.)')}</p>`;
+	const foot = `${Z('合计', 'In all')}: ${Z('已付', 'paid')} <b>${budAmt(T.paid, T.paid, T.paidApprox)}</b>${T.todo[1] > 0 ? ` · ${Z('还要付', 'still to pay')} <b>${budAmt(T.todo[0], T.todo[1], T.todoApprox)}</b>` : ''} · ${Z('每人', 'each')} ${budEach(T.paid + T.todo[0], T.paid + T.todo[1])}`;
+	const other = K.some((k) => k.cat === 'other')
+		? `<p class="note">${Z('没写类别的项目算在「其他」。', 'Rows with no kind written count as Other.')}</p>`
+		: '';
+	return `${key}<ul class="kinds">${rows}</ul><p class="pay-sum kinds-sum">${foot}</p>${other}`;
+}
+
 function secBudget() {
 	const B = BUDGET;
-	// every group figure here also says what it is at home: each person's share on the rows, the group's on the reserve
-	const eachRm = (a, b) => `<span data-rm="${each(a)},${each(b)}">${rmText(each(a), each(b))}</span>`;
+	const T = budTally();
 	const sg = numsIn(L(B.suggest));
+	const paid = T.paidItems.length;
+	const todoN = T.todoItems.length + T.tbdItems.length;
 	return `<section class="sec" id="budget" data-sec="budget">
       <h2 class="sec-title">${icon('money')}${Z(`${GROUP[0]}预算`, `Budget ${GROUP[1]}`)}</h2>
-      <p class="sec-lede">${Z('不包括', 'Not included')}: ${B.excludes.map(L).map(esc).join(Z('、', ', '))}</p>
-      <div class="fx"><label for="rate">${Z('汇率', 'Rate')}: 1 ${esc(CUR.home)} =</label><input id="rate" data-rate type="number" inputmode="decimal" step="any" min="0" value="${rate}"><span>${esc(CUR.sym)}</span><span class="xsmall">${esc(L(CUR.rateNote))}</span></div>
-      <div style="margin-top:14px">${totalBox(L(B.total).replace(/^约 |^About /, ''), [Z(`主行程 · ${GROUP[0]}`, `main costs · ${GROUP[1]}`), Z(`主行程 · ${GROUP[0]}`, `main costs · ${GROUP[1]}`)], B.totalMin, B.totalMax, eachLine(B.totalMin, B.totalMax))}</div>
-      <p class="note">${fmt(B.suggest)}${sg && !homeFirst ? ` <span data-rm="${sg.join(',')}">${rmText(...sg)}</span>` : ''}</p>
-      <p class="callout">${icon('users')}<span>${fmt(B.split)}</span></p>
-      <p class="callout">${icon('info')}<span>${fmt(B.poolText)}${homeFirst ? '' : ` <span data-rm="${B.pool},${B.pool}">${rmText(B.pool, B.pool)}</span>`}</span></p>
+      <div style="margin-top:14px">${budgetGlance()}</div>
       ${partsHTML(
 				'budget',
 				[
-					{
+					paid && {
+						key: 'paid',
+						icon: 'check',
+						t: ['已付', 'Paid'],
+						h: ['已经付了', 'Paid so far'],
+						n: paid,
+						sum: `${sumB(budAmt(T.paid, T.paid, T.paidApprox))} · ${Z(`${paid} 笔`, `${paid} payments`)}`,
+						body: budPaidHTML(T),
+					},
+					todoN && {
 						key: 'rows',
 						icon: 'list',
-						h: ['主要共同支出', 'Main shared costs'],
-						sum: `${sumB(Z(`${B.rows.length} 项`, `${B.rows.length} items`))} · ${Z('每人约', 'each ≈')} ${eachText(B.totalMin, B.totalMax)}`,
-						body: `<dl class="kv">${B.rows.map((r) => `<div><dt>${fmt(r[0])}${r[4] === 'airport' && B.airportNote ? `<span class="check-sub"><a href="#airport">${escText(L(B.airportNote))}</a></span>` : ''}</dt><dd>${fmt(r[1])}<small class="dd-each">${Z('每人', 'each')} ${eachText(r[2], r[3])} ${eachRm(r[2], r[3])}</small></dd></div>`).join('')}<div class="sum"><dt>${Z('合计', 'Total')}</dt><dd>${fmt(B.total)}<small class="dd-each">${Z('每人', 'each')} ${eachText(B.totalMin, B.totalMax)} ${eachRm(B.totalMin, B.totalMax)}</small></dd></div></dl>`,
+						t: paid ? ['还要付', 'To pay'] : ['支出', 'Costs'],
+						h: paid ? ['还要付的', 'Still to pay'] : ['主要共同支出', 'Main shared costs'],
+						n: todoN,
+						sum: T.todoItems.length
+							? `${sumB(budAmt(T.todo[0], T.todo[1], T.todoApprox))} · ${Z('每人', 'each')} ${budEach(T.todo[0], T.todo[1])}`
+							: sumB(Z('价钱待定', 'Price TBD')),
+						body: budTodoHTML(T),
+					},
+					{
+						key: 'kinds',
+						icon: 'bars',
+						t: ['按类别', 'By kind'],
+						h: [`按类别（${GROUP[0]}，${budHome() ? CUR.home : CUR.sym}）`, `By kind (${GROUP[1]}, ${budHome() ? CUR.home : CUR.sym})`],
+						n: Money.budgetByKind(BUDGET.rows).length,
+						sum: (() => {
+							const K = Money.budgetByKind(BUDGET.rows, { rate: budHome() ? rate : 1, home: budHome() ? CUR.home : null });
+							return K.length
+								? `${sumB(L((BUD_KIND[K[0].cat] || BUD_KIND.other)[1]))} ${Z(`最多，约 ${Math.round(K[0].share * 100)}%`, `the most, about ${Math.round(K[0].share * 100)}%`)}`
+								: '';
+						})(),
+						body: `<div id="budget-kinds">${budKindsHTML()}</div>`,
 					},
 					{
 						key: 'days',
 						icon: 'chart',
+						t: ['每天', 'By day'],
 						h: [
 							`每天花费（条＝${GROUP[0]}，小字＝每人，${homeFirst ? CUR.home : CUR.sym}）`,
 							`Per day (bar = all ${PAX}, small = each, ${homeFirst ? CUR.home : CUR.sym})`,
@@ -234,6 +366,7 @@ function secBudget() {
 					{
 						key: 'cash',
 						icon: 'card',
+						t: ['现金和卡', 'Cash & cards'],
 						h:
 							Pack.transitCard && MONEY.transitCard
 								? [`现金、信用卡和${Pack.transitCard[0]}`, `Cash, cards and ${Pack.transitCard[1]}`]
@@ -245,9 +378,20 @@ function secBudget() {
         ${Pack.transitCard && MONEY.transitCard ? `<div class="tier"><p class="tier-h">${icon('train')}${esc(L(Pack.transitCard))}</p><p style="margin-top:6px">${fmt(MONEY.transitCard)}</p><div class="links-row"><a class="mlink" href="#transit-card">${icon('arrow')}${Z('买卡与加值', 'Buying & topping up')}</a></div></div>` : ''}
       </div>`,
 					},
-				],
+				].filter(Boolean),
 				['细节', 'Details'],
 			)}
+      <div class="fx"><label for="rate">${Z('汇率', 'Rate')}: 1 ${esc(CUR.home)} =</label><input id="rate" data-rate type="number" inputmode="decimal" step="any" min="0" value="${rate}"><span>${esc(CUR.sym)}</span><span class="xsmall">${esc(L(CUR.rateNote))}</span></div>
+    ${foldHTML(
+			'budget-notes',
+			'info',
+			['怎么分、不包括什么', 'Splitting it, and what it leaves out'],
+			4,
+			`<p class="note">${fmt(B.suggest)}${sg && !homeFirst ? ` <span data-rm="${sg.join(',')}">${rmText(...sg)}</span>` : ''}</p>
+      <p class="callout">${icon('users')}<span>${fmt(B.split)}</span></p>
+      <p class="callout">${icon('info')}<span>${fmt(B.poolText)}${homeFirst ? '' : ` <span data-rm="${B.pool},${B.pool}">${rmText(B.pool, B.pool)}</span>`}</span></p>
+      <p class="note">${Z('不包括', 'Not included')}: ${B.excludes.map(L).map(esc).join(Z('、', ', '))}</p>`,
+		)}
     </section>`;
 }
 

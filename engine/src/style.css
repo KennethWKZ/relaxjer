@@ -869,13 +869,6 @@ ul.list li::marker {
 	line-height: 1.35;
 	min-width: 0;
 }
-.wk-focus {
-	font-size: var(--fs-xs);
-	color: var(--ink-2);
-	font-weight: 600;
-	display: block;
-	margin-top: 2px;
-}
 .wk-arrow {
 	color: var(--ink-3);
 }
@@ -1047,12 +1040,6 @@ ul.list li::marker {
 	letter-spacing: -0.015em;
 	margin-top: 12px;
 }
-.l-chips {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 8px;
-	margin-top: 14px;
-}
 .chip {
 	display: inline-flex;
 	align-items: center;
@@ -1066,34 +1053,6 @@ ul.list li::marker {
 }
 .lantern .chip {
 	background: var(--cf, color-mix(in srgb, var(--ci) 14%, transparent));
-}
-.l-actions {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 8px;
-	margin-top: 14px;
-}
-.l-btn {
-	display: inline-flex;
-	align-items: center;
-	gap: 7px;
-	min-height: 44px;
-	padding: 0 14px;
-	border-radius: 11px;
-	border: 1.5px solid color-mix(in srgb, var(--ci) 75%, transparent);
-	background: var(--cf, color-mix(in srgb, var(--ci) 10%, transparent));
-	color: var(--ci);
-	font-weight: 700;
-	font-size: var(--fs-sm);
-	cursor: pointer;
-	text-decoration: none;
-	transition:
-		transform 160ms var(--ease-out),
-		background-color 160ms ease;
-}
-.l-btn:active {
-	transform: scale(0.96);
-	background: color-mix(in srgb, var(--ci) 22%, transparent);
 }
 
 /* photo strip */
@@ -1150,7 +1109,7 @@ ul.list li::marker {
 	margin: 4px 0 0;
 	padding: 0;
 }
-.stop {
+li.stop {
 	display: grid;
 	grid-template-columns: 4.6rem 18px minmax(0, 1fr);
 	column-gap: 10px;
@@ -3651,9 +3610,6 @@ html.map-full-on body {
 	margin: 8px 0 0;
 	padding: 0 0 0 16px;
 }
-.map-stage.is-full .map-chips .map-ctrl {
-	margin-right: 0;
-}
 /* the full-screen layer lies over the page (z-index 50); below 1024 px it ends at the top of the bottom bar
    (--chrome-bottom, set with the bar), so the bar stays one tap away, and elsewhere the safe area stays clear at its foot */
 .map-stage.is-full .map-box {
@@ -3709,25 +3665,6 @@ html.map-full-on body {
 	margin-top: 14px;
 	padding-top: 12px;
 	border-top: 1px solid color-mix(in srgb, var(--ci) 24%, transparent);
-}
-.l-route-h {
-	display: flex;
-	align-items: baseline;
-	flex-wrap: wrap;
-	gap: 2px 8px;
-	margin: 0 0 8px;
-	font-weight: 800;
-	font-size: var(--fs-sm);
-}
-.l-route-h svg.i {
-	width: 17px;
-	height: 17px;
-	align-self: center;
-}
-.l-route-h span {
-	font-weight: 600;
-	font-size: var(--fs-xs);
-	opacity: var(--cm, 0.85);
 }
 .l-legs {
 	display: grid;
@@ -3929,11 +3866,6 @@ dialog.psheet {
 	.mlink.ic svg.i {
 		width: 18px;
 		height: 18px;
-	}
-	.l-btn:has(.dlbl) {
-		min-width: 44px;
-		padding: 0;
-		justify-content: center;
 	}
 	.toc-fab {
 		padding: 0;
@@ -4420,9 +4352,6 @@ svg.i.flip {
 	font-weight: 650;
 	font-size: 0.6875rem;
 }
-.chip-link b {
-	white-space: nowrap;
-}
 .total .each .rm-i {
 	white-space: nowrap;
 }
@@ -4485,22 +4414,6 @@ svg.i.flip {
 .kv dd .dd-each > [data-rm] {
 	display: block;
 }
-.chip-link {
-	color: inherit;
-	text-decoration: none;
-}
-.chip-link b {
-	font-weight: 800;
-}
-.chip-sub {
-	color: inherit;
-	opacity: 0.82;
-	font-weight: 600;
-	white-space: nowrap;
-}
-.chip-link .nw {
-	white-space: nowrap;
-}
 
 /* toilets */
 .near-pill.is-wc svg.i {
@@ -4532,6 +4445,133 @@ svg.i.flip {
 }
 .callout.ok {
 	margin-top: 10px;
+}
+
+/* water refill (ADR-20261128-water-refill): the drop in its own fixed colour, the same in both themes (DESIGN.md, nearby
+   icons); the words say a tap or a shop, the tag's tint is the second cue */
+.near-pill.is-refill svg.i {
+	color: #0a84c1;
+}
+.near-pill.is-refill b svg.i {
+	width: 13px;
+	height: 13px;
+	vertical-align: -2px;
+	color: var(--ink-2);
+}
+/* rest stops along a long drive (ADR-20261128-drive-stops): the same rows as the spots, with the kind's icon at the
+   front; the one ahead on a drive under way gets the Next flag and the day's colour down its edge, two cues */
+.drv-list {
+	gap: 6px;
+}
+.drv-lead {
+	margin: 2px 0 0;
+}
+.drv-stops {
+	margin-top: 4px;
+}
+.drv-stop {
+	align-items: center;
+}
+.drv-ic {
+	display: grid;
+	place-items: center;
+	flex: none;
+	width: 32px;
+	height: 32px;
+	margin-left: 10px;
+	border-radius: 8px;
+	background: var(--paper-2);
+	color: var(--ink-2);
+}
+.drv-ic svg.i {
+	width: 18px;
+	height: 18px;
+}
+.drv-stop .spot-main {
+	padding-left: 0;
+	cursor: default;
+}
+.drv-flag:not(:empty) {
+	margin-left: 6px;
+}
+.drv-24 {
+	justify-self: start;
+	padding: 0 6px;
+	border-radius: 6px;
+	background: var(--ink);
+	color: var(--paper);
+	font-size: var(--fs-xs);
+	font-weight: 750;
+}
+.spot-k.drv-k {
+	background: var(--paper-3);
+	color: var(--ink-2);
+}
+.drv-stop.is-next {
+	border-color: var(--c, var(--ink-2));
+	box-shadow: inset 4px 0 0 var(--c, var(--ink-2));
+}
+.drv-winter {
+	margin: 0;
+}
+.spot-k.rf-k {
+	background: color-mix(in srgb, #0a84c1 14%, transparent);
+	color: #075f8c;
+}
+.spot-k.rf-k.is-in {
+	background: var(--paper-3);
+	color: var(--ink-2);
+}
+.rf-open {
+	white-space: nowrap;
+	font-weight: 750;
+	color: var(--good);
+}
+.rf-open.is-shut {
+	color: var(--bad);
+}
+.rf-spot .spot-main {
+	cursor: default;
+}
+.rf-winter {
+	background: color-mix(in srgb, #0a84c1 10%, var(--paper));
+	border: 1px solid color-mix(in srgb, #0a84c1 30%, var(--rule));
+	font-weight: 600;
+}
+.rf-winter svg.i {
+	color: #0a84c1;
+}
+.rf-credit {
+	margin-top: 12px;
+}
+.rf-credit a {
+	color: var(--link);
+}
+.rf-card .spot-m {
+	margin: 2px 0 6px;
+}
+.rf-card .spot-t {
+	display: block;
+	margin-top: 2px;
+}
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme='light']) .spot-k.rf-k:not(.is-in) {
+		color: #8fd0f5;
+	}
+}
+:root[data-theme='dark'] .spot-k.rf-k:not(.is-in) {
+	color: #8fd0f5;
+}
+/* a rest stop's kind stays neutral in the dark too (the drink spots' plum is theirs) */
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme='light']) .spot-k.drv-k {
+		background: var(--paper-3);
+		color: var(--ink-2);
+	}
+}
+:root[data-theme='dark'] .spot-k.drv-k {
+	background: var(--paper-3);
+	color: var(--ink-2);
 }
 @media (max-width: 599px) {
 	.stop-drink:has(> :nth-child(3)) {
@@ -4603,25 +4643,19 @@ svg.i.flip {
 	background: color-mix(in srgb, var(--paper) 22%, transparent);
 	color: inherit;
 }
-/* the search's one row of chips: the day and area button, then the categories scrolling sideways */
+/* under the search, one Filters button: the day, the kind and the area are in its sheet */
 .map-chips {
 	display: flex;
 	align-items: center;
 	gap: 8px;
 	margin-top: 8px;
 }
-.map-chips .map-ctrl {
-	flex: 1;
-	min-width: 0;
-	margin: 0 -16px 0 0;
-	padding: 0 16px 2px 0;
-}
 .seg-btn.map-filt {
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
 	padding: 0 8px 0 10px;
-	max-width: 48%;
+	max-width: 100%;
 	white-space: nowrap;
 }
 .map-filt #mapfilt-l {
@@ -4644,7 +4678,7 @@ svg.i.flip {
 	color: var(--ci);
 	border-color: var(--c);
 }
-/* the sheet behind it: the days and the areas, wrapped, every choice in sight */
+/* the sheet behind it: the days, the kinds and the areas, wrapped, every choice in sight, then what the pins mean */
 .map-pick {
 	display: flex;
 	flex-wrap: wrap;
@@ -5170,11 +5204,6 @@ dialog.toc {
 	font-weight: 750;
 	vertical-align: 2px;
 }
-.mine-bar {
-	list-style: none;
-	margin: 4px 0 0;
-	padding-left: calc(4.6rem + 28px);
-}
 
 /* a day that splits: part of the group's own plan hangs, folded, where the string forks. A dashed knot in the day's
    colour (it can move, so never the seal); a quiet "rejoins here" on the stop they come back to */
@@ -5268,11 +5297,6 @@ dialog.toc {
 }
 .split-back svg.i {
 	flex: none;
-}
-@media (max-width: 599px) {
-	.mine-bar {
-		padding-left: 0;
-	}
 }
 .add-btn {
 	color: var(--mine-ink);
@@ -5696,38 +5720,6 @@ svg.i.pf-plus {
 	margin-top: 10px;
 }
 
-/* "+" under each timeline dot: add a stop after this one */
-.stop-knot .knot-add {
-	position: absolute;
-	left: -13px;
-	bottom: -20px;
-	z-index: 2;
-	display: grid;
-	place-items: center;
-	width: 44px;
-	height: 44px;
-	padding: 0;
-	border: 0;
-	border-radius: 50%;
-	background: transparent;
-	color: var(--ink-3);
-	cursor: pointer;
-}
-.stop-knot .knot-add svg.i {
-	width: 16px;
-	height: 16px;
-	padding: 2px;
-	border-radius: 50%;
-	background: var(--paper);
-	border: 1.5px solid color-mix(in srgb, var(--c) 45%, transparent);
-	color: color-mix(in srgb, var(--c) 80%, var(--ink));
-}
-.stop-knot .knot-add:hover svg.i,
-.stop-knot .knot-add:focus-visible svg.i {
-	background: var(--c);
-	color: #fff;
-	border-color: var(--c);
-}
 .add-cats,
 .add-sort {
 	display: flex;
@@ -5806,11 +5798,6 @@ svg.i.pf-plus {
 }
 .reset-btn {
 	color: #b3261e;
-}
-.mine-bar {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 6px;
 }
 
 /* slow phones: sections far off-screen skip layout and paint until scrolled near.
@@ -6490,35 +6477,6 @@ input[data-rate][aria-invalid='true'] {
 	}
 }
 
-/* day card cost chip: each person on top, the group below, both with RM */
-.chip-2l {
-	align-items: flex-start;
-	padding-block: 6px;
-}
-.chip-2l > .i {
-	margin-top: 2px;
-}
-.chip-lines {
-	display: grid;
-	gap: 1px;
-	min-width: 0;
-}
-.chip-2l .chip-sub {
-	font-size: var(--fs-xs);
-}
-.chip-rm {
-	font-weight: 600;
-	opacity: 0.8;
-}
-.lantern .chip-rm {
-	opacity: var(--cm, 0.8);
-}
-.chip-2l .chip-sub {
-	white-space: normal;
-}
-.chip-rm.nw {
-	white-space: nowrap;
-}
 .l-leg-sub {
 	font-weight: 600;
 	opacity: var(--cm, 0.85);
@@ -7028,35 +6986,6 @@ dialog.bsheet :is([id], li, p, td, figure, .block) {
 	}
 }
 
-/* a stop opens its map, directions and what's near it in its own sheet: the chevron, or a tap on the row */
-.stop.has-more .stop-b {
-	cursor: pointer;
-}
-.stop.has-more .stop-b > :not(.stop-more):not(dialog) {
-	grid-column: 1;
-}
-.stop-more {
-	grid-column: 2;
-	grid-row: 1 / span 2;
-	align-self: start;
-	width: 44px;
-	height: 44px;
-	margin: -10px 0 0 0;
-	display: grid;
-	place-items: center;
-	border: 0;
-	border-radius: 12px;
-	background: transparent;
-	color: var(--ink-3);
-	cursor: pointer;
-}
-.stop-more svg.i {
-	width: 20px;
-	height: 20px;
-}
-.stop-more:active {
-	background: var(--paper-3);
-}
 /* in the row, a phone's meal and drink options reach under the time column; in the stop's sheet they have its width */
 @media (max-width: 599px) {
 	dialog.ssheet :is(.stop-eat, .stop-near, .stop-drink) {
@@ -7415,4 +7344,1727 @@ dialog.gl-sheet,
 }
 body {
 	overflow-x: clip;
+}
+
+/* ───────── progressive disclosure (ADR-20261128-progressive-disclosure) ─────────
+   Two kinds of disclosure, each for its kind of content. A list you scan is a fold: a big heading with its count and a
+   chevron that turns, opened in place. A single thing you open and close is a tile: a big icon over a short word, which
+   opens its sheet. What the group needs at a glance (Now and Next, tonight's hotel, the week, a day's card and its
+   string of stops) stays open, one line each. */
+
+/* the tiles: 32 px icons over Label-size words, four to a row on a phone (five when there are five, so none is left
+   alone on a row), wrapping, never scrolling */
+.parts-h {
+	display: flex;
+	align-items: baseline;
+	gap: 8px;
+	margin: 0;
+	font-size: var(--fs-2xs);
+	font-weight: 750;
+	letter-spacing: 0.01em;
+	color: var(--ink-3);
+}
+.parts-h small {
+	margin-left: 0;
+	font-size: var(--fs-2xs);
+	font-weight: 650;
+}
+.parts.tiles {
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 8px;
+	margin-top: 8px;
+}
+@media (max-width: 599px) {
+	.parts.tiles.five {
+		grid-template-columns: repeat(5, minmax(0, 1fr));
+	}
+	.parts.tiles.five > .tile {
+		padding-inline: 2px;
+	}
+}
+/* a wider screen: as many columns as split the tiles into even rows (--cw, set with the tiles), none wider than 6.5rem */
+@media (min-width: 600px) {
+	.parts.tiles {
+		grid-template-columns: repeat(var(--cw, 6), minmax(0, 6.5rem));
+	}
+}
+.part.tile {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: flex-start;
+	gap: 6px;
+	min-height: 4.75rem;
+	padding: 11px 4px 10px;
+	border-radius: var(--r-btn, 14px);
+	border: 1px solid color-mix(in srgb, var(--c, var(--ink-3)) 32%, var(--rule));
+	background: color-mix(in srgb, var(--c, var(--ink-3)) 7%, var(--paper));
+	text-align: center;
+}
+.tile-ic {
+	position: relative;
+	display: grid;
+	place-items: center;
+	width: 34px;
+	height: 32px;
+	color: color-mix(in srgb, var(--c, var(--ink)) 60%, var(--ink));
+}
+.tile-ic svg.i {
+	width: 30px;
+	height: 30px;
+	stroke-width: 1.7;
+}
+/* a count, for a tile that holds a list: the day's own pair, small, on the icon's corner */
+.tile-n {
+	position: absolute;
+	top: -6px;
+	right: -12px;
+	min-width: 1.375rem;
+	height: 1.375rem;
+	padding: 0 5px;
+	display: grid;
+	place-items: center;
+	border-radius: 0.6875rem;
+	background: var(--c, var(--ink));
+	color: var(--ci, var(--paper));
+	font-size: var(--fs-2xs);
+	font-weight: 800;
+	line-height: 1;
+	font-variant-numeric: tabular-nums;
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--c, var(--ink-3)) 7%, var(--paper));
+}
+.tile-l {
+	font-size: var(--fs-2xs);
+	font-weight: 700;
+	line-height: 1.25;
+	color: var(--ink);
+	text-wrap: balance;
+	overflow-wrap: break-word;
+	hyphens: auto;
+	max-width: 100%;
+}
+.tile-ok {
+	background: var(--good);
+	color: var(--paper);
+}
+.tile-ok svg.i {
+	width: 14px;
+	height: 14px;
+	stroke-width: 3;
+}
+/* past eight parts, a phone shows seven and More; from 600 px every tile shows and More steps aside */
+@media (max-width: 599px) {
+	.parts.tiles.over > .tile:nth-child(n + 8):not(:last-child) {
+		display: none;
+	}
+}
+@media (min-width: 600px) {
+	.parts.tiles.over > .tile:last-child {
+		display: none;
+	}
+}
+.part.tile:active {
+	transform: scale(0.95);
+}
+.part.tile[aria-expanded='true'] {
+	box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--c, var(--ink)) 55%, var(--ink));
+}
+@media (hover: hover) and (pointer: fine) {
+	.part.tile:hover {
+		background: color-mix(in srgb, var(--c, var(--ink-3)) 13%, var(--paper));
+	}
+}
+@media (prefers-contrast: more) {
+	.part.tile {
+		border-color: var(--ink-3);
+	}
+}
+/* the sentence that summed a part up, now at the top of its sheet */
+.bsheet-sum {
+	margin: 0 0 12px;
+	color: var(--ink-2);
+	font-size: var(--fs-sm);
+	font-weight: 600;
+}
+.bsheet-sum b {
+	color: var(--ink);
+}
+.parts-all {
+	margin: 2px 0 8px;
+	background: var(--paper-2);
+}
+
+/* the day's card: the date big, the day's number small beside it; the title; one line of icon facts; ⋯ for the rest */
+.l-meta {
+	align-items: baseline;
+	gap: 4px 10px;
+}
+.l-meta .dtag {
+	font-size: var(--fs-lg);
+	font-weight: 800;
+	letter-spacing: -0.015em;
+}
+.l-meta .dtag svg.i {
+	display: none;
+}
+.l-n {
+	font-size: var(--fs-2xs);
+	font-weight: 750;
+	opacity: var(--cm, 0.92);
+}
+.l-head {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+}
+/* the day's title is the quiet line under the date and the wish: a step below the date */
+.l-head > .l-title {
+	flex: 1;
+	min-width: 0;
+	font-size: var(--fs-md);
+	font-weight: 750;
+	letter-spacing: -0.01em;
+	text-wrap: balance;
+}
+.l-more {
+	flex: none;
+	display: grid;
+	place-items: center;
+	width: 44px;
+	height: 44px;
+	margin: 4px -8px 0 0;
+	padding: 0;
+	border: 1.5px solid color-mix(in srgb, var(--ci) 75%, transparent);
+	border-radius: 12px;
+	background: var(--cf, color-mix(in srgb, var(--ci) 10%, transparent));
+	color: var(--ci);
+	cursor: pointer;
+	transition: transform 160ms var(--ease-out);
+}
+.l-more svg.i {
+	width: 22px;
+	height: 22px;
+}
+.l-more:active {
+	transform: scale(0.94);
+	transition-duration: 0ms;
+}
+.l-facts {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px 14px;
+	margin-top: 10px;
+	font-size: var(--fs-sm);
+	font-weight: 650;
+	line-height: 1.35;
+}
+.lf {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+}
+.lf svg.i {
+	width: 18px;
+	height: 18px;
+	opacity: var(--cm, 0.92);
+}
+/* the day's route and focus, in their sheet: printed on paper, not on the lantern */
+.route-focus {
+	display: flex;
+	gap: 8px;
+	align-items: flex-start;
+	margin: 0 0 12px;
+	font-weight: 650;
+}
+.route-focus svg.i {
+	margin-top: 3px;
+	color: var(--ink-3);
+}
+.bsheet .l-route {
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+.bsheet .l-leg {
+	background: color-mix(in srgb, var(--c) 9%, var(--paper));
+	border: 1px solid color-mix(in srgb, var(--c) 45%, var(--rule));
+	color: var(--ink);
+}
+.bsheet .l-leg.all {
+	background: var(--c);
+	border-color: var(--c);
+	color: var(--ci);
+}
+.route-acts {
+	margin-top: 12px;
+	background: var(--paper-2);
+}
+
+/* a stop is one line: its start time, its kind on the string, its name; a fixed time keeps the seal on a second line,
+   and a note the group must act on stays as a short second line. The rest opens in place */
+li.stop {
+	grid-template-columns: 4.25rem 26px minmax(0, 1fr);
+}
+.stop .stop-t {
+	padding-top: 12px;
+}
+.stop-knot:has(.knot-ic)::after {
+	display: none;
+}
+.knot-ic {
+	position: absolute;
+	top: 10px;
+	left: 0;
+	z-index: 1;
+	display: grid;
+	place-items: center;
+	width: 26px;
+	height: 26px;
+	border-radius: 50%;
+	background: var(--paper);
+	border: 2px solid color-mix(in srgb, var(--c) 70%, var(--paper));
+	color: color-mix(in srgb, var(--c) 60%, var(--ink));
+}
+.knot-ic svg.i {
+	width: 15px;
+	height: 15px;
+	stroke-width: 2.1;
+}
+/* the string and the marks without a kind icon (an added stop, a split, a fixed time) centre on the 26 px column, as the
+   kind's ring does */
+li.stop .stop-knot::before {
+	left: 12px;
+}
+.stop:first-child .stop-knot::before {
+	top: 23px;
+}
+.stop:last-child .stop-knot::before {
+	bottom: calc(100% - 23px);
+}
+li.stop .stop-knot::after {
+	top: 14.5px;
+	left: 4.5px;
+}
+.stop.now .knot-ic {
+	background: var(--c);
+	border-color: var(--c);
+	color: var(--ci);
+	box-shadow: 0 0 0 5px color-mix(in srgb, var(--c) 28%, transparent);
+}
+.stop.done .knot-ic {
+	opacity: 0.55;
+}
+.stop.fixed .stop-t {
+	padding-top: 9px;
+}
+.stop-b {
+	display: block;
+	padding: 0;
+}
+details.stop-x > summary {
+	list-style: none;
+}
+details.stop-x > summary::-webkit-details-marker {
+	display: none;
+}
+.stop-sum {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	align-items: start;
+	column-gap: 8px;
+	min-height: 48px;
+	padding: 11px 0 10px;
+	cursor: pointer;
+	-webkit-tap-highlight-color: transparent;
+}
+div.stop-sum {
+	cursor: default;
+}
+.stop-sum > .stop-name {
+	grid-column: 1;
+	display: block;
+	line-height: 1.4;
+}
+.stop-sum > .chev {
+	grid-column: 2;
+	grid-row: 1;
+	width: 20px;
+	height: 20px;
+	margin-top: 2px;
+	color: var(--ink-3);
+	stroke-width: 2.3;
+	transition: rotate 200ms var(--ease-out);
+}
+details.stop-x[open] > summary > .chev {
+	rotate: 180deg;
+}
+.stop-2 {
+	grid-column: 1;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 2px 10px;
+	margin-top: 3px;
+	font-size: var(--fs-sm);
+	line-height: 1.4;
+}
+.stop-2 .seal {
+	margin-left: 0;
+}
+.stop-range {
+	font-weight: 750;
+	color: var(--ink-2);
+	font-variant-numeric: tabular-nums;
+}
+/* a must-do note: the flag stays on its first line and the words wrap beside it (a hanging indent), never under it */
+.stop-do {
+	flex-wrap: nowrap;
+	gap: 6px;
+	align-items: flex-start;
+	font-weight: 650;
+	color: var(--ink);
+}
+.stop-do > span {
+	flex: 1;
+	min-width: 0;
+}
+.stop-do svg.i {
+	flex: none;
+	margin-top: 3px;
+	color: color-mix(in srgb, var(--c) 60%, var(--ink));
+}
+.stop-open {
+	display: grid;
+	gap: 8px;
+	padding: 0 0 14px;
+}
+.stop-open > .stop-note {
+	margin: 0;
+}
+.stop-when {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin: 0;
+	font-size: var(--fs-sm);
+	font-weight: 700;
+	color: var(--ink-2);
+	font-variant-numeric: tabular-nums;
+}
+.stop-when svg.i {
+	color: var(--ink-3);
+}
+.stop-acts {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+}
+.stop-acts > .ibtns {
+	display: contents;
+}
+.stop-acts .ibtn {
+	min-width: 4rem;
+}
+
+.stop-b > .warn {
+	margin: -4px 0 10px;
+}
+.stop-b > .stop-drv {
+	margin: -4px 0 12px;
+}
+details.stop-x[open] ~ .stop-drv {
+	display: none;
+}
+.stop:not(:last-child) .stop-b {
+	border-bottom: 1px solid var(--rule);
+}
+.stop.done details.stop-x:not([open]) .stop-name {
+	color: var(--ink-3);
+}
+
+/* a skipped planned stop (ADR-20261128-skip-planned-stops). It leaves the string and folds, with the day's others, into
+   one quiet row on the string at the schedule's foot ("2 skipped"): a dashed ring holding the skip mark, a 48 px summary
+   with its count and a chevron that turns. Opened, each is a greyed line struck through, with Put back. Right after a
+   skip it stays greyed where it was, with the suggestion to move the next stops earlier */
+.stop.skip-fold .knot-ic,
+.stop.skip-ask .knot-ic {
+	border-style: dashed;
+	border-color: color-mix(in srgb, var(--ink-3) 70%, var(--paper));
+	color: var(--ink-3);
+}
+details.skip-x > summary {
+	list-style: none;
+}
+details.skip-x > summary::-webkit-details-marker {
+	display: none;
+}
+.skip-sum {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	align-items: center;
+	column-gap: 8px;
+	min-height: 48px;
+	padding: 10px 0;
+	font-weight: 700;
+	color: var(--ink-2);
+	cursor: pointer;
+	-webkit-tap-highlight-color: transparent;
+}
+.skip-sum > .chev {
+	width: 20px;
+	height: 20px;
+	color: var(--ink-3);
+	stroke-width: 2.3;
+	transition: rotate 200ms var(--ease-out);
+}
+details.skip-x[open] > .skip-sum > .chev {
+	rotate: 180deg;
+}
+.skip-list {
+	list-style: none;
+	margin: 0 0 10px;
+	padding: 0;
+}
+.skip-row {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr) auto;
+	align-items: center;
+	gap: 4px 10px;
+	min-height: 52px;
+	padding: 4px 0;
+	border-top: 1px solid var(--rule);
+}
+.skip-t,
+.skip-ask .stop-t s {
+	font-size: var(--fs-sm);
+	font-weight: 750;
+	color: var(--ink-3);
+	font-variant-numeric: tabular-nums;
+	text-decoration: line-through;
+}
+.skip-m {
+	display: grid;
+	gap: 2px;
+	min-width: 0;
+}
+.skip-m .stop-name,
+.skip-line .skip-n {
+	color: var(--ink-3);
+	text-decoration: line-through;
+	text-decoration-thickness: 1.5px;
+	overflow-wrap: anywhere;
+}
+.skip-tag {
+	display: inline-block;
+	margin-left: 8px;
+	padding: 1px 7px;
+	border-radius: 6px;
+	background: var(--paper-3);
+	color: var(--ink-2);
+	font-size: var(--fs-xs);
+	font-weight: 750;
+	vertical-align: 2px;
+	text-decoration: none;
+}
+.skip-by {
+	font-size: var(--fs-xs);
+	font-weight: 650;
+	color: var(--ink-3);
+}
+.skip-line {
+	margin: 0;
+	padding: 12px 0 8px;
+	font-weight: 700;
+}
+.skip-box {
+	display: grid;
+	gap: 8px;
+	margin: 0 0 12px;
+	padding: 12px 14px;
+	border-radius: var(--r-md);
+	background: var(--paper);
+	border: 1px solid color-mix(in srgb, var(--link) 40%, var(--rule));
+}
+.skip-box .late-h .i {
+	color: var(--link);
+}
+.skip-box .small,
+.skip-box .links-row {
+	margin: 0;
+}
+/* a place shut that day, and a clash after a push back: Skip right there, beside the reason */
+.stop-b > .warn.stop-shut,
+.stop-b > .warn.stop-clash {
+	flex-wrap: wrap;
+	align-items: center;
+	row-gap: 4px;
+}
+.stop-b > .warn.stop-shut > span,
+.stop-b > .warn.stop-clash > span {
+	flex: 1 1 12rem;
+}
+.dd-stop.is-skipped .dd-n {
+	color: var(--ink-3);
+	text-decoration: line-through;
+}
+.pinbtn.is-skipped {
+	color: var(--ink-3);
+	text-decoration: line-through;
+}
+
+/* labelled icon buttons: a place's actions on the way (the hotel card, an opened stop) */
+.ibtns {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+.ibtn {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 4px;
+	min-width: 4.25rem;
+	min-height: 56px;
+	padding: 7px 8px 6px;
+	border: 1px solid var(--rule);
+	border-radius: 12px;
+	background: var(--paper-2);
+	color: var(--link);
+	font: inherit;
+	text-decoration: none;
+	cursor: pointer;
+	transition: transform 160ms var(--ease-out);
+}
+.ibtn svg.i {
+	width: 22px;
+	height: 22px;
+}
+.ibtn-l {
+	font-size: var(--fs-2xs);
+	font-weight: 700;
+	line-height: 1.2;
+	text-align: center;
+	color: var(--ink);
+	text-wrap: balance;
+}
+.ibtn:active {
+	transform: scale(0.95);
+	background: var(--paper-3);
+	transition-duration: 0ms;
+}
+@media (hover: hover) and (pointer: fine) {
+	.ibtn:hover {
+		background: var(--paper-3);
+	}
+}
+@media (prefers-contrast: more) {
+	.ibtn {
+		border-color: var(--ink-3);
+	}
+}
+
+/* tonight's hotel: a card with its name, its nights and its actions; the address folds under it */
+.hotel-card {
+	margin-top: 14px;
+	padding: 14px 14px 10px;
+	border-radius: var(--r-lg);
+	background: var(--paper);
+	border: 1px solid var(--rule);
+	display: grid;
+	gap: 12px;
+}
+.hc-head {
+	display: grid;
+	grid-template-columns: 44px minmax(0, 1fr);
+	gap: 12px;
+	align-items: center;
+}
+.hc-ic {
+	display: grid;
+	place-items: center;
+	width: 44px;
+	height: 44px;
+	border-radius: 12px;
+	background: var(--paper-2);
+	color: var(--ink-2);
+}
+.hc-ic svg.i {
+	width: 26px;
+	height: 26px;
+	stroke-width: 1.7;
+}
+.hc-name {
+	margin: 0;
+	font-size: var(--fs-md);
+	font-weight: 800;
+	line-height: 1.3;
+	text-wrap: balance;
+}
+.hc-sub {
+	margin: 2px 0 0;
+	font-size: var(--fs-sm);
+	font-weight: 650;
+	color: var(--ink-2);
+}
+.hotel-card .ibtns {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(4.25rem, 1fr));
+}
+details.hc-more > summary {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	min-height: 44px;
+	list-style: none;
+	cursor: pointer;
+	font-size: var(--fs-sm);
+	font-weight: 700;
+	color: var(--ink-2);
+}
+details.hc-more > summary::-webkit-details-marker,
+details.fold > summary::-webkit-details-marker,
+details.dd > summary::-webkit-details-marker,
+details.ml-day > summary::-webkit-details-marker {
+	display: none;
+}
+details.hc-more > summary .chev {
+	margin-left: auto;
+	transition: rotate 200ms var(--ease-out);
+}
+details.hc-more[open] > summary .chev {
+	rotate: 180deg;
+}
+.hc-more-b {
+	display: grid;
+	gap: 6px;
+	padding-bottom: 6px;
+}
+.hc-more-b .addr {
+	margin: 0;
+}
+
+/* a fold: a list you scan, shut until you ask. A big heading, its count, and a chevron that turns */
+details.fold {
+	margin-top: 22px;
+	border-top: 1px solid var(--rule);
+}
+details.fold > summary {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	min-height: 56px;
+	list-style: none;
+	cursor: pointer;
+	-webkit-tap-highlight-color: transparent;
+}
+details.fold > summary h2 {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin: 0;
+	font-size: var(--fs-md);
+	font-weight: 750;
+	letter-spacing: -0.01em;
+}
+details.fold > summary h2 svg.i {
+	color: var(--ink-3);
+}
+.fold-n {
+	min-width: 1.5rem;
+	padding: 1px 7px;
+	border-radius: 999px;
+	background: var(--paper-2);
+	color: var(--ink-2);
+	font-size: var(--fs-2xs);
+	font-weight: 750;
+	text-align: center;
+	font-variant-numeric: tabular-nums;
+}
+details.fold > summary > .chev,
+details.ml-day > summary > .chev {
+	margin-left: auto;
+	width: 22px;
+	height: 22px;
+	color: var(--ink-3);
+	stroke-width: 2.3;
+	transition: rotate 200ms var(--ease-out);
+}
+details.fold[open] > summary > .chev,
+details.ml-day[open] > summary > .chev {
+	rotate: 180deg;
+}
+.fold-body {
+	padding-bottom: 6px;
+}
+.fold-body > .facts {
+	margin-top: 0;
+}
+details.fold:focus-within > summary:focus-visible,
+details.ml-day > summary:focus-visible {
+	outline: 3px solid var(--focus);
+	outline-offset: 2px;
+	border-radius: 8px;
+}
+
+/* the week on Today: one line a day, its date (the seal beside it on a day with a fixed time), its short name, its
+   forecast while it's inside it, and the arrow. The name gives way first: it ends in an ellipsis, the forecast never */
+.wk {
+	grid-template-columns: 34px 2.5rem minmax(0, 1fr) auto auto;
+	min-height: 56px;
+	padding: 8px 12px;
+}
+.wk-title {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.wk > .wk-arrow {
+	grid-column: 5;
+}
+.wk-date {
+	white-space: nowrap;
+}
+/* a day with a fixed time: the seal's small diamond beside its date (Seal Means Fixed) */
+.day-seal {
+	display: inline-block;
+	width: 7px;
+	height: 7px;
+	margin: 0 0 0 6px;
+	border-radius: 1.5px;
+	background: var(--seal);
+	transform: rotate(45deg);
+	vertical-align: 0.15em;
+}
+/* a day's forecast on its row: the sky's icon and the high, no word (its name is read out) */
+.day-wx {
+	display: inline-flex;
+	align-items: center;
+	gap: 3px;
+	flex: none;
+	color: var(--ink-2);
+	font-size: var(--fs-xs);
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+}
+.day-wx svg.i {
+	width: 18px;
+	height: 18px;
+}
+.rl > .day-wx {
+	margin-left: 4px;
+}
+details.ml-day > summary > .day-wx {
+	grid-column: 3;
+	grid-row: 1 / span 2;
+}
+
+/* Now and Next, and the countdown: one line under the number; the location ask is one line, one button and ✕ */
+.now-line {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin: 0;
+	font-weight: 650;
+	color: var(--ink-2);
+}
+.now-line svg.i {
+	color: var(--ink-3);
+}
+/* the location ask, a repeated hint: in full the first time (the line, why, then the button and ✕), one row after (a pin,
+   a few words, the button, ✕) */
+.geo-ask {
+	display: grid;
+	align-items: center;
+	gap: 6px 8px;
+	border-radius: 12px;
+	border: 1px solid var(--rule);
+	background: var(--paper);
+}
+.geo-ask.is-full {
+	grid-template-columns: auto minmax(0, 1fr) auto;
+	grid-template-areas: 'l l l' 'w w w' 'b . x';
+	padding: 12px 4px 6px 12px;
+}
+.geo-ask.is-line {
+	grid-template-columns: minmax(0, 1fr) auto auto;
+	grid-template-areas: 'l b x';
+	gap: 4px;
+	padding: 4px 2px 4px 12px;
+}
+.geo-l {
+	grid-area: l;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	min-width: 0;
+	margin: 0;
+	font-size: var(--fs-sm);
+	font-weight: 700;
+	line-height: 1.3;
+}
+.geo-ask.is-line .geo-l > span {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.geo-l svg.i {
+	flex: none;
+	color: var(--ink-3);
+}
+.geo-ask .go-btn {
+	grid-area: b;
+	min-height: 44px;
+	padding: 0 14px;
+}
+.geo-ask.is-line .go-btn {
+	padding: 0 12px;
+	white-space: nowrap;
+}
+.geo-ask .geo-x {
+	grid-area: x;
+	color: var(--ink-3);
+}
+.geo-why {
+	grid-area: w;
+	margin: 0 8px 2px 0;
+	font-size: var(--fs-sm);
+	color: var(--ink-2);
+}
+
+/* Today's flights sheet */
+.flt-card {
+	display: grid;
+	grid-template-columns: 28px minmax(0, 1fr);
+	gap: 10px;
+	padding: 12px;
+	border-radius: 12px;
+	background: var(--paper-2);
+}
+.flt-card > svg.i {
+	width: 24px;
+	height: 24px;
+	color: var(--ink-3);
+}
+.flt-card p {
+	margin: 0;
+}
+.flt-t {
+	font-variant-numeric: tabular-nums;
+}
+
+/* Days: every day one line, one of them open with its stops; the summary is the day's grouped-list row */
+details.dd {
+	position: relative;
+}
+details.dd + details.dd::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	right: 0;
+	left: calc(var(--gl-pad) + 34px + 12px);
+	height: 1px;
+	background: var(--gl-sep);
+	pointer-events: none;
+}
+details.dd > summary {
+	list-style: none;
+}
+.dd-ch {
+	transition: rotate 200ms var(--ease-out);
+}
+details.dd[open] > summary .dd-ch {
+	rotate: 180deg;
+}
+.dd-body {
+	display: grid;
+	padding: 0 var(--gl-pad) 8px calc(var(--gl-pad) + 34px + 12px);
+}
+.dd-stop {
+	display: grid;
+	grid-template-columns: 3.25rem 22px minmax(0, 1fr);
+	align-items: center;
+	gap: 8px;
+	min-height: 44px;
+	padding: 4px 0;
+	color: var(--ink);
+	text-decoration: none;
+	border-top: 1px solid var(--gl-sep);
+	font-size: var(--fs-sm);
+}
+.dd-t {
+	font-weight: 750;
+	color: var(--ink-2);
+	font-variant-numeric: tabular-nums;
+}
+.dd-k {
+	display: grid;
+	place-items: center;
+	color: color-mix(in srgb, var(--c) 60%, var(--ink));
+}
+.dd-k svg.i {
+	width: 18px;
+	height: 18px;
+}
+.dd-seal {
+	width: 10px;
+	height: 10px;
+	border-radius: 3px;
+	background: var(--seal);
+	transform: rotate(45deg);
+}
+.dd-n {
+	font-weight: 650;
+	line-height: 1.35;
+}
+.dd-go.rl {
+	grid-template-columns: 22px minmax(0, 1fr) auto;
+	min-height: 48px;
+	padding: 6px 0;
+	border-top: 1px solid var(--gl-sep);
+	color: var(--link);
+	font-weight: 700;
+}
+@media (hover: hover) and (pointer: fine) {
+	.dd-stop:hover {
+		background: color-mix(in srgb, var(--ink) 4%, var(--gl-card));
+	}
+}
+
+/* the map's list of places: a fold per day */
+details.ml-day {
+	border-top: 1px solid var(--rule);
+}
+details.ml-day > summary {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr) auto auto auto;
+	align-items: center;
+	column-gap: 10px;
+	min-height: 52px;
+	list-style: none;
+	cursor: pointer;
+}
+.ml-h b {
+	font-weight: 750;
+}
+.ml-h small {
+	grid-column: 2;
+	font-size: var(--fs-xs);
+	color: var(--ink-2);
+}
+.ml-h > b {
+	grid-column: 2;
+}
+.ml-sw {
+	grid-row: 1 / span 2;
+	width: 12px;
+	height: 12px;
+	border-radius: 3px;
+	background: var(--c);
+}
+details.ml-day > summary > .fold-n {
+	grid-column: 4;
+	grid-row: 1 / span 2;
+}
+details.ml-day > summary > .chev {
+	grid-column: 5;
+	grid-row: 1 / span 2;
+	margin-left: 0;
+}
+details.ml-day > .pills {
+	padding-bottom: 12px;
+}
+/* a closed day row (here and in Days): its route on one line, cut with an ellipsis; opened, the whole route shows */
+details.ml-day:not([open]) > summary small,
+details.dd:not([open]) > summary .rl-t small {
+	display: block;
+	min-width: 0;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+/* the budget: what's been paid (big) and one line for what's still to come; the two lists of payments */
+.bud-glance .amt {
+	font-size: var(--fs-xl, 1.75rem);
+}
+.bg-todo {
+	width: 100%;
+	margin: 0;
+	color: var(--ink-2);
+	font-size: var(--fs-sm);
+	font-weight: 650;
+}
+.bg-todo b {
+	color: var(--ink);
+	white-space: nowrap;
+}
+.pay-list {
+	display: grid;
+	border-top: 1px solid var(--rule);
+}
+.pay {
+	border-bottom: 1px solid var(--rule);
+}
+.pay-h {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	align-items: start;
+	gap: 4px 12px;
+	min-height: 52px;
+	padding: 10px 0;
+}
+details.pay > summary {
+	grid-template-columns: minmax(0, 1fr) auto 20px;
+	list-style: none;
+	cursor: pointer;
+}
+details.pay > summary::-webkit-details-marker {
+	display: none;
+}
+details.pay > summary > .chev {
+	width: 20px;
+	height: 20px;
+	margin-top: 2px;
+	color: var(--ink-3);
+	transition: rotate 200ms var(--ease-out);
+}
+details.pay[open] > summary > .chev {
+	rotate: 180deg;
+}
+.pay-n {
+	display: grid;
+	gap: 2px;
+	min-width: 0;
+}
+.pay-n small {
+	color: var(--ink-2);
+	font-size: var(--fs-xs);
+	font-weight: 600;
+}
+.pay-part {
+	font-weight: 650;
+	color: var(--ink-2);
+}
+.pay-a {
+	display: grid;
+	justify-items: end;
+	gap: 2px;
+	font-weight: 750;
+	text-align: end;
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+}
+.pay-a .rm,
+.pay-a .dd-each {
+	color: var(--ink-3);
+	font-size: var(--fs-xs);
+	font-weight: 650;
+}
+.pay.is-tbd .pay-a {
+	color: var(--ink-2);
+	font-weight: 700;
+}
+.pay-ref {
+	margin: 0 0 12px;
+	color: var(--ink-2);
+	font-size: var(--fs-sm);
+}
+.pay-sum {
+	margin: 12px 0 0;
+	font-size: var(--fs-sm);
+	font-weight: 650;
+	color: var(--ink-2);
+}
+.pay-sum b {
+	color: var(--ink);
+	white-space: nowrap;
+}
+
+/* the budget by kind: a big icon, the kind's name and its share, a share bar (paid solid, still to pay dashed as an
+   estimate, against the biggest kind), then the figures and each person's share. A split is bars, never a donut */
+.kind-key {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 4px 8px;
+	margin: 0 0 4px;
+	font-size: var(--fs-xs);
+	font-weight: 650;
+	color: var(--ink-2);
+}
+.kk {
+	display: inline-block;
+	width: 18px;
+	height: 10px;
+	border-radius: 3px;
+}
+.kind-key .kk:not(:first-child) {
+	margin-left: 8px;
+}
+.kk-paid,
+.kb-paid {
+	background: color-mix(in srgb, var(--ink) 72%, var(--paper));
+}
+/* still to pay is an estimate: a light tint with a hatch, the chart rule's dashed 22 % (DESIGN.md, Charts) */
+.kk-todo,
+.kb-todo {
+	background-color: color-mix(in srgb, var(--ink) 12%, transparent);
+	background-image: repeating-linear-gradient(
+		135deg,
+		color-mix(in srgb, var(--ink) 30%, transparent) 0,
+		color-mix(in srgb, var(--ink) 30%, transparent) 2px,
+		transparent 2px,
+		transparent 5px
+	);
+}
+.kinds {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+.kind {
+	display: grid;
+	grid-template-columns: 44px minmax(0, 1fr);
+	gap: 12px;
+	padding: 14px 0;
+	border-top: 1px solid var(--rule);
+}
+.kind-ic {
+	display: grid;
+	place-items: center;
+	width: 44px;
+	height: 44px;
+	border-radius: 12px;
+	background: var(--paper-2);
+	color: var(--ink-2);
+}
+.kind-ic svg.i {
+	width: 24px;
+	height: 24px;
+}
+.kind-b {
+	display: grid;
+	gap: 6px;
+	min-width: 0;
+}
+.kind-h {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 8px;
+	margin: 0;
+}
+.kind-h b {
+	font-weight: 750;
+}
+.kind-pct {
+	font-size: var(--fs-sm);
+	font-weight: 750;
+	color: var(--ink-2);
+	font-variant-numeric: tabular-nums;
+}
+.kind-bar {
+	display: flex;
+	height: 12px;
+	border-radius: 4px;
+	background: var(--paper-2);
+	overflow: hidden;
+}
+.kb-paid,
+.kb-todo {
+	display: block;
+	height: 100%;
+}
+.kind-m,
+.kind-each {
+	margin: 0;
+	font-size: var(--fs-sm);
+	font-weight: 650;
+	color: var(--ink-2);
+	font-variant-numeric: tabular-nums;
+}
+.kind-m b {
+	color: var(--ink);
+	white-space: nowrap;
+}
+.kind-each {
+	font-size: var(--fs-xs);
+	color: var(--ink-3);
+}
+.kinds-sum {
+	padding-top: 12px;
+	border-top: 1px solid var(--rule);
+}
+/* a day card's budget row: the icon of its kind (its tag), as in the budget's By kind sheet */
+.bud-ic svg.i {
+	width: 16px;
+	height: 16px;
+	margin-right: 6px;
+	vertical-align: -3px;
+	color: var(--ink-3);
+}
+
+/* travel insurance: a card per policy, the numbers to call as 44 px buttons, what to keep for a claim */
+.ins-card {
+	display: grid;
+	gap: 8px;
+	padding: 14px;
+	border-radius: var(--r-md);
+	background: var(--paper-2);
+}
+.ins-name {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin: 0;
+	font-size: var(--fs-md);
+}
+.ins-name svg.i {
+	color: var(--ink-2);
+}
+.ins-by {
+	margin: 0;
+	color: var(--ink-2);
+	font-weight: 650;
+}
+.ins-line {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	margin: 0;
+	font-size: var(--fs-sm);
+}
+.ins-line svg.i {
+	flex: none;
+	margin-top: 2px;
+	color: var(--ink-3);
+}
+.ins-covers {
+	display: grid;
+	gap: 4px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	font-size: var(--fs-sm);
+	font-weight: 650;
+}
+.ins-covers li {
+	display: flex;
+	align-items: flex-start;
+	gap: 6px;
+}
+.ins-covers svg.i {
+	flex: none;
+	margin-top: 2px;
+	color: var(--good);
+}
+.ins-contacts {
+	display: grid;
+	border-top: 1px solid var(--rule);
+}
+.ins-c {
+	display: grid;
+	gap: 6px;
+	padding: 10px 0;
+	border-bottom: 1px solid var(--rule);
+}
+.ins-c-t {
+	display: grid;
+	gap: 2px;
+}
+.ins-c-t small {
+	color: var(--ink-2);
+	font-size: var(--fs-xs);
+	font-weight: 600;
+}
+.ins-c-a {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+.ins-tel,
+.ins-wa {
+	min-height: 44px;
+}
+/* WhatsApp beside the call: as big, second in weight: paper with a rule edge (never a bare outline), the word in ink */
+.ins-wa {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 0 16px;
+	border: 1px solid var(--rule);
+	border-radius: 12px;
+	background: var(--paper);
+	color: var(--ink);
+	font-weight: 700;
+	text-decoration: none;
+}
+.ins-wa svg.i {
+	width: 18px;
+	height: 18px;
+	color: var(--ink-2);
+}
+.ins-wa:active {
+	background: var(--paper-3);
+}
+@media (hover: hover) and (pointer: fine) {
+	.ins-wa:hover {
+		background: var(--paper-2);
+	}
+}
+.ins-tel span {
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+}
+.ins-h {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin: 18px 0 6px;
+	font-size: var(--fs-md);
+}
+.ins-claim-h {
+	margin: 10px 0 2px;
+	font-weight: 750;
+}
+
+/* the map: another day's pins while one day is picked, drawn quieter under the day's own. On the pin's picture, not
+   the marker: MapLibre writes the marker's own opacity inline (for markers behind terrain), which would win */
+.lpin.lpin-quiet {
+	z-index: 0;
+}
+.lpin.lpin-quiet > svg {
+	opacity: 0.4;
+	scale: 0.8;
+}
+/* a place the group skips on every day it's on (ADR-20261128-skip-planned-stops): its pin stays, as quiet as another
+   day's */
+.lpin.lpin-skip > svg {
+	opacity: 0.4;
+	scale: 0.8;
+}
+@media (prefers-contrast: more) {
+	.lpin.lpin-quiet > svg,
+	.lpin.lpin-skip > svg {
+		opacity: 0.6;
+	}
+}
+
+/* reduced motion: chevrons and presses change at once */
+@media (prefers-reduced-motion: reduce) {
+	.stop-sum > .chev,
+	.dd-ch,
+	details.fold > summary > .chev,
+	details.ml-day > summary > .chev,
+	details.hc-more > summary .chev {
+		transition: none;
+	}
+}
+
+/* the tourist tax refund (ADR-20261128-tax-refund): a sheet from Today's bookings. Its lead says the minimum spend and the
+   deadline; then the coupons, how it works in numbered steps, card or cash, and the airport's places and Wi-Fi */
+.tax-go {
+	margin-top: 10px;
+}
+.tax-go .wg-n {
+	margin-left: 6px;
+}
+.tax-lead {
+	display: grid;
+	gap: 6px;
+	padding: 12px 14px;
+	border-radius: var(--r-md);
+	background: var(--paper-2);
+}
+.tax-key,
+.tax-line {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	margin: 0;
+	font-size: var(--fs-sm);
+	font-weight: 650;
+}
+.tax-key svg.i,
+.tax-line svg.i {
+	flex: none;
+	margin-top: 2px;
+	color: var(--ink-3);
+}
+.tax-h {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin: 22px 0 8px;
+	font-size: var(--fs-md);
+	font-weight: 750;
+}
+.tax-h svg.i {
+	color: var(--ink-2);
+}
+.tax-steps {
+	display: grid;
+	gap: 10px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	counter-reset: tax-step;
+}
+.tax-steps > li {
+	display: grid;
+	grid-template-columns: 28px minmax(0, 1fr);
+	gap: 10px;
+	align-items: start;
+	counter-increment: tax-step;
+}
+.tax-steps > li::before {
+	content: counter(tax-step);
+	display: grid;
+	place-items: center;
+	width: 28px;
+	height: 28px;
+	border-radius: 999px;
+	background: var(--ink);
+	color: var(--paper);
+	font-size: var(--fs-sm);
+	font-weight: 800;
+	font-variant-numeric: tabular-nums;
+}
+.tax-places {
+	display: grid;
+	gap: 8px;
+}
+.tax-place,
+.tax-wifi {
+	display: grid;
+	gap: 6px;
+	padding: 12px 14px;
+	border: 1px solid var(--rule);
+	border-radius: var(--r-md);
+	background: var(--paper);
+}
+.tax-wifi {
+	margin-top: 8px;
+}
+.tax-what {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin: 0;
+}
+.tax-wf {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	align-items: center;
+	gap: 2px 8px;
+	margin: 0;
+	font-size: var(--fs-sm);
+}
+.tax-wf > span {
+	grid-column: 1 / -1;
+	color: var(--ink-2);
+	font-weight: 650;
+}
+.tax-wf code {
+	overflow-wrap: anywhere;
+	font-size: 1rem;
+	font-weight: 750;
+}
+.tax-copy {
+	min-height: 44px;
+}
+/* a shop coupon: its shop and last day, the offer, its tiers, the barcode image full width on white (a tap: full
+   screen), its rules. One past its last day folds to one greyed row, Expired */
+.coupons {
+	display: grid;
+	gap: 10px;
+}
+.coupon {
+	display: grid;
+	gap: 8px;
+	padding: 14px;
+	border: 1px solid var(--rule);
+	border-radius: 14px;
+	background: var(--paper);
+}
+.coupon-shop {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 4px 8px;
+	margin: 0;
+}
+.coupon-shop svg.i {
+	color: var(--ink-2);
+}
+.coupon-until {
+	margin-left: auto;
+	font-size: var(--fs-sm);
+	font-weight: 700;
+	color: var(--ink-2);
+}
+.coupon-h {
+	margin: 0;
+	font-weight: 750;
+}
+.coupon-tiers {
+	display: grid;
+	gap: 2px;
+	margin: 0;
+	padding-left: 1.2em;
+	font-size: var(--fs-sm);
+	font-weight: 650;
+}
+.coupon-img {
+	display: block;
+	width: 100%;
+	padding: 0;
+	border: 1px solid var(--rule);
+	border-radius: 10px;
+	background: #fff;
+	overflow: hidden;
+	cursor: zoom-in;
+}
+.coupon-img img {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+.coupon-tip {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin: 0;
+}
+.coupon.is-gone {
+	padding: 0;
+	background: var(--paper-2);
+}
+.coupon.is-gone > summary {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	min-height: 48px;
+	padding: 0 14px;
+	cursor: pointer;
+	list-style: none;
+	color: var(--ink-2);
+}
+.coupon.is-gone > summary::-webkit-details-marker {
+	display: none;
+}
+.coupon.is-gone > summary .chev {
+	width: 20px;
+	height: 20px;
+	margin-left: 4px;
+	color: var(--ink-3);
+	transition: rotate 200ms var(--ease-out);
+}
+.coupon.is-gone[open] > summary .chev {
+	rotate: 180deg;
+}
+.coupon.is-gone > summary .coupon-shop {
+	flex: 1;
+	min-width: 0;
+	flex-wrap: nowrap;
+}
+.coupon-badge {
+	margin-left: auto;
+	padding: 2px 8px;
+	border-radius: 7px;
+	background: var(--paper-3);
+	font-size: var(--fs-sm);
+	font-weight: 750;
+	color: var(--ink-2);
+}
+.coupon-b {
+	display: grid;
+	gap: 8px;
+	padding: 0 14px 14px;
+	opacity: 0.6;
+}
+.coupon.is-gone .coupon-img img {
+	filter: grayscale(1);
+}
+/* full screen for the cashier: pure white whatever the theme (no glass, no dark tint: color-scheme only light), the
+   whole coupon on the screen and centred (the full-size image scaled by CSS only); a landscape coupon on a phone held
+   upright turns a quarter turn to fill the long edge (.is-turned). A double tap zooms in around the tap, still turned,
+   and the box scrolls over the whole coupon in every direction (.is-zoomed). The stage and the image get their sizes
+   in pixels from 22-events.js (Tax.couponView); the stage, margin auto in a flex box, is centred while it fits and
+   starts at the box's edge once it doesn't, so no part is ever out of reach. Pinch zoom stays on. Nothing moves: no
+   transition to reduce */
+dialog.coupon-view {
+	position: fixed;
+	inset: 0;
+	width: 100vw;
+	max-width: none;
+	height: 100dvh;
+	max-height: none;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: #fff;
+	color: #15161a;
+	color-scheme: only light;
+}
+dialog.coupon-view::backdrop {
+	background: #fff;
+}
+.cv-scroll {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	overflow: auto;
+	padding: calc(env(safe-area-inset-top) + 68px) 12px calc(env(safe-area-inset-bottom) + 44px);
+	touch-action: manipulation;
+	overscroll-behavior: contain;
+}
+.cv-stage {
+	position: relative;
+	flex: none;
+	margin: auto;
+	overflow: hidden;
+}
+.cv-stage img {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	display: block;
+	max-width: none;
+	transform: translate(-50%, -50%);
+	cursor: zoom-in;
+}
+.cv-scroll.is-turned .cv-stage img {
+	transform: translate(-50%, -50%) rotate(90deg);
+}
+.cv-scroll.is-zoomed .cv-stage img {
+	cursor: zoom-out;
+}
+.cv-tip {
+	position: fixed;
+	inset: auto 12px calc(env(safe-area-inset-bottom) + 8px);
+	margin: 0;
+	padding: 4px 0;
+	background: #fff; /* a zoomed coupon scrolls under it */
+	text-align: center;
+	font-size: var(--fs-sm);
+	font-weight: 650;
+	color: #464a53;
+	pointer-events: none;
+}
+.cv-x {
+	position: fixed;
+	top: calc(env(safe-area-inset-top) + 12px);
+	right: 12px;
+	z-index: 1;
+	width: 44px;
+	height: 44px;
+	border-radius: 12px;
+	background: #f3f4f7;
+	color: #15161a;
 }

@@ -144,6 +144,7 @@ const DAYS = [
 		],
 		tickets: ['easycard-buy'],
 		title: ['抵达 → 酒店 → 士林夜市', 'Arrive → hotel → Shilin Night Market'],
+		short: ['抵达 · 夜市', 'Arrive · night market'],
 		focus: ['落地、入住、轻松晚餐', 'Land, check in, an easy dinner'],
 		photos: [],
 		wear: ['短袖 + 薄外套', 'T-shirt + light jacket'],
@@ -194,6 +195,7 @@ const DAYS = [
 			{
 				type: 'decide',
 				icon: 'food',
+				tile: ['晚餐', 'Dinner'],
 				h: ['第一晚吃什么', 'First night: where to eat'],
 				opts: [
 					{
@@ -266,6 +268,7 @@ const DAYS = [
 			['huashan', 'hotel', 'transit'],
 		],
 		title: ['龙山寺 → 剥皮寮 → 华山文创', 'Longshan Temple → Bopiliao → Huashan'],
+		short: ['老城区慢慢逛', 'Old town walk'],
 		focus: ['老城区，走路为主', 'Old town, mostly on foot'],
 		photos: [],
 		wear: ['短袖 + 帽子', 'T-shirt + hat'],
@@ -292,6 +295,7 @@ const DAYS = [
 			{
 				type: 'text',
 				icon: 'train',
+				tile: ['怎么走', 'Getting there'],
 				h: ['今天怎么走', 'Getting around today'],
 				p: [['捷运板南线到龙山寺站，出口1。', 'Bannan line to Longshan Temple, exit 1.']],
 				total: { amt: 'NT$500–800', per: ['五人当天交通', 'transport for 5, all day'], min: 500, max: 800 },
@@ -324,6 +328,7 @@ const DAYS = [
 			{
 				type: 'table',
 				icon: 'sun',
+				tile: ['天气和穿着', 'Weather & wear'],
 				h: ['天气和穿着', 'Weather and clothing'],
 				cols: [
 					['时段', 'When'],
@@ -385,12 +390,13 @@ const DAYS = [
 			['thermal', 'hotel', 'transit'],
 		],
 		title: ['北投温泉 → 地热谷', 'Beitou hot springs → Thermal Valley'],
+		short: ['泡温泉', 'Hot springs'],
 		focus: ['泡汤、散步', 'A soak and a stroll'],
 		photos: [],
 		wear: ['短袖 + 薄外套', 'T-shirt + light jacket'],
 		budgetChip: ['约 NT$3,500–5,000', '~NT$3,500–5,000'],
 		schedule: [
-			{ t: '09:00', what: ['酒店早餐', 'Breakfast at the hotel'], place: 'hotel', note: ['带毛巾', 'Bring a towel'] },
+			{ t: '09:00', what: ['酒店早餐', 'Breakfast at the hotel'], place: 'hotel', todo: true, note: ['带毛巾', 'Bring a towel'] },
 			{
 				t: '10:00–10:40',
 				what: ['捷运到新北投', 'MRT to Xinbeitou'],
@@ -409,6 +415,7 @@ const DAYS = [
 				t: '15:00–17:00',
 				what: ['泡汤（大众池或包厢）', 'Hot spring soak (public pool or private room)'],
 				place: 'beitou',
+				todo: true,
 				note: ['长辈泡15分钟就起来休息', 'Seniors: 15 min at a time, then rest'],
 			},
 			{ t: '18:00', what: ['回市区晚餐', 'Back to town for dinner'], place: 'hotel', note: ['酒店附近', 'Near the hotel'] },
@@ -491,6 +498,7 @@ const DAYS = [
 			['keelung', 'hotel', 'driving'],
 		],
 		title: ['包车：野柳 → 基隆', 'Charter: Yehliu → Keelung'],
+		short: ['包车去海边', 'Coast by charter'],
 		focus: ['北海岸一日，包车', 'North coast by charter car'],
 		photos: [],
 		wear: ['长袖 + 防风外套', 'Long sleeves + windbreaker'],
@@ -678,7 +686,7 @@ const DAYS = [
 				note: ['缆车约30分钟，山上喝茶吃午餐', 'Gondola ~30 min; tea and lunch on the hill'],
 			},
 			{ t: '14:30–17:30', what: ['回酒店休息', 'Rest at the hotel'], place: 'hotel', note: ['晚上要出门，先休息', 'Rest before the evening out'] },
-			{ t: '18:00', what: ['音乐厅附近晚餐', 'Dinner near the Concert Hall'], place: 'concert', note: ['早点吃', 'Eat early'] },
+			{ t: '18:00', what: ['音乐厅附近晚餐', 'Dinner near the Concert Hall'], place: 'concert', todo: true, note: ['早点吃', 'Eat early'] },
 			{
 				t: '19:10',
 				what: ['到音乐厅门口集合', 'Meet at the Concert Hall door'],
@@ -795,6 +803,7 @@ const DAYS = [
 				rel: { dep: [-230, -200] },
 				what: ['T1 办理登机', 'Check in at T1'],
 				place: 'tpe1',
+				todo: true,
 				note: ['退税柜台在出境前', 'Tax refund desk before security'],
 			},
 			{
@@ -810,6 +819,7 @@ const DAYS = [
 			{
 				type: 'groups',
 				icon: 'bag',
+				tile: ['分组去哪', 'Groups'],
 				h: ['分组去哪', 'Where each group goes'],
 				groups: [
 					{
@@ -874,6 +884,7 @@ const DAYS = [
 		wish: '回家',
 		gloss: ['', 'Home'],
 		title: ['凌晨起飞 → 回家', 'Early flight → home'],
+		short: ['回家', 'Home'],
 		focus: ['在飞机上睡觉', 'Sleep on the plane'],
 		photos: [],
 		schedule: [
@@ -955,27 +966,119 @@ const SHOPLISTS = [
 ];
 
 const BUDGET = {
-	excludes: [
-		['机票', 'Flights'],
-		['酒店（已付）', 'Hotel (paid)'],
-	],
+	// what's truly outside the plan; flights and the hotel are rows now, paid (ADR-20261128-budget-paid-insurance)
+	excludes: [['购物', 'Shopping']],
 	rows: [
-		[['机场来回', 'Airport, both ways'], 'NT$1,600–3,200', 1600, 3200, 'airport'],
-		[['市内交通', 'Local transport'], 'NT$2,000–3,000', 2000, 3000],
-		[['包车一天', 'Charter car, one day'], '**NT$5,500**', 5500, 5500],
-		[['门票与活动', 'Tickets and activities'], 'NT$6,400–7,000', 6400, 7000],
-		[['吃饭', 'Meals'], 'NT$12,000–18,000', 12000, 18000],
+		// paid at home, in the home currency: exact amounts, with where and when (synthetic booking numbers)
+		{
+			label: ['机票（来回）', 'Flights, return'],
+			cat: 'transport', // the budget's kinds (By kind): transport, car, lodging, food, tickets, activity, insurance, other
+			min: 4200,
+			max: 4200,
+			cur: 'home',
+			paid: '2026-12-02',
+			via: ['航空公司 App', 'Airline app'],
+			ref: 'DEMO-7Q2K',
+		},
+		{
+			label: ['酒店（六晚）', 'Hotel, six nights'],
+			cat: 'lodging',
+			min: 2350,
+			max: 2350,
+			cur: 'home',
+			paid: '2026-11-24',
+			via: ['订房网站', 'Booking site'],
+			ref: 'DEMO-58213',
+		},
+		// paid in parts: a deposit by transfer, the balance in cash on the day
+		{
+			label: ['包车一天', 'Charter car, one day'],
+			cat: 'transport', // a car with its driver is a transfer; a car the group drives itself is 'car'
+			parts: [
+				{ amt: 1500, paid: '2027-02-20', via: ['银行转账', 'Bank transfer'], label: ['订金', 'Deposit'] },
+				{ amt: 4000, via: ['当天付现金', 'Cash on the day'], label: ['尾款', 'Balance'] },
+			],
+		},
+		// still to come: estimates in the trip's currency, each ending in its kind (an anchor first, where it has one)
+		[['机场来回', 'Airport, both ways'], 'NT$1,600–3,200', 1600, 3200, 'airport', 'transport'],
+		[['市内交通', 'Local transport'], 'NT$2,000–3,000', 2000, 3000, 'transport'],
+		[['门票与活动', 'Tickets and activities'], 'NT$6,400–7,000', 6400, 7000, 'tickets'],
+		[['吃饭', 'Meals'], 'NT$12,000–18,000', 12000, 18000, 'food'],
+		// planned, price not known yet: listed, never counted
+		{ label: ['加购行李（回程）', 'Extra baggage, home'], tbd: true, via: ['航空公司 App', 'Airline app'], cat: 'transport' },
 	],
-	total: ['合计 NT$27,500–36,700', 'Total NT$27,500–36,700'],
-	totalMin: 27500,
-	totalMax: 36700,
-	per: ['每人 NT$5,500–7,340', 'NT$5,500–7,340 each'],
 	split: ['包车和计程车按车算，人少也不便宜。', 'Charter and taxis are per vehicle, so fewer people don’t pay less.'],
 	suggest: ['公费 NT$40,000，最后多退少补。', 'A group pot of NT$40,000; settle up at the end.'],
 	pool: 40000,
 	poolText: ['公费 NT$40,000', 'Group pot NT$40,000'],
 	airportNote: ['Day 1搭机场捷运比接送省约NT$600–1,200', 'Day 1 Airport MRT vs van saves ~NT$600–1,200'],
 	chartNote: ['虚线框 = 估算。不含购物。', 'Dashed = estimate. Excludes shopping.'],
+};
+
+// the group's travel insurance (ADR-20261128-budget-paid-insurance): synthetic, a made-up insurer, numbers from the
+// range set aside for fiction. Never an ID number, an address or a birth date: the page is shared with the group
+const INSURANCE = {
+	policies: [
+		{
+			name: ['旅游保险（示范）', 'Travel insurance (demo)'],
+			insurer: 'Demo Assurance',
+			plan: ['全面配套', 'Comprehensive plan'],
+			who: ['全员同一配套', 'Everyone, same plan'],
+			from: '2027-03-13',
+			to: '2027-03-19',
+			covers: [
+				['医疗和住院', 'Medical and hospital'],
+				['航班延误满 4 小时', 'Flight delay of 4 hours or more'],
+				['行李延误或损坏', 'Luggage delay or damage'],
+				['旅程取消', 'Trip cancellation'],
+			],
+			note: ['出发前在 App 里确认保单已经生效。', 'Before you leave, check in the app that the policy is active.'],
+			site: 'https://example.com/claims',
+			app: { name: 'Demo Assurance', note: ['保单在投保约 3 天后出现在 App 里', 'The policy shows in the app about 3 days after sign-up'] },
+			contacts: [
+				{
+					label: ['24 小时紧急热线', '24-hour emergency line'],
+					tel: '+1 202-555-0143',
+					wa: '+1 202-555-0143',
+					when: ['海外看病、住院', 'A doctor or hospital abroad'],
+				},
+				{ label: ['理赔', 'Claims'], tel: '+1 202-555-0178', when: ['回国后办理', 'Once you are home'] },
+			],
+		},
+		{
+			name: ['包车公司的乘客保险（示范）', "The charter company's passenger cover (demo)"],
+			insurer: 'Demo Charter Co.',
+			who: ['包车那天，车上每个人', 'Everyone in the car on the charter day'],
+			from: '2027-03-16',
+			to: '2027-03-16',
+			covers: [['乘客意外', 'Passenger accidents']],
+			contacts: [{ label: ['包车公司', 'The charter company'], tel: '+1 202-555-0190', when: ['当天有事', 'Anything on the day'] }],
+		},
+	],
+	claims: [
+		{
+			h: ['航班延误', 'Flight delay'],
+			items: [
+				['登机证正本', 'The original boarding passes'],
+				['航空公司的延误证明，写明日期、时间和原因', "The airline's delay letter, with the date, the time and the cause"],
+			],
+		},
+		{
+			h: ['行李延误或损坏', 'Luggage delayed or damaged'],
+			items: [
+				['机场的行李事故报告（PIR）', "The airport's baggage report (PIR)"],
+				['行李的价值和购买收据', "The bag's value and its receipts"],
+				['损坏的照片', 'Photos of the damage'],
+			],
+		},
+		{
+			h: ['看医生', 'Seeing a doctor'],
+			items: [
+				['诊断书和收据正本', 'The original diagnosis and receipts'],
+				['药单', 'The prescription'],
+			],
+		},
+	],
 };
 
 const MONEY = {
@@ -1009,13 +1112,82 @@ const WEATHER = {
 
 const TAX = {
 	h: ['外国旅客退税', 'Tourist tax refund'],
+	// the rules in short; the minimum spend comes from the country pack, and the sheet leads with it
 	list: [
-		['同一天同一家店买满 NT$2,000', 'Spend NT$2,000+ in one shop on one day'],
 		['找有退税标志的店', 'Look for the tax-refund sign'],
 		['机场出境前领退税', 'Claim at the airport before security'],
 	],
 	shops: ['百货公司大多可以退税。', 'Most department stores offer it.'],
 	note: ['示范规则，出发前再查。', 'Demo rules; check before you go.'],
+	// the how-to, step by step (ADR-20261128-tax-refund); synthetic, like the rest of the demo
+	steps: [
+		['结账时出示护照，说要退税', 'At the till, show your passport and ask for the tax refund'],
+		['收好收据和退税单（上面有二维码）', 'Keep the receipt and the refund form (it has a QR code)'],
+		['到机场先办退税，再托运行李', 'At the airport, claim before you check your bags in'],
+		['选退到信用卡或领现金', 'Choose a refund to your card, or cash'],
+		['拿到退款或收据', 'Get the money, or the slip for your card'],
+	],
+	methods: [
+		{
+			h: ['退到信用卡', 'To a card'],
+			items: [
+				['大多数卡都可以', 'Most cards work'],
+				['约 2–4 周入账', 'Arrives in about 2–4 weeks'],
+			],
+			note: ['示范：以柜台说明为准。', 'Demo: the counter has the final word.'],
+		},
+		{
+			h: ['在机场领现金', 'Cash at the airport'],
+			items: [
+				['安检后的柜台领', 'At the counter after security'],
+				['当场拿到', 'Paid on the spot'],
+			],
+		},
+	],
+	airport: {
+		h: ['机场的退税点', 'Refund points at the airport'],
+		rows: [
+			{
+				what: ['退税机', 'Refund kiosk'],
+				where: ['出境大厅，托运柜台旁（示范）', 'Departure hall, by the check-in counters (demo)'],
+				when: ['托运行李之前', 'Before you check your bags in'],
+			},
+			{
+				what: ['现金柜台', 'Cash counter'],
+				where: ['安检后，登机口附近（示范）', 'After security, near the gates (demo)'],
+				note: ['示范地点，出发前查机场网站。', 'A demo place; check the airport site before you go.'],
+			},
+		],
+		wifi: { ssid: 'Demo-Airport-Free', note: ['示范 Wi-Fi，不用密码。', 'A demo network, no password.'] },
+	},
+	deadline: ['示范：买了 90 天内出境才能退', 'Demo: leave within 90 days of buying to claim'],
+	// a shop's coupon: its offer, its tiers and its barcode image (img/tax/coupon-demo.svg, made up), until its last day
+	coupons: [
+		{
+			id: 'demo-store',
+			shop: ['示范百货（示範）', 'Demo Department Store (demo)'],
+			h: ['外国旅客优惠，可以和退税一起用', 'A tourist discount, on top of the tax refund'],
+			items: [
+				['满 NT$3,000 打 95 折', '5% off from NT$3,000'],
+				['满 NT$10,000 打 93 折', '7% off from NT$10,000'],
+			],
+			until: '2027-03-31',
+			img: 'tax/coupon-demo',
+			rules: [
+				['结账前出示这张券和护照', 'Show this coupon and your passport before you pay'],
+				['特价品不适用', 'Not on sale items'],
+			],
+		},
+		{
+			id: 'demo-old',
+			shop: ['示范药妆（示範）', 'Demo Drugstore (demo)'],
+			h: ['冬季优惠', 'A winter discount'],
+			items: [['满 NT$2,000 打 95 折', '5% off from NT$2,000']],
+			until: '2027-03-01',
+			img: 'tax/coupon-demo',
+		},
+	],
+	src: ['示范资料：编的，不是真的规定', 'Demo data: made up, not real rules'],
 };
 
 const FLIGHTS = {

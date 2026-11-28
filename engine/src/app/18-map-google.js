@@ -155,13 +155,19 @@ function mountGoogle() {
 		// plain element, not a <button>: the marker itself is the clickable control (Google's rule); a button inside it
 		// makes overlapping pins bounce the click between them ("Maximum call stack size exceeded" in marker.js)
 		const b = document.createElement('div');
-		b.className = 'lpin';
+		b.className = p.skipped ? 'lpin lpin-skip' : 'lpin'; // skipped on every day it's on: quieter, still there
 		b.dataset.type = p.type;
 		b.dataset.pid = p.pid;
 		b.dataset.days = p.days.join(' ');
 		b.innerHTML = pinSVG(p);
 		x.b = b;
-		x.mk = new g.marker.AdvancedMarkerElement({ map: null, position: { lat: p.lat, lng: p.lng }, content: b, title: p.name, gmpClickable: true });
+		x.mk = new g.marker.AdvancedMarkerElement({
+			map: null,
+			position: { lat: p.lat, lng: p.lng },
+			content: b,
+			title: p.skipped ? `${p.name} ${Z('（已跳过）', '(skipped)')}` : p.name,
+			gmpClickable: true,
+		});
 		x.mk.addListener('gmp-click', () => pick(p, false, false, true));
 		return x.mk;
 	};
@@ -208,9 +214,12 @@ function mountGoogle() {
 			mapListSync();
 			const show = (x) => pinShown(x.p);
 			markers.forEach((x) => {
-				if (show(x)) {
+				const q = !show(x) && pinQuiet(x.p);
+				if (show(x) || q) {
 					const mk = mkOf(x);
 					if (!mk.map) mk.map = m;
+					x.b.classList.toggle('lpin-quiet', q);
+					mk.zIndex = q ? -1 : null;
 				} else if (x.mk && x.mk.map) x.mk.map = null;
 			});
 			$$('[data-filter]').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.filter === mapDay)));

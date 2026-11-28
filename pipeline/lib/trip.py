@@ -23,6 +23,7 @@ def _load():
 T = _load()
 TRIP, DAYS, PLACES, FLIGHTS = T['TRIP'], T['DAYS'], T['PLACES'], T['FLIGHTS']
 ROLES, HOTEL_OF = T['roles'], T['hotels']
+PACK = T.get('pack') or {}  # the destination pack's plain data (destinations/<cc>/pack.mjs, its city's over it)
 HOTELS = list(dict.fromkeys(HOTEL_OF.values()))
 CONFIG = json.load(open(S + 'pipeline.json')) if os.path.exists(S + 'pipeline.json') else {}
 # the date written as "checked" on refreshed data; RELAXJER_TODAY pins it (tests, reruns)

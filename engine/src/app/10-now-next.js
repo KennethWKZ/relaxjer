@@ -17,12 +17,13 @@ function renderNow() {
 				.map((w, i) => ({ id: 'wx' + i, t: [Z('看天气：', 'Weather: ') + L(w.v), Z('看天气：', 'Weather: ') + L(w.v)], due: w.d, gid: 'wx' })),
 		]
 			.filter((i) => i.due && !checks[`${i.gid}-${i.id}`] && dnum(i.due) >= td)
-			.sort((a, b) => a.due.localeCompare(b.due))
-			.slice(0, 3);
+			.sort((a, b) => a.due.localeCompare(b.due));
+		// the countdown is one big number, one line and one action; the to-dos coming due wait behind it, counted
+		// (ADR-20261128-progressive-disclosure)
+		const due = todo.length;
 		el.innerHTML = `<div class="now-count"><span class="now-num">${n}</span><span class="now-unit">${Z('天后出发', n === 1 ? 'day to go' : 'days to go')}</span></div>
-        <p class="muted">${Z(`${Time.dateLabel(FLIGHTS.out.date, 'zh', DAYS[0].dow)} 飞${TRIP.arriveCity[0]}，第一晚住`, `Fly to ${TRIP.arriveCity[1]} on ${Time.dateLabel(FLIGHTS.out.date, 'en', DAYS[0].dow)}; first night at`)} ${esc(L(PLACES[hotelOf(ROLE.arrive)].name))}</p>
-        ${todo.length ? `<div class="now-rows">${todo.map((i) => `<div class="now-row"><span class="now-k">${esc(dateLabel(i.due))}</span><span class="now-v">${fmt(i.t)}</span></div>`).join('')}</div>` : ''}
-        <div class="links-row"><a class="go-btn" href="#checklist">${icon('check')}${Z('打开清单', 'Open checklist')}</a><a class="go-btn ghost" href="#${ROLE.arrive}">${icon('arrow')}Day ${dayById[ROLE.arrive].n}</a></div>
+        <p class="now-line">${icon('plane')}<span>${Z(`${Time.dateLabel(FLIGHTS.out.date, 'zh', DAYS[0].dow)} 飞${TRIP.arriveCity[0]}`, `${Time.dateLabel(FLIGHTS.out.date, 'en', DAYS[0].dow)} to ${TRIP.arriveCity[1]}`)}</span></p>
+        <div class="links-row"><a class="go-btn" href="#checklist">${icon('check')}${due ? Z(`清单 · ${due} 件快到期`, `Checklist · ${due} due soon`) : Z('打开清单', 'Open checklist')}</a></div>
         ${geoAsk()}`;
 		return;
 	}
@@ -34,7 +35,7 @@ function renderNow() {
 	const { cur, next } = nowNext(day, now.mins);
 	const row = (k, x) =>
 		x
-			? `<div class="now-row"><span class="now-k">${k}</span><span class="now-v"><a href="#${day.id}-s${x.i}"><span class="t">${esc(L(x.it.t))}</span>${fmt(x.it.what)}</a></span></div>`
+			? `<div class="now-row"><span class="now-k">${k}</span><span class="now-v"><a href="#${day.id}-s${x.i}"><span class="t">${esc(tStart(L(x.it.t)))}</span>${fmt(x.it.what)}</a></span></div>`
 			: '';
 	const nxPlace = next && next.it.place;
 	// between the fork and the rejoin of a day that splits: where the others are, so the card says more than "Next"
@@ -62,6 +63,7 @@ function markToday() {
 	if (!day) return;
 	const { cur, next } = nowNext(day, now.mins);
 	day.schedule.forEach((it, i) => {
+		if (it._skip) return; // its row is in the day's skipped fold
 		const li = $(`#${day.id}-s${i}`);
 		if (!li) return;
 		const s = li.dataset.s != null ? +li.dataset.s : null;
@@ -76,6 +78,20 @@ function markToday() {
 					: next && next.i === i
 						? `<span class="flag ghost">${Z('下一站', 'Next')}</span>`
 						: '';
+	});
+	// a long drive under way: the rest stop ahead by the minutes since it set off (Drives.nextStop; no location read)
+	$$(`#${day.id} .stop-dstops[data-drv-dep]`).forEach((box) => {
+		const rows = $$('.drv-stop', box);
+		const k = Drives.nextStop(
+			rows.map((li) => ({ min: +li.dataset.min })),
+			now.mins - +box.dataset.drvDep,
+			+box.dataset.drvLen,
+		);
+		rows.forEach((li, j) => {
+			li.classList.toggle('is-next', j === k);
+			const f = $('.drv-flag', li);
+			if (f) f.innerHTML = j === k ? `<span class="flag ghost">${Z('下一个', 'Next')}</span>` : '';
+		});
 	});
 	const ol = $(`#${day.id} .sched`);
 	if (!ol) return;

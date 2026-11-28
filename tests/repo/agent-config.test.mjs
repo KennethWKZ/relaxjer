@@ -106,6 +106,35 @@ test('reviewer agents are read-only', () => {
 	assert.deepEqual(bad, []);
 });
 
+// knowledge/research.md: how to research a trip (audit facts, rednote posts, Google's route times, data costs,
+// choices, rental cars, shop lists, cards, bookings, customs) reaches every agent that researches or writes a plan
+test('trip research follows knowledge/research.md', () => {
+	const r = read('knowledge', 'research.md');
+	for (const must of [
+		/## Every finding is an audit fact/,
+		/www\.rednote\.com/,
+		/last six months/,
+		/Read only/,
+		/Google's route times before any route advice/,
+		/a dry run's too/,
+		/two to three times/,
+		/Give choices, not one pick/,
+		/Never guess a paid date or an amount/,
+		/duty-free allowance/,
+	])
+		assert.match(r, must, `knowledge/research.md keeps ${must}`);
+	for (const f of [
+		['.claude', 'agents', 'relaxbro.md'],
+		['.claude', 'agents', 'destination-researcher.md'],
+		['.agents', 'skills', 'trip-intake', 'SKILL.md'],
+		['.agents', 'skills', 'data-sync', 'SKILL.md'],
+		['.agents', 'skills', 'trip-customize', 'SKILL.md'],
+		['memory-bank', 'standards', 'patterns', 'trip-data.md'],
+	])
+		assert.match(read(...f), /knowledge\/research\.md/, `${f.join('/')} links knowledge/research.md`);
+	assert.match(read('knowledge', 'README.md'), /\(research\.md\)/, 'knowledge/README.md lists it');
+});
+
 // knowledge/stays.md: the lessons from researching stays (availability for the exact dates, the three sites and both
 // kinds of stay, the planner's ranking) reach every agent that researches or writes a stay
 test('stay research follows knowledge/stays.md', () => {

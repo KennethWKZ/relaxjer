@@ -6,24 +6,41 @@ let mapDay = 'all';
 let mapCat = 'all';
 let mapNear = false;
 let meLL = null; // map: every pin, day scope, category, sort by distance, where the phone is
+/* the map's list of every place, by day (ADR-20261128-progressive-disclosure): each day a fold, one line until it's
+   opened, with the same day open as in Days (today; before the trip the first day; after it none); the hotel and the
+   optional places last */
 function mapListHTML() {
 	if (!GEO) return '';
 	const pins = buildPins();
+	const now = tpNow();
+	const td = DAYS.find((d) => d.date === now.date);
+	const openId = td ? td.id : dnum(now.date) < dnum(TRIP.start) ? DAYS[0].id : '';
 	const byDay = DAYS.filter((d) => d.id !== ROLE.flight).map((d) => ({
 		d,
-		items: pins.filter((p) => p.days.includes(d.id) && p.type !== 'mrt' && !p.drink && !p.wc),
+		items: pins.filter((p) => p.days.includes(d.id) && p.type !== 'mrt' && !p.drink && !p.wc && !p.refill),
 	}));
-	const other = pins.filter((p) => !p.days.length && p.type !== 'mrt' && !p.drink && !p.wc);
-	const btn = (p) => `<button type="button" class="tag pinbtn" data-pick="${p.pid}" data-q="${esc(p.q || p.name)}">${esc(p.name)}</button>`;
+	const other = pins.filter((p) => !p.days.length && p.type !== 'mrt' && !p.drink && !p.wc && !p.refill);
+	// a place the group skips that day reads struck through, its pin quieter (ADR-20261128-skip-planned-stops)
+	const btn = (p, day) =>
+		(p.skipDays || []).includes(day)
+			? `<button type="button" class="tag pinbtn is-skipped" data-pick="${p.pid}" data-q="${esc(p.q || p.name)}">${esc(p.name)}<span class="sr-only"> ${Z('（已跳过）', '(skipped)')}</span></button>`
+			: `<button type="button" class="tag pinbtn" data-pick="${p.pid}" data-q="${esc(p.q || p.name)}">${esc(p.name)}</button>`;
+	const fold = (id, h, items, open, style = '') =>
+		`<details class="ml-day" data-ml="${id}"${open ? ' open' : ''}${style}><summary class="ml-h">${h}<span class="fold-n">${items.length}</span>${icon('chev', 'chev')}</summary><div class="pills">${items.map((p) => btn(p, id)).join('')}</div></details>`;
 	return (
 		byDay
 			.map(({ d, items }) =>
 				items.length
-					? `<p class="tail-sub">Day ${d.n} · ${esc(dateLabel(d.date, d.dow))}</p><div class="pills">${items.map(btn).join('')}</div>`
+					? fold(
+							d.id,
+							`<span class="ml-sw" aria-hidden="true"></span><b>${esc(dateLabel(d.date, d.dow))}${daySeal(d)}</b><small>Day ${d.n} · ${esc(dayShort(d))}</small>${dayWx(d)}`,
+							items,
+							d.id === openId,
+							` style="${colorVars(d.c)}"`,
+						)
 					: '',
 			)
-			.join('') +
-		(other.length ? `<p class="tail-sub">${Z('酒店与备选', 'Hotel & optional')}</p><div class="pills">${other.map(btn).join('')}</div>` : '')
+			.join('') + (other.length ? fold('other', `<b>${Z('酒店与备选', 'Hotel & optional')}</b>`, other, false) : '')
 	);
 }
 
@@ -158,7 +175,10 @@ function stageInView() {
 	const { st, box } = paneEls();
 	if (mapFullOn || !st || !box) return;
 	const r = box.getBoundingClientRect();
-	const foot = innerHeight - (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--chrome-bottom')) || 0);
+	// the screen's foot above an app bar: the bar's own top. (--chrome-bottom is a calc(), and a custom property reads back
+	// as its unresolved text, so it gave 0 and the check never saw the bar)
+	const tb = $('#tabbar');
+	const foot = tb && tb.getClientRects().length ? Math.min(innerHeight, tb.getBoundingClientRect().top) : innerHeight;
 	if (r.top >= barH - 1 && r.bottom <= foot + 1) return;
 	scrollToEl(st, 'start', false);
 }
@@ -219,9 +239,12 @@ function paneShow(on) {
 		stageInView();
 	}
 }
-/** the day the map shows, on its Filters button: the day's colour and name, or "All days" */
+/** what the map shows, on its Filters button: the day's colour and name, or "All days", then the kind when one is picked */
 const mapFiltDay = () => mapDay !== 'all' && dayById[mapDay];
-const mapFiltLabel = (d = mapFiltDay()) => (d ? `Day ${d.n} · ${+d.date.slice(8)} ${L(d.dow)}` : Z('全部天', 'All days'));
+const mapFiltLabel = (d = mapFiltDay()) => {
+	const cat = mapCat !== 'all' && MAP_CATS.find(([k]) => k === mapCat);
+	return `${d ? `Day ${d.n} · ${+d.date.slice(8)} ${L(d.dow)}` : Z('全部天', 'All days')}${cat ? ` · ${L(cat[1])}` : ''}`;
+};
 function mapFiltSync() {
 	const b = $('[data-mapfilters]');
 	const l = $('#mapfilt-l');
@@ -229,7 +252,7 @@ function mapFiltSync() {
 	if (l) l.textContent = mapFiltLabel(d);
 	if (!b) return;
 	b.classList.toggle('dayf', !!d);
-	b.dataset.on = d ? '1' : '0';
+	b.dataset.on = d || mapCat !== 'all' ? '1' : '0';
 	b.style.cssText = d ? colorVars(d.c) : '';
 }
 // the sheet's head follows a finger up and down; let go and it settles on the nearest height, the flick carried over

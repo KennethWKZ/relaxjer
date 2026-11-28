@@ -1,5 +1,5 @@
-// One view at a time (ADR-20261122-day-views): the day's previous / next buttons, its planning parts as summary
-// buttons that open sheets, a stop's own sheet, the Sections button's rules, jumps that land in the right view, the
+// One view at a time (ADR-20261122-day-views): the day's previous / next buttons, its planning parts as tiles that
+// open sheets (ADR-20261128-progressive-disclosure), a stop's own sheet, the Sections button's rules, jumps that land in the right view, the
 // desktop's week rail and side panel, and nothing wider than a phone in either language. Any trip.
 import { test, expect, openTrip } from '../support/fixtures.mjs';
 import { BAR, goToView, hasBar, openPart, overflow, settle, setStored, switchLang, VIEWS, viewOn } from '../support/page.mjs';
@@ -32,14 +32,16 @@ test('every planning part of a day opens its sheet, which scrolls on its own, an
 	await openTrip(page);
 	const day = await page.evaluate(() => (DAYS.find((d) => d.blocks.length >= 2) || DAYS[0]).id);
 	await goToView(page, day);
-	const parts = page.locator(`#${day} ${VIEWS.part}`);
+	// the tiles on screen (on a phone, past eight, the More tile stands for the rest)
+	const parts = page.locator(`#${day} ${VIEWS.part}`).filter({ visible: true });
 	const n = await parts.count();
-	expect(n, 'the day has summary buttons').toBeGreaterThan(0);
+	expect(n, 'the day has tiles').toBeGreaterThan(0);
 	for (let i = 0; i < n; i++) {
 		const btn = parts.nth(i);
-		// each says in one line what's inside, read from the part's own data
-		await expect(btn.locator('.part-h')).not.toBeEmpty();
-		await expect(btn.locator('.part-s')).not.toBeEmpty();
+		// each says what it is in a short word under its icon, at the Label size or larger (it follows the phone's text size)
+		await expect(btn.locator('.tile-l')).not.toBeEmpty();
+		await expect(btn.locator('.tile-ic svg.i')).toHaveCount(1);
+		expect(await btn.locator('.tile-l').evaluate((e) => parseFloat(getComputedStyle(e).fontSize))).toBeGreaterThanOrEqual(13);
 		expect((await btn.boundingBox()).height).toBeGreaterThanOrEqual(44);
 		await btn.scrollIntoViewIfNeeded();
 		const y = await scrollY(page);
@@ -62,23 +64,21 @@ test('every planning part of a day opens its sheet, which scrolls on its own, an
 	}
 });
 
-test("a stop opens its map, directions and what's near it in a sheet; its ✕ closes it", async ({ page }) => {
+test("an opened stop opens its sheet of what's near it from Nearby and more; its ✕ closes it", async ({ page }) => {
 	await openTrip(page);
 	const day = await page.evaluate(() => DAYS[1].id);
 	await goToView(page, day);
-	const more = page.locator(`#${day} .stop.has-more ${VIEWS.stopMore}`).first();
-	if (!(await more.count())) test.skip(true, 'no stop with a place on this day');
-	await expect(more).toHaveAttribute('aria-label', /.+/);
+	const stop = page.locator(`#${day} .stop.has-more`).first();
+	if (!(await stop.count())) test.skip(true, 'no stop with a place on this day');
+	await stop.locator('details.stop-x > summary').click();
+	const more = stop.locator(VIEWS.stopMore);
+	await expect(more.locator('.ibtn-l'), 'it says what it opens').not.toBeEmpty();
 	expect((await more.boundingBox()).width).toBeGreaterThanOrEqual(44);
 	const sheet = await openPart(page, more);
 	await expect(sheet.locator('.bsheet-h')).not.toBeEmpty();
 	await sheet.locator('.bsheet-x').click();
 	await expect(sheet).toBeHidden();
-	// a tap on the row itself opens it too
-	await more.locator('xpath=ancestor::li[1]').locator('.stop-name').click();
-	await expect(sheet).toBeVisible();
-	await page.keyboard.press('Escape');
-	await expect(sheet).toBeHidden();
+	await expect(stop.locator('details.stop-x'), 'the stop stays open behind it').toHaveJSProperty('open', true);
 });
 
 test("a link into a part's sheet opens its view and the sheet at that place", async ({ page }) => {
@@ -147,13 +147,21 @@ test('a jump from the Now card lands on the stop in its day', async ({ page }) =
 	await expect(page.locator('html')).toHaveAttribute('data-showing', 'top');
 });
 
-test("a day's Map button opens the map over the day, and closing it returns to the day", async ({ page }) => {
+test("a day's ⋯ holds Copy for chat, Copy link and the map, and the map opens over the day; closing it returns to the day", async ({ page }) => {
 	await openTrip(page);
 	const day = await page.evaluate(() => DAYS[1].id);
 	await goToView(page, day);
-	const btn = page.locator(`#${day} [data-map-day]`);
+	// the card keeps one ⋯ beside its title (ADR-20261128-progressive-disclosure): a 44 px button with a name
+	const more = page.locator(`#${day} .lantern .l-more`);
+	await expect(more).toHaveAttribute('aria-label', /.+/);
+	expect((await more.boundingBox()).width).toBeGreaterThanOrEqual(44);
+	const sheet = await openPart(page, more);
+	// each action has its word (the copy and link buttons were icon-only on a phone)
+	for (const sel of ['[data-copy-day]', '[data-copy-link]']) await expect(sheet.locator(`${sel} .rl-t b`)).not.toBeEmpty();
+	const btn = sheet.locator('[data-map-day]');
 	if (!(await btn.count())) test.skip(true, 'this trip has no map');
 	await btn.click();
+	await expect(sheet, 'the sheet closes as the map opens').toBeHidden();
 	await expect(page.locator('#mapstage.is-full')).toBeVisible();
 	await page.goBack();
 	await expect(page.locator('#mapstage.is-full')).toHaveCount(0);
@@ -241,12 +249,17 @@ for (const lang of ['zh', 'en']) {
 	});
 }
 
-test('a decision the planner settled says which option, on its summary button (world page)', async ({ page }) => {
+test('a decision the planner settled shows a tick on its tile, and its sheet says which option (world page)', async ({ page }) => {
 	await page.goto('/trip-world.html');
 	await expect(page.locator('#app [data-sec]').first()).toBeAttached();
-	const btn = page.locator('.part:has(.part-pick)').first();
-	if (!(await btn.count())) test.skip(true, 'no decision block on this trip');
-	await expect(btn.locator('.part-pick')).toContainText(/已定|Chosen/);
+	const btn = page.locator('.part.tile:has(.tile-ok)').first();
+	if (!(await btn.count())) test.skip(true, 'no settled decision on this trip');
+	await expect(btn).toContainText(/已定|chosen/);
+	const day = await btn.evaluate((e) => e.closest('[data-sec]').id);
+	await page.evaluate((h) => (location.hash = h), `#${day}`);
+	await expect(page.locator('html')).toHaveAttribute('data-showing', day);
+	const sheet = await openPart(page, btn);
+	await expect(sheet.locator('.bsheet-sum .part-pick')).toContainText(/已定|Chosen/);
 });
 
 // the map's loading box lies over the whole map until the map is up; the page then sets [hidden] on it. Its own display

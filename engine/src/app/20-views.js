@@ -206,8 +206,11 @@ function partOpen(d, target) {
 	if (!d) return;
 	const btns = $$(`[data-part="${d.id}"]`);
 	lazyFill(d); // built the first time it opens (06-render-blocks.js)
-	// a sheet that holds one folded card (a single ticket) opens it: the summary button was the tap that asked for it
-	const folds = [...d.querySelectorAll('.bsheet-body details')].filter((x) => !x.parentElement.closest('details'));
+	// a sheet that holds one folded card (a single ticket) opens it: the summary button was the tap that asked for it.
+	// Not one folded because it's past (an expired coupon, data-keep-shut): that fold is the point
+	const folds = [...d.querySelectorAll('.bsheet-body details')].filter(
+		(x) => !x.parentElement.closest('details') && !x.hasAttribute('data-keep-shut'),
+	);
 	if (folds.length === 1) folds[0].open = true;
 	openDialog(d);
 	whenSettled(() => {
@@ -227,11 +230,11 @@ document.addEventListener('click', (e) => {
 		partOpen(document.getElementById(b.dataset.part));
 		return;
 	}
-	// a stop's row opens its sheet too (map, directions, what's near), anywhere but its own buttons and links
-	const row = e.target.closest('.stop.has-more .stop-b');
-	if (row && !e.target.closest('a, button, input, label, summary, details, dialog, .split-card')) {
-		const more = row.querySelector('[data-part]');
-		if (more) partOpen(document.getElementById(more.dataset.part));
+	// a row of the More tile's sheet: that part's own sheet takes its place (Back returns to the view, not to the list)
+	const sw = e.target.closest('[data-part-swap]');
+	if (sw) {
+		closeDialog(sw.closest('dialog'));
+		whenSettled(() => partOpen(document.getElementById(sw.dataset.partSwap)));
 	}
 });
 
@@ -324,7 +327,8 @@ function pagerHTML(d) {
 		const x = dayById[id];
 		const n = NAV.find((m) => m.id === id);
 		const h = x ? (dir === 'prev' ? Z('上一天', 'Previous day') : Z('下一天', 'Next day')) : L(n.label);
-		const sub = x ? `${dateLabel(x.date, x.dow)} · ${L(x.title)}` : id === 'top' ? Z('现在、接下来和这一周', 'Now, next and the week') : '';
+		// the other day's date only: its title is a tap away (ADR-20261128-progressive-disclosure)
+		const sub = x ? `Day ${x.n} · ${dateLabel(x.date, x.dow)}` : '';
 		return `<a class="pg ${dir}" href="#${id}" data-pager="${dir}"${x ? ` style="${colorVars(x.c)}"` : ''}><b>${dir === 'prev' ? icon('arrow-l') : ''}<span>${esc(h)}</span>${dir === 'next' ? icon('arrow') : ''}</b>${sub ? `<small>${esc(sub)}</small>` : ''}</a>`;
 	};
 	return `<nav class="pager" aria-label="${Z('换一天', 'Other days')}">${card(ids[i - 1], 'prev')}${card(ids[i + 1], 'next')}</nav>`;

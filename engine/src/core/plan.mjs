@@ -104,8 +104,10 @@ export function roomAfter(rows) {
 	});
 }
 
-/** the stored pushes for a day that are valid ({ from, min > 0 }) */
-export const validPushes = (list) => (Array.isArray(list) ? list.filter((x) => x && x.from != null && x.min > 0) : []);
+/** the stored moves for a day that are valid ({ from, min }): a push back is min > 0, a pull earlier after a skipped stop
+ *  min < 0 (ADR-20261128-skip-planned-stops); a move of 0 or not a number is dropped */
+export const validPushes = (list) =>
+	Array.isArray(list) ? list.filter((x) => x && x.from != null && typeof x.min === 'number' && Number.isFinite(x.min) && x.min !== 0) : [];
 
 /** the fixed item an added stop at minute m runs into: from 45 min before it until its end (or 30 min after start) */
 export function nearFixed(m, fixed) {
@@ -195,4 +197,143 @@ export function storedLeg(legs, scope, i, [from, to, mode, ...rest]) {
 	for (const [k, o] of Object.entries(legs || {})) if (k.startsWith(pre) && /^\d+$/.test(k.slice(pre.length)) && o.from != null && same(o)) return o;
 	const own = rest.find((x) => typeof x === 'number');
 	return own > 0 ? { min: own, own: true } : null;
+}
+
+/** a day's one-line name when its data gives none (days[].short; ADR-20261128-progressive-disclosure): the first place
+ *  of its title's route and how many there are, never a word cut in half: "小樽运河等3处", "Otaru Canal +2 more". A title
+ *  with no route is its own name */
+export function shortFromTitle(title, lang) {
+	const t = String(title || '').trim();
+	const parts = t
+		.split(/\s*→\s*/)
+		.map((x) => x.trim())
+		.filter(Boolean);
+	if (parts.length < 2) return t;
+	return lang === 'en' ? `${parts[0]} +${parts.length - 1} more` : `${parts[0]}等${parts.length}处`;
+}
+
+/** a repeated hint (the location ask, the header's Install; ADR-20261128-progressive-disclosure): in full the first
+ *  time this phone shows it, one line on every later page view, and never again once dismissed. `seen` is what the phone
+ *  keeps for it ('seen', 'gone' or nothing); `fullNow` that it already showed in full in this page view, so a redraw a
+ *  minute later doesn't shrink it under the reader's eyes */
+export function hintForm(seen, fullNow) {
+	if (seen === 'gone') return 'gone';
+	return !seen || fullNow ? 'full' : 'line';
+}
+
+/** the kinds a stop can be drawn as on its string (DAYS[].schedule[].icon, ADR-20261128-progressive-disclosure): each an
+ *  icon the page has. The page reads the kind from the stop when the data names none */
+export const stopKinds = ['food', 'train', 'bus', 'car', 'van', 'walk', 'bike', 'plane', 'bed', 'bag', 'sight', 'ticket', 'coffee', 'star'];
+
+/* ── skipping a planned stop (ADR-20261128-skip-planned-stops) ── */
+
+// FNV-1a, 32 bits, in base 36: a short, stable fingerprint of a stop as the data writes it
+const fnv = (s) => {
+	let h = 0x811c9dc5;
+	for (const c of String(s)) {
+		h ^= c.codePointAt(0);
+		h = Math.imul(h, 0x01000193) >>> 0;
+	}
+	return h.toString(36);
+};
+const side = (x, i) => (Array.isArray(x) ? String(x[i] ?? '') : String(x ?? ''));
+
+/**
+ * Each planned stop's key, for a skip: its day and a fingerprint of its planned time, its name (both languages) and its
+ * place, as the data writes them (before a flight change or a push-back moves a time). A planner who republishes with
+ * that stop changed leaves an old skip on nothing, never on another stop; two stops written the same in one day get
+ * -2, -3… → ['d3-1x9k2a', …], one per `day.schedule` row.
+ */
+export function stopKeys(day) {
+	const seen = new Map();
+	return (day.schedule || []).map((it) => {
+		const base = `${day.id}-${fnv([side(it.t, 0), side(it.t, 1), side(it.what, 0), side(it.what, 1), it.place || ''].join('|'))}`;
+		const n = (seen.get(base) || 0) + 1;
+		seen.set(base, n);
+		return n > 1 ? `${base}-${n}` : base;
+	});
+}
+/** the shape of a skip's key: a day id, its fingerprint, and the -N of a repeated stop */
+export const SKIP_KEY = /^d\d{1,3}-[a-z0-9]{1,8}(?:-\d{1,2})?$/;
+
+/**
+ * Can the group skip this planned stop? Every stop can, except what the trip can't do without: a flight and the
+ * lodging. Not skippable:
+ *  - a stop that follows a flight (`rel`): landing, immigration and bags, leaving for the airport, check-in;
+ *  - a stop at an airport terminal (`terminals`: AIRPORT.terminals[].place);
+ *  - a stop at one of the trip's hotels (`hotels`: TRIP.hotel and every DAYS[i].hotel): check-in, check-out, back to the
+ *    hotel, a pickup at its door, breakfast there; it's where the group sleeps and keeps its bags;
+ *  - a stop whose kind is a flight or a bed (`icon: 'plane' | 'bed'`), so a planner marks one with no place;
+ *  - every row of the day that holds only the flight home (`flightDay`).
+ * The page doesn't read the stop's words: "back to the hotel" with no place is skippable unless its `icon` says bed.
+ */
+export function skippable(it, { hotels = [], terminals = [], flightDay = false } = {}) {
+	if (!it || flightDay || it.rel) return false;
+	if (it.icon === 'plane' || it.icon === 'bed') return false;
+	if (it.place && (hotels.includes(it.place) || terminals.includes(it.place))) return false;
+	return true;
+}
+
+/** is a place shut on a date? The data refresh writes the trip dates it's closed (geo.json places[id].closed_dates) */
+export const closedOn = (geoPlace, date) => !!(geoPlace && date && Array.isArray(geoPlace.closed_dates) && geoPlace.closed_dates.includes(date));
+
+/**
+ * After a stop is skipped, how much earlier the stops after it could start: a suggestion the group taps or doesn't,
+ * never a move by itself. rows = the day's rows in order on one clock ({ s, e, fixed, skip, still }: start and end as
+ * they stand now, a fixed time, skipped, `still` for a row that never moves: a flight-tied one or a numbered step);
+ * i = the skipped row; now = minutes now when the day is today, else null.
+ * The next row the group still goes to moves to about when the skipped one began: by the skipped row's length, or to its
+ * start when it has no end, but never before the row before it ends, never into the past, at most 3 h, in whole
+ * 5 minutes. Returns { at: that row's index, min } or null: nothing after it, the next is fixed (a fixed time never
+ * moves) or flight-tied, or less than 10 minutes to gain.
+ */
+export function pullEarlier(rows, i, now = null) {
+	const sk = rows[i];
+	if (!sk || sk.s == null) return null;
+	const at = rows.findIndex((r, k) => k > i && !r.skip && r.s != null);
+	if (at < 0) return null;
+	const next = rows[at];
+	if (next.fixed || next.still || next.s <= sk.s) return null;
+	let min = (sk.e != null && sk.e > sk.s ? Math.min(sk.e, next.s) : next.s) - sk.s;
+	const prev = rows
+		.slice(0, i)
+		.reverse()
+		.find((r) => !r.skip && r.s != null);
+	if (prev) min = Math.min(min, next.s - (prev.e != null && prev.e > prev.s ? prev.e : prev.s));
+	if (now != null) min = Math.min(min, next.s - now);
+	min = Math.floor(Math.min(min, 180) / 5) * 5;
+	return min >= 10 ? { at, min } : null;
+}
+
+/**
+ * A day's route without the places the group skips (gone: a Set of place ids every stop of that day at which is
+ * skipped): the legs a→b and b→c become one leg a→c, by the way of the first leg that isn't on foot (a ride's the safe
+ * guess for a longer way), else on foot. Such a leg is new, so it shows no minutes until the next data refresh
+ * (storedLeg). A leg's own minutes and set-off time go with it, since they were for the old way. Returns new legs.
+ */
+export function routeWithout(legs, gone) {
+	if (!Array.isArray(legs) || !gone || !gone.size) return legs;
+	const out = [];
+	let carry = null; // where the group was before a skipped place ({ from, at: the skipped place, modes }), waiting for where it goes next
+	for (const leg of legs) {
+		const [a, b, mode] = leg;
+		if (carry && a !== carry.at) carry = null; // the route doesn't go on from there: it ends where the group was
+		if (carry) {
+			const modes = [...carry.modes, mode];
+			if (gone.has(b)) {
+				carry = { from: carry.from, at: b, modes };
+				continue;
+			}
+			if (carry.from !== b) out.push([carry.from, b, modes.find((m) => m !== 'walking') || 'walking']);
+			carry = null;
+			continue;
+		}
+		if (gone.has(a)) continue; // a route that starts at a skipped place starts at the next one
+		if (gone.has(b)) {
+			carry = { from: a, at: b, modes: [mode] };
+			continue;
+		}
+		out.push(leg);
+	}
+	return out;
 }

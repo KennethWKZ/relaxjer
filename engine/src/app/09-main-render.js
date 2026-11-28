@@ -83,6 +83,7 @@ if (window.ResizeObserver) new ResizeObserver(() => requestAnimationFrame(brandF
 
 function render() {
 	applyFlights();
+	applySkips(); // before the moves: a skipped fixed time holds none (07-skip.js)
 	applyShifts();
 	const now = tpNow();
 	document.documentElement.lang = lang === 'en' ? 'en' : 'zh-Hans';

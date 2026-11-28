@@ -61,10 +61,14 @@ const MEAL_NAMES = {
 	drink: ['饮料', 'Drinks'],
 	rest: ['坐下歇脚', 'Sit & rest'],
 	wc: ['厕所', 'Toilets'],
+	refill: ['装水', 'Refill'], // near me only, on a trip with refill data (24-near-me.js)
 };
 const DRINKS = window.DRINKS || []; // cat "drink" = grab-and-go stand; cat "rest" = sit down (teahouse, dessert, café)
 const isRest = (x) => x.cat === 'rest';
 const TOILETS = window.TOILETS || { wc: [], near: {}, gp: {}, borrow: {} }; // scripts/gtoilets.py
+// free water refill points (pipeline/steps/refill.py: OpenStreetMap and the trip's own refill-*.json files;
+// ADR-20261128-water-refill). Which are near a stop, shut for winter or open now is worked out here (core/refill.mjs)
+const REFILL = { checked: null, spots: [], ...(window.REFILL || {}) };
 const MRT = window.MRT || null; // scripts/mrt.py: stations + lines (Google positions and ride times, stop order from OpenStreetMap)
 const YB = window.YB || []; // scripts/gtransit.py: YouBike stations near our places (live counts fetched on tap)
 const BUS = window.BUS || []; // scripts/gtransit.py: bus stops near our places (Google)
@@ -150,7 +154,26 @@ function mealGroup(d, it, meal, slots) {
 	return { html, c };
 }
 // wishlist food that suits any of this stop's meals: one list, distances from one point
-function stopWish(d, c, meals) {
+/** a far wishlist chip's way there (Reach, ADR-20261128-near-me-all): the distance under 1.2 km, as before; past it the
+ *  metro from the stop's station to the place's, a drive on a day that goes by car, else "far" with the distance */
+function wishHint(d, it, x) {
+	if (x.k == null) return Z('今天顺路', 'on today’s route');
+	const st = (pk) => (pk && GEO && GEO.places && GEO.places[pk] ? GEO.places[pk].mrt : null);
+	// the stop's own place, else (a meal row with none) the last place the day reached before it
+	const at = it && (it.place || [...d.schedule.slice(0, d.schedule.indexOf(it))].reverse().find((s) => s.place)?.place);
+	const legs = LEGS[d.id] || [];
+	const driving = legs.some((l) => l[2] === 'driving') && !legs.some((l) => l[2] === 'transit');
+	const from = st(at);
+	const to = x.br.mrt;
+	const rideKm = from && to && from.lat != null && to.lat != null ? km(from, to) : null;
+	const r = Reach.reach({ km: x.k, walkMin: walkMinM(x.k * 1000), driveMin: taxiMin(x.k), driving, from, to, rideKm, walkOf: walkMinM });
+	if (r.mode === 'walk') return distLabel(x.k);
+	if (r.mode === 'drive') return Z(`车程 · 约 ${r.min} 分钟`, `Drive · ≈ ${r.min} min`);
+	if (r.mode === 'far') return Z(`远 · ${distLabel(x.k)}`, `Far · ${distLabel(x.k)}`);
+	const ride = r.mode === 'train' ? ['火车', 'train'] : METRO;
+	return Z(`${ride[0]} · 约 ${r.min} 分钟`, `${Cap(ride[1])} · ≈ ${r.min} min`);
+}
+function stopWish(d, c, meals, it) {
 	const wl = WISH.filter((w) => w.status !== 'closed' && WISH_FOOD.has(w.kind) && (w.meals || []).some((m) => meals.includes(m)))
 		.map((w) => {
 			const br = wBest(w);
@@ -161,7 +184,7 @@ function stopWish(d, c, meals) {
 		.sort((a, b) => (a.k == null ? 99 : a.k) - (b.k == null ? 99 : b.k))
 		.slice(0, 8);
 	return wl.length
-		? `<p class="eat-h">${icon('star')}${Z('想吃清单', 'Wishlist')}</p><div class="eat-row">${wl.map((x) => `<a class="eat-chip is-wish" href="#wish-${esc(x.w.id)}">${esc(wName(x.w))} <span class="eat-r">${x.k == null || x.k > 1.2 ? `${Z('今天顺路', 'on today’s route')}${x.k != null ? ' · ' + distLabel(x.k) : ''}` : distLabel(x.k)}</span></a>`).join('')}${more(wl.length)}</div>`
+		? `<p class="eat-h">${icon('star')}${Z('想吃清单', 'Wishlist')}</p><div class="eat-row">${wl.map((x) => `<a class="eat-chip is-wish" href="#wish-${esc(x.w.id)}">${esc(wName(x.w))} <span class="eat-r">${esc(wishHint(d, it, x))}</span></a>`).join('')}${more(wl.length)}</div>`
 		: '';
 }
 const NEAR_KINDS = new Set(['shop', 'market', 'souvenir', 'sight', 'temple', 'nature', 'hotspring']);
@@ -188,9 +211,9 @@ function nearWish(d, it) {
 		? `<div class="stop-near"><span class="sn-h">${icon('star')}${Z('附近想去', 'Nearby')}</span>${rows.map((x) => `<a class="eat-chip is-wish${x.w.must ? ' must' : ''}" href="#wish-${esc(x.w.id)}">${mustB(x.w)}${esc(wName(x.w))} <span class="eat-r">${distLabel(x.k)}</span></a>`).join('')}</div>`
 		: '';
 }
-// optional plans the trip suggests at this stop (OPTIONAL[].near): a tap opens the card over the day. The row folds to
-// its count ("3 nearby options") behind a chevron: closed by default on a phone, where the day's string comes first,
-// open on a wider screen; a tap opens or closes it, remembered per stop for this page view only (optsOpen), never stored
+// optional plans the trip suggests at this stop (OPTIONAL[].near): a tap opens the card over the day. They sit inside
+// the opened stop (ADR-20261128-progressive-disclosure), so their row starts open; a tap folds it, remembered per stop
+// for this page view only (optsOpen), never stored
 const optsOpen = new Map();
 function nearOpts(d, it, sid) {
 	if (!it.place) return '';
@@ -201,7 +224,7 @@ function nearOpts(d, it, sid) {
 		return { o, k: at && to ? km(at, to) : null };
 	});
 	if (!rows.length) return '';
-	const open = optsOpen.has(sid) ? optsOpen.get(sid) : !matchMedia('(max-width: 599px)').matches;
+	const open = optsOpen.has(sid) ? optsOpen.get(sid) : true;
 	const n = rows.length;
 	return `<div class="stop-near stop-opts"><button type="button" class="sn-tog" data-opts="${sid}" aria-expanded="${open}" aria-controls="${sid}-opts">${icon('list')}<span class="sn-h">${Z(`附近可选 ${n}`, `${n} nearby option${n > 1 ? 's' : ''}`)}</span>${icon('chev', 'chev')}</button><div class="sn-list" id="${sid}-opts"${open ? '' : ' hidden'}>${rows.map((x) => `<a class="eat-chip is-opt" href="#${esc(x.o.id)}">${esc(L(x.o.short || x.o.name))}${x.k != null ? ` <span class="eat-r">${distLabel(x.k)}</span>` : ''}</a>`).join('')}</div></div>`;
 }
@@ -213,34 +236,44 @@ function optsToggle(b) {
 	const list = document.getElementById(b.getAttribute('aria-controls'));
 	if (list) list.hidden = !open;
 }
-// a stop's longer note (schedule[].detail, trip-format.md) folds under its short one: closed on a phone, where the
-// day's string comes first, open on a wider screen, and a tap folds or unfolds it on any screen, remembered per stop for
-// this page view (detailOpen); a reload reopens the folds that were open, as for every fold (spotSave). A native details: the page's search finds the text inside and opens it
-const detailOpen = new Map();
-function stopDetail(it, sid) {
-	if (!it.detail) return '';
-	const open = detailOpen.has(sid) ? detailOpen.get(sid) : !matchMedia('(max-width: 599px)').matches;
-	return `<details class="stop-detail" data-detail="${sid}"${open ? ' open' : ''}><summary class="sn-tog">${icon('info')}<span class="sn-h">${Z('更多说明', 'More details')}</span>${icon('chev', 'chev')}</summary><p class="stop-note">${fmt(it.detail)}</p></details>`;
-}
-// the reader's own tap, on the summary (Enter and Space click it too): a redraw keeps what they chose
+/* a stop is one line until it's opened (ADR-20261128-progressive-disclosure, which replaced the detail fold of
+   ADR-20261127-stop-detail-fold): a native details, so the page's search finds its note and opens it. What the reader
+   opened is kept per stop for this page view (stopOpen), so a language switch or a push-back redraw keeps it; a reload
+   reopens what was open, as for every fold (spotSave) */
+const stopOpen = new Map();
+const stopIsOpen = (sid) => !!stopOpen.get(sid);
+// the reader's own tap: on the row's summary (Enter and Space click it too), or on its time or its mark on the string,
+// so the whole row is the target (affordances rule 4)
 document.addEventListener('click', (e) => {
-	const s = e.target.closest('details.stop-detail > summary');
-	if (s) detailOpen.set(s.parentElement.dataset.detail, !s.parentElement.open);
+	const s = e.target.closest('details.stop-x > summary');
+	if (s) {
+		stopOpen.set(s.parentElement.dataset.stop, !s.parentElement.open);
+		return;
+	}
+	const side = !e.target.closest('button, a') && e.target.closest('.stop > .stop-t, .stop > .stop-knot');
+	const x = side && side.parentElement.querySelector('details.stop-x');
+	if (x) {
+		x.open = !x.open;
+		stopOpen.set(x.dataset.stop, x.open);
+	}
 });
+/* what's near a stop, as one row of pills: drinks and rest spots (drinks.json), toilets (toilets.json) and water refill
+   (refill.json). Each pill shows on its own data alone: a trip with toilets but no drinks keeps its toilet pill (the
+   guard on drinks once hid them all on a trip without a drinks step) */
 function nearDrinks(d, it) {
-	// a drink within a few minutes' walk: best rated first
-	if (!it.place || !DRINKS.length) return '';
+	if (!it.place) return '';
 	if (isHotel(it.place)) return ''; // the hotel has its own food section; a pickup stop is no time for a drink list
-	const n = (rest) => spotsNear(it.place, rest, d.date).length;
+	const n = (rest) => (DRINKS.length ? spotsNear(it.place, rest, d.date).length : 0);
 	const dr = n(false),
 		rs = n(true);
 	const wcB = wcPill(it.place);
-	if (!dr && !rs && !wcB) return '';
+	const rfB = refillPill(it.place, d.date, parseT(it.t || '').s);
+	if (!dr && !rs && !wcB && !rfB) return '';
 	const btn = (rest, c) =>
 		c
 			? `<button type="button" class="near-pill${rest ? ' is-rest' : ''}" data-spots="${esc(it.place)}|${rest ? 'rest' : 'drink'}|${d.date}">${icon(rest ? 'coffee' : 'boba')}<span>${rest ? Z('歇脚', 'Rest') : Z('饮料', 'Drinks')}</span><b>${c}</b></button>`
 			: '';
-	return `<div class="stop-drink">${btn(false, dr)}${btn(true, rs)}${wcB}</div>`;
+	return `<div class="stop-drink">${btn(false, dr)}${btn(true, rs)}${wcB}${rfB}</div>`;
 }
 // 厕所 button: "场内" when the place has its own, else the nearest public toilet, else "可借" (a café or shop with one)
 /* my own stops: added from any card or a Google search; kept on this phone, shareable by link */
@@ -331,6 +364,191 @@ function wcSheet(pk) {
       ${bor.length ? `<p class="sub-h">${Z('可借用的店家（Google 标示有厕所；先买点东西再开口较好）', 'Shops with a toilet you can ask to use (buy something first)')}</p><ul class="spots">${bor.join('')}</ul>` : ''}
       <p class="xsmall muted" style="margin-top:10px">${mrt ? esc(mrt) + Z('；', '. ') : ''}${Pack.metroToiletTip ? Z(...Pack.metroToiletTip) : ''}</p>`;
 }
+/* water refill near a stop (refill.json; ADR-20261128-water-refill): a pill with the nearest open spot's distance, and a
+   sheet with the nearest three within REFILL_REACH, each with its walk, a shop or a tap, its hours that day and whether
+   it's open when the group is there. An outdoor tap shut for winter on that day is left out and counted */
+const REFILL_KIND = { tap: ['饮水台', 'Tap'], shop: ['店家', 'Shop'], shelter: ['室内', 'Indoor'] };
+const REFILL_NAME = { tap: ['饮水点', 'Water tap'], shop: ['可装水的店', 'Refill shop'], shelter: ['室内饮水点', 'Indoor water'] };
+// a source's words for the water it gives, in the page's two languages; a word not listed shows as the source wrote it
+const REFILL_WATER = {
+	水道水: ['自来水', 'tap water'],
+	tap: ['自来水', 'tap water'],
+	冷水: ['冷水', 'cold'],
+	cold: ['冷水', 'cold'],
+	'cold/chilled': ['冷水', 'cold'],
+	お湯: ['热水', 'hot'],
+	hot: ['热水', 'hot'],
+	温水: ['温水', 'warm'],
+	浄水: ['过滤水', 'filtered'],
+	filtered: ['过滤水', 'filtered'],
+};
+const REFILL_REACH = 600; // metres in a straight line: a few minutes on foot, at the group's pace
+const REFILL_RULE = Pack.refillWinter || null; // the window outdoor taps close in a cold place (destinations/README.md)
+const refillName = (x) => x.name || L(REFILL_NAME[x.kind] || REFILL_NAME.tap);
+const refillKind = (x) => L(REFILL_KIND[x.kind] || REFILL_KIND.tap);
+const refillWater = (x) => [...new Set((x.water || []).map((w) => L(REFILL_WATER[w] || REFILL_WATER[String(w).toLowerCase()] || [w, w])))];
+const refillMemo = new Map(); // this page view only: place → its spots within 1 km
+/** [[spot, metres], …] within 1 km of a place (a planned place's pin, or a stop the group added), nearest first */
+function refillNear(pk) {
+	if (refillMemo.has(pk)) return refillMemo.get(pk);
+	const at = placeLL(pk) || (MINE[pk] ? { lat: +MINE[pk].lat, lng: +MINE[pk].lng } : null);
+	const out = at
+		? REFILL.spots
+				.map((x) => [x, Math.round(km(at, x) * 1000)])
+				.filter(([, m]) => m <= 1000)
+				.sort((a, b) => a[1] - b[1])
+		: [];
+	refillMemo.set(pk, out);
+	return out;
+}
+/** the date a refill list is for when no stop gives one (the map, near me): today on a trip day, else the trip's first */
+const refillDay = () => (TRIP_DATES.includes(tpNow().date) ? tpNow().date : TRIP.start);
+/** the sources' credits for these spots, OpenStreetMap's linked to its copyright page (ODbL asks for the credit) */
+function refillCredits(spots) {
+	// a merged spot's credit is "its source · © OpenStreetMap contributors": each part once, in the order they come
+	const all = [...new Set(spots.flatMap((x) => String(x.credit || x.src || '').split(' · ')).filter(Boolean))];
+	if (!all.length) return '';
+	return `<p class="xsmall muted rf-credit">${Z('资料：', 'Data: ')}${all
+		.map((c) =>
+			/openstreetmap/i.test(c) ? `<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">${esc(c)}</a>` : esc(c),
+		)
+		.join(
+			' · ',
+		)}${REFILL.checked ? Z(` · ${Time.shortDate(REFILL.checked, 'zh')} 核对`, ` · checked ${Time.shortDate(REFILL.checked, 'en')}`) : ''}</p>`;
+}
+function refillPill(pk, date, at) {
+	if (!REFILL.spots.length) return '';
+	const { list, shut } = Refill.listNear(refillNear(pk), date, REFILL_RULE, REFILL_REACH, 3);
+	if (!list.length && !shut) return '';
+	const badge = list.length ? `${Math.max(10, Math.round(list[0][1] / 10) * 10)}m` : icon('snow');
+	const sr = list.length ? '' : ` aria-label="${Z(`装水：附近 ${shut} 个冬天关闭`, `Refill: ${shut} nearby closed for winter`)}"`;
+	return `<button type="button" class="near-pill is-refill" data-refill="${esc(pk)}|${date || ''}|${at == null ? '' : at}"${sr}>${icon('drop')}<span>${Z('装水', 'Refill')}</span><b>${badge}</b></button>`;
+}
+/** a refill spot's hours on `date` and whether it's open at `m` minutes (now, when `isNow`), as one line, or '' */
+function refillHours(x, date, m, isNow) {
+	const wd = date ? Time.weekdayIndex(date) + 1 : null;
+	const rs = wd ? Refill.dayRanges(x.hours, wd) : null;
+	const open = wd && m != null ? Refill.openAt(x.hours, wd, m) : null;
+	const when = isNow || m == null ? '' : ` ${hm(m)}`;
+	const state =
+		open == null
+			? ''
+			: `<span class="rf-open${open ? '' : ' is-shut'}">${open ? Z(`${when.trim() || '现在'}开着`, `Open${when || ' now'}`) : Z(`${when.trim() || '现在'}没开`, `Closed${when || ' now'}`)}</span>`;
+	const hrs =
+		rs == null
+			? x.hours_note
+				? escText(x.hours_note)
+				: ''
+			: rs.length
+				? keepRanges(esc(`${Time.shortDate(date, lang)} ${rs.map((r) => r.join('–')).join(', ')}`))
+				: Z('当天休息', 'closed that day');
+	return hrs || state ? `<span class="spot-t">${icon('clock')} ${hrs}${hrs && state ? ' · ' : ''}${state}</span>` : '';
+}
+/** what water a spot gives and how to ask, one line each */
+const refillMore = (x) => {
+	const water = refillWater(x);
+	return `${water.length ? `<span class="spot-t">${icon('drop')} ${esc(water.join(' · '))}</span>` : ''}${x.how ? `<span class="spot-t">${escText(x.how)}</span>` : ''}`;
+};
+const refillKindTag = (x) => `<span class="spot-k rf-k${x.kind === 'tap' ? '' : ' is-in'}">${esc(refillKind(x))}</span>`;
+/** one refill spot as a row: its name, a shop or a tap, how far, its hours that day and whether it's open then */
+function refillRow(x, dm, date, m, isNow) {
+	const walk = Math.max(1, Math.round(walkMinM(dm)));
+	return `<li class="spot rf-spot"><div class="spot-main"><span class="spot-n">${escText(refillName(x))}</span><span class="spot-m">${refillKindTag(x)}${distLabel(dm / 1000)} · ${Z(`走路约${walk}分钟`, `~${walk} min walk`)}</span>${refillHours(x, date, m, isNow)}${refillMore(x)}</div><span class="spot-a">${x.site ? extI(x.site, Z('资料', 'Info'), 'info') : ''}${extI(gmDir(`${x.lat},${x.lng}`, 'walking'), Z('走路去', 'Walk there'), 'route')}</span></li>`;
+}
+/** a refill spot's card on the map: today's hours on a trip day (else the first day's), and the way there */
+function refillCard(x) {
+	const date = refillDay();
+	const now = tpNow();
+	const isNow = date === now.date;
+	return `<article class="hang rf-card"><p class="hang-name">${icon('drop')} ${escText(refillName(x))}</p><p class="spot-m">${refillKindTag(x)}${x.address ? escText(x.address) : Z('装水', 'Refill')}</p>${refillHours(x, date, isNow ? now.mins : null, isNow)}${refillMore(x)}<div class="links-row">${extI(gmSearch(`${x.lat},${x.lng}`), Z('地图', 'Map'), 'pin')}${extI(gmDir(`${x.lat},${x.lng}`, 'walking'), Z('路线', 'Directions'), 'route')}${x.site ? extI(x.site, Z('资料', 'Info'), 'info') : ''}</div>${refillCredits([x])}</article>`;
+}
+// a refill pin (17-map-maplibre.js pinSVG, the map's legend): a drop in its own fixed colour, the same in both themes
+// (DESIGN.md, nearby icons), ringed in white so it reads on a light and a dark map
+const REFILL_PIN =
+	'<path d="M0-8.6C3.4-4.4 6.2-1.4 6.2 1.8a6.2 6.2 0 0 1-12.4 0C-6.2-1.4-3.4-4.4 0-8.6z" fill="#0a84c1" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><path d="M-2.7 2.3a2.9 2.9 0 0 0 2.5 2.7" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/>';
+function refillSheet(pk, date, at) {
+	const now = tpNow();
+	const isNow = !!date && date === now.date;
+	const m = isNow ? now.mins : at;
+	const { list, shut, more } = Refill.listNear(refillNear(pk), date || null, REFILL_RULE, REFILL_REACH, 3);
+	const nm = placeTitle(pk);
+	return `<h3 class="spots-h">${icon('drop')}${esc(Z(`${nm} · 附近装水`, `Refill near ${nm}`))}</h3>
+      <p class="xsmall muted">${Z('可以免费装水的地方，按距离排。带上自己的水瓶。', 'Free places to fill a bottle, nearest first. Bring your own.')}</p>
+      ${shut ? `<p class="callout rf-winter">${icon('snow')}<span><b>${Z(`冬天关闭 ${shut} 个`, `${shut} closed for winter`)}</b>${Z('：户外的饮水台冬天关水，这里不列出。店家和室内的照常。', ': outdoor taps are turned off for the winter, so they’re left out. Shops and indoor taps stay open.')}</span></p>` : ''}
+      ${list.length ? `<ul class="spots">${list.map(([x, dm]) => refillRow(x, dm, date, m, isNow)).join('')}</ul>` : `<p class="small">${Z(`${REFILL_REACH} 米内没有开着的装水点。`, `Nothing open within ${REFILL_REACH} m.`)}</p>`}
+      ${more ? `<p class="xsmall">${Z(`${REFILL_REACH} 米内还有 ${more} 个：在地图上选「装水」看全部。`, `${more} more within ${REFILL_REACH} m: pick Refill on the map to see them all.`)}</p>` : ''}
+      ${refillCredits(list.map(([x]) => x))}`;
+}
+/* rest stops along a long drive (drive-stops.json, ADR-20261128-drive-stops): reference only, "in case we need one".
+   They fold under the row the group is in while it drives (Drives.legRows), closed until tapped: a service area or a
+   parking area, a roadside station, a petrol station, in order along the way with how far in, its kind, and its hours
+   that day. Nothing is planned or timed from them. On the day, while the drive is under way, the one ahead by the clock
+   is marked Next (markToday, 10-now-next.js) */
+const DRIVE_STOPS = { checked: null, legs: {}, ...(window.DRIVE_STOPS || {}) };
+const DRIVE_KIND = {
+	sa: ['服务区', 'Service area', 'food'],
+	pa: ['停车区', 'Parking area', 'parking'],
+	roadside: ['道之驿', 'Roadside station', 'bag'],
+	fuel: ['加油站', 'Fuel', 'fuel'],
+	store: ['便利店', 'Convenience store', 'coffee'],
+};
+/** a day's long drives by the row their stops show under: Map(row index → [{ li, leg, e, dep }]) */
+function driveStopsAt(d) {
+	const out = new Map();
+	const legs = LEGS[d.id] && dayLegs(d); // as the group now goes: a skipped place's legs joined over (07-skip.js)
+	if (!legs || !Object.keys(DRIVE_STOPS.legs).length) return out;
+	const rows = Drives.legRows(
+		d.schedule.map((it) => ({ place: it.place, t: it.t })),
+		legs,
+	);
+	legs.forEach((leg, li) => {
+		// the leg it was found for, joined the same way: a reordered day keeps no stops for another road
+		const e = leg[2] === 'driving' && rows[li] && Plan.storedLeg(DRIVE_STOPS.legs, d.id, li, leg);
+		if (!e || !Array.isArray(e.stops) || !e.stops.length) return;
+		const at = rows[li].at;
+		out.set(at, [...(out.get(at) || []), { li, leg, e, dep: rows[li].dep }]);
+	});
+	return out;
+}
+const nbsp = (t) => t.replace(/ /g, '\u00a0'); // "1 h 14 min" kept on one line
+/** one rest stop as a row: its kind, its name, how far in, its hours that day, and the way there */
+function driveStopRow(s) {
+	const k = DRIVE_KIND[s.kind] || DRIVE_KIND.store;
+	const when = s.h24
+		? `<span class="drv-24">${Z('24 小时', 'Open 24 h')}</span>`
+		: s.shut
+			? `<span class="spot-t">${Z('当天休息', 'Closed that day')}</span>`
+			: s.hours
+				? `<span class="spot-t">${icon('clock')} ${keepRanges(esc(Z(`当天 ${s.hours}`, `That day ${s.hours}`)))}</span>`
+				: '';
+	return `<li class="spot drv-stop" data-min="${+s.min}"><span class="drv-ic" aria-hidden="true">${icon(k[2])}</span><div class="spot-main"><span class="spot-n">${escText(s.name)}<span class="drv-flag"></span></span><span class="spot-m"><span class="spot-k drv-k">${Z(k[0], k[1])}</span>${esc(Z(`出发后约 ${nbsp(durText(s.min))} · ${s.km}\u00a0km`, `≈ ${nbsp(durText(s.min))} · ${s.km}\u00a0km in`))}</span>${when}</div><span class="spot-a">${extI(gmDir(`${s.lat},${s.lng}`, 'driving'), Z('导航', 'Directions'), 'route')}</span></li>`;
+}
+/** a row's long drives, each folded to "N stops on the way": what the fold lists, and when the drive sets off, so the
+ *  page can mark the next one on the day */
+function driveStopsFold(d, sid, list) {
+	if (!list || !list.length) return '';
+	const isDay = d.date === tpNow().date;
+	return list
+		.map(({ li, leg, e, dep }) => {
+			const key = `${sid}-drv${li}`;
+			const open = optsOpen.has(key) ? optsOpen.get(key) : false; // reference only: shut until asked for
+			const n = e.stops.length;
+			const all24 = e.stops.filter((s) => s.h24);
+			const to = isHotel(leg[1]) ? Z('酒店', 'the hotel') : L(PLACES[leg[1]].name);
+			const lat = e.stops[0].lat;
+			const winter = Refill.inWindow(d.date, Pack.refillWinter || Refill.defaultWinter(lat));
+			const head = `<p class="xsmall muted drv-lead">${esc(Z(`开车去${to}约 ${durText(e.min)}${e.km ? ` · ${e.km} km` : ''}（Google 的时间）`, `To ${to}: about ${durText(e.min)}${e.km ? `, ${e.km} km` : ''} (Google's time)`))}</p>`;
+			const cold =
+				winter && all24.length
+					? `<p class="callout drv-winter">${icon('snow')}<span>${esc(Z(`冬天天黑得早，24 小时开的：${all24.map((s) => s.name).join('、')}`, `Dark early in winter. Open 24 h: ${all24.map((s) => s.name).join(', ')}`))}</span></p>`
+					: '';
+			const note = `<p class="xsmall muted">${Z('只是参考，不在行程里：想停就停。', 'For reference, not part of the plan: stop when you need to.')}${isDay && dep != null ? Z('「下一个」按出发后的时间估，不看定位；路上慢的话可能还没到。', ' “Next” is guessed from the time since setting off, not your location; on a slow road you may not be there yet.') : ''}</p>`;
+			const credit = `<p class="xsmall muted">${Z('资料：', 'Data: ')}${esc(DRIVE_STOPS.src || 'Google Maps')}${DRIVE_STOPS.checked ? Z(` · ${Time.shortDate(DRIVE_STOPS.checked, 'zh')} 核对`, ` · checked ${Time.shortDate(DRIVE_STOPS.checked, 'en')}`) : ''}</p>`;
+			const timed = isDay && dep != null ? ` data-drv-dep="${dep}" data-drv-len="${+e.min}"` : '';
+			return `<div class="stop-near stop-dstops"${timed}><button type="button" class="sn-tog" data-opts="${key}" aria-expanded="${open}" aria-controls="${key}">${icon('car')}<span class="sn-h">${Z(`沿途休息 · ${n} 个`, `${n} stop${n > 1 ? 's' : ''} on the way`)}${all24.length ? `<small>${Z(` · ${all24.length} 个 24 小时`, ` · ${all24.length} open 24 h`)}</small>` : ''}</span>${icon('chev', 'chev')}</button><div class="sn-list drv-list" id="${key}"${open ? '' : ' hidden'}>${head}${cold}<ol class="spots drv-stops">${e.stops.map(driveStopRow).join('')}</ol>${note}${credit}</div></div>`;
+		})
+		.join('');
+}
 // drink stands or sit-down spots within a short walk of a planned place, nearest first
 const spotsNear = (pk, rest, date) =>
 	DRINKS.filter((x) => isRest(x) === rest && nearOf(x, pk) != null && !(date && (x.closed_dates || []).includes(date))).sort(
@@ -371,6 +589,7 @@ function mealEats(d, it) {
 		d,
 		ref,
 		hit[1].map(([meal]) => meal),
+		it,
 	);
 	if (!html.length && !wish) return '';
 	return `<div class="stop-eat">${html.join('<hr class="eat-sep">')}${wish ? `${html.length ? '<hr class="eat-sep">' : ''}${wish}` : ''}</div>`;
@@ -566,8 +785,8 @@ function routeLine(scope, legs, nm, label = Z('今天的路线', "Today's route"
 	return `<ol ${attrs} aria-label="${esc(label)}">${items}</ol>`;
 }
 function routeCard(day) {
-	const legs = LEGS[day.id];
-	if (!legs) return '';
+	const legs = LEGS[day.id] && dayLegs(day); // as the group now goes: a skipped place's legs joined over (07-skip.js)
+	if (!legs || !legs.length) return '';
 	const nm = (pid) => L(PLACES[pid].name);
 	const rows = routeLine(day.id, legs, nm);
 	const ids = [legs[0][0], ...legs.map((l) => l[1])];

@@ -1,7 +1,7 @@
 // Affordance rules from memory-bank/standards/patterns/affordances.md, measured on the page (rule numbers in brackets):
 // every control can be hit, looks like what it is, and shows its state.
 import { test, expect, openTrip } from '../support/fixtures.mjs';
-import { auditList, BAR, goToView, hasBar, LIST, openAllDetails, openSections, rowLook, setStored, show } from '../support/page.mjs';
+import { auditFolds, auditList, BAR, goToView, hasBar, LIST, openAllDetails, openSections, rowLook, setStored, show } from '../support/page.mjs';
 /* global DAYS -- the trip data, read inside the page */
 
 test('every control is at least 44 px [1]', async ({ page }) => {
@@ -218,13 +218,18 @@ test('every go-to list is one column of 52 px rows ending in ›, split by inset
 	const dayList = bar ? '#days' : '#rail';
 	if (bar) await page.locator(BAR.days).click();
 	await expect(page.locator(dayList)).toBeVisible();
-	expect(await auditList(page, dayList), `${dayList}: rows`).toEqual([]);
-	await expect(page.locator(`${dayList} ${LIST.row}`).first()).toBeVisible();
-	const lit = page.locator(`${dayList} ${LIST.lit}`);
+	// Days folds each day to one row that opens in place, ending in ⌄ (ADR-20261128-progressive-disclosure); the rail's
+	// rows go to the day and end in ›
+	const rows = bar ? '#days .gl > details.dd > summary.rl' : `#rail ${LIST.row}`;
+	if (bar) expect(await auditFolds(page, dayList), `${dayList}: rows`).toEqual([]);
+	else expect(await auditList(page, dayList), `${dayList}: rows`).toEqual([]);
+	await expect(page.locator(rows).first()).toBeVisible();
+	const lit = page.locator(`${rows}[aria-current]`);
 	await expect(lit, 'the day on screen is lit').toHaveCount(1);
-	await expect(lit).toHaveAttribute('href', `#${day}`);
+	if (bar) await expect(lit).toHaveAttribute('data-day', day);
+	else await expect(lit).toHaveAttribute('href', `#${day}`);
 	const on = await rowLook(lit);
-	const off = await rowLook(page.locator(`${dayList} ${LIST.row}:not([aria-current])`).first());
+	const off = await rowLook(page.locator(`${rows}:not([aria-current])`).first());
 	expect(on.weight, 'heavier words').toBeGreaterThanOrEqual(750);
 	expect(off.weight).toBeLessThan(750);
 	expect(on.fill, 'a tint').not.toBe(off.fill);
@@ -238,14 +243,14 @@ test('every go-to list is one column of 52 px rows ending in ›, split by inset
 	}
 	await page.emulateMedia({ colorScheme: 'light' });
 	// the focus ring: inside the card (a negative offset, so the card's clip never cuts it) and 3:1 on it
-	const first = page.locator(`${dayList} ${LIST.row}`).first();
+	const first = page.locator(rows).first();
 	await page.keyboard.press('Tab');
 	await first.focus();
 	const f = await rowLook(first);
 	expect(f.outlineOffset, 'the ring is drawn inside the row').toBeLessThan(0);
 	expect(f.outlineContrast).toBeGreaterThanOrEqual(3);
 	// pressed: the row greys and its mark sinks on touch-down, before any release
-	const press = page.locator(`${dayList} ${LIST.row}:not([aria-current])`).last();
+	const press = page.locator(`${rows}:not([aria-current])`).last();
 	await press.scrollIntoViewIfNeeded();
 	const pb = await press.boundingBox();
 	await page.mouse.move(pb.x + pb.width / 2, pb.y + pb.height / 2);
@@ -283,7 +288,7 @@ test('every go-to list is one column of 52 px rows ending in ›, split by inset
 test('lantern buttons are filled, and tappable chips differ from static tags [6, 8]', async ({ page }) => {
 	await openTrip(page);
 	const alpha = await page
-		.locator('.lantern .l-btn')
+		.locator('.lantern .l-more')
 		.first()
 		.evaluate((e) => {
 			const m = getComputedStyle(e).backgroundColor.match(/[\d.]+/g) || [];
@@ -306,7 +311,7 @@ test('lantern buttons are filled, and tappable chips differ from static tags [6,
 
 test('the focus ring on a lantern is drawn in the day’s ink [19]', async ({ page }) => {
 	await openTrip(page);
-	const btn = await show(page, '.lantern .l-btn');
+	const btn = await show(page, '.lantern .l-more');
 	await page.keyboard.press('Tab'); // keyboard modality, so programmatic focus shows the ring
 	await btn.focus();
 	const [ring, ink] = await btn.evaluate((e) => [getComputedStyle(e).outlineColor, getComputedStyle(e.closest('.lantern')).color]);

@@ -22,6 +22,8 @@ You need these before writing data. Ask for any that are missing, all in one mes
 - the group's size, how many are seniors, and anything that limits walking;
 - the hotel for each night, or, where it's not booked yet: the beds the group needs, the bags, a lift, how near the
   station, the budget, and any stay the planner wants only as a last resort ([stays](../../../knowledge/stays.md));
+  research everything else the way [research](../../../knowledge/research.md) says (sources and dates, posts,
+  routes, choices);
 - everything booked or at a fixed time (shows, tours, charters, restaurants);
 - the budget the planner has, the home currency, and the two UI languages;
 - must-dos, nice-to-haves, and what the group dislikes. A must-do named loosely ("the lone tree", "that famous
@@ -49,9 +51,19 @@ requirements. No demo content may survive: its hotel, stalls and prices are inve
   adult (Google's own walking times).
 - `DAYS`: ids `d1`…`dN` in order. Booked or timed items are `fixed: true`; flight-tied items use `rel: { arr }` or
   `rel: { dep }`. Give each day a route, a rain plan and slack around fixed items. Seniors' walking counts ×1.4, and a
-  long leg suggests a taxi first.
+  long leg suggests a taxi first. Give each day a `short` name, `[zh, en]`, 2–8 characters saying what the day is
+  ("小樽一日" / "Otaru day", "滑雪 + 温泉" / "Ski + hot spring"): it is the day's one line in the week, Days, the rail and
+  the map's list, while `title` keeps the whole route for the day itself. A stop note the group must act on gets
+  `todo: true` so it stays in sight.
 - Money: group figures as `"<sym>a–b / 五人"` (zh, with the Chinese numeral up to ten) and `"<sym>a–b for 5"` (en).
-  The page adds the per-person share.
+  The page adds the per-person share. In `BUDGET.rows`, what's already booked is a payment: `paid` (the date), `cur:
+'home'` for anything paid at home (flights, often the hotel), `via` (where) and, if the planner wants it on the page,
+  `ref`; a deposit and its balance go in `parts`; something planned without a price yet is `tbd: true`, never a guess.
+  Give every row its kind for the By kind sheet: `cat` (`transport`, `car`, `lodging`, `food`, `tickets`, `activity`,
+  `insurance`, `other`), or an estimate's last item.
+- Insurance, when the group has it: `INSURANCE` with each policy's insurer, plan, who it covers, dates, what it covers,
+  its app and the hotline numbers (`tel`, `wa`), and `claims` (what to keep, by event). Never an ID or passport number,
+  an address or a birth date: the page is shared with the group, and the contract refuses them.
 - `PLACES`: every place a day or list names. Positions come from Google through `data-sync`, so a rough position is
   fine for now.
 - Wording: never describe people by family relationship. Say "the group", "seniors", "adults".

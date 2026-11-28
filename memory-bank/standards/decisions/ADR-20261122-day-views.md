@@ -173,3 +173,10 @@ A stop's sheet is now built the first time it opens too, the same way as a part'
 `tests/e2e/boot.spec.mjs`, and its stop sheets held about 2,900 of them; with them lazy, it paints about 6,600. Search,
 a jump and the page-wide e2e audits fill them first (`lazyAll`, `lazyFor`, `fillAll`), and `pnpm parity` fills every
 lazy list before it compares, so a sheet not built yet never reads as missing text.
+
+## Amendment 2026-11-28
+
+A planning part's summary button is now a tile, an icon over a short word, and the one line that summed it up opens
+its sheet instead ([ADR-20261128-progressive-disclosure](ADR-20261128-progressive-disclosure.md)). A day shows two rows
+of tiles at most on a phone, the rest behind a More tile. The views, their addresses, the sheets and the skies stand as
+decided here.

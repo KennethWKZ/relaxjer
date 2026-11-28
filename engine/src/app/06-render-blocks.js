@@ -1,4 +1,15 @@
 /* ───────── render: blocks ───────── */
+// a budget kind's icon and name (core/money.mjs budgetKinds): the budget's By kind sheet, and a day card's budget rows
+const BUD_KIND = {
+	transport: ['plane', ['交通', 'Transport']],
+	car: ['car', ['用车', 'Car']],
+	lodging: ['bed', ['住宿', 'Lodging']],
+	food: ['food', ['吃饭', 'Food']],
+	tickets: ['ticket', ['门票', 'Tickets']],
+	activity: ['peak', ['活动', 'Activities']],
+	insurance: ['shield', ['保险', 'Insurance']],
+	other: ['more', ['其他', 'Other']],
+};
 // a decide option's own route (ADR-20261127-decide-option-route): the day route's line, with the leg times the data
 // refresh stored for this option apart from the day's, under Plan.legScope(day, k)
 const optRoute = (day, o) =>
@@ -39,7 +50,9 @@ function renderBlock(b, day) {
 				.map((r) => {
 					let v = L(r[1]);
 					if (r[2] === 'airportMrt' && AIRPORT.mrtFare) v = AIRPORT.mrtFare; // the trip's airport-rail fare for the group
-					return `<div><dt>${fmt(r[0])}</dt><dd>${escText(v).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')}${ddEach(v)}</dd></div>`;
+					// the row's tag, where it names a budget kind, draws that kind's icon, as in the budget's By kind sheet
+					const k = Money.kindOfTag(r[2]);
+					return `<div><dt>${k ? `<span class="bud-ic" aria-hidden="true">${icon(BUD_KIND[k][0])}</span>` : ''}${fmt(r[0])}</dt><dd>${escText(v).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')}${ddEach(v)}</dd></div>`;
 				})
 				.join('');
 			return `<div class="block" id="${day.id}-budget">${blockH('money', b.h)}<dl class="kv kv-each">${rows}</dl><div style="margin-top:10px">${totalBox(
@@ -235,13 +248,65 @@ const checkSum = (ids) => `<span data-sum-checks="${esc(ids.join(' '))}">${check
 function checkSumSync() {
 	$$('[data-sum-checks]').forEach((s) => (s.innerHTML = checkLine(s.dataset.sumChecks.split(' '))));
 }
-/** a part: { key, icon, h: [zh, en] or text, sum: html, body: html, sub: text }. Its sheet's id is <scope>-p-<key> */
+/** a part: { key, icon, h: [zh, en] or text, t: its tile's short label, n: a count for its badge, sum: html, body: html,
+ *  sub: text }. Its sheet's id is <scope>-p-<key> */
 const partId = (scope, p) => `${scope}-p-${p.key}`;
 // a summary's number runs stay on one line ("NT$460–" over "620" stranded the rest): only in its text, never inside a
 // tag or an attribute, and never twice
 const keepRangesIn = (h) => h.replace(/(<span class="rng">[^<]*<\/span>)|(<[^>]*>)|([^<]+)/g, (m, rng, tag, text) => (text ? keepRanges(text) : m));
-const partBtn = (scope, p) =>
-	`<button type="button" class="part" data-part="${partId(scope, p)}" aria-haspopup="dialog" aria-expanded="false" aria-controls="${partId(scope, p)}"><span class="part-ic" aria-hidden="true">${icon(p.icon || 'list')}</span><span class="part-h">${fmt(p.h)}</span>${icon('chev-r', 'part-ch')}<span class="part-s">${keepRangesIn(p.sum)}</span></button>`;
+/* ── icon tiles (ADR-20261128-progressive-disclosure) ──
+   A part is a tile: a big icon over a short label at the Label size, and a small count when it holds a list. The
+   sentence that summed it up moved into its sheet's head; the tile says only what it is. Its label is the block's own
+   `tile`, else its heading when that's short, else the word for its kind */
+const TILE_WORD = {
+	budget: ['花费', 'Spend'],
+	rain: ['雨天方案', 'Rain plan'],
+	wear: ['穿着', 'Wear'],
+	decide: ['选择', 'Choose'],
+	text: ['说明', 'Notes'],
+	list: ['提醒', 'Tips'],
+	table: ['一览', 'Overview'],
+	kv: ['资料', 'Details'],
+	costs: ['费用', 'Costs'],
+	route: ['路线', 'Route'],
+	weather: ['看天气', 'Weather call'],
+	checklist: ['清单', 'Checklist'],
+	groups: ['分组', 'Groups'],
+};
+const bare = (s) =>
+	plainText(s)
+		.replace(/[（(][^）)]*[）)]/g, '')
+		.trim();
+// a label short enough for a tile: five characters in Chinese, a short phrase in English (it may take two lines). Each
+// language on its own: a heading that fits keeps its words, one that doesn't takes the word for its kind
+const tileFits = [(t) => [...t].length <= 5, (t) => t.length <= 16];
+function tileWord(b) {
+	if (b.tile) return b.tile;
+	const own = !['budget', 'rain', 'wear'].includes(b.type);
+	const word = TILE_WORD[b.type] || b.h;
+	return [0, 1].map((i) => (own && tileFits[i](bare(b.h[i])) ? bare(b.h[i]) : word[i]));
+}
+// how many things a block holds, for its tile's badge: options, items, rows (none for a single text or a total)
+function tileCount(b) {
+	const n = {
+		decide: (b.opts || []).length,
+		list: (b.list || []).length,
+		costs: (b.rows || []).length,
+		kv: (b.rows || []).length,
+		table: (b.rows || []).length,
+		checklist: (b.items || []).length,
+	}[b.type];
+	return n > 1 ? n : 0;
+}
+// a tile that opens its sheet is a button; one that goes to another view (Today's Airport, Budget…) is a link. Both look
+// the same, with no corner mark: the tile is the cue, and neither carries a chevron (affordances rule 12)
+function partBtn(scope, p) {
+	// a decision the group settled shows a tick on the good tint where a count would be, and says so to a screen reader
+	const mark = p.pick ? `<b class="tile-n tile-ok">${icon('check')}</b>` : p.n ? `<b class="tile-n">${p.n}</b>` : '';
+	const inner = `<span class="tile-ic" aria-hidden="true">${icon(p.icon || 'list')}${mark}</span><span class="tile-l">${fmt(p.t || p.h)}</span>${p.t && plainText(p.t) !== plainText(p.h) ? `<span class="sr-only">${Z('：', ': ')}${fmt(p.h)}</span>` : ''}${p.pick ? `<span class="sr-only">${Z('，已定', ', chosen')}</span>` : p.n ? `<span class="sr-only">${Z(`，${p.n} 项`, `, ${p.n} items`)}</span>` : ''}`;
+	if (p.href) return `<a class="part tile go" href="${esc(p.href)}">${inner}</a>`;
+	return `<button type="button" class="part tile" data-part="${partId(scope, p)}" aria-haspopup="dialog" aria-expanded="false" aria-controls="${partId(scope, p)}">${inner}</button>`;
+}
 // the ids in a piece of markup; and the ids a lazy list inside it will bring are found through the sheet too (lazyFor)
 function idsIn(h, sheetKey) {
 	const keys = new Set([...h.matchAll(/data-lazy="([^"]+)"/g)].map((m) => m[1]));
@@ -256,15 +321,43 @@ function partSheet(scope, p) {
 	const id = partId(scope, p);
 	const k = lazyKey(
 		() =>
-			`<div class="bsheet-head"><span class="bsheet-grip" aria-hidden="true"></span><span class="part-ic" aria-hidden="true">${icon(p.icon || 'list')}</span><h3 class="bsheet-h" id="${id}-h">${fmt(p.h)}${p.sub ? `<small>${esc(p.sub)}</small>` : ''}</h3><button type="button" class="icon-btn bsheet-x" data-close aria-label="${Z('关闭', 'Close')}">${icon('x')}</button></div><div class="bsheet-body">${p.fill ? p.fill() : p.body}</div>`,
+			`<div class="bsheet-head"><span class="bsheet-grip" aria-hidden="true"></span><span class="part-ic" aria-hidden="true">${icon(p.icon || 'list')}</span><h3 class="bsheet-h" id="${id}-h">${fmt(p.h)}${p.sub ? `<small>${esc(p.sub)}</small>` : ''}</h3><button type="button" class="icon-btn bsheet-x" data-close aria-label="${Z('关闭', 'Close')}">${icon('x')}</button></div><div class="bsheet-body">${p.sum && !p.noSum ? `<p class="bsheet-sum">${keepRangesIn(p.sum)}</p>` : ''}${p.fill ? p.fill() : p.body}</div>`,
 	);
 	idsIn(p.body, k).forEach((x) => LAZY_ID.set(x, k));
 	return `<dialog class="sheet bsheet" id="${id}" aria-labelledby="${id}-h" data-lazy="${k}"></dialog>`;
 }
-/** a view's row of summary buttons, its heading, and their sheets (out of the flow until one opens) */
+// two rows of four on a phone: past that, seven tiles and a More tile whose sheet lists every part with its line
+const TILE_MAX = 8;
+/** a view's tiles under a small heading with their count, and their sheets (out of the flow until one opens) */
 function partsHTML(scope, parts, h) {
 	const ps = parts.filter((p) => p && p.body);
 	if (!ps.length) return '';
-	return `<div class="parts-wrap"><h3 class="sub parts-h">${icon('list')}${fmt(h || ['这天的细节', 'Plans and details'])}<small>${Z(`${ps.length} 项，点开看`, `${ps.length}, tap to open`)}</small></h3>
-      <div class="parts">${ps.map((p) => partBtn(scope, p)).join('')}</div>${ps.map((p) => partSheet(scope, p)).join('')}</div>`;
+	const over = ps.length > TILE_MAX;
+	const all = over
+		? {
+				key: 'all',
+				icon: 'more',
+				h: ['全部', 'Everything here'],
+				t: ['其他', 'More'],
+				noSum: true,
+				body: `<div class="gl parts-all">${ps
+					.map((p) =>
+						p.href
+							? railRow(p.href.slice(1), rlTile(p.icon || 'list'), fmt(p.h), [])
+							: `<button type="button" class="rl" data-part-swap="${partId(scope, p)}">${rlTile(p.icon || 'list')}<span class="rl-t"><b>${fmt(p.h)}</b>${p.sum ? `<small>${keepRangesIn(p.sum)}</small>` : ''}</span>${icon('chev-r', 'rl-ch')}</button>`,
+					)
+					.join('')}</div>`,
+			}
+		: null;
+	// every tile is drawn; on a phone the ones past the seventh step aside for More (style.css), a wider screen shows them all
+	const tiles = over ? [...ps, all] : ps;
+	// rows without a lone tile on the last one: a phone's four columns take five as one row (four and one left over
+	// otherwise); a wider screen sets its columns to split the tiles into even rows (eight at most a row)
+	const five = !over && ps.length === 5;
+	const wide = Math.ceil(ps.length / Math.ceil(ps.length / TILE_MAX));
+	return `<div class="parts-wrap"><h3 class="parts-h">${fmt(h || ['这天的细节', 'Plans and details'])}<small>${ps.length}</small></h3>
+      <div class="parts tiles${over ? ' over' : ''}${five ? ' five' : ''}" style="--cw: ${wide}">${tiles.map((p) => partBtn(scope, p)).join('')}</div>${ps
+				.filter((p) => !p.href)
+				.map((p) => partSheet(scope, p))
+				.join('')}${all ? partSheet(scope, all) : ''}</div>`;
 }

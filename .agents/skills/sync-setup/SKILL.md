@@ -1,6 +1,6 @@
 ---
 name: sync-setup
-description: Set up, check or end group sync for a RelaxJer trip, so added stops, pushed-back times, flight changes and shared checklist ticks reach every phone in the group — through the planner's own Firebase Realtime Database. Use when someone wants the group's phones to share changes, asks to "sync" or "share my changes" with the others, or when a trip is over and its sync should end. Covers the one-time Firebase setup, `pnpm sync rules|init|planner|end|status`, planners, the build flag, and what never to do with the keys.
+description: Set up, check or end group sync for a RelaxJer trip, so added stops, skipped stops, pushed-back times, flight changes and shared checklist ticks reach every phone in the group — through the planner's own Firebase Realtime Database. Use when someone wants the group's phones to share changes, asks to "sync" or "share my changes" with the others, or when a trip is over and its sync should end. Covers the one-time Firebase setup, `pnpm sync rules|init|planner|end|status`, planners, the build flag, and what never to do with the keys.
 ---
 
 # Sync setup: `pnpm sync`
@@ -84,8 +84,9 @@ pnpm sync end --trip trips/<slug>                         # after the trip: its 
   "Blocked phones (N)". A tester or a stray phone: block
   it; never a person's own other device (it would keep its changes to itself). Someone who shouldn't see the trip
   any more: a new page password too.
-- Each phone changes only the stops it added; planners change any. Pushed-back times, flight changes and shared ticks
-  stay open to every phone.
+- Each phone changes only the stops it added; planners change any. Skipping a planned stop (and putting it back),
+  pushed-back times, flight changes and shared ticks stay open to every phone; each skip shows on Recently removed with
+  who skipped it (ADR-20261128-skip-planned-stops). Flights and the lodging can't be skipped.
 
 ## Never
 

@@ -9,7 +9,8 @@ You don't edit files. You return findings the main agent turns into `destination
 `destinations/<cc>/regions/<city>/pack.mjs` and `destinations/<cc>/knowledge.md`.
 
 Before researching, read `destinations/README.md` (what the engine reads from a pack), `destinations/tw/` (the worked
-example) and `knowledge/data-hygiene.md`.
+example) and `knowledge/data-hygiene.md`, and follow [`knowledge/research.md`](../../knowledge/research.md) for
+sources, dates and travellers' posts.
 
 ## Rules
 

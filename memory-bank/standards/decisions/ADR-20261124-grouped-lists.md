@@ -3,7 +3,7 @@ id: ADR-20261124-grouped-lists
 date: 2026-11-24
 title: 'The Lists That Go Somewhere Are Grouped Lists: One Card per Group, Full-Width Rows Split by Inset Hairlines, Each Ending in What It Does'
 domain: design
-status: accepted
+status: amended
 decision: 'The rail, Days, More and the Sections sheet are grouped lists: cards of 52 px rows split by inset hairlines, each row ending in ›, a value with ⌃⌄, or nothing.'
 tags: [engine]
 ---
@@ -105,3 +105,10 @@ Sections sheet (Find food near me, Toilets nearby) and the Sections sheet's Now 
 
 Changing the rail, Days, More, the Sections sheet or the settings in them; adding a row that goes somewhere or a new
 setting; or deciding whether a list's rows may sit edge to edge.
+
+## Amendment 2026-11-28
+
+The Days sheet's rows are now folds, not links ([ADR-20261128-progressive-disclosure](ADR-20261128-progressive-disclosure.md)):
+each day is the same row (its mark, its date and Day number, its title, the forecast) ending in ⌄, which turns when it
+opens in place, and one day is open with its stops and a row into the day (that row ends in ›). The rail, More, the
+Sections sheet and the settings stay as decided here.

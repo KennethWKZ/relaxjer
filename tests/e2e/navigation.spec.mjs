@@ -149,6 +149,9 @@ for (const [what, ready] of Object.entries(SHEETS)) {
 		await page.setViewportSize({ width: page.viewportSize().width, height: 1400 });
 		await openTrip(page);
 		const open = await ready(page, browserName);
+		// a day of one-line stops can fit this tall screen (ADR-20261128-progressive-disclosure): a spacer under the page
+		// gives it the room to scroll that a longer day would
+		await page.evaluate(() => document.body.append(Object.assign(document.createElement('div'), { style: 'height: 1200px' })));
 		const y = await scrollY(page);
 		const room = await page.evaluate(() => document.documentElement.scrollHeight - innerHeight - scrollY);
 		expect(room, 'the page behind has room to scroll').toBeGreaterThan(100);

@@ -1,6 +1,6 @@
 ---
 created: 2026-10-01
-updated: 2026-11-24
+updated: 2026-11-28
 ---
 
 # Affordances and Signifiers
@@ -53,9 +53,10 @@ exist for them. This file extends [`frontend.md`](./frontend.md). The rules are 
 
 ### Icon-only controls
 
-9. **Icon-only only for the conventional glyphs:** search, close, back, previous and next, map pin, directions. Any
-   other icon keeps a visible label at every width, unless 4 of 5 seniors can name the action from the icon alone
-   [8][15][16].
+9. **Icon-only only for the conventional glyphs:** search, close, back, previous and next, map pin, directions, and ⋯
+   for "more" on a card. Any other icon keeps a visible label at every width, unless 4 of 5 seniors can name the action
+   from the icon alone [8][15][16]. A tile's word and a labelled icon's word sit under the icon at the Label size, never
+   smaller ([ADR-20261128-progressive-disclosure](../decisions/ADR-20261128-progressive-disclosure.md)).
 10. **Every icon-only control has an accessible name**, and the same target size as its labelled form. `title` does
     nothing on touch [15].
 
@@ -67,6 +68,8 @@ exist for them. This file extends [`frontend.md`](./frontend.md). The rules are 
 12. **A down chevron opens in place; a right chevron goes somewhere else.** Never mix the two [9]. In a list, a choice
     that changes in place shows its value and ⌃⌄ (iOS's pop-up mark), and an action shows neither [15].
 13. **Don't hide what most readers need.** Facts used every day render open; a closed `details` needs a reason [17].
+    The glance layer (Now and Next, tonight's hotel, the week, a day's card and its stops, one line each) is that open
+    set; a stop's note opens with the stop, except a `todo` note the group must act on, which stays in sight.
 
 ### Scrollers and tabs
 

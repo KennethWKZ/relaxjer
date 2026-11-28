@@ -56,7 +56,7 @@ test("the shop list shows the free-time day's own opening hours", async ({ page 
 		if (/\d{1,2}:\d{2}|24 h|closed/.test(t)) expect(t, 'hours are for the free-time day').toContain(` ${dow} `);
 });
 
-test("before the trip, the card names the first night's hotel", async ({ page }) => {
+test("before the trip, Today's hotel card is the first night's", async ({ page }) => {
 	await openTrip(page);
 	// the day before this trip starts, whatever trip it is
 	const start = await page.evaluate(() => TRIP.start);
@@ -64,7 +64,8 @@ test("before the trip, the card names the first night's hotel", async ({ page })
 	const name = await page.evaluate(() => {
 		return PLACES[DAYS[0].hotel || TRIP.hotel || 'hotel'].name[1];
 	});
-	await expect(page.locator('#now')).toContainText(name);
+	// the countdown is one line now (ADR-20261128-progressive-disclosure); the hotel has its own card under it
+	await expect(page.locator('#top #hotel-card .hc-name')).toHaveText(name);
 });
 
 test('every shop list gets its own section and free-time ideas group', async ({ page }) => {

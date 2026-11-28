@@ -1,6 +1,6 @@
 {
   "attribution": "Demo coordinates, hand-placed near public landmarks",
-  "bbox": [140.9, 42.7, 141.75, 43.25],
+  "bbox": [140.9, 42.7, 142.55, 43.82],
   "places": {
     "hotel": { "lat": 43.0610, "lng": 141.3540, "q": "Odori Park Sapporo", "addr": "札幌市中央区大通西（示范地址）", "addr_en": "Odori-nishi, Chuo-ku, Sapporo (demo address)" },
     "cts": { "lat": 42.7752, "lng": 141.6923, "q": "New Chitose Airport" },
@@ -17,8 +17,12 @@
     "sakaimachi": { "lat": 43.1966, "lng": 140.9950, "q": "Sakaimachi Street Otaru" },
     "music": { "lat": 43.1964, "lng": 140.9955, "q": "Otaru Music Box Museum" },
     "teine": { "lat": 43.0689, "lng": 141.1793, "q": "Sapporo Teine ski resort" },
+    "zoo": { "lat": 43.7684, "lng": 142.4799, "q": "Asahiyama Zoo" },
     "jozankei": { "lat": 42.9756, "lng": 141.1264, "q": "Jozankei Onsen" },
     "moiwa": { "lat": 43.0436, "lng": 141.3170, "q": "Mount Moiwa Ropeway" }
   },
-  "legs": {}
+  "legs": {
+    "d5:0": { "min": 125, "km": 141.2, "walk": 0, "rides": [], "from": "hotel", "to": "zoo", "mode": "driving" },
+    "d5:1": { "min": 130, "km": 141.2, "walk": 0, "rides": [], "from": "zoo", "to": "hotel", "mode": "driving" }
+  }
 }

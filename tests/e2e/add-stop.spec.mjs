@@ -1,7 +1,7 @@
 // Your own stops: "+" under a timeline dot, clash warnings near fixed times, and share links that others can import.
 // The #add= link format is a contract: links already sent to a group chat must keep working after the refactor.
 import { test, expect, openTrip } from '../support/fixtures.mjs';
-import { goToView, settle, setStored, show } from '../support/page.mjs';
+import { goToView, openDayMenu, settle, setStored, show } from '../support/page.mjs';
 /* global DAYS, FLIGHTS */
 
 // tagged @demo: day ids, gaps and times are the demo trip's
@@ -23,10 +23,11 @@ test.describe('your own stops', { tag: '@demo' }, () => {
 		const mine = page.locator('#d2 .stop.mine');
 		await expect(mine).toHaveCount(1);
 		await expect(mine.locator('.mine-tag')).toHaveText('Added');
-		await expect(page.locator('#d2 [data-mine-share]'), 'without group sync, a link is how stops travel').toBeVisible();
 		// sits between the 14:00 stop and the 17:00 stop
 		const order = await page.locator('#d2 .sched > li.stop').evaluateAll((ls) => ls.map((l) => (l.classList.contains('mine') ? 'mine' : l.id)));
 		expect(order.indexOf('mine')).toBe(order.indexOf('d2-s4') + 1);
+		const menu = await openDayMenu(page, 'd2'); // the share link is in the day's ⋯ sheet
+		await expect(menu.locator('[data-mine-share]'), 'without group sync, a link is how stops travel').toContainText('Share my added stops');
 	});
 
 	// the pre-departure pass measured Change and ✕ at 39 × 44 px, Change as a bare clock on phones, and the pink of
@@ -163,7 +164,8 @@ test('the add sheet says a time has passed, and on the leaving day offers nothin
 	});
 	const pick = async (dayId, time) => {
 		await goToView(page, dayId);
-		await page.locator(`[data-add-gap^="${dayId}|"]:visible`).last().click(); // stops already past are folded away
+		// the last stop still to come: its Add after waits in the opened stop (ADR-20261128-progressive-disclosure)
+		await (await show(page, page.locator(`#${dayId} li.stop:not(.done) [data-add-gap^="${dayId}|"]`).last())).click();
 		const sheet = page.locator('#placeSheet');
 		await sheet.locator('[data-add-res] [data-add]').first().click();
 		await sheet.locator('[data-add-t]').fill(time);

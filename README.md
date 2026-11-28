@@ -24,7 +24,8 @@ their phones, installs it to the home screen, and uses it offline.
 - **Before and around the trip:** a checklist, the entry rules, the weather and what to wear, the airport options
   priced for the group, and the evening home worked back from take-off.
 - **Your own changes:** add a stop (it checks the time against getting there, walking at a senior's pace ×1.4, and
-  the fixed times), push the day back, type a flight delay. With group sync, on the planner's own Firebase, they reach
+  the fixed times), skip a planned stop when a place is closed or the group is tired (it folds away, and the page
+  offers to move the next stops earlier; flights and the hotel stay), push the day back, type a flight delay. With group sync, on the planner's own Firebase, they reach
   every phone, with planners, Undo and Put back.
 - **Built for the group:** two UI languages plus the destination's own, light and dark, large text and targets, a
   strict security policy, and a password in front.
@@ -96,13 +97,13 @@ use it, exclude your trips before the first build (`graphmind exclude add trips`
    love. It writes `trips/<slug>/`, which is gitignored and never committed. Then shape it together in plain words
    ("add a rest after lunch on day 4", "two of us cycle on day 5"): `trip-customize` knows which part of the page each
    request becomes.
-3. **Share the group's changes (optional):** added stops, pushed-back times, flight changes and shared checklist ticks
-   reach every phone through your own Firebase Realtime Database, which RelaxJer doesn't run. The `sync-setup` skill
-   does it in about 5 minutes, before the build, and a family trip stays within Firebase's free amounts. Each phone
-   changes only the stops it added, and a planner (a phone that gives the code you set with `pnpm sync planner`) can
-   change any, or block a stray phone. Every removal can be undone. Each device asks to join with its name, and a
-   planner lets it in: the database itself refuses a device no planner approved, or one that's blocked. Without sync,
-   each phone keeps its own.
+3. **Share the group's changes (optional):** added and skipped stops, pushed-back times, flight changes and shared
+   checklist ticks reach every phone through your own Firebase Realtime Database, which RelaxJer doesn't run. The
+   `sync-setup` skill does it in about 5 minutes, before the build, and a family trip stays within Firebase's free
+   amounts. Anyone can skip a planned stop or put it back; each phone changes only the stops it added, and a planner
+   (a phone that gives the code you set with `pnpm sync planner`) can change any, or block a stray phone. Every removal
+   can be undone. Each device asks to join with its name, and a planner lets it in: the database itself refuses a
+   device no planner approved, or one that's blocked. Without sync, each phone keeps its own.
 4. **Refresh, build, check:** `pnpm resync --trip trips/<slug> --write` (the first run says what it costs Google
    and asks you first, [why](guides/google-maps.md#what-it-costs)), then
    `pnpm build --trip trips/<slug> --keys ~/.config/relaxjer/google.json` (add `--sync <the sync file>` if you set up

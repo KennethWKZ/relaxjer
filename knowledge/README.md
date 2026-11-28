@@ -9,6 +9,7 @@ Lessons that hold across trips and countries. Country-specific notes live in `de
 | [`data-hygiene.md`](data-hygiene.md)     | pulling or filtering place data                                         |
 | [`group-ux.md`](group-ux.md)             | writing a plan or copy, or checking a page like the group would         |
 | [`stays.md`](stays.md)                   | researching hotels, apartments or houses, and putting them on the page  |
+| [`research.md`](research.md)             | researching anything else: posts, routes, costs, shops, cards, bookings |
 
 Lessons arrive as reviewed changes: a trip retro (the `trip-retro` skill) proposes them, and a person approves them. An
 agent never rewrites them silently. A lesson that can be tested gets a test, and names it.

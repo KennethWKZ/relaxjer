@@ -5,7 +5,18 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { DEMO_TRIP, DEMO_TRIPS, ROOT } from '../support/stage.mjs';
-import { checkTrip, loadTrip, OPTIONAL_GLOBALS, pointsOutside, readJSON, REQUIRED, wishProblems } from '../support/trip-contract.mjs';
+import {
+	checkDriveStops,
+	checkRefill,
+	checkTrip,
+	loadTrip,
+	OPTIONAL_GLOBALS,
+	pointsOutside,
+	readJSON,
+	REQUIRED,
+	taxImagesMissing,
+	wishProblems,
+} from '../support/trip-contract.mjs';
 
 const dirs = process.env.TRIP_DIR ? [path.resolve(process.env.TRIP_DIR)] : DEMO_TRIPS;
 
@@ -13,7 +24,11 @@ test('the contract catches a broken trip', () => {
 	const trip = loadTrip(DEMO_TRIP);
 	trip.DAYS[1].schedule[2].t = '08:00'; // earlier than the stop before
 	trip.DAYS[2].schedule[0].place = 'nowhere';
-	trip.BUDGET.totalMax = 1;
+	trip.BUDGET.rows.find((r) => r.paid).max += 1; // a payment is one exact amount
+	trip.BUDGET.rows.find((r) => r.tbd).min = 100; // a row with no price yet has no amount
+	trip.BUDGET.rows.find((r) => r.paid).cat = 'souvenirs'; // a kind off the list
+	trip.BUDGET.rows.find(Array.isArray).push('snacks'); // and after an estimate's figures
+	trip.INSURANCE.policies[0].passport = 'A0000000'; // the page is shared with the group
 	trip.FACTS[0].v = ['日期', ''];
 	trip.DAYS[1].route = [['hotel', 'atlantis', 'teleport']];
 	trip.DAYS[2].route = [['hotel', 'hotel', 'transit', 0]]; // the trip's own minutes are whole and above 0
@@ -30,7 +45,11 @@ test('the contract catches a broken trip', () => {
 	for (const want of [
 		'earlier than the stop before',
 		'unknown place "nowhere"',
-		'totalMin',
+		'a paid row has its exact amount',
+		'a row with no price yet',
+		'cat must be one of transport\\|car',
+		"after the figures, 'airport' and/or a kind",
+		'no ID numbers, addresses or birth dates in INSURANCE',
 		'both languages needed',
 		'route leg 0',
 		'd3 route leg 0: needs',
@@ -43,6 +62,79 @@ test('the contract catches a broken trip', () => {
 		'TRIP.pax missing',
 	])
 		assert.match(problems, new RegExp(want));
+});
+
+test('the contract catches a broken tax refund section', () => {
+	const trip = loadTrip(DEMO_TRIP);
+	assert.ok(trip.TAX.coupons.length >= 2, 'the demo has coupons');
+	trip.TAX.coupons[0].until = '31 Mar'; // a date
+	trip.TAX.coupons[1].id = trip.TAX.coupons[0].id; // the same id twice
+	trip.TAX.coupons[1].place = 'nowhere';
+	trip.TAX.steps = ['one language'];
+	trip.TAX.airport.wifi = { pass: 'x' }; // no network name
+	trip.TAX.methods[0].items = 'cards';
+	const problems = checkTrip(trip).join('\n');
+	for (const want of [
+		'until, when given, must be its last day',
+		'the same id twice',
+		'place "nowhere"',
+		'TAX.steps',
+		'TAX.airport.wifi',
+		'TAX.methods[0]',
+	])
+		assert.ok(problems.includes(want), `${want}\nin:\n${problems}`);
+});
+
+test('a coupon may leave out its last day: one that prints no end date has none', () => {
+	const trip = loadTrip(DEMO_TRIP);
+	delete trip.TAX.coupons[0].until;
+	assert.ok(!checkTrip(trip).some((p) => p.startsWith('TAX.coupons')), checkTrip(trip).join('\n'));
+});
+
+test('the contract catches a broken drive-stops.json', () => {
+	assert.deepEqual(checkDriveStops(null), [], 'no file: nothing to check');
+	const good = readJSON(path.join(ROOT, 'examples', 'demo-sapporo'), 'drive-stops.json');
+	assert.ok(Object.keys(good.legs).length >= 1, 'the Sapporo demo has a long drive');
+	const leg = Object.values(good.legs)[0];
+	const broken = {
+		checked: 'Feb',
+		legs: {
+			day5: { ...leg },
+			'd5:9': {
+				...leg,
+				mode: 'walking',
+				stops: [{ ...leg.stops[1] }, { ...leg.stops[0] }, { ...leg.stops[0], kind: 'cafe', h24: 'yes', hours: '7am' }],
+			},
+		},
+	};
+	const problems = checkDriveStops(broken).join('\n');
+	for (const want of [
+		'checked: YYYY-MM-DD',
+		"day5: a day's leg key",
+		'mode "driving"',
+		'in order along the way',
+		'kind must be one of',
+		'h24 is true',
+		'hours like',
+	])
+		assert.ok(problems.includes(want), `${want}\nin:\n${problems}`);
+	assert.deepEqual(checkDriveStops({ legs: [] }), ['drive-stops.json: needs a "legs" object']);
+});
+
+test('the contract catches a broken refill.json', () => {
+	assert.deepEqual(checkRefill(null), [], 'no file: nothing to check');
+	const good = readJSON(DEMO_TRIP, 'refill.json');
+	assert.ok(good.spots.length >= 4, 'the demo has refill spots');
+	const spots = structuredClone(good.spots);
+	spots[0].kind = 'fountain'; // not one of the three
+	spots[1].hours = { days: { 1: [['9am', '5pm']] }, known: true }; // HH:MM
+	spots[2].id = spots[3].id; // the same id twice
+	spots[4].credit = ''; // whose data it is must show
+	spots[5].indoor = 'yes';
+	const problems = checkRefill({ checked: good.checked, spots }).join('\n');
+	for (const want of ['kind must be one of', 'hours are', 'the same id twice', 'credit', 'indoor is true, false or null'])
+		assert.match(problems, new RegExp(want));
+	assert.deepEqual(checkRefill({ points: [] }), ['refill.json: needs a "spots" list']);
 });
 
 test("the contract checks a decide option's own route like a day's", () => {
@@ -79,6 +171,18 @@ for (const dir of dirs) {
 		assert.deepEqual(checkTrip(loadTrip(dir)), []);
 	});
 
+	test('refill.json, when the trip has one, follows the spot shape' + at, () => {
+		assert.deepEqual(checkRefill(readJSON(dir, 'refill.json')), []);
+	});
+
+	test('drive-stops.json, when the trip has one, follows the stop shape' + at, () => {
+		assert.deepEqual(checkDriveStops(readJSON(dir, 'drive-stops.json')), []);
+	});
+
+	test("every tax refund coupon's image is in the trip's img folder" + at, () => {
+		assert.deepEqual(taxImagesMissing(dir), []);
+	});
+
 	test('every pin sits inside the map' + at, () => {
 		assert.deepEqual(pointsOutside(dir), []);
 	});
@@ -98,7 +202,11 @@ for (const dir of dirs) {
 		// Maps Platform terms limit storing Places content; a public example must not redistribute it
 		const FORBIDDEN =
 			/"(gpid|rating|reviews|userRatingCount|rating_source|businessStatus)"\s*:|googleusercontent\.com|maps\.googleapis\.com\/maps\/api\/place\/photo/;
-		for (const f of fs.readdirSync(dir)) {
+		// the trip's own files: a local build's dist/ folder (pnpm build --trip examples/…) is output, not data
+		for (const f of fs
+			.readdirSync(dir, { withFileTypes: true })
+			.filter((e) => e.isFile())
+			.map((e) => e.name)) {
 			const text = fs.readFileSync(path.join(dir, f), 'utf8');
 			assert.doesNotMatch(text, FORBIDDEN, `${f} has Google-derived fields`);
 		}

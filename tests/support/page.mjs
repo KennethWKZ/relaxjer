@@ -214,6 +214,10 @@ export const BAR = {
 	more: '#moreBtn',
 	daysSheet: '#days',
 	dayRow: '#days [data-day]',
+	// a day in Days is a fold (ADR-20261128-progressive-disclosure): its row opens it in place, and inside, its stops and
+	// "Open Day N" go somewhere
+	dayFold: '#days details.dd',
+	dayGo: 'a.dd-go',
 	lit: '#tabbar .tb[aria-current]',
 	skyRow: '#toc [data-sky-toggle]',
 };
@@ -234,6 +238,25 @@ export const LIST = {
 	/** the mark at a row's end: › (chev-r) for one that goes somewhere, ⌃⌄ (updown) for a choice */
 	end: '.rl-ch',
 };
+
+/** What's wrong with the Days list's folds (ADR-20261128-progressive-disclosure), one line each: a day's row under
+ *  52 px, narrower than its card, or not ending in ⌄ (it opens in place, rule 12). */
+export async function auditFolds(page, root) {
+	await page.locator(root).evaluate((r) => Promise.all(r.getAnimations({ subtree: true }).map((a) => a.finished)));
+	return page.locator(root).evaluate((r) => {
+		const out = [];
+		for (const card of r.querySelectorAll('.gl')) {
+			for (const e of card.querySelectorAll(':scope > details.dd > summary.rl')) {
+				const name = e.textContent.trim().replace(/\s+/g, ' ').slice(0, 28);
+				if (e.offsetHeight < 52) out.push(`${name}: ${e.offsetHeight} px tall`);
+				if (Math.abs(e.getBoundingClientRect().width - card.clientWidth) > 1) out.push(`${name}: narrower than its card`);
+				const end = e.querySelector(':scope > .rl-ch use');
+				if (!end || end.getAttribute('href') !== '#i-chev') out.push(`${name}: a fold's row ends in ${end && end.getAttribute('href')}, not #i-chev`);
+			}
+		}
+		return out;
+	});
+}
 
 /** What's wrong with the grouped lists under `root`, one line each: a row under 52 px, a row narrower than its card (one
  *  column), a row whose end mark doesn't say what it does (› to go, ⌃⌄ for a choice, nothing for an action), a choice
@@ -300,7 +323,8 @@ export function rowLook(row, dress = null) {
 			return (x + 0.05) / (y + 0.05);
 		};
 		const st = getComputedStyle(e);
-		const card = getComputedStyle(e.parentElement).backgroundColor;
+		// the card around the row: its parent, or the card a fold's row sits in (Days, ADR-20261128-progressive-disclosure)
+		const card = getComputedStyle(e.closest('.gl') || e.parentElement).backgroundColor;
 		const look = {
 			fill: st.backgroundColor,
 			ring: st.boxShadow,
@@ -358,7 +382,8 @@ export async function goToView(page, id) {
 		if (await direct.count()) await direct.click();
 		else if (await page.locator(`#app > #${id}.day`).count()) {
 			await page.locator(BAR.days).click();
-			await page.locator(`#days [data-day="${id}"]`).click();
+			await openDayFold(page, id);
+			await page.locator(`#days details[data-dd="${id}"] ${BAR.dayGo}`).click();
 		} else {
 			await page.locator(BAR.more).click();
 			await page.locator(`#toc a[href="#${id}"]`).first().click();
@@ -366,6 +391,14 @@ export async function goToView(page, id) {
 	} else await page.locator(`#rail [data-rail="${id}"]`).click();
 	await expect(page.locator('html')).toHaveAttribute('data-showing', id);
 	await settle(page);
+}
+
+/** Opens a day's fold in the Days sheet (already open: left as it is) and returns it. */
+export async function openDayFold(page, id) {
+	const fold = page.locator(`#days details[data-dd="${id}"]`);
+	if (!(await fold.evaluate((d) => d.open))) await fold.locator('> summary').click();
+	await expect(fold).toHaveJSProperty('open', true);
+	return fold;
 }
 
 /** The parts of the page the views add: summary buttons, their sheets, a stop's sheet, the day's pager, the rail. */
@@ -395,6 +428,18 @@ export async function openPart(page, which = 0) {
 	return sheet;
 }
 
+/** Opens a day's ⋯ sheet from its card (copy for chat, copy link, the map, and what this phone changed: share it, back
+ *  to the original plan) and returns the sheet. */
+export async function openDayMenu(page, day) {
+	await goToView(page, day);
+	const btn = page.locator(`#${day} .lantern .l-more`);
+	await btn.scrollIntoViewIfNeeded();
+	await btn.click();
+	const sheet = page.locator(`dialog#${day}-p-menu`);
+	await expect(sheet).toBeVisible();
+	return sheet;
+}
+
 /** Brings what a locator (or selector) names on screen the way a reader gets there: its view first (by the address,
  *  as a tab or a shared link does), then its sheet when it lives in one, then scrolled into sight. */
 export async function show(page, target) {
@@ -407,10 +452,12 @@ export async function show(page, target) {
 	}
 	if (at.sheet && !(await page.locator(`dialog#${at.sheet}`).evaluate((d) => d.open))) {
 		const btn = page.locator(`[data-part="${at.sheet}"]`).first();
+		await unfold(btn); // a stop's sheet opens from inside the opened stop
 		await btn.scrollIntoViewIfNeeded();
 		await btn.click();
 		await expect(page.locator(`dialog#${at.sheet}`)).toBeVisible();
 	}
+	await unfold(loc);
 	await loc.scrollIntoViewIfNeeded();
 	return loc;
 }
@@ -421,9 +468,29 @@ export async function revealIn(page, inner) {
 	const id = await inner.first().evaluate((e) => (e.closest('dialog.bsheet') || {}).id || '');
 	if (!id) return;
 	const btn = page.locator(`[data-part="${id}"]`).first();
+	await unfold(btn);
 	await btn.scrollIntoViewIfNeeded();
 	await btn.click();
 	await expect(page.locator(`dialog#${id}`)).toBeVisible();
+}
+
+/** Opens the folds something waits in (a shut stop, a fold), as the page's search and a jump open them
+ *  (ADR-20261128-progressive-disclosure). */
+export const unfold = (loc) =>
+	loc.evaluate((e) => {
+		// a fold's own summary is left as it is: it's what the caller is about to tap
+		const from = e.matches('summary') ? e.parentElement.parentElement : e.parentElement;
+		for (let d = from && from.closest('details:not([open])'); d; d = d.parentElement && d.parentElement.closest('details:not([open])')) d.open = true;
+	});
+
+/** Shows a stop (#d3-s2) in its day and opens it in place (ADR-20261128-progressive-disclosure): a stop is one line
+ *  until it's tapped, and its note, its actions and its nearby options are inside. Returns the stop's row. */
+export async function openStop(page, sid) {
+	await show(page, `#${sid}`);
+	const row = page.locator(`#${sid} details.stop-x`);
+	if (!(await row.evaluate((d) => d.open))) await row.locator('> summary').click();
+	await expect(row).toHaveJSProperty('open', true);
+	return page.locator(`#${sid}`);
 }
 
 /** Opens every closed <details> so build-on-open lists render, and for the page-wide audits draws every view and every
@@ -524,7 +591,7 @@ export const MAP = {
 	filtersSheet: '#mapfilt',
 	day: (id) => `#mapfilt [data-filter="${id}"]`,
 	area: '#mapfilt [data-view]',
-	cats: '.map-chips .map-ctrl [data-cat]',
+	cats: '#mapfilt [data-cat]',
 	pin: (pid) => `#livemap .lpin[data-pid="${pid}"]`,
 	full: '[data-mapfull="1"]',
 	exit: '.map-exit',
@@ -540,3 +607,32 @@ export const SITE = {
 	theme: '.nav-theme',
 	shot: '.desk .phone img',
 };
+
+/** Skipping a planned stop (ADR-20261128-skip-planned-stops): its Skip in the opened stop, the day's "N skipped" fold
+ *  with each skipped stop's row (it keeps the stop's id) and Put back, the suggestion after a skip, a closed-day line. */
+export const SKIP = {
+	act: (sid) => `#${sid} .stop-acts [data-skip]`,
+	fold: (day) => `#${day} .skip-fold`,
+	sum: (day) => `#${day} .skip-fold .skip-sum`,
+	row: (sid) => `li.skip-row#${sid}`,
+	back: (sid) => `li.skip-row#${sid} [data-unskip]`,
+	ask: (day) => `#${day} .skip-ask`,
+	pull: (day) => `#${day} .skip-ask [data-skip-pull]`,
+	keep: (day) => `#${day} .skip-ask [data-skip-keep]`,
+	shut: (sid) => `#${sid} .stop-shut`,
+	onString: (sid) => `#${sid} > .stop-b > details.stop-x`,
+};
+/** Opens a planned stop on its day and taps its Skip (a fixed one's confirm is the caller's to answer). */
+export async function skipStop(page, sid) {
+	await show(page, `#${sid}`);
+	const row = page.locator(SKIP.onString(sid));
+	if (!(await row.evaluate((d) => d.open))) await row.locator('> summary').click();
+	await page.locator(SKIP.act(sid)).click();
+}
+/** Opens a day's fold of skipped stops (on its view) and returns it. */
+export async function openSkipFold(page, day) {
+	const fold = page.locator(`${SKIP.fold(day)} details.skip-x`);
+	await show(page, fold);
+	if (!(await fold.evaluate((d) => d.open))) await fold.locator('> summary').click();
+	return fold;
+}

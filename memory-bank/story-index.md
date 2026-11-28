@@ -65,6 +65,10 @@ its line.
   sync journeys keep `test.slow()`: they take about 13 s on a laptop and up to three times that on the runner.
 - MapLibre GL JS 6 (July 2026) is ESM-only; the page pins 5.24 from cdnjs. Moving to 6 is an engine change, not a
   version bump.
+- The landing page's drawn postcards (`site/index.html`) still show the page from before
+  [ADR-20261128-progressive-disclosure](standards/decisions/ADR-20261128-progressive-disclosure.md): two-line stops,
+  the day card's chips, the longer location card. Its phone screenshots are current (`site-screens.mjs`, 2026-11-28).
+  Redrawing the postcards is its own change, checked as the landing page rules ask.
 - The engine's lantern look came from the first destination. Whether a destination pack may re-theme it is open
   (`DESIGN.md`, Do's and Don'ts).
 

@@ -10,6 +10,10 @@ data must pass in `tests/support/trip-contract.mjs`. `examples/demo-trip/data.js
 
 ## Writing the plan
 
+What goes into a plan is researched the way [`knowledge/research.md`](../../../knowledge/research.md) says (every
+finding sourced and dated, travellers' posts from the last six months, Google's route times, the cost of data runs,
+choices not one pick) and stays the way [`knowledge/stays.md`](../../../knowledge/stays.md) says.
+
 - **Fixed times never move.** Anything booked or timed (a flight, a show, a charter, a reservation) is `fixed: true`.
   Times tied to a flight use `rel: { arr: [a, b] }` or `{ dep: [a, b] }`, so a typed delay moves them.
 - **A comfortable pace beats sights per day.** Leave slack around fixed items, and give each day a rain plan.
@@ -67,7 +71,9 @@ data must pass in `tests/support/trip-contract.mjs`. `examples/demo-trip/data.js
 ## Places
 
 - Google first for positions, place ids, hours, ratings and addresses; OpenStreetMap only for what Google can't give
-  ([`pipeline.md`](./pipeline.md)).
+  ([`pipeline.md`](./pipeline.md)), such as free water refill points (`refill.json`).
+- **A source the repo must not carry stays in the trip folder**: its step in `trips/<slug>/pipeline/`, its output in a
+  `refill-<src>.json` or the like, and the page's credit for it. Never its code, its name or its data in a commit.
 - Every place a day or a list names must exist in `PLACES`, and every pin must sit inside the trip's map areas. The
   contract checks both.
 - Keep a hand-checked Google id when a fetch returns a neighbour, and note why.
@@ -104,3 +110,7 @@ Each rule above rests on a decision. The decision and its reasons live in its AD
 - [ADR-20261007-traffic-aware-drives](../decisions/ADR-20261007-traffic-aware-drives.md): A drive leg may carry an HH:MM time, and a drive still ahead uses Google's traffic-aware estimate for that time.
 - [ADR-20261126-own-leg-minutes](../decisions/ADR-20261126-own-leg-minutes.md): A route leg may end with the trip's own minutes, shown only when Google has no time for it; Japan's transit is never asked.
 - [ADR-20261127-decide-option-route](../decisions/ADR-20261127-decide-option-route.md): A decide option may carry its own route; its legs are stored as <day>:<k>:<i> in geo.json, apart from the day's, and drawn on its card.
+- [ADR-20261128-budget-paid-insurance](../decisions/ADR-20261128-budget-paid-insurance.md): Budget rows can be paid (date, where, ref), in the home currency, in parts, or price TBD; the glance is the paid total. INSURANCE: a tile, no IDs.
+- [ADR-20261128-drive-stops](../decisions/ADR-20261128-drive-stops.md): drive-stops.json: rest stops along each 90+ min drive from Places search along the route; folded under its row, never planned; Next by the clock.
+- [ADR-20261128-tax-refund](../decisions/ADR-20261128-tax-refund.md): TAX gains steps, methods, airport (rows, wifi), deadline, coupons (until, img), src; a tile in Today opens them; coupon images go in at full size.
+- [ADR-20261128-water-refill](../decisions/ADR-20261128-water-refill.md): refill.json: OSM drinking water plus trip-local refill-*.json, merged by a free step; a pill per stop, a map kind, near me; winter hides outdoor taps.

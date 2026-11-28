@@ -58,6 +58,16 @@ export function roundHome(v) {
 	return Math.round(v / step) * step;
 }
 
+/**
+ * Each person's share of a group range as one number, for the glance layer (ADR-20261128-progressive-disclosure): the
+ * middle of the range divided by the group, rounded as roundHome rounds (to the nearest 10 under 10,000). The page marks
+ * it "about"; the range and the group's figure stay in the detail.
+ */
+export function glanceShare(min, max, pax) {
+	if (!(pax > 0) || !(max >= min)) return 0;
+	return roundHome((min + max) / 2 / pax);
+}
+
 const homeNum = (v) => roundHome(v).toLocaleString('en-US', { maximumFractionDigits: 2 });
 
 /** "RM 100" / "RM 100–140": a figure in the trip's currency, in the home currency (rate: one home unit in the trip's) */
@@ -65,6 +75,120 @@ export function homeAmount(min, max, rate, home) {
 	const a = homeNum(min / rate),
 		b = homeNum(max / rate);
 	return a === b ? `${home} ${a}` : `${home} ${a}–${b}`;
+}
+
+/**
+ * A budget's rows as what's been paid and what's still to come (ADR-20261128-budget-paid-insurance). A row is an
+ * estimate in the trip's currency, [label, text, min, max, anchor?], or an object: { label, min, max, cur, paid, via,
+ * ref, est, anchor } for one payment, { label, parts: [{ amt, cur, paid, via, label }] } for one paid in parts (a deposit
+ * now, the balance on the day), or { label, tbd: true } for one whose price isn't known yet. `cur` 'home' (or the home
+ * code) is the group's home currency, else the trip's. Sums come back in the home currency (`rate`: the trip's units for
+ * one home unit; without a home currency pass rate 1 and home null), approx when any figure in them was converted. A
+ * paid amount is exact; a row with no price is listed but never counted, so the page never invents a number.
+ */
+export function budgetTally(rows, { rate = 1, home = null } = {}) {
+	const isHome = (c) => c === 'home' || (home != null && c === home);
+	const toHome = (v, c) => (isHome(c) || !(rate > 0) ? v : v / rate);
+	const out = { paid: 0, paidApprox: false, todo: [0, 0], todoApprox: false, paidItems: [], todoItems: [], tbdItems: [] };
+	for (const raw of rows || []) {
+		// an estimate row as an object; a kind name after its figures is its cat, anything else there its anchor
+		const row = Array.isArray(raw)
+			? { label: raw[0], text: raw[1], min: raw[2], max: raw[3], anchor: budgetKinds.includes(raw[4]) ? undefined : raw[4], cat: rowKind(raw) }
+			: raw;
+		if (!row) continue;
+		if (row.tbd) {
+			out.tbdItems.push({ row });
+			continue;
+		}
+		const pieces = Array.isArray(row.parts)
+			? row.parts.map((part) => ({ part, min: part.amt, max: part.amt, cur: part.cur ?? row.cur, paid: part.paid }))
+			: [{ part: null, min: row.min, max: row.max, cur: row.cur, paid: row.paid }];
+		for (const p of pieces) {
+			const conv = home != null && !isHome(p.cur);
+			// each item keeps what it added to the sums (`h`, in the home currency) and whether it was converted, so a
+			// breakdown (budgetByKind) adds up to exactly these totals
+			if (p.paid) {
+				const h = toHome(p.min, p.cur);
+				out.paid += h;
+				out.paidApprox = out.paidApprox || conv;
+				out.paidItems.push({ row, part: p.part, amt: p.min, cur: p.cur, paid: p.paid, h, conv });
+			} else {
+				const h = [toHome(p.min, p.cur), toHome(p.max, p.cur)];
+				out.todo[0] += h[0];
+				out.todo[1] += h[1];
+				out.todoApprox = out.todoApprox || conv;
+				out.todoItems.push({ row, part: p.part, min: p.min, max: p.max, cur: p.cur, h, conv });
+			}
+		}
+	}
+	return out;
+}
+
+/**
+ * The kinds a budget row can be (ADR-20261128-budget-paid-insurance, amended): transport (flights, trains, transfers),
+ * car (rental, fuel, parking, tolls), lodging, food, tickets, activity (ski lifts, lessons, gear rental), insurance and
+ * other. The list is closed; the page names and draws each one.
+ */
+export const budgetKinds = ['transport', 'car', 'lodging', 'food', 'tickets', 'activity', 'insurance', 'other'];
+
+/**
+ * A budget row's kind: an object row's `cat`; an estimate row's trailing name from the list ([label, text, min, max,
+ * 'food'], or after its anchor, [label, text, min, max, 'airport', 'transport']); else an estimate anchored at the airport
+ * is transport; else 'other'. Never guessed from the row's words, so a row lands where the planner put it.
+ */
+export function rowKind(row) {
+	if (!row) return 'other';
+	if (Array.isArray(row)) {
+		const named = row.slice(4).find((x) => budgetKinds.includes(x));
+		return named || (row[4] === 'airport' ? 'transport' : 'other');
+	}
+	return budgetKinds.includes(row.cat) ? row.cat : row.anchor === 'airport' ? 'transport' : 'other';
+}
+
+/** a day card's budget tag ('train', 'food', 'ticket', 'car', 'airportMrt') as a budget kind, or null for a tag that
+ *  names none (a transit card's top-up is money moved, not spent) */
+export function kindOfTag(tag) {
+	return (
+		{ train: 'transport', airportMrt: 'transport', bus: 'transport', taxi: 'transport', food: 'food', ticket: 'tickets', car: 'car' }[tag] || null
+	);
+}
+
+/**
+ * The budget by kind: for each kind its rows hold, what's been paid and what's still to come (in the home currency, as
+ * budgetTally sums them, so the kinds add up to the view's totals exactly), whether a figure was converted, how many
+ * rows have no price yet, and its share of the whole (paid plus the middle of what's to come). Biggest first; a kind with
+ * only a price TBD comes last, at 0.
+ */
+export function budgetByKind(rows, opts = {}) {
+	const T = budgetTally(rows, opts);
+	const by = new Map();
+	const of = (row) => {
+		const cat = rowKind(row);
+		if (!by.has(cat)) by.set(cat, { cat, paid: 0, paidApprox: false, todo: [0, 0], todoApprox: false, tbd: 0, rows: 0, seen: new Set() });
+		const k = by.get(cat);
+		if (!k.seen.has(row)) {
+			k.seen.add(row);
+			k.rows += 1;
+		}
+		return k;
+	};
+	for (const it of T.paidItems) {
+		const k = of(it.row);
+		k.paid += it.h;
+		k.paidApprox = k.paidApprox || it.conv;
+	}
+	for (const it of T.todoItems) {
+		const k = of(it.row);
+		k.todo[0] += it.h[0];
+		k.todo[1] += it.h[1];
+		k.todoApprox = k.todoApprox || it.conv;
+	}
+	for (const it of T.tbdItems) of(it.row).tbd += 1;
+	const size = (k) => k.paid + (k.todo[0] + k.todo[1]) / 2;
+	const all = [...by.values()].reduce((n, k) => n + size(k), 0);
+	return [...by.values()]
+		.map(({ seen: _seen, ...k }) => ({ ...k, share: all > 0 ? size(k) / all : 0 }))
+		.sort((a, b) => size(b) - size(a) || budgetKinds.indexOf(a.cat) - budgetKinds.indexOf(b.cat));
 }
 
 /** "≈ RM 100" / "≈ RM 100–140": the home-currency line under a figure */

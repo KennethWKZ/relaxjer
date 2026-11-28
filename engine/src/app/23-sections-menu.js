@@ -64,23 +64,40 @@ function renderToc(mode = 'all') {
       ${tocSettings()}`;
 }
 /* the settings, the same rows in the desktop's menu and the phone's More: the choices and Group sync, then amounts and
-   rate, then the page's own actions (install, and the reset last, since it takes away). A card only when it has a row */
+   rate, then the page's own actions (location while it's off, install, and the reset last, since it takes away): where
+   a repeated hint lives once it's put away. A card only when it has a row */
 const tocSettings = () => {
-	const acts = `${homeRow()}${resetRow()}`;
+	const acts = `${geoRow()}${homeRow()}${resetRow()}`;
 	return `<p class="gl-h" id="toc-set-h">${Z('设置', 'Settings')}</p><div class="gl toc-set" role="group" aria-labelledby="toc-set-h">${themeRow()}${skyRow()}${mapsRow()}${syncRow()}</div>
       ${curRow()}${acts ? `<div class="gl toc-acts">${acts}</div>` : ''}`;
 };
-/* Days (the bottom bar): every day as one row, its mark, short date and weekday, Day number, title and forecast, today
-   flagged and the day on screen lit. A list that scrolls down, never sideways; one tap opens that day's view */
+/* Days (the bottom bar; ADR-20261128-progressive-disclosure): every day as one line (its mark, short date, Day number
+   and title, a chevron that turns), and one of them open. The open one is the day on screen, else today; before the trip
+   the first day, after it none. An open day lists its stops, one line each, each a way to that stop, and a row that opens
+   the whole day. A tap on another day opens it in place. A list that scrolls down, never sideways */
 function renderDays() {
 	const box = $('#days-in');
 	if (!box) return;
-	const today = tpNow().date;
-	const rows = DAYS.map((d) => dayRow(d, today, 'data-day', `${dateTag(d.date, d.dow, false)} · Day ${d.n}`)).join('');
+	const now = tpNow();
+	const td = DAYS.find((d) => d.date === now.date);
+	const openId = dayById[curView] ? curView : td ? td.id : dnum(now.date) < dnum(TRIP.start) ? DAYS[0].id : '';
+	const rows = DAYS.map((d) => dayFold(d, now.date, d.id === openId)).join('');
 	box.innerHTML = `<div class="toc-head"><h2 id="days-h">${Z('日程', 'Days')}</h2><button type="button" class="icon-btn" data-close aria-label="${Z('关闭', 'Close')}">${icon('x')}</button></div>
       <div class="gl days-list">${rows}</div>`;
 	const cur = $(`[data-day="${curView}"]`, box);
 	if (cur) cur.setAttribute('aria-current', 'page');
+}
+/** a day in the Days list: a fold whose summary is the day's row, and inside it the day's stops and a way into the day */
+function dayFold(d, today, open) {
+	const stops = d.schedule
+		.map(
+			(it, i) =>
+				`<a class="dd-stop${it.fixed ? ' is-fixed' : ''}${it._skip ? ' is-skipped' : ''}" href="#${d.id}-s${i}"><span class="dd-t">${esc(it.step ? String(it.step) : tStart(L(it.t || '')))}</span><span class="dd-k" aria-hidden="true">${it._skip ? icon('skip') : it.fixed ? '<i class="dd-seal"></i>' : icon(stopIcon(d, it))}</span><span class="dd-n">${escText(stopName(it))}${it._skip ? `<span class="skip-tag"> ${Z('已跳过', 'Skipped')}</span>` : ''}</span></a>`,
+		)
+		.join('');
+	return `<details class="dd" data-dd="${d.id}" style="${colorVars(d.c)}"${open ? ' open' : ''}><summary class="rl dd-h" data-day="${d.id}">${dayMark(d)}<span class="rl-t"><b>${dateTag(d.date, d.dow, false)} · Day ${d.n}${daySeal(d)}${today === d.date ? ` <span class="flag">${Z('今天', 'Today')}</span>` : ''}</b><small>${esc(dayShort(d))}</small></span>${dayWx(
+		d,
+	)}${icon('chev', 'rl-ch dd-ch')}</summary><div class="dd-body">${stops}<a class="rl dd-go" href="#${d.id}">${icon('arrow')}<span>${Z(`打开 Day ${d.n}`, `Open Day ${d.n}`)}</span>${icon('chev-r', 'rl-ch')}</a></div></details>`;
 }
 // on phones the header has no room for a labelled theme switch, so it lives here with its name (style.css hides it where
 // the header has one)

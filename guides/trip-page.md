@@ -11,8 +11,10 @@ two of them seniors.
 
 - **One link, one password.** The planner sends both to the group chat. The password page remembers you for a day,
   so pick one the seniors can type.
-- **Add it to the home screen.** The Install button in the header uses Android's own prompt; on an iPhone it shows the
-  steps (Share → Add to Home Screen) and what to know: the home-screen copy keeps its own ticks and settings, location
+- **Add it to the home screen.** The first time a phone opens the page, Install sits in the header with its word; from
+  then on it is a row in More's settings (Add to the home screen), and the header keeps the name, Search, the currency
+  and the language. Either uses Android's own prompt; on an iPhone it shows the steps (Share → Add to Home Screen) and
+  what to know: the home-screen copy keeps its own ticks and settings, location
   should be set to Allow for it, the password is asked again every day, and it can't start offline: open it once
   online, then it keeps working when the signal goes.
 - **It works offline.** The plan, the costs and the lists live inside the page. A bar says when you're offline ("plans
@@ -31,7 +33,7 @@ two of them seniors.
   sits in More's settings), the currency
   button, the language button (it names the other
   language, and keeps your place; the browser tab's title switches with it, and in English the brush name is read out
-  and shown on hover by the trip's English name), and Install.
+  and shown on hover by the trip's English name), and on the first opening, Install.
 - **The currency button**, beside the language button, works the same way: it names the currency the figures would
   switch to (RM while they're in NT$, NT$ while they're in RM). Pressed, every figure in the trip's currency shows in the
   group's home currency: totals, shares, the budget and its chart, day budgets and their chips, optional plans,
@@ -42,15 +44,16 @@ two of them seniors.
   of its own has no button.
 - **The bottom bar** on a phone and a tablet (narrower than 1024 px), the same whether the page is on the home screen
   or in the browser, like an app's: **Today** (its calendar shows today's date) opens Now and Next and the week;
-  **Days** opens a list of every day, each with its date and weekday, Day number, title and forecast, today flagged and
-  the day you're on lit, and a tap opens that day; **Map** opens the map; **More** opens Food and Toilets nearby, every
+  **Days** opens a list of every day, one line each (its date and weekday, Day number, short name and forecast, today
+  flagged and the day you're on lit), with one day open showing its stops one line each and "Open Day N": the day on
+  screen, else today (before the trip the first day; after it none). A tap on another day opens it in place; **Map** opens the map; **More** opens Food and Toilets nearby, every
   other part of the plan (Airport, Entry, Optional, Wishlist, Food, Budget, Weather, Checklist, Priorities: whatever the
   trip has), then the settings: the theme, the snow's pause (in a look with a sky), which maps app opens, the Group sync
-  row, Amounts and rate, Install, and the reset. The item for what's on screen is lit, in the day's colour on a day.
+  row, Amounts and rate, Location (while it's off), Install, and the reset. The item for what's on screen is lit, in the day's colour on a day.
 - **Lists like a phone's settings.** Days, More, the rail and the Sections menu are all drawn the same way, as an
   iPhone's Settings: rounded cards of full-width rows, one under the other. A row that opens something ends in ›; a
   setting that changes where it is (the theme, which maps app) shows its value and ⌃⌄, and a tap moves it to the next
-  one; an action (pause the snow, Install, the reset) has neither. The part you're on is lit in its colour, with a ring
+  one; an action (pause the snow, Location, Install, the reset) has neither. The part you're on is lit in its colour, with a ring
   and heavier words.
 - **One part at a time.** Each part opens its own view, from its top: Today, one day, the budget, the airport. The
   phone's Back steps back through the views you opened, each where you left it (a tap on the bar is a step too), and a
@@ -90,51 +93,73 @@ two of them seniors.
 
 ## Today: Now and Next, and the week
 
-- **Before the trip:** "N days to go", the flight, the first night's hotel, up to three to-dos coming due (entry
-  registrations, the week-before weather check), and buttons to the checklist and Day 1.
+The page shows a glance layer and keeps the rest one tap away: what most opens need is open, one line each, and the
+rest waits behind a **tile** (a big icon over a short word that opens its sheet) or a **fold** (a big heading with a
+count and a chevron that opens in place). Search still finds what's inside either, and opens it.
+
+- **Before the trip:** "N days to go", one line with the flight's date and where it lands, and the Checklist button,
+  which counts the to-dos coming due (entry registrations, the week-before weather check).
 - **On a trip day:** the day's badge and wish, what's on now and what's next (each a link to its stop), "Go to the next
   stop" with Google directions, "Open today", and "Check progress from my location". While a day's split is on, an
   "Apart" row says who went where and when the group meets again, linking to the split.
 - **After the trip:** "Trip done. Welcome home."
-- **The week:** one lantern row per day with its date, title and focus (in a destination's own look, the day's activity
-  mark on its colour instead; see below).
-- **Trip facts:** the dates, the group, the hotel with its address in both languages, phone and links. If Google still
-  lists the hotel under an old name, a note says so.
-- **Backups if we have time:** the rain or tired-day options and optional sights, as chips.
+- **Tonight's hotel** (the first night's before the trip): its name, its dates and nights, and its actions as
+  labelled icons: Map, Directions, Show driver, Call (when the trip has its number) and, with the destination's own
+  language, Copy name. Its address in both languages, its note and any old-name warning fold under "Address and notes".
+- **The week:** one row per day, the same as in Days, the rail and the map's list: its lantern (in a destination's own
+  look, the day's activity mark on its colour instead; see below), its date, a small red diamond beside it when the day
+  holds a fixed time (a flight, a booked entry), its short name ("Old town walk"; a day without one shows its first
+  place and how many, "Maokong Gondola +1 more"), and on the right the forecast's icon and high while the day is inside
+  the forecast, nothing after. One line each: a long name ends in "…", never the forecast. The full route is on the day.
+- **Bookings and info:** tiles for the flights (a sheet with both) and, going to their own views, the airport, entry,
+  the checklist and the budget; and **Insurance** when the trip has a policy: who it covers and when, what it covers,
+  its app, the numbers to call (each a big Call button, and WhatsApp where there is one), and what to keep for a claim,
+  by event (a flight delay, luggage, a doctor). The page never holds anyone's ID number, address or birth date.
+- **Trip facts** (a fold): the dates, the group and the planner's other facts.
+- **Backups if we have time** (a fold): the rain or tired-day options and optional sights, as chips.
+- **Location:** where the page could use it, a card asks: the first time in full (what it does, that the position
+  stays on the phone, Turn on location), from then on one row (Late alerts, Turn on, ✕). ✕ puts it away for good on
+  that phone; Location stays in More's settings while it's off.
 
 ## Each day
 
 - **The day's mark:** a small icon and its name beside the date for what the group does that day (snowboarding, a hot
   spring, the zoo, a city day, the seaside, a flight…), when the planner gives the day one.
-- **The heading:** Day N and the date (with Today), the day's brushed wish (and its gloss in English), the title, and
-  chips for the forecast (temperature, rain chance), the focus, the day's spend (each person's share, the group total
-  and the home currency, linking to the day's budget) and what to wear. Under a sky (below) the forecast and what to
-  wear move into the sky's weather line.
-- **Today's route:** one line of the day's places in order, with the way between each (walk, metro, taxi, bike) and
-  its minutes, and a **Whole route** button that opens the directions for all of it. A leg Google can't time (a train
-  in Japan) shows the minutes the planner gave it.
-- **Copy for chat** puts the day as text (times, notes, each person's budget, the rain plan, the link) on the
-  clipboard; **Copy link** copies the day's address; **Map** opens the map full screen on that day.
-- **The timeline:** each stop with its time and a note. A stop with more to say keeps its note short and folds the rest under **More details**: shut on a phone, open on a wider screen, a tap either way, and search still finds what's inside (a stop's `detail`). A stop with more to it has a › button: tap it, or the stop,
-  for its sheet with Map, Directions, the website and Details, the local words, a photo where there is one, the shop
-  box, and the food, drinks, rest spots and toilets near it. On the stop under way and the next one, **Show driver**
-  stays on the row, so it's one tap in a taxi. A **fixed
-  time** (a flight, a show, a booked table) carries a red 定 seal. On a trip day the stops on now and next are tagged,
-  past ones dim, and two or more done stops fold into "N done" (Hide done folds them again). A free day can number its
-  steps instead of giving times.
-- **Plans and details** under the day's heading: each card below is a summary button with one line, worked out from
-  the card (how many options, or the one the group chose; a table's rows, and the range of the column with prices in most rows, named by its heading (or what its
-  columns hold); the day's total; "Rain
-  plan"), or the planner's own words. Tapping it opens the card in a sheet that scrolls on its own; ✕, a swipe down on
-  its handle or the phone's Back closes it. The day itself keeps its heading, chips, route and timeline.
+- **The heading:** the date big, with Day N beside it (and Today), the day's brushed wish (and its gloss in English),
+  the title, and one line of icon facts: the time on the way, what the day costs each person (one number, "about",
+  in the currency the phone shows, marked as an estimate where the plan says so; the range and the group's figure are
+  in the Spend tile), the forecast, and whether there's a rain plan. Under a sky (below) the forecast and what to wear
+  move into the sky's weather line.
+- **⋯ beside the title:** **Copy for chat** puts the day as text (times, notes, each person's budget, the rain plan,
+  the link) on the clipboard; **Copy link** copies the day's address; **See it on the map** opens the map full screen
+  on that day. A day's Spend card shows each row's kind as a small icon where its tag names one (a ride, a meal, a
+  ticket, a car).
+- **The tiles** under the heading, one for each of the day's parts: **Route** (the day's focus, one line of the day's
+  places in order with the way between each and its minutes, a **Whole route** button for the directions of all of it,
+  and the day on the map; a leg Google can't time, a train in Japan, shows the minutes the planner gave it), then each
+  card, the tickets, where to eat and the wishlist. Each tile is a big icon over a short word (the card's `tile`, its
+  heading when that's short, else the word for its kind), with a count when it holds a list. Tapping it opens the card
+  in a sheet that scrolls on its own, with one line at the top worked out from the card (how many options, or the one
+  the group chose; a table's rows, and the range of its price column; the day's total) or the planner's own words; ✕,
+  a swipe down on its handle or the phone's Back closes it. Past eight tiles, the eighth is **More**, a list of every
+  part with its line.
+- **The timeline:** each stop one line: its start time, its kind on the string (a meal, a ride, a walk, a sight, the
+  hotel, a flight, shopping: read from the stop, or the planner's `icon`) and its name. A **fixed time** (a flight, a
+  show, a booked table) keeps its red 定 seal and its whole time on a second line. A note the group must act on (wear a
+  hat, book ahead: the stop's `todo`) stays as a short second line. Tap a stop to open it: its whole time, its note and
+  longer note, its Map, Directions and Show driver as labelled icons, **Nearby and more** for its sheet (the local
+  words, a photo where there is one, the shop box, and the food, drinks, rest spots and toilets near it), and **Skip**
+  (below). Search finds what's inside a stop and opens it. On the stop under way and the next one, **Show driver**
+  stays under the row, so it's one tap in a taxi. On a trip day the stops on now and next are tagged, past ones dim, and two or more done stops
+  fold into "N done" (Hide done folds them again). A free day can number its steps instead of giving times.
 - **The cards**, as the plan needs them: option A, B or more to decide on the day (each with its cost, when
   to pick it, and its own map or website link, such as a hotel or a van to book; an option that goes somewhere can
   show its own route line, like Today's route, with each leg's minutes), and any card's website links under it, go / wait / stop rules for a weather-dependent plan (with a "should we ride?" flowchart), a route of
   stations in their line colours, tables and lists, the day's budget with each person's share, what to wear, the rain
   plan, ticks for the day, and two-column lists.
-- **Tickets and how to book** (a summary button, like the cards): folded cards with the steps, the price, the hours and the official link, marked when
+- **Tickets and how to book** (a tile, like the cards): folded cards with the steps, the price, the hours and the official link, marked when
   some details are unconfirmed.
-- **Where to eat** (a summary button): researched places for the day's meals (the dish, closed dates, the rating), each opening its card,
+- **Where to eat** (a tile): researched places for the day's meals (the dish, closed dates, the rating), each opening its card,
   and **Also nearby:** wishlist places that fit the day, must-dos first.
 - **Photos** with their caption and credit.
 
@@ -191,12 +216,28 @@ same; only the colours and the drawings change. Without one, the page is the sky
 
 ## Fixed times and running late
 
+- **Skip a stop.** Plans change: a place is closed, it rains, everyone's tired. Open any planned stop and tap **Skip**
+  (跳过). A booked one (a fixed time) asks once more: "This one is booked. Skip it anyway?". The stop leaves the day's
+  string and folds, with the day's other skips, into one line at its foot, **"2 skipped"**; open it to see each one
+  struck through and **Put back** (放回来). The toast has **Undo** for 8 seconds. A skipped stop is out of Now and Next,
+  the running-late check and the day's route (the way round it shows no minutes until the next data refresh); its pin
+  stays on the map, quieter, and search still finds it, marked skipped. The day's cost line stays as it was: a stop
+  carries no cost of its own. Flights and the hotel can't be skipped: nothing tied to a flight (landing, the airport
+  train, leaving for the airport, check-in), nothing at the airport or at one of the trip's hotels, and no stop the
+  planner marked as a flight or a bed. Anyone can skip and put back, not only a planner.
+- **Move the next stops earlier?** Right after a skip, the stop stays greyed where it was and the page asks "Move the
+  next stops 90 min earlier?", with what that means. Tap it and the next stops move up to the next fixed time, which
+  never moves; No thanks leaves the times as they are. The day's banner then says "Moved 90 min earlier", with Back to
+  the planned times. Putting the stop back moves those stops back too.
+- **Closed that day.** When the data refresh knows a stop's place is shut on its day, the stop says **Closed today**
+  (or **Closed that day** before the trip) under its name, with **Skip this stop** right there.
 - **Push the rest of the day back.** "Running late? Push the rest back" opens a sheet: from which stop, and by how
   long (15–90 minutes). Flexible stops move; fixed ones hold, and the push stops at the next fixed time. A banner then
   says what moved ("+30 min from … until …", or "to the end of the day", each moved stop showing "was HH:MM"), warns if
-  a stop now runs into a fixed time ("shorten or skip"), and offers Adjust or Back to the planned times. On a day that
-  splits, the fork and the rejoin move with the stops; the times inside each plan (pick-up, return by) stay as planned.
-  Nothing after "leave for the airport" can be pushed. With group sync, a push reaches every phone.
+  a stop now runs into a fixed time ("shorten or skip", with Skip beside it), and offers Adjust or Back to the planned
+  times. On a day that splits, the fork and the rejoin move with the stops; the times inside each plan (pick-up,
+  return by) stay as planned. Nothing after "leave for the airport" can be pushed. With group sync, a push reaches
+  every phone.
 - **The running-late check.** With the phone's location, the page sees when you're 15 minutes or more behind the plan
   near a stop and offers "Push back N min" or No thanks (after No thanks it asks again only when you fall 20 minutes
   further behind). It never moves anything by itself. If a fixed time is about to
@@ -207,9 +248,10 @@ same; only the colours and the drawings change. Without one, the page is the sky
 
 ## Your own stops
 
-- **Add a stop** from the day's "Add a stop" button, or from the "+" under a stop on the day's string: it lands right
-  after that stop, at a time that fits. There's no "+" where nothing can go (under the closing "back to the hotel" row,
-  the flight home, or a stop the next one starts with), and none on a day that holds only the early flight home.
+- **Add a stop** from the day's "Add a stop" button at the foot of its schedule, or from **Add after** inside an opened
+  stop (or in the links of a stop you added): it lands right after that stop, at a time that fits. There's no Add after
+  where nothing can go (the closing "back to the hotel" row, the flight home, or a stop the next one starts with), and
+  none on a day that holds only the early flight home.
 - **Find it:** search the page's places, all or one of six categories, sorted nearest to the stop before or top
   rated; the first 25 show. A place closed that day is flagged and listed last, and shops with a tax refund are tagged. The keyboard's
   Search key puts the keyboard away and leaves the list. With Google, search Google for more. A ＋ on any food, drink, wishlist, map or idea card adds that place too.
@@ -218,7 +260,7 @@ same; only the colours and the drawings change. Without one, the page is the sky
   photos, then the day, the time, getting there and Add, which stays at the foot of the sheet. "Back to the list" (or
   the phone's Back) returns to the list as it was: the search, the category and where it was scrolled.
 - **The time:** a suggestion to start from (the next full hour today, an hour into the free time, noon, or the gap
-  after the "+" stop), in 15-minute steps.
+  after the stop you tapped Add after on), in 15-minute steps.
 - **Getting there:** the sheet works out the trip from the stop before (or from where you are, for the next few hours
   today): the distance, and minutes walking (at the group's pace: 40 % longer than Google for seniors, unless the trip sets its own), by taxi (hailing one included, the same
   minutes the added stop shows later) and by metro. A time too early to get there says so and offers "Use HH:MM",
@@ -229,13 +271,16 @@ same; only the colours and the drawings change. Without one, the page is the sky
   to a fixed-time note), a clash with a fixed time, and, on
   a day that already has four added stops, a word before one more.
 - **On the day:** an added stop shows "Added" (or "Added by …" with group sync), its address, any warning, the distance
-  and walk or taxi time from the stop before, Change and Remove, and the drinks, rest spots and toilets near it. It
-  appears on the map too, with Change on its card.
+  and walk or taxi time from the stop before, Change and Remove, and the drinks, rest spots, toilets and refill points
+  near it. It appears on the map too, with Change on its card.
 - **Undo.** Removing a stop asks first, then shows Undo on the toast for 8 seconds.
-- **Share without sync.** "Share my added stops" makes a link; opening it on another phone offers "N shared stops →
-  Add to my plan", skipping ones it already has.
-- **Back to the original plan** clears added stops, flight changes and push-backs (ticks stay), after asking, with
-  Undo. With group sync it's a planner's button.
+- **Share without sync.** In a day's ⋯ sheet, under "My changes", "Share my added stops" makes a link ("Share my
+  changes" once you've skipped a stop: the skips go in the link too); opening it on another phone offers "N shared stops
+  → Add to my plan", skipping ones it already has. With group sync it isn't there: every phone already has them.
+- **Back to the original plan** (the same ⋯ sheet, in red, and at the end of the settings) clears added stops, skipped
+  stops, flight changes and push-backs (ticks stay), after asking, with Undo. With group sync that row clears only the
+  stops this phone added; putting everyone's plan back is a planner's, in the Group sync sheet. Both rows show only once
+  this phone has changed something; nothing about them sits under the day's stops.
 
 ## A day that splits
 
@@ -251,9 +296,9 @@ itself is the planner's: it's in the trip's data, and nobody makes one on the pa
 
 - **Optional plans** are sights and ideas that never go on the schedule. Each card has a photo, when it's worth going,
   what to know, the cost (and each person's share), the address, hours, nearest station, links and any ticket, with a
-  food list after the cards. Where one suits a stop, the stop gets a "Nearby options" row: on a phone it shows just
-  how many ("2 nearby options", 附近可选 2) with a chevron, and a tap opens it (on a wider screen it starts open); each
-  chip, with the distance, opens its card over the day. The row stays as you left it until the page is opened again.
+  food list after the cards. Where one suits a stop, the opened stop has a "Nearby options" row: how many ("2 nearby
+  options", 附近可选 2) with a chevron, open with the stop, and a tap folds it; each chip, with the distance, opens its
+  card over the day. The row stays as you left it until the page is opened again.
   A plan is left out on a day its place is closed.
 - **Shop lists** (tea, pharmacies, gear…): each list has its own heading in Optional, with its shops ranked (area,
   when to go, hours and phone where the trip has them, the day it fits), a "before going in, check" box with ticks, a
@@ -273,30 +318,46 @@ itself is the planner's: it's in the trip's data, and nobody makes one on the pa
 ## Near each stop, and near me
 
 - **Under every stop:** meal chips at meal stops (sorted by rating, Tabelog's lower scale counted against Google's,
-  "N closed today", "near the hotel"), and pills for drinks, rest spots (seats and air-conditioning) and toilets, each
-  opening a list sorted by distance with that day's hours, the walk, the rating and a tip.
+  "N closed today", "near the hotel"), and pills for drinks, rest spots (seats and air-conditioning), toilets and water refill, each opening a list sorted by distance with
+  that day's hours, the walk, the rating and a tip. Each pill shows when its own data is there: a trip with toilets and no
+  drinks still shows its toilets.
+- **Refill (装水):** free places to fill a bottle within 600 m, the nearest three: a tap, a shop that fills one, or a
+  public indoor place, with the walk, that day's hours and whether it's open when the group is there (now, on today's
+  stops), what water it gives and how to ask, and whose data it is. The pill shows the nearest one's distance. In a cold
+  place's winter, outdoor taps are turned off: on those days they're left out and counted ("3 closed for winter"), and
+  shops and indoor taps stay. Refill is also a kind on the map, and a tab near me.
 - **How to order a drink:** sugar, ice, toppings and price, where the destination has a drink culture (Taiwan's).
 - **Toilets:** the place's own (and whether it's accessible), public toilets by distance, shops that let you ask (buy
   something first), and station toilets, with the metro's tip where it has one (Taipei's free pass inside the gates).
   Cards say "has a toilet" or the nearest public one.
-- **Food & drinks:** Find food near me, Drinks, Sit and rest, Toilets near me, and breakfast and late-night food near the
-  hotel. Near me picks the meal by the clock, lists what's within 2.5 km (else the nearest six), hides what's closed
+- **Food & drinks:** Find food near me, Drinks, Sit and rest, Toilets near me, Refill near me (when the trip has refill
+  points), and breakfast and late-night food near the hotel. Near me picks the meal by the clock, lists what's within 2.5 km (else the nearest six), hides what's closed
   today (with a count), and gives the walk and directions. Without location it starts from the plan's current stop or
   the hotel, and "Start from somewhere else" lets you choose.
+- **All (全部):** the first tab near me lists every place to eat or drink at once (each meal's food and wishlist food,
+  the drinks and rest spots), nearest first, with the wishlist's tag; what's shut right now by its hours is left out and
+  counted ("4 closed now"), and a place whose hours can't be read stays in. Once you pick All, this phone opens on it
+  next time; pick a meal and it goes back to the meal for the hour.
+- **A wishlist chip past a short walk** (more than 1.2 km from a meal stop) says how to get there instead of only how
+  far: "MRT · ≈ 20 min" from the stop's station to the place's (the walks in and out at the group's pace and a ride
+  between, an estimate), "Drive · ≈ 25 min" on a day that goes by car, or "Far · 5.0 km" where neither end has a
+  station. A tap opens its card, which names the station. Under 1.2 km it keeps its distance.
 
 ## The map
 
 - **Google Maps** when the planner built with their own key (light and dark, Street View, a locate button), with live
   ratings, reviews, hours (today highlighted), photos and Google search. Otherwise a free MapLibre map on OpenFreeMap,
   falling back to OpenStreetMap's own tiles if that fails ([which to choose](google-maps.md)). It follows the theme.
-- **Map first:** the map fills the screen under the search and one row of categories, and searching never pushes it
+- **Map first:** the map fills the screen under the search and one Filters button, and searching never pushes it
   away. On a phone the results lie in a sheet over the map's foot: drag its top, or use its arrow buttons, to see more
   of the list (it stops at a peek, half and almost the whole map), and ✕ closes it. On a wider screen (a computer, a
   tablet, or the map in full screen there) they sit in a panel down the map's left, with the map open beside it.
-- **Filters:** one button before the categories names the day the map shows (all days or one; it opens on today) and
-  opens a sheet with every day and an area button for each part of the trip; a tap applies it and closes the sheet.
-  The categories are sights, food, wishlist, drinks, rest spots, toilets, metro, bike share and bus. A legend explains
-  shape (the type) and colour (the day).
+- **Filters:** one button names what the map shows (all days or one, it opens on today; then the kind, when one is
+  picked) and opens a sheet with every day, every kind and an area button for each part of the trip; a tap applies it
+  and closes the sheet. With one day picked, its pins stand out and the other days' stay on the map, quieter. The kinds
+  are sights, food, wishlist, drinks, rest spots, toilets, refill (a blue drop; outdoor taps shut for the winter aren't
+  drawn), metro, bike share and bus. The sheet ends with what the pins
+  mean: shape is the type and colour is the day.
 - **Search and list:** search the map, or list what's on it with a count, by type or nearest first. A search also
   finds the shop box's supermarkets and pharmacies, which have no pin of their own, and works before the map has
   loaded (or when it can't load: the list still works). The keyboard's Search key puts the keyboard away and leaves
@@ -333,7 +394,8 @@ itself is the planner's: it's in the trip's data, and nobody makes one on the pa
 - **Full screen**, with one-finger drag and Exit (Back closes it too); search, the filters and the list work there the
   same way. Your live location shows as a dot with an
   accuracy circle and a heading arrow when you move,.
-- **All places**, as a list by day, each tapping to its pin.
+- **All places**, as a list by day, each tapping to its pin: every day one line with its count, the same day open as
+  in Days.
 - **If it can't load** (offline, an ad blocker, an old phone), it says why, offers Try again and the hotel in Google
   Maps, and retries when you're back online. It starts loading just before you scroll to it.
 - **My Maps:** a six-step guide and a Download KML button put the trip's places into Google My Maps.
@@ -350,6 +412,12 @@ itself is the planner's: it's in the trip's data, and nobody makes one on the pa
   one, the phone, "please take us here" (in the local language where the country pack has one, Chinese otherwise), Copy address and Google
   Maps. On a trip day it's one tap from the current and the next stop in the plan; every place also has it in its
   place sheet.
+- **Stops on the way (沿途休息):** a drive of 90 minutes or more folds its rest stops under the row the group drives in
+  ("5 stops on the way · 2 open 24 h"), shut until tapped: each service area, parking area, roadside station or petrol
+  station in order along the way, how far in (minutes and km), whether it's open 24 hours or its hours that day, and
+  Directions there. In winter it says which are open 24 h. They're for reference, "in case we need one": nothing is
+  planned around them and no time moves. On the day, while the drive is under way, the one ahead by the clock (not
+  your location) is marked **Next**.
 - **Directions** links open the phone's maps app in the right mode (walk, transit, drive, bike).
 - **Google Maps or Apple Maps:** "Open maps in" in More (the Sections menu on a computer) switches every Map and Directions link on this
   phone to Apple Maps (at the place's pin, with transit, drive or walk), and back. The whole-day route stays on Google
@@ -367,13 +435,25 @@ itself is the planner's: it's in the trip's data, and nobody makes one on the pa
   options also show in the home currency, at a rate you can change on the page (in the budget or in More;
   it's remembered, and every figure follows it). The currency button turns that around: the home currency first, the
   trip's original beside or under it.
-- **The budget:** what's not included, the total and each person's share, a suggestion, which costs don't shrink with
-  fewer people (cars) and the group pot (also in the home currency) on the view; the main shared costs, a chart of each
-  day's costs (estimates dashed, linking to each day) and the cash each open from a summary button.
+- **The budget:** what the group has already paid, in the home currency (≈ where something was converted), and one line
+  for what's still to come and each person's share. Then tiles: **Paid** (each payment, where and when; open one for
+  its booking number), **To pay** (each estimate with each person's share, a balance still due with where it's paid,
+  and anything planned whose price isn't known yet as "price TBD", never counted), **By kind** (transport, car,
+  lodging, food, tickets, activities, insurance, other: one row a kind, biggest first, each with its big icon, its share
+  of the whole, a bar, what's paid and what's still to pay in the home currency, and each person's share; the kinds add
+  up to the totals above, and a row with no kind counts as Other), a chart of each day's costs (estimates dashed,
+  linking to each day) and the cash; then the rate, and a fold with the suggestion, which costs
+  don't shrink with fewer people (cars), the group pot (also in the home currency) and what's not included. A budget
+  with no payment yet shows its estimate total first, as before.
 - **Cash and cards:** how much shared cash and each person's share of it, what it's for, where cards work, and the
   transit card's top-up.
-- **Tax refund:** the tag (with the minimum spend) on shops that qualify, in the add sheet and the shop box; the
-  rules fold out in the shop box.
+- **Tax refund:** the tag (with the minimum spend) on shops that qualify, in the add sheet and the shop box, and a
+  **Tax refund** tile in Today's bookings (the shop box links to it). Its sheet leads with the minimum spend and the
+  deadline, then the rules in short; the shops' **coupons**, each with its offer, its tiers, its last day (or "No end date shown" when the coupon prints none) and its
+  barcode image full width (tap it: full screen on white, sharp, for the cashier to scan; ✕ or Back closes it), one past
+  its last day greyed and folded to "Expired"; **how it works**, step by step; **to a card or in cash**; and **at the
+  airport**, where the customs kiosk and the cash machine are and when, with the customs Wi-Fi and a Copy button for its
+  name and password. The tile's number is how many coupons are still good.
 
 ## Before you go
 
@@ -381,8 +461,8 @@ itself is the planner's: it's in the trip's data, and nobody makes one on the pa
   notes, due dates and links, and a progress bar. With group sync, a group
   marked Shared ticks for everyone (bookings, tickets); personal ones (passport, packing) stay on each phone. "Clear my
   own ticks" leaves the shared ones.
-- **Entry:** a summary button for the entry ticks (how many are done, leading to the checklist), one for each entry
-  rule with its warnings, then the sources and the date checked, and, in Taiwan, the visitor lucky
+- **Entry:** a button for the entry ticks (how many are done, leading to the checklist), one for each entry
+  rule with its warnings (a tile each), then the sources and the date checked, and, in Taiwan, the visitor lucky
   draw with a calculator for the group (repeat visitors, companions, who can't join, the total in both currencies). Its
   ticks sit at the top of the checklist and show in the countdown when due.
 - **Weather:** what to expect, when to check (a dated check shows up in the countdown), links, the daily checks, what
@@ -394,40 +474,43 @@ itself is the planner's: it's in the trip's data, and nobody makes one on the pa
 
 ## The airport and going home
 
-- **Arriving:** the facts and the steps from the plane, then summary buttons for the ways to the hotel (a chart by
+- **Arriving:** the facts and the steps from the plane, then tiles for the ways to the hotel (a chart by
   group total, and a card for each: door to door, changes, bags, best when, the recommended one, any booking), the rail
   line as a diagram, the rule for deciding on the day, and buying and topping up the transit card; and links from each
   terminal to the hotel.
-- **Going home** (a summary button): the evening worked back from take-off (back for the bags, leave, at the airport, with the take-off's
+- **Going home** (a tile): the evening worked back from take-off (back for the bags, leave, at the airport, with the take-off's
   date), a "leave by" warning or the buffer, and links for the ride to the airport. A typed delay moves it all.
 
 ## Group sync
 
 Off unless the planner sets it up for the trip (the `sync-setup` skill). With it:
 
-- **What's shared:** added stops, pushed-back times, flight changes and ticks in shared lists reach every phone. The
-  rest (the language, the theme, personal ticks, which split plan a device shows) stays on each device.
+- **What's shared:** added stops, skipped stops, pushed-back times, flight changes and ticks in shared lists reach
+  every phone. The rest (the language, the theme, personal ticks, which split plan a device shows) stays on each
+  device.
 - **Your name.** The first open asks for a name once, a moment after the page shows (Not now is fine); until then a bar
   under the header asks again, and Later hides it for a day. The add-stop sheet asks too. The keyboard's Done key saves
   the name (while a Chinese input method is still picking characters, its Enter is left to it). A name given later goes onto
   the stops you already added, on every phone. A planner's name can't be taken, except by another of that planner's
   devices once it has given the planner code.
 - **Who can change what.** Each phone changes or removes only the stops it added ("only the person who added it, or a
-  planner"), and "Remove the N stops I added" clears them. Pushed-back times, flight changes and ticks stay open to
-  everyone.
+  planner"), and "Remove the N stops I added" clears them. Skipping a planned stop, pushed-back times, flight changes
+  and ticks stay open to everyone.
 - **Planners** (a device that gave the planner code under "I'm a planner") can change anyone's stops, remove one
-  phone's, put the whole group back on the original plan, make another phone a planner, and block a stray phone: its
-  stops and last changes go back to the plan, and what it writes next reaches nobody. Undo brings it all back, and
-  Unblock sends what waited.
+  phone's, put the whole group back on the original plan (skips too), make another phone a planner, and block a stray
+  phone: its stops and last changes (its skips included) go back to the plan, and what it writes next reaches nobody.
+  Undo brings it all back, and Unblock sends what waited.
 - **The Group sync sheet** (a row in More, or the Sections menu on a computer): what syncs, your name, the planner box, when it last synced or
   how many changes are waiting, Sync now (it says when it's working and when it's up to date), "The group", and
-  **Recently removed** (the newest 10, with who removed each and Put back).
+  **Recently removed or skipped** (the newest 10, with who removed or skipped each, and Put back: a removed stop by the
+  phone that added it or a planner, a skipped one by anyone).
 - **The group** lists each person once. Someone on a phone, a tablet and a laptop under one name shows that name with
   each device under it: what kind it is ("iPhone · home-screen app", "Mac · Chrome", "Android · OPPO Browser"), its
   badges (This one, Planner), how many stops it added and when it last changed something. Every browser is its own
   device: an iPhone's Safari and its home-screen copy are two. Blocked devices fold away under **Blocked devices (N)**
   at the end, with Unblock inside.
-- **Others' changes** show as a toast: "Ana added … · Day 3 19:30", a push-back, a new landing time, a tick.
+- **Others' changes** show as a toast: "Ana added … · Day 3 19:30", "Ana skipped …", a push-back, a new landing time,
+  a tick.
 - **While you were away:** what the group changed while your page was closed or in the background waits in a card on
   Today, newest first, each with when and a way to its day; a toast says how many, with See. It stays, in either
   language, until you tap **Got it**, and it's only on your device. The first open on a device shows none: everything
@@ -466,7 +549,8 @@ approved (ADR-20261127-sync-approval). Trips already syncing keep the older way 
 
 ## Location
 
-- **Asked only from a card that says why**, never by itself: Turn on location, or Not today (asked again tomorrow).
+- **Asked only from a card that says why**, never by itself: in full the first time on a phone, then one row (Late
+  alerts, Turn on, ✕). ✕ means not again on that phone; Location in More's settings turns it on later.
 - **If the phone said no,** the card shows how to turn it on for iPhone, Android or a computer. If it asks again, it
   says why (an iPhone forgets; "only this time" was picked). If the phone gives only an approximate position, it shows
   how to turn on precise location, which the running-late check needs.
@@ -503,6 +587,12 @@ Everything above that isn't listed here is on every page. The fields are in
 | The place finder, place details, the add sheet's look first                                | on every page with `geo.json`; the best day reads the days' stops, their times, `freeFrom`, and the place's hours and `closed_dates` from the data refresh                                                                               |
 | Group sync, names, planners, Recently removed, join requests                               | `sync-setup`, then building with `--sync`; an approval trip also needs anonymous sign-in and the web API key                                                                                                                             |
 | Positions, hours, route legs, food, drinks, toilets                                        | the data refresh (`data-sync`)                                                                                                                                                                                                           |
+| Refill under each stop, its kind on the map, Refill near me                                | `refill.json`, from the data refresh's free `refill` step (`pipeline.json` `steps`): OpenStreetMap, plus the trip's own `refill-*.json`                                                                                                  |
+| Outdoor taps left out in winter, "N closed for winter"                                     | the city pack's `refillWinter` (Sapporo: November to April); without one, only taps OpenStreetMap marks seasonal, December to February                                                                                                   |
+| All near me (every place to eat or drink, open now)                                        | on every page with food, wishlist food or drinks; "closed now" reads each place’s hours (Google’s week, or the English hours line)                                                                                                       |
+| A wishlist chip’s metro or drive time past 1.2 km                                          | the nearest station (`mrt`) on the meal stop's place in `geo.json` and on the wishlist branch, from the data refresh; a drive on a day whose route drives and takes no transit                                                           |
+| Stops on the way under a long drive, Next while it’s under way                             | `drive-stops.json`, from the data refresh's `drive-stops` step (`pipeline.json` `steps`, after `apply`) for each drive of 90 min or more; the searches come from the country pack's `driveStops` (Japan)                                 |
+| Share my changes and Back to the original plan in a day's ⋯                                | something this phone added or changed (a stop, a skip, a flight time, a push-back); Share only without group sync                                                                                                                        |
 | The map and its pins, Map in the bottom bar                                                | `geo.json` (from the data refresh)                                                                                                                                                                                                       |
 | The forecast                                                                               | the data refresh, for trip days within 16 days (`forecast_spots`, `forecastSpot`)                                                                                                                                                        |
 | Today's route                                                                              | `DAYS[i].route`, with the legs from the data refresh                                                                                                                                                                                     |
@@ -510,9 +600,20 @@ Everything above that isn't listed here is on every page. The fields are in
 | Tickets and how to book                                                                    | `DAYS[i].tickets`, and `extra.json` `tickets`                                                                                                                                                                                            |
 | Where to eat, meal chips                                                                   | `DAYS[i].foodSlots` and `mealAt`, and `extra.json` `food`                                                                                                                                                                                |
 | Day cards (decide, rain, budget, wear…)                                                    | `DAYS[i].blocks`                                                                                                                                                                                                                         |
+| The budget's Paid and To pay, a deposit and its balance, a price TBD                       | `BUDGET.rows` written as payments (`paid`, `cur`, `via`, `ref`), in `parts`, or `tbd`; estimate rows stay as they were                                                                                                                   |
+| The budget's By kind, and its row for each kind                                            | each row's `cat` in `BUDGET.rows` (an estimate's last item); without one, Other (an airport-anchored estimate counts as Transport)                                                                                                       |
+| Insurance in Today's bookings                                                              | `INSURANCE` (`policies`, `claims`)                                                                                                                                                                                                       |
+| A card's tile word                                                                         | `tile` on a card; else its heading when that's short, else the word for its kind                                                                                                                                                         |
+| A day's short name on its row (the week, Days, the rail, the map's list)                   | `DAYS[i].short`; without it, the first place of the day's `title` and how many                                                                                                                                                           |
+| A day's forecast on its row                                                                | the forecast from the data refresh, for days inside it (`forecast_spots`, `forecastSpot`); nothing after it ends                                                                                                                         |
+| The red diamond beside a day's date                                                        | a stop with `fixed: true` on that day                                                                                                                                                                                                    |
+| Skip on a stop, and which stops have none                                                  | every planned stop has it, except one tied to the flights (`rel`), at an airport terminal (`AIRPORT.terminals`), at a hotel (`TRIP.hotel`, `DAYS[i].hotel`), or with `icon: 'plane'` or `'bed'`; `fixed: true` asks once more            |
+| Closed today on a stop, with Skip                                                          | the place's `closed_dates` in `geo.json`, from the data refresh (`data-sync`)                                                                                                                                                            |
+| A stop's kind on the string, a note kept in sight                                          | a stop's `icon` (else read from the stop), and `todo` for a note the group must act on                                                                                                                                                   |
 | A card's one-line summary, the option chosen                                               | worked out from each card; `sum` on a card for the planner's own words, `pick` on a `decide` card for the chosen option                                                                                                                  |
 | The currency button, Amounts and rate                                                      | `TRIP.currency`: a `home` currency that isn't the trip's own `sym`, and a `rate`                                                                                                                                                         |
 | Tax refund tag and rules                                                                   | the country pack (`TRIP.destination`), `shops.json`, and `TAX`                                                                                                                                                                           |
+| The Tax refund tile, its steps, card or cash, the airport, coupons                         | `TAX` (`steps`, `methods`, `airport`, `deadline`, `coupons` with images in `img/`, `src`); the minimum spend from the country pack                                                                                                       |
 | Lucky draw, drink guide                                                                    | the country pack, and `ENTRY.lucky` for the draw                                                                                                                                                                                         |
 | Metro name, transit card, taxi meter, bike share, toilet tip                               | the city pack (`TRIP.region`); the transit card also `AIRPORT.transitCard` / `MONEY.transitCard`                                                                                                                                         |
 | The local words, one tap to copy                                                           | the country pack's `native`, with each place's `trad` and `roma` (a stop's own `native`, `roma`; a food, drink or wishlist entry's `name_trad`, `name_roma`)                                                                             |

@@ -43,6 +43,13 @@ export async function ruleChecks({ base, ns, check, log = () => {} }) {
 	await check('the same time from a smaller device id loses', await req('PATCH', r(), { [name('a')]: rec({ u: 1000, d: 'device0' }) }), 401);
 	await check('the same time from a larger device id wins', await req('PATCH', r(), { [name('a')]: rec({ u: 1000, d: 'device2' }) }), 200);
 	await check('a newer version replaces it', await req('PATCH', r(), { [name('a')]: rec({ u: 2000 }) }), 200);
+	// a skipped planned stop is a record like any other (ADR-20261128-skip-planned-stops): the rules can't tell it from a
+	// stop, so any phone with the token skips one or puts it back, over whichever phone wrote it last
+	await check(
+		'another phone puts a newer version over it (a skip, or putting one back)',
+		await req('PATCH', r(), { [name('a')]: rec({ u: 2500, d: 'device0' }) }),
+		200,
+	);
 	await check('a batch with one bad record is refused whole', await req('PATCH', r(), { [name('c')]: rec(), [name('d')]: rec({ k: 'nope' }) }), 401);
 	await check('nothing from that batch went in', await (await fetch(at(r(`/${name('c')}`)))).text(), 'null');
 	await check('no deleting a record', await req('DELETE', r(`/${name('a')}`)), 401);
@@ -185,6 +192,14 @@ export async function ruleChecks({ base, ns, check, log = () => {} }) {
 	await check('an older version can’t replace a newer one', await req('PATCH', g('/r'), { [name('a')]: arec(A, { u: 999 }) }, { as: A }), 401);
 	await check('the same time from a smaller sync id loses', await req('PATCH', g('/r'), { [name('a')]: arec(A, { u: 1000 }) }, { as: A }), 401);
 	await check('a newer version replaces it', await req('PATCH', g('/r'), { [name('a')]: arec(A, { u: 2000 }) }, { as: A }), 200);
+	// skipping a planned stop is open to every member, not only planners (ADR-20261128-skip-planned-stops): an approved
+	// device that isn't a planner writes a newer version over a planner's record, as itself
+	await check(
+		'a member who isn’t a planner writes over a planner’s record (a skip, or putting one back)',
+		await req('PATCH', g('/r'), { [name('a')]: arec(B, { u: 3000 }) }, { as: B }),
+		200,
+	);
+	await check('and a new one of its own (a skip)', await req('PATCH', g('/r'), { [name('f')]: arec(B, { u: 3000 }) }, { as: B }), 200);
 	await check('no deleting a record', await req('DELETE', g(`/r/${name('a')}`), undefined, { as: A }), 401);
 	await check('the stranger, still pending, reads none of it', await req('GET', g('/r'), undefined, { as: C }), 401);
 

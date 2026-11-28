@@ -90,6 +90,7 @@ function groupSync() {
 	// the state as saved, and every change to it noted as records to send
 	const stateNow = () => ({
 		mine: mineAll(),
+		skips: skipsAll(),
 		shift: store.get('shift', {}) || {},
 		fltArr: store.get('fltArr', '') || '',
 		fltDep: store.get('fltDep', '') || '',
@@ -109,14 +110,15 @@ function groupSync() {
 	let quiet = false;
 	let remoteWho = null;
 	const rawSet = store.set;
-	// every stop that leaves the plan, here or from the group, goes on this phone's "recently removed" list
+	// every stop that leaves the plan, here or from the group, goes on this phone's "recently removed" list, and so does
+	// every planned stop skipped (ADR-20261128-skip-planned-stops), with who skipped it
 	store.set = (k, v) => {
 		const before = k === 'mine' ? mineAll() : null;
+		const skipsBefore = k === 'skips' ? skipsAll() : null;
 		rawSet(k, v);
-		if (before) {
-			const who = quiet && remoteWho ? remoteWho : { at: Date.now(), by: meta.name, me: true };
-			rawSet('syncGone', Sync.goneLog(store.get('syncGone', []), before, Array.isArray(v) ? v : [], who));
-		}
+		const who = () => (quiet && remoteWho ? remoteWho : { at: Date.now(), by: meta.name, me: true });
+		if (before) rawSet('syncGone', Sync.goneLog(store.get('syncGone', []), before, Array.isArray(v) ? v : [], who()));
+		if (skipsBefore) rawSet('syncGone', Sync.skipLog(store.get('syncGone', []), skipsBefore, v && typeof v === 'object' ? v : {}, who()));
 		if (!quiet && Sync.KEYS.includes(k)) noteLocal();
 	};
 	let soonT = 0;
@@ -162,12 +164,13 @@ function groupSync() {
 			list.map(([rid, v]) => [rid, v]),
 			sharedTick,
 		);
-		const by = theirs.find(([rid, v]) => rid.startsWith('stop:') && v === null);
+		const by = theirs.find(([rid, v]) => (rid.startsWith('stop:') && v === null) || (rid.startsWith('skip:') && v));
 		remoteWho = { at: Date.now(), by: by ? by[2].n || '' : '', me: false };
 		const wasBlocked = blockedHere();
 		quiet = true;
 		try {
 			mineSet(next.mine);
+			store.set('skips', next.skips);
 			store.set('shift', next.shift);
 			store.set('fltArr', next.fltArr);
 			store.set('fltDep', next.fltDep);
@@ -930,8 +933,8 @@ function syncSheet() {
 		.map((h) => Z(`「${L(h)}」`, `“${L(h)}”`))
 		.join(Z('、', ', '));
 	const reset =
-		lead && (mineAll().length || store.get('fltArr', '') || store.get('fltDep', '') || Object.keys(store.get('shift', {}) || {}).length)
-			? `<div class="sync-part"><p class="sub-h">${Z('规划人', 'Planner')}</p><button type="button" class="mlink danger" data-reset-all>${icon('x')}${Z('全组恢复原计划', 'Back to the original plan, for everyone')}</button><p class="xsmall muted">${Z('删掉所有人加的行程、改过的航班和往后推的时间。名字、规划人和清单勾选都会保留，删掉的行程在上面可以放回去。', 'Removes everyone’s added stops, flight changes and pushed-back times. Names, planners and ticks stay; removed stops can be put back above.')}</p></div>`
+		lead && resetAllNeeded()
+			? `<div class="sync-part"><p class="sub-h">${Z('规划人', 'Planner')}</p><button type="button" class="mlink danger" data-reset-all>${icon('x')}${Z('全组恢复原计划', 'Back to the original plan, for everyone')}</button><p class="xsmall muted">${Z('删掉所有人加的行程、改过的航班和往后推的时间，跳过的站放回来。名字、规划人和清单勾选都会保留，删掉的行程在上面可以放回去。', 'Removes everyone’s added stops, flight changes and pushed-back times, and puts skipped stops back. Names, planners and ticks stay; removed stops can be put back above.')}</p></div>`
 			: '';
 	const claimBox =
 		!lead && SYNC.planner && !syncIsBlocked()
@@ -959,7 +962,7 @@ function syncSheet() {
 			: '';
 	return `<div data-sync-sheet><h3 class="spots-h">${icon('users')}${Z('全组同步', 'Group sync')}</h3>
       <p class="sync-state" data-sync-state role="status">${Cap(syncState())}</p>
-      <p class="small">${Z(`加的行程、往后推的时间、改过的航班时间${lists ? `和${lists}的勾选` : ''}，会出现在全组每个人的页面上。语言、主题、其他勾选只留在这台设备。`, `Added stops, pushed-back times and changed flight times${lists ? `, and ticks in ${lists},` : ''} show up on everyone’s page. Language, theme and other ticks stay on this one.`)}</p>
+      <p class="small">${Z(`加的行程、跳过的站、往后推的时间、改过的航班时间${lists ? `和${lists}的勾选` : ''}，会出现在全组每个人的页面上。语言、主题、其他勾选只留在这台设备。`, `Added stops, skipped stops, pushed-back times and changed flight times${lists ? `, and ticks in ${lists},` : ''} show up on everyone’s page. Language, theme and other ticks stay on this one.`)}</p>
       ${nameBox}${waitBox}
       ${lead ? `<p class="sync-role">${icon('check')}${Z('你是规划人：可以改、删任何人加的行程，也可以把别人设为规划人', 'You’re a planner: you can change or remove anyone’s stops, and make others planners')}</p>` : claimBox}
       <div class="links-row"><button type="button" class="go-btn sync-now" data-sync-now>${icon('sync')}${Z('现在同步', 'Sync now')}</button></div>
@@ -1205,18 +1208,27 @@ document.addEventListener('click', (e) => {
 	if (d.devMove)
 		return run([['move', { dev: d.devMove, person: d.person, name: d.personName || undefined }]], Z('已换到另一个人下', 'Moved to the other person'));
 });
-// "recently removed": kept on this phone, from anyone, so a stop removed by mistake can be put back
+// "recently removed": kept on this phone, from anyone, so a stop removed by mistake can be put back; a planned stop
+// skipped is on it too, while it's still skipped, and anyone may put it back (ADR-20261128-skip-planned-stops)
 function syncGoneHTML() {
-	const log = (store.get('syncGone', []) || []).filter((e) => e && e.x && dayById[e.x.day] && !MINE[e.x.id]).slice(0, 10);
+	const skips = skipsAll();
+	const log = (store.get('syncGone', []) || [])
+		.filter((e) => e && ((e.x && dayById[e.x.day] && !MINE[e.x.id]) || (e.s && skips[e.s] && SKIP_AT[e.s])))
+		.slice(0, 10);
 	if (!log.length) return '';
 	const rows = log.map((e) => {
 		const who = e.me ? Z('你', 'you') : e.by || Z('有人', 'someone');
+		if (e.s) {
+			const { d, i } = SKIP_AT[e.s];
+			const it = d.schedule[i];
+			return `<li class="sync-row"><span><b>${escText(stopName(it))}</b> · Day ${d.n} ${esc(skipTime(it))}<span class="xsmall muted sync-row-sub">${esc(Z(`${who}跳过的 · ${syncAgo(e.at)}`, `skipped by ${who} · ${syncAgo(e.at)}`))}</span></span><button type="button" class="mlink" data-unskip="${esc(e.s)}">${icon('undo')}${Z('放回来', 'Put back')}</button></li>`;
+		}
 		const back = canEditStop(e.x)
 			? `<button type="button" class="mlink" data-gone-back="${esc(e.x.id)}">${icon('plus')}${Z('放回去', 'Put back')}</button>`
 			: '';
 		return `<li class="sync-row"><span><b>${esc(e.x.name)}</b> · Day ${dayById[e.x.day].n} ${esc(e.x.t)}<span class="xsmall muted sync-row-sub">${esc(Z(`${who}删的 · ${syncAgo(e.at)}`, `removed by ${who} · ${syncAgo(e.at)}`))}</span></span>${back}</li>`;
 	});
-	return `<div class="sync-part"><p class="sub-h">${Z('最近删掉的', 'Recently removed')}</p><ul class="sync-list">${rows.join('')}</ul></div>`;
+	return `<div class="sync-part"><p class="sub-h">${Z('最近删掉或跳过的', 'Recently removed or skipped')}</p><ul class="sync-list">${rows.join('')}</ul></div>`;
 }
 // the sheet, drawn again in place when what it shows changed (it may not be open)
 // (on the next frame: it's often asked from inside a change or blur on the sheet's own field)
@@ -1332,9 +1344,26 @@ function syncLine([rid, v, ver], z = Z) {
 			? z(`${who}加了「${v.name}」· ${dayN(dayById[v.day])} ${v.t}`, `${who} added ${v.name} · ${dayN(dayById[v.day])} ${v.t}`)
 			: z(`${who}删了「${old ? old.name : '一个行程'}」`, `${who} removed ${old ? old.name : 'an added stop'}`);
 	}
+	if (kind === 'skip') {
+		const at = SKIP_AT[id];
+		if (!at) return '';
+		const w = at.d.schedule[at.i].what;
+		const name = (Array.isArray(w) ? z(w[0], w[1] || w[0]) : String(w)).replace(/\*\*/g, ''); // in z's language: the away card keeps both
+		// read before the change goes in: a skip already here that changed (the move earlier it took) isn't news
+		if (v && skipsAll()[id]) return '';
+		return v
+			? z(`${who}跳过了「${name}」· ${dayN(at.d)}`, `${who} skipped ${name} · ${dayN(at.d)}`)
+			: z(`${who}把「${name}」放回来了 · ${dayN(at.d)}`, `${who} put ${name} back · ${dayN(at.d)}`);
+	}
 	if (kind === 'shift') {
 		const d = dayN(DAYS.find((x) => x.date === id));
-		return v ? z(`${who}把 ${d} 往后推了`, `${who} pushed ${d} back`) : z(`${who}把 ${d} 改回原定时间`, `${who} put ${d} back to the planned times`);
+		// a move earlier after a skip is a shift too; a push back's total is above 0
+		const tot = Array.isArray(v) ? v.reduce((a, g) => a + (g.min || 0), 0) : 0;
+		return v
+			? tot < 0
+				? z(`${who}把 ${d} 后面的站提早了`, `${who} moved ${d}'s next stops earlier`)
+				: z(`${who}把 ${d} 往后推了`, `${who} pushed ${d} back`)
+			: z(`${who}把 ${d} 改回原定时间`, `${who} put ${d} back to the planned times`);
 	}
 	if (kind === 'flt')
 		return id === 'arr' ? z(`${who}改了到达时间`, `${who} changed the landing time`) : z(`${who}改了回程起飞时间`, `${who} changed the flight home`);
@@ -1365,6 +1394,7 @@ function syncDayOf([rid, v]) {
 	const id = rid.slice(rid.indexOf(':') + 1);
 	if (rid.startsWith('stop:')) return (v && dayById[v.day] ? v.day : MINE[id] && MINE[id].day) || null;
 	if (rid.startsWith('shift:')) return (DAYS.find((x) => x.date === id) || {}).id || null;
+	if (rid.startsWith('skip:')) return (SKIP_AT[id] && SKIP_AT[id].d.id) || null;
 	return null;
 }
 /* "While you were away" (ADR-20261127-while-away): the group's changes this phone took in when the page opened or came

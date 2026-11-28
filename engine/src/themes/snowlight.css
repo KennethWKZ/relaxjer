@@ -1,8 +1,8 @@
 /* ───────── World: Snow Light Path (ADR-20261117-destination-themes) ─────────
    A pack's `theme: 'snowlight'` puts this file after style.css and sets data-world="snowlight" on <html>; a trip without
    it never carries a byte of it. The day is a footpath through snow lit by small candles set in the ground: frosted snow
-   cards with a drift along the foot, footprints between the stops, a candle in a snow cup at each, an ice crystal where
-   a time is fixed, and a navy snowy night in dark mode lit only by those candles. The engine's class names (.lantern,
+   cards with a drift along the foot, footprints between the stops, each stop's kind on a ring and a candle lit on the
+   one under way, an ice crystal where a time is fixed, and a navy snowy night in dark mode lit by the candles. The engine's class names (.lantern,
    .stop-knot…) stay as they are so the default world's page is unchanged; nothing here draws a lantern.
    Every rule hangs under :root[data-world='snowlight'], which also lets it outrank the default world's dark rules. */
 
@@ -415,10 +415,6 @@
 :root[data-world='snowlight'] .wish {
 	color: color-mix(in srgb, var(--c), #fff var(--lift));
 }
-:root[data-world='snowlight'] .lantern .l-btn {
-	border-color: color-mix(in srgb, var(--c), #fff var(--lift));
-	border-radius: var(--r-btn);
-}
 :root[data-world='snowlight'] .lantern .chip {
 	border-radius: var(--r-chip);
 }
@@ -458,40 +454,43 @@
 	transform: rotate(-6deg);
 }
 
-/* ── the path: footprints in snow between the stops, a candle in a snow cup at each ── */
+/* ── the path: footprints in snow between the stops, each stop's kind on a ring in the day colour (as in the default
+   world, ADR-20261128-progressive-disclosure), and one candle: the stop under way's, lit on its ring ── */
 :root[data-world='snowlight'] .stop-knot {
 	--cup: var(--c);
-	background:
-		radial-gradient(circle at 9px 16px, var(--candle-glow) 0, transparent 9px) no-repeat,
-		linear-gradient(color-mix(in srgb, var(--cup) 38%, var(--paper)) 0 0) 3px 19px / 12px 2px no-repeat,
-		radial-gradient(ellipse 6px 3.5px at 9px 25px, var(--cup) 0 94%, transparent 100%) no-repeat,
-		linear-gradient(var(--cup) 0 0) 3px 19px / 12px 6px no-repeat;
 }
 :root[data-world='snowlight'] .stop-knot::before {
 	--step: color-mix(in srgb, var(--c), #fff var(--lift));
-	left: 6px;
+	left: 10px;
 	width: 6px;
 	background:
 		radial-gradient(circle at 1.5px 2.5px, var(--step) 0 1.1px, transparent 1.6px) 0 0 / 6px 11px repeat-y,
 		radial-gradient(circle at 4.5px 8px, var(--step) 0 1.1px, transparent 1.6px) 0 0 / 6px 11px repeat-y;
-	/* the path stops short of the cup and starts again under it */
-	-webkit-mask: linear-gradient(#000 0 5px, transparent 5px 31px, #000 31px);
-	mask: linear-gradient(#000 0 5px, transparent 5px 31px, #000 31px);
 }
 :root[data-world='snowlight'] .stop:first-child .stop-knot::before {
-	top: 31px;
-	-webkit-mask: none;
-	mask: none;
+	top: 23px;
 }
 :root[data-world='snowlight'] .stop:last-child .stop-knot::before {
-	bottom: calc(100% - 5px);
-	-webkit-mask: none;
-	mask: none;
+	bottom: calc(100% - 23px);
 }
-/* the flame (its glow is the knot's static background above, never an animated shadow) */
-:root[data-world='snowlight'] .stop-knot::after {
-	top: 8px;
-	left: 5px;
+/* a row with no kind icon (a stop the group added, a split): a ring dot in its colour, no cup and no flame */
+:root[data-world='snowlight'] .stop:not(.fixed) .stop-knot:not(:has(.knot-ic))::after {
+	background: var(--paper);
+	border-color: var(--cup);
+}
+:root[data-world='snowlight'] .stop.mine .stop-knot {
+	--cup: #d14d72;
+}
+:root[data-world='snowlight'] .stop.split .stop-knot {
+	--cup: color-mix(in srgb, var(--c) 55%, var(--paper));
+}
+/* the stop under way: its candle stands on its ring and lights the snow around it, and (with motion allowed) flickers;
+   the Now flag is its other cue. Its glow is a static shadow, never an animated one */
+:root[data-world='snowlight'] .stop.now:not(.fixed) .stop-knot:has(.knot-ic)::after {
+	display: block;
+	top: 1px;
+	left: 9px;
+	z-index: 2;
 	width: 8px;
 	height: 12px;
 	border: 0;
@@ -500,20 +499,10 @@
 	box-shadow: none;
 	transform-origin: 50% 100%;
 }
-/* my own stops: a cup in the "added by us" pink; a split: a pale cup, since it can move */
-:root[data-world='snowlight'] .stop.mine .stop-knot {
-	--cup: #d14d72;
-}
-:root[data-world='snowlight'] .stop.split .stop-knot {
-	--cup: color-mix(in srgb, var(--c) 55%, var(--paper));
-}
-/* past stops: the candle has burned low */
-:root[data-world='snowlight'] .stop.done .stop-knot::after {
-	opacity: 0.4;
-}
-/* the stop under way: its candle lights the snow around it, and (with motion allowed) flickers; the Now flag is its other cue */
-:root[data-world='snowlight'] .stop.now .stop-knot {
-	--candle-glow: var(--candle-glow-now);
+:root[data-world='snowlight'] .stop.now .knot-ic {
+	box-shadow:
+		0 0 0 4px color-mix(in srgb, var(--c) 28%, transparent),
+		0 0 14px 4px var(--candle-glow-now);
 }
 @media (prefers-reduced-motion: no-preference) {
 	:root[data-world='snowlight'] .stop.now:not(.fixed) .stop-knot::after {
@@ -538,15 +527,13 @@
 		transform: scaleY(1.04);
 	}
 }
-/* a fixed time: an ice crystal in the seal's colour, no cup, no flame */
-:root[data-world='snowlight'] .stop.fixed .stop-knot {
-	background: none;
-}
+/* a fixed time: an ice crystal in the seal's colour, no ring */
 :root[data-world='snowlight'] .stop.fixed .stop-knot::after {
-	top: 11px;
-	left: 0;
+	top: 14px;
+	left: 4px;
 	width: 18px;
 	height: 18px;
+	border: 0;
 	border-radius: 0;
 	transform: none;
 	opacity: 1;

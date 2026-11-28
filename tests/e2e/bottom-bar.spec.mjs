@@ -4,6 +4,7 @@
 // Pause among them; whatever floats at the bottom sits above the bar, which reserves --chrome-bottom.
 import { test, expect, openTrip } from '../support/fixtures.mjs';
 import { BAR, clickOrExplain, goToView, hasBar, LIST, overflow, settle, setStored, switchLang, viewOn } from '../support/page.mjs';
+import { shortFromTitle } from '../../engine/src/core/plan.mjs';
 
 /* global DAYS -- the trip data, read inside the page */
 
@@ -57,10 +58,13 @@ test('below 1024 px the bar holds Today, Days, Map and More; a desktop has none'
 	expect(wide, 'every label fits its item').toBe(0);
 });
 
-test('Days lists every day with its date, weekday and title, today marked, and opens the one picked', async ({ page }) => {
+test('Days lists every day as one line with its date, weekday and short name, today open and marked, and opens the one picked', async ({ page }) => {
 	await openTrip(page);
 	test.skip(!(await hasBar(page)), "a desktop's rail lists the days");
-	const days = await page.evaluate(() => DAYS.map((d) => ({ id: d.id, date: d.date, title: d.title[1] })));
+	// its short name (ADR-20261128-progressive-disclosure): days[].short, else the first place of its route and how many
+	const days = (await page.evaluate(() => DAYS.map((d) => ({ id: d.id, date: d.date, title: d.title[1], short: d.short && d.short[1] })))).map(
+		(d) => ({ ...d, name: d.short || shortFromTitle(d.title, 'en') }),
+	);
 	const pick = days[Math.min(2, days.length - 1)];
 	await setStored(page, { now: `${pick.date} 10:00` });
 	await page.locator(BAR.days).click();
@@ -70,8 +74,11 @@ test('Days lists every day with its date, weekday and title, today marked, and o
 	await expect(rows).toHaveCount(days.length);
 	for (let i = 0; i < days.length; i++) {
 		const row = rows.nth(i);
-		await expect(row).toHaveAttribute('href', `#${days[i].id}`);
-		await expect(row).toContainText(days[i].title);
+		// a fold's row: it opens in place (⌄, rule 12), and only today's is open
+		await expect(row).toHaveJSProperty('tagName', 'SUMMARY');
+		await expect(row.locator('svg.dd-ch')).toHaveCount(1);
+		await expect(page.locator(BAR.dayFold).nth(i)).toHaveJSProperty('open', days[i].id === pick.id);
+		await expect(row).toContainText(days[i].name);
 		await expect(row).toContainText(`Day ${i + 1}`);
 		// the short date, a weekday with it, and the whole date for a screen reader
 		await expect(row.locator('.dtag')).toContainText(String(+days[i].date.slice(8)));
@@ -80,15 +87,44 @@ test('Days lists every day with its date, weekday and title, today marked, and o
 	}
 	await expect(page.locator(`#days [data-day="${pick.id}"] .flag`), 'today is marked').toHaveText('Today');
 	await expect(page.locator('#days .flag')).toHaveCount(1);
+	// today's stops are listed one line each, each a way to that stop, then a way into the whole day
+	const open = page.locator(`#days details[data-dd="${pick.id}"]`);
+	const stops = await page.evaluate((id) => DAYS.find((d) => d.id === id).schedule.length, pick.id);
+	await expect(open.locator('a.dd-stop')).toHaveCount(stops);
+	await expect(open.locator('a.dd-stop').first()).toHaveAttribute('href', `#${pick.id}-s0`);
+	// another day opens in place on a tap, and today's stays as it was
+	const other = days.find((d) => d.id !== pick.id);
+	await page.locator(`#days details[data-dd="${other.id}"] > summary`).click();
+	await expect(page.locator(`#days details[data-dd="${other.id}"]`)).toHaveJSProperty('open', true);
+	await expect(sheet, 'a fold opens in place: the sheet stays').toBeVisible();
 	// it once waited 30 s for this row to hold still on webkit-390 (about 1 in 160 runs): if it does again, the report
 	// shows what moved
-	await clickOrExplain(page.locator(`#days [data-day="${pick.id}"]`));
+	await clickOrExplain(open.locator(BAR.dayGo));
 	await expect(sheet).toBeHidden();
 	await expect(page.locator('html')).toHaveAttribute('data-showing', pick.id);
 	await expect(page.locator(BAR.lit)).toHaveAttribute('data-tb', 'days');
 	// the day on screen is lit in the list the next time
 	await page.locator(BAR.days).click();
 	await expect(page.locator(`#days [data-day="${pick.id}"]`)).toHaveAttribute('aria-current', 'page');
+});
+
+// any trip: with no today, Days opens the first day before the trip and none after it (ADR-20261128-progressive-disclosure)
+test('Days opens the first day before the trip, and no day after it', async ({ page }) => {
+	await openTrip(page);
+	test.skip(!(await hasBar(page)), "a desktop's rail lists the days");
+	const [first, last] = await page.evaluate(() => [DAYS[0].date, DAYS.at(-1).date]);
+	const shift = (d, n) => new Date(Date.parse(`${d}T12:00:00Z`) + n * 864e5).toISOString().slice(0, 10);
+	for (const [now, want] of [
+		[`${shift(first, -3)} 09:00`, 0],
+		[`${shift(last, 2)} 09:00`, -1],
+	]) {
+		await setStored(page, { now });
+		await page.locator(BAR.days).click();
+		const open = await page.locator(BAR.dayFold).evaluateAll((ds) => ds.map((d, i) => (d.open ? i : -1)).filter((i) => i >= 0));
+		expect(open, now).toEqual(want < 0 ? [] : [want]);
+		await page.keyboard.press('Escape');
+		await expect(page.locator(BAR.daysSheet)).toBeHidden();
+	}
 });
 
 test('More opens the planning sections and the settings, and a section from it opens its view', async ({ page }) => {

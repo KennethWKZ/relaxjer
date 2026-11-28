@@ -1,25 +1,26 @@
 // Group sync's rules (ADR-20261001-group-sync). Pure; wrapped as `Sync` inside the page script.
-//  - What a phone shares is a set of records: an added stop, a day's pushed-back times, a changed flight time, a tick in
-//    a shared checklist group, the name a phone goes by, what kind of device it is, and who the planners are
-//    (ADR-20261002-sync-planners).
+//  - What a phone shares is a set of records: an added stop, a skipped planned stop (ADR-20261128-skip-planned-stops), a
+//    day's moved times, a changed flight time, a tick in a shared checklist group, the name a phone goes by, what kind of
+//    device it is, and who the planners are (ADR-20261002-sync-planners).
 //    Everything else (the language, the packing list, the rate…) stays on the phone.
 //  - A change is one record's new value, or null when it's gone. Every phone keeps the newest version of each record:
 //    the later edit, and on a tie the larger device id, so all phones pick the same one.
 //  - What comes from another phone is checked like a pasted share link: the wrong shape is dropped, long text is cut.
 
 /** the saved-state keys that hold shared records */
-export const KEYS = ['mine', 'shift', 'fltArr', 'fltDep', 'checks', 'people', 'roles', 'blocks', 'kits'];
+export const KEYS = ['mine', 'skips', 'shift', 'fltArr', 'fltDep', 'checks', 'people', 'roles', 'blocks', 'kits'];
 
 /**
  * The records a phone's state shares, by record id. state = { mine, shift, fltArr, fltDep, checks, people, roles } as
  * the page saves them (people = { device id: name }, roles = { device id: 'planner' }, blocks = { device id: true },
- * kits = { device id: 'iphone/app' }, see deviceKind);
+ * kits = { device id: 'iphone/app' }, see deviceKind; skips = { stop key: { by, dev, at, pull } }, see cleanSkip);
  * shared(key) says whether a
  * checklist key is in a shared group.
  */
 export function recordsOf(state, shared) {
 	const out = {};
 	for (const s of Array.isArray(state.mine) ? state.mine : []) if (s && s.id) out[`stop:${s.id}`] = s;
+	for (const [k, s] of Object.entries(state.skips || {})) if (s && SKIP_ID.test(k)) out[`skip:${k}`] = cleanSkip(s);
 	for (const [date, list] of Object.entries(state.shift || {})) if (Array.isArray(list) && list.length) out[`shift:${date}`] = list;
 	if (state.fltArr) out['flt:arr'] = state.fltArr;
 	if (state.fltDep) out['flt:dep'] = state.fltDep;
@@ -59,6 +60,24 @@ const KIT = new RegExp(`^(${KIT_OS.join('|')})/(${KIT_APP.join('|')})$`);
 const CLOCK = /^\d{1,2}:\d{2}$/;
 const text = (s, n) => String(s ?? '').slice(0, n);
 const num = (x) => (typeof x === 'number' && Number.isFinite(x) ? x : null);
+// a skipped planned stop's key (Plan.SKIP_KEY): its day, its fingerprint, the -N of a repeated stop
+const SKIP_ID = /^d\d{1,3}-[a-z0-9]{1,8}(?:-\d{1,2})?$/;
+/**
+ * A skip as it travels: who skipped it (by: the name, dev: the phone), when (at), and the move earlier the group took
+ * for it (pull: { from: the planned start the move begins at, min }), so putting it back moves those stops back too.
+ * Anything else is dropped; a skip with nothing known is still a skip ({}).
+ */
+export function cleanSkip(v) {
+	const o = v && typeof v === 'object' ? v : {};
+	const from = num(o.pull && o.pull.from);
+	const min = num(o.pull && o.pull.min);
+	return {
+		...(typeof o.by === 'string' && o.by.trim() ? { by: text(o.by.trim(), 24) } : {}),
+		...(typeof o.dev === 'string' && DEV.test(o.dev) ? { dev: o.dev } : {}),
+		...(num(o.at) > 0 ? { at: o.at } : {}),
+		...(from != null && from >= 0 && from < 2880 && min > 0 && min <= 600 ? { pull: { from, min } } : {}),
+	};
+}
 
 /** A record from another phone in the shape the page saves, or undefined when it doesn't fit (it's then ignored). */
 export function cleanRecord(rid, v) {
@@ -84,9 +103,12 @@ export function cleanRecord(rid, v) {
 			...(typeof v.dev === 'string' && DEV.test(v.dev) ? { dev: v.dev } : {}), // the phone that added it
 		};
 	}
+	if (kind === 'skip') return SKIP_ID.test(id) && v && typeof v === 'object' && !Array.isArray(v) ? cleanSkip(v) : undefined;
 	if (kind === 'shift') {
 		if (!DATE.test(id) || !Array.isArray(v)) return undefined;
-		const list = v.filter((x) => x && num(x.from) != null && num(x.min) > 0).map((x) => ({ from: x.from, min: x.min }));
+		// a push back (min > 0) or, after a skipped stop, a pull earlier (min < 0); a phone on an older build keeps only the pushes
+		const ok = (m) => m != null && m !== 0 && Math.abs(m) <= 1440;
+		const list = v.filter((x) => x && num(x.from) != null && ok(num(x.min))).map((x) => ({ from: x.from, min: x.min }));
 		return list.length ? list.slice(0, 20) : null;
 	}
 	if (kind === 'flt') return (id === 'arr' || id === 'dep') && typeof v === 'string' && CLOCK.test(v) ? v : undefined;
@@ -105,6 +127,7 @@ export function cleanRecord(rid, v) {
 export function applyRecords(state, recs, shared) {
 	const next = {
 		mine: [...(Array.isArray(state.mine) ? state.mine : [])],
+		skips: { ...(state.skips || {}) },
 		shift: { ...(state.shift || {}) },
 		fltArr: state.fltArr || '',
 		fltDep: state.fltDep || '',
@@ -120,6 +143,9 @@ export function applyRecords(state, recs, shared) {
 		if (kind === 'stop') {
 			next.mine = next.mine.filter((s) => s && s.id !== id);
 			if (v) next.mine.push(v);
+		} else if (kind === 'skip') {
+			if (v) next.skips[id] = v;
+			else delete next.skips[id];
 		} else if (kind === 'shift') {
 			if (v) next.shift[id] = v;
 			else delete next.shift[id];
@@ -187,13 +213,29 @@ export const ownerOf = (stop, ver, me) => (stop && stop.dev) || (ver && ver.d) |
 /**
  * The phone's list of stops that went from the plan, newest first, so one removed by mistake can be put back.
  * log = [{ x: stop, at, by, me }]; before/after = the added stops either side of a change; who = { at, by, me }.
- * A stop back in the plan leaves the list; the list keeps `cap` entries.
+ * A stop back in the plan leaves the list; the list keeps `cap` entries. Skipped planned stops share the list (skipLog);
+ * their entries ({ s: key, … }) pass through untouched.
  */
 export function goneLog(log, before, after, who, cap = 30) {
 	const now = new Set((after || []).map((s) => s && s.id));
 	const gone = (before || []).filter((s) => s && s.id && !now.has(s.id));
-	const kept = (Array.isArray(log) ? log : []).filter((e) => e && e.x && !now.has(e.x.id) && !gone.some((s) => s.id === e.x.id));
+	const kept = (Array.isArray(log) ? log : []).filter((e) => e && ((e.s && !e.x) || (e.x && !now.has(e.x.id) && !gone.some((s) => s.id === e.x.id))));
 	return [...gone.map((x) => ({ x, ...who })), ...kept].slice(0, cap);
+}
+
+/**
+ * The same list for skipped planned stops (ADR-20261128-skip-planned-stops): each stop skipped in a change goes on it
+ * as { s: its key, at, by, me }, newest first, named by who the skip says skipped it (else who); a stop put back leaves
+ * it. before/after = the skips either side of a change ({ key: skip }); a skip rewritten (a move earlier added to it)
+ * isn't new. Added stops' entries pass through untouched.
+ */
+export function skipLog(log, before, after, who, cap = 30) {
+	const b = before || {};
+	const a = after || {};
+	const fresh = Object.keys(a).filter((k) => a[k] && !b[k]);
+	const kept = (Array.isArray(log) ? log : []).filter((e) => e && (e.x || (e.s && a[e.s] && !fresh.includes(e.s))));
+	const add = fresh.map((s) => ({ s, ...who, ...(a[s].by ? { by: a[s].by } : {}) }));
+	return [...add, ...kept].slice(0, cap);
 }
 
 /**

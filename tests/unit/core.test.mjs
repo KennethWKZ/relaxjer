@@ -11,6 +11,11 @@ import * as Sky from '../../engine/src/core/sky.mjs';
 import * as Way from '../../engine/src/core/way.mjs';
 import * as Wish from '../../engine/src/core/wish.mjs';
 import * as Rating from '../../engine/src/core/rating.mjs';
+import * as Refill from '../../engine/src/core/refill.mjs';
+import * as Tax from '../../engine/src/core/tax.mjs';
+import * as Drives from '../../engine/src/core/drives.mjs';
+import * as Opening from '../../engine/src/core/opening.mjs';
+import * as Reach from '../../engine/src/core/reach.mjs';
 
 test('Time: clock parsing and formatting', () => {
 	assert.equal(Time.clockMinutes('09:05'), 545);
@@ -21,6 +26,51 @@ test('Time: clock parsing and formatting', () => {
 	assert.deepEqual(Time.timesIn('10:00–11:30'), { s: 600, e: 690 });
 	assert.deepEqual(Time.timesIn('~18:30'), { s: 1110, e: null });
 	assert.deepEqual(Time.timesIn('After the show'), { s: null, e: null });
+});
+
+test('Money: a budget tallies what was paid (in the home currency) and what is still to come', () => {
+	const rows = [
+		{ label: ['机票', 'Flights'], min: 4200, max: 4200, cur: 'home', paid: '2026-12-02', via: 'AirAsia MOVE' },
+		{ label: ['酒店', 'Hotel'], min: 2350, max: 2350, cur: 'RM', paid: '2026-11-24' }, // the home code works as 'home'
+		{
+			label: ['包车', 'Charter'],
+			parts: [
+				{ amt: 1560, paid: '2027-02-20' }, // the deposit, in the trip's currency
+				{ amt: 3900 }, // the balance, on the day
+			],
+		},
+		[['吃饭', 'Meals'], 'NT$7,800–15,600', 7800, 15600],
+		{ label: ['加购行李', 'Extra baggage'], tbd: true },
+	];
+	const t = Money.budgetTally(rows, { rate: 7.8, home: 'RM' });
+	assert.equal(t.paid, 4200 + 2350 + 200); // 1,560 / 7.8
+	assert.equal(t.paidApprox, true, 'the deposit was converted');
+	assert.deepEqual(t.todo, [500 + 1000, 500 + 2000]); // the balance and the meals, converted
+	assert.equal(t.todoApprox, true);
+	assert.equal(t.paidItems.length, 3);
+	assert.equal(t.todoItems.length, 2);
+	assert.equal(t.tbdItems.length, 1, 'a row with no price is listed');
+	// and never counted
+	assert.deepEqual(Money.budgetTally([{ label: ['x', 'x'], tbd: true }], { rate: 7.8, home: 'RM' }).todo, [0, 0]);
+	// home-currency payments alone are exact
+	assert.equal(Money.budgetTally(rows.slice(0, 2), { rate: 7.8, home: 'RM' }).paidApprox, false);
+	// a trip without a home currency keeps its own figures
+	assert.deepEqual(Money.budgetTally([[['a', 'a'], 'x', 100, 200]]).todo, [100, 200]);
+});
+
+test("Plan: a day's one-line name falls back to the first place of its route and how many", () => {
+	assert.equal(Plan.shortFromTitle('猫空缆车 → 音乐会', 'zh'), '猫空缆车等2处');
+	assert.equal(Plan.shortFromTitle('Dihua Street → free shopping → airport', 'en'), 'Dihua Street +2 more');
+	assert.equal(Plan.shortFromTitle('Free day', 'en'), 'Free day'); // no route: the title is its own name
+	assert.equal(Plan.shortFromTitle('  ', 'zh'), '');
+});
+
+test('Plan: a repeated hint is full the first time, one line after, and gone once dismissed', () => {
+	assert.equal(Plan.hintForm(undefined, false), 'full'); // never shown on this phone
+	assert.equal(Plan.hintForm('seen', true), 'full'); // shown in full in this page view: a redraw keeps it so
+	assert.equal(Plan.hintForm('seen', false), 'line'); // a later page view
+	assert.equal(Plan.hintForm('gone', false), 'gone'); // its ✕
+	assert.equal(Plan.hintForm('gone', true), 'gone'); // put away in this very view
 });
 
 test('Time: dates and labels', () => {
@@ -145,6 +195,15 @@ test('Money: converted figures claim no more precision than a rate gives', () =>
 	assert.equal(Money.roundHome(509090), 509000);
 	assert.equal(Money.homeAmount(10, 10, 38.97, 'RM'), 'RM 0.3');
 	assert.equal(Money.homeAmount(781000, 1075000, 38.97, 'RM'), 'RM 20,000–27,600');
+});
+
+test("Money: the glance layer's one number is each person's share of the range's middle", () => {
+	assert.equal(Money.glanceShare(23900, 29900, 6), 4480); // ¥3,980–4,980 each → about ¥4,480
+	assert.equal(Money.glanceShare(3000, 4500, 5), 750);
+	assert.equal(Money.glanceShare(500, 500, 5), 100); // a single figure stays itself
+	assert.equal(Money.glanceShare(60000, 90000, 2), 37500); // three significant figures above 10,000
+	assert.equal(Money.glanceShare(100, 50, 5), 0); // a range that runs backwards says nothing
+	assert.equal(Money.glanceShare(100, 200, 0), 0);
 });
 
 test('Money: which trips can show their figures in the home currency', () => {
@@ -655,4 +714,300 @@ test('Rating: Tabelog and Google sort on one scale', () => {
 		hits.sort(Rating.byScore((x) => [x.rating, x.rsrc])).map((x) => x.rating),
 		[3.6, 4.2],
 	);
+});
+
+test('Refill: a window may run over New Year, and only an outdoor tap shuts for winter', () => {
+	assert.equal(Refill.inWindow('2027-02-20', ['11-01', '04-30']), true);
+	assert.equal(Refill.inWindow('2027-04-30', ['11-01', '04-30']), true); // ends included
+	assert.equal(Refill.inWindow('2027-05-01', ['11-01', '04-30']), false);
+	assert.equal(Refill.inWindow('2027-07-01', ['06-01', '08-31']), true);
+	assert.equal(Refill.inWindow('2027-07-01', null), false);
+	const rule = ['11-01', '04-30'];
+	const tap = { kind: 'tap', lat: 43, indoor: null, seasonal: null };
+	assert.equal(Refill.shutFor(tap, '2027-02-20', rule), true, 'a tap not known to be indoors counts as outdoors');
+	assert.equal(Refill.shutFor(tap, '2027-06-10', rule), false, 'outside the window');
+	assert.equal(Refill.shutFor({ ...tap, indoor: true }, '2027-02-20', rule), false, 'a source that says indoors keeps it');
+	assert.equal(Refill.shutFor({ ...tap, indoor: false }, '2027-02-20', rule), true, 'and one that says outdoors shuts it');
+	assert.equal(Refill.shutFor({ ...tap, indoor: false }, '2027-02-20', null), false, 'outdoors, but no winter rule and not marked seasonal');
+	assert.equal(Refill.shutFor({ ...tap, seasonal: false }, '2027-02-20', rule), false, 'marked open all year');
+	assert.equal(Refill.shutFor({ ...tap, kind: 'shop' }, '2027-02-20', rule), false);
+	assert.equal(Refill.shutFor({ ...tap, kind: 'shelter' }, '2027-02-20', rule), false);
+	// no pack rule: only a tap OpenStreetMap marks seasonal, in the default winter (south of the equator, June to August)
+	assert.equal(Refill.shutFor(tap, '2027-02-20', null), false);
+	assert.equal(Refill.shutFor({ ...tap, seasonal: true }, '2027-02-20', null), true);
+	assert.equal(Refill.shutFor({ ...tap, seasonal: true }, '2027-03-10', null), false);
+	assert.equal(Refill.shutFor({ ...tap, seasonal: true, lat: -33 }, '2027-07-10', null), true);
+	assert.equal(Refill.shutFor({ ...tap, seasonal: true }, null, rule), false, 'no day: nothing to judge');
+});
+
+test('Refill: open at a time, from hours by ISO weekday, past midnight included', () => {
+	const week = (o, c) => ({ days: Object.fromEntries([1, 2, 3, 4, 5, 6, 7].map((d) => [String(d), d === 7 ? [] : [[o, c]]])), known: true });
+	const shop = week('10:00', '22:00');
+	assert.equal(Refill.openAt(shop, 1, 9 * 60 + 59), false);
+	assert.equal(Refill.openAt(shop, 1, 10 * 60), true);
+	assert.equal(Refill.openAt(shop, 1, 22 * 60), false, 'closes at its closing time');
+	assert.equal(Refill.openAt(shop, 7, 12 * 60), false, 'closed on Sunday (an empty list)');
+	assert.deepEqual(Refill.dayRanges(shop, 7), []);
+	assert.equal(Refill.openAt(null, 1, 600), null, 'no hours: not known');
+	assert.equal(Refill.openAt({ ...shop, known: false }, 1, 600), null);
+	const late = week('11:00', '02:00'); // runs into the next day
+	assert.equal(Refill.openAt(late, 2, 23 * 60), true);
+	assert.equal(Refill.openAt(late, 3, 60), true, 'Tuesday night, at one on Wednesday');
+	assert.equal(Refill.openAt(late, 1, 60), false, 'Sunday was closed, so nothing runs into Monday');
+	assert.equal(Refill.openAt(week('18:00', '26:00'), 2, 90), true, 'a range written past 24:00');
+	assert.equal(Refill.openAt(week('00:00', '24:00'), 4, 0), true);
+});
+
+test('Refill: a place lists its nearest three within reach, leaving out and counting what winter shuts', () => {
+	const rule = ['11-01', '04-30'];
+	const s = (kind, extra = {}) => ({ kind, lat: 43, ...extra });
+	const near = [
+		[s('tap'), 80],
+		[s('shop'), 300],
+		[s('tap', { indoor: true }), 120],
+		[s('tap'), 590],
+		[s('shelter'), 450],
+		[s('shop'), 700], // beyond 600 m
+		[s('shop'), 500],
+	];
+	const winter = Refill.listNear(near, '2027-02-20', rule);
+	assert.deepEqual(
+		winter.list.map(([, m]) => m),
+		[120, 300, 450],
+	);
+	assert.equal(winter.shut, 2, 'the two outdoor taps within 600 m');
+	assert.equal(winter.more, 1);
+	const summer = Refill.listNear(near, '2027-07-10', rule);
+	assert.deepEqual(
+		summer.list.map(([, m]) => m),
+		[80, 120, 300],
+	);
+	assert.equal(summer.shut, 0);
+	assert.deepEqual(Refill.listNear([], '2027-02-20', rule), { list: [], shut: 0, more: 0 });
+});
+
+test('Money: every budget row has a kind: its cat, an estimate’s trailing name, the airport anchor, else other', () => {
+	assert.deepEqual(Money.budgetKinds, ['transport', 'car', 'lodging', 'food', 'tickets', 'activity', 'insurance', 'other']);
+	assert.equal(Money.rowKind({ label: ['酒店', 'Hotel'], min: 1, max: 1, cat: 'lodging' }), 'lodging');
+	assert.equal(Money.rowKind([['吃饭', 'Meals'], 'x', 1, 2, 'food']), 'food'); // a trailing name from the list
+	assert.equal(Money.rowKind([['缆车', 'Lifts'], 'x', 1, 2, 'airport', 'activity']), 'activity'); // after the anchor
+	assert.equal(Money.rowKind([['机场', 'Airport'], 'x', 1, 2, 'airport']), 'transport'); // the airport anchor alone
+	assert.equal(Money.rowKind([['杂项', 'Odds'], 'x', 1, 2]), 'other');
+	assert.equal(Money.rowKind({ label: ['x', 'x'], min: 1, max: 1, cat: 'spa' }), 'other', 'a name off the list');
+	assert.equal(Money.rowKind(null), 'other');
+	// a day card's budget tags read as the same kinds where they mean one
+	assert.equal(Money.kindOfTag('train'), 'transport');
+	assert.equal(Money.kindOfTag('airportMrt'), 'transport');
+	assert.equal(Money.kindOfTag('food'), 'food');
+	assert.equal(Money.kindOfTag('ticket'), 'tickets');
+	assert.equal(Money.kindOfTag('car'), 'car');
+	assert.equal(Money.kindOfTag('card'), null, 'a transit card top-up is money moved, not a kind');
+	assert.equal(Money.kindOfTag(undefined), null);
+});
+
+test('Money: the budget by kind adds up to the view’s totals, biggest first', () => {
+	const rows = [
+		{ label: ['机票', 'Flights'], min: 4200, max: 4200, cur: 'home', paid: '2026-12-02', cat: 'transport' },
+		{ label: ['酒店', 'Hotel'], min: 2350, max: 2350, cur: 'RM', paid: '2026-11-24', cat: 'lodging' },
+		{ label: ['包车', 'Charter'], cat: 'transport', parts: [{ amt: 1560, paid: '2027-02-20' }, { amt: 3900 }] },
+		[['吃饭', 'Meals'], 'NT$7,800–15,600', 7800, 15600, 'food'],
+		[['机场来回', 'Airport'], 'NT$1,560–3,120', 1560, 3120, 'airport'],
+		[['杂项', 'Odds'], 'NT$780', 780, 780],
+		{ label: ['加购行李', 'Extra baggage'], tbd: true, cat: 'transport' },
+		{ label: ['保险', 'Insurance'], tbd: true, cat: 'insurance' },
+	];
+	const opts = { rate: 7.8, home: 'RM' };
+	const T = Money.budgetTally(rows, opts);
+	const K = Money.budgetByKind(rows, opts);
+	const close = (a, b) => assert.ok(Math.abs(a - b) < 1e-6, `${a} ≈ ${b}`);
+	close(
+		K.reduce((n, k) => n + k.paid, 0),
+		T.paid,
+	);
+	close(
+		K.reduce((n, k) => n + k.todo[0], 0),
+		T.todo[0],
+	);
+	close(
+		K.reduce((n, k) => n + k.todo[1], 0),
+		T.todo[1],
+	);
+	assert.deepEqual(
+		K.map((k) => k.cat),
+		['transport', 'lodging', 'food', 'other', 'insurance'],
+		'biggest first; a kind with only a price TBD last',
+	);
+	const tr = K[0];
+	close(tr.paid, 4200 + 200); // the deposit, converted
+	close(tr.todo[0], 500 + 200); // the balance and the airport, converted
+	assert.equal(tr.tbd, 1);
+	assert.equal(tr.paidApprox, true);
+	assert.equal(K[1].paidApprox, false, 'paid at home: exact');
+	assert.equal(K[2].todoApprox, true);
+	assert.deepEqual(K.at(-1), { cat: 'insurance', paid: 0, paidApprox: false, todo: [0, 0], todoApprox: false, tbd: 1, rows: 1, share: 0 });
+	// each kind's share of the whole, by the middle of its range; they add up to the whole
+	const all = T.paid + (T.todo[0] + T.todo[1]) / 2;
+	close(
+		K.reduce((n, k) => n + k.share, 0),
+		1,
+	);
+	close(tr.share, (tr.paid + (tr.todo[0] + tr.todo[1]) / 2) / all);
+	assert.deepEqual(Money.budgetByKind([]), []);
+});
+
+test('Tax: a coupon is good through its last day, and the trip’s coupons split into good and gone', () => {
+	assert.equal(Tax.expired('2027-03-31', '2027-03-31'), false, 'its last day still counts');
+	assert.equal(Tax.expired('2027-03-31', '2027-04-01'), true);
+	assert.equal(Tax.expired(undefined, '2027-04-01'), false, 'no last day: never runs out');
+	assert.equal(Tax.expired('2027-03-31', null), false, 'no day to judge by');
+	const coupons = [{ id: 'a', until: '2027-03-31' }, { id: 'b', until: '2027-03-01' }, { id: 'c' }, { id: 'd', until: '2027-02-10' }];
+	const on = Tax.couponsOn(coupons, '2027-03-06');
+	assert.deepEqual(
+		on.good.map((c) => c.id),
+		['a', 'c'],
+	);
+	assert.deepEqual(
+		on.gone.map((c) => c.id),
+		['b', 'd'],
+		'in the trip’s order',
+	);
+	assert.deepEqual(Tax.couponsOn(undefined, '2027-03-06'), { good: [], gone: [] });
+});
+
+test('Tax: a coupon with no last day never expires, however late the day', () => {
+	const satu = { id: 'no-end', shop: 'x', h: ['x', 'x'] };
+	assert.equal(Tax.expired(satu.until, '2099-12-31'), false);
+	assert.deepEqual(Tax.couponsOn([satu], '2099-12-31'), { good: [satu], gone: [] });
+	assert.equal(Tax.expired('', '2027-03-06'), false, 'an empty one is no date either');
+});
+
+test('Tax: the coupon viewer turns a landscape coupon on a portrait screen, and nothing else', () => {
+	assert.equal(Tax.turnFor(1080, 600, 390, 844), true, 'a barcode strip on a phone held upright');
+	assert.equal(Tax.turnFor(1100, 1540, 390, 844), false, 'a store flyer stays upright');
+	assert.equal(Tax.turnFor(1080, 600, 844, 390), false, 'the phone is already sideways');
+	assert.equal(Tax.turnFor(800, 800, 390, 844), false, 'a square one');
+	assert.equal(Tax.turnFor(1080, 600, 1280, 800), false, 'a desktop');
+});
+
+test('Tax: the coupon viewer fits the whole coupon, and a zoom doubles it without dropping the turn', () => {
+	const strip = { imgW: 1080, imgH: 600, boxW: 366, boxH: 732, viewW: 390, viewH: 844, dpr: 3 };
+	const fit = Tax.couponView(strip);
+	assert.equal(fit.turned, true);
+	assert.ok(Math.abs(fit.scale - 366 / 600) < 1e-9, 'turned, its short side fills the width');
+	assert.ok(fit.w <= 366 + 1e-9 && fit.h <= 732 + 1e-9, 'the whole coupon on the screen');
+	assert.ok(Math.abs(fit.w - 366) < 1e-9 && Math.abs(fit.h - 1080 * fit.scale) < 1e-9, 'turned: the long side runs down the screen');
+	const zoom = Tax.couponView({ ...strip, zoomed: true });
+	assert.equal(zoom.turned, true, 'zoomed in, it stays turned');
+	assert.ok(Math.abs(zoom.scale - fit.scale * 2) < 1e-9, 'twice the fit');
+	assert.ok(Math.abs(zoom.iw - 1080 * zoom.scale) < 1e-9 && Math.abs(zoom.w - zoom.ih) < 1e-9);
+	// a desktop zooms to one image pixel to one screen pixel when that is more than twice the fit
+	const desk = Tax.couponView({ imgW: 6000, imgH: 3200, boxW: 1256, boxH: 688, viewW: 1280, viewH: 800, dpr: 2, zoomed: true });
+	assert.equal(desk.turned, false);
+	assert.equal(desk.scale, 0.5);
+	// a small coupon is never blown up to fit; a zoom still doubles it
+	assert.equal(Tax.couponView({ imgW: 300, imgH: 400, boxW: 366, boxH: 732, viewW: 390, viewH: 844 }).scale, 1);
+	assert.equal(Tax.couponView({ imgW: 300, imgH: 400, boxW: 366, boxH: 732, viewW: 390, viewH: 844, zoomed: true }).scale, 2);
+	assert.deepEqual(
+		Tax.couponView({ imgW: 0, imgH: 0, boxW: 366, boxH: 732, viewW: 390, viewH: 844 }),
+		{ turned: false, scale: 0, w: 0, h: 0, iw: 0, ih: 0 },
+		'not loaded yet',
+	);
+});
+
+test('Drives: a drive’s stops show under the row the group is in while it drives, and it sets off when the refresh asked', () => {
+	// a "Leave for …" row at the start, the arrival later: the stops show under the leaving row
+	const leave = [
+		{ place: 'hotel', t: '08:30' },
+		{ place: 'hotel', t: '~10:50' },
+		{ place: 'zoo', t: '~12:50–15:00' },
+		{ place: 'hotel', t: '17:30' },
+	];
+	assert.deepEqual(
+		Drives.legRows(leave, [
+			['hotel', 'zoo', 'driving'],
+			['zoo', 'hotel', 'driving'],
+		]),
+		[
+			{ at: 1, dep: 650 },
+			{ at: 2, dep: 900 },
+		],
+	);
+	// a "Drive to …" row at the destination, timed when the row before ends: the stops show under that row
+	const driveTo = [
+		{ place: 'hotel', t: ['07:30–08:30', '07:30–08:30'] },
+		{ place: 'zoo', t: '08:30' },
+		{ place: 'zoo', t: '10:45–13:00' },
+	];
+	assert.deepEqual(Drives.legRows(driveTo, [['hotel', 'zoo', 'driving']]), [{ at: 1, dep: 510 }]);
+	// a destination the schedule never reaches: nothing; a row with no clock before it: no set-off time
+	assert.deepEqual(Drives.legRows(leave, [['hotel', 'nowhere', 'driving']]), [null]);
+	assert.deepEqual(
+		Drives.legRows(
+			[
+				{ place: 'a', t: ['早上', 'Morning'] },
+				{ place: 'b', t: '13:00' },
+			],
+			[['a', 'b', 'driving']],
+		),
+		[{ at: 0, dep: null }],
+	);
+	assert.deepEqual(Drives.legRows([{ place: 'b', t: '09:00' }], [['a', 'b', 'driving']]), [{ at: 0, dep: null }], 'the first row');
+	assert.deepEqual(Drives.legRows(undefined, undefined), []);
+});
+
+test('Drives: the next stop on a drive under way is the first still ahead by the clock, and none before or long after', () => {
+	const stops = [{ min: 35 }, { min: 70 }, { min: 110 }];
+	assert.equal(Drives.nextStop(stops, 0, 130), 0, 'just set off');
+	assert.equal(Drives.nextStop(stops, 40, 130), 1);
+	assert.equal(Drives.nextStop(stops, 70, 130), 2, 'level with one: the one after');
+	assert.equal(Drives.nextStop(stops, 115, 130), -1, 'every stop behind');
+	assert.equal(Drives.nextStop(stops, -5, 130), -1, 'not set off yet');
+	assert.equal(Drives.nextStop(stops, 200, 130), -1, 'should long have arrived');
+	assert.equal(Drives.nextStop(stops, null, 130), -1, 'no set-off time');
+	assert.deepEqual(Drives.kinds, ['sa', 'pa', 'roadside', 'fuel', 'store']);
+});
+
+test('Opening: a week of hours from Google’s week or the refresh’s English line, and open at a moment', () => {
+	const g = Opening.weekOf(['10:00–22:00', '10:00–22:00', 'closed', '10:00–14:00,17:00–22:00', '24h', '18:00–02:00', '10:00–22:00']);
+	assert.equal(Opening.openAt(g, 0, 9 * 60 + 59), false);
+	assert.equal(Opening.openAt(g, 0, 10 * 60), true);
+	assert.equal(Opening.openAt(g, 2, 12 * 60), false, 'closed that day');
+	assert.equal(Opening.openAt(g, 3, 15 * 60), false, 'between its two openings');
+	assert.equal(Opening.openAt(g, 4, 3 * 60), true, 'open 24 h');
+	assert.equal(Opening.openAt(g, 5, 23 * 60), true, 'a late night');
+	assert.equal(Opening.openAt(g, 6, 60), true, 'past midnight, from the night before');
+	assert.equal(Opening.openAt(g, 6, 3 * 60), false);
+	const line = Opening.weekOf('Mon–Tue, Thu–Fri, Sun 11:00–14:00, 17:00–21:00; Sat 24 h; closed Wed');
+	assert.equal(Opening.openAt(line, 0, 12 * 60), true);
+	assert.equal(Opening.openAt(line, 0, 15 * 60), false);
+	assert.equal(Opening.openAt(line, 2, 12 * 60), false);
+	assert.equal(Opening.openAt(line, 5, 4 * 60), true);
+	assert.equal(Opening.openAt(Opening.weekOf('Daily 07:00–23:00'), 3, 22 * 60), true);
+	assert.equal(Opening.openAt(Opening.weekOf('Open 24 h'), 1, 0), true);
+	assert.equal(Opening.openAt(Opening.weekOf('11:00–21:00'), 4, 21 * 60), false, 'a bare range: every day');
+	assert.equal(Opening.weekOf('Mon–Fri 11:00–21:00'), null, 'the weekend unknown');
+	assert.equal(Opening.weekOf('ask at the desk'), null);
+	assert.equal(Opening.openAt(null, 0, 600), null, 'unknown, never closed');
+});
+
+test('Reach: a walk under 1.2 km, the metro when both ends have a station, a drive on a car day, else far', () => {
+	const st = (zh, m, more = {}) => ({ zh, en: zh, lat: 43, lng: 141, min: 3, m, walk: true, ...more });
+	const a = st('A', 300);
+	const b = st('B', 450);
+	const walkOf = (m) => m / 50; // the page's walk at the group's pace, here 50 m a minute
+	const go = { km: 3.6, walkMin: 61, driveMin: 21, rideKm: 3.4, walkOf };
+	assert.deepEqual(Reach.reach({ km: 0.8, walkMin: 13.6, driveMin: 12 }), { mode: 'walk', min: 14, km: 0.8 });
+	const m = Reach.reach({ ...go, from: a, to: b });
+	assert.equal(m.mode, 'metro');
+	assert.equal(m.station, b);
+	assert.equal(m.min, Math.round(6 + Reach.rideMin(3.4) + 9), 'walk in and out at the group pace, and the ride');
+	assert.equal(Reach.rideMin(3.4), 13, 'a wait, then about 25 km/h');
+	assert.equal(Reach.reach({ ...go, from: a, to: { ...b, train: true } }).mode, 'train');
+	assert.deepEqual(Reach.reach({ ...go, driving: true, from: a, to: b }), { mode: 'drive', min: 21, km: 3.6 });
+	assert.deepEqual(Reach.reach({ ...go, km: 5, from: a, to: null }), { mode: 'far', km: 5 }, 'no station at the far end');
+	assert.deepEqual(Reach.reach({ ...go, km: 5, from: a, to: { ...b, walk: false } }), { mode: 'far', km: 5 }, 'a station too far to walk');
+	assert.deepEqual(Reach.reach({ ...go, km: 5, from: a, to: { ...a } }), { mode: 'far', km: 5 }, 'the same station');
+	assert.deepEqual(Reach.reach({ ...go, km: 5, from: a, to: b, rideKm: null }), { mode: 'far', km: 5 }, 'no distance between them');
+	assert.equal(Reach.reach({ km: null }), null);
+	assert.equal(Reach.WALK_KM, 1.2);
 });

@@ -401,11 +401,13 @@ test('the sheet’s heights answer to its buttons, the keyboard and a finger', a
 	await expect(pane).toHaveAttribute('data-stop', 'peek');
 });
 
-test('the day and the area sit behind one button over the map; a pick applies and closes its sheet', async ({ page }) => {
+// ADR-20261128-progressive-disclosure: no row of chips over the map; one Filters button holds the day, the kind, the
+// area and what the pins mean
+test('the day, the kind and the area sit behind one button over the map; a pick applies and closes its sheet', async ({ page }) => {
 	await openTrip(page);
 	await show(page, MAP.stage);
-	await expect(page.locator(`${MAP.stage} .map-ctrl`), 'one row of chips over the map, not three').toHaveCount(1);
-	await expect(page.locator(MAP.cats).first()).toBeVisible();
+	await expect(page.locator(`${MAP.stage} .map-chips [data-cat]`), 'no chips over the map: the kinds are in the sheet').toHaveCount(0);
+	await expect(page.locator(MAP.cats).first(), 'the kinds wait in the sheet').toBeHidden();
 	const btn = page.locator(MAP.filters);
 	await expect(btn).toHaveText(/All days/);
 	// by keyboard
@@ -432,6 +434,51 @@ test('the day and the area sit behind one button over the map; a pick applies an
 	await sheet.locator('[data-filter="all"]').click();
 	await expect(page.locator(MAP.filtersLabel)).toHaveText('All days');
 	await expect(btn).toHaveAttribute('data-on', '0');
+	// a kind: the button says it after the day, and the sheet says what the pins mean
+	await btn.click();
+	await expect(sheet.locator('.map-legend')).toBeVisible();
+	const kind = sheet.locator('[data-cat]:not([data-cat="all"])').first();
+	const name = (await kind.textContent()).trim();
+	await kind.click();
+	await expect(sheet).toBeHidden();
+	await expect(page.locator(MAP.filtersLabel)).toHaveText(`All days · ${name}`);
+	await expect(btn).toHaveAttribute('data-on', '1');
+	await btn.click();
+	await sheet.locator('[data-cat="all"]').click();
+	await expect(page.locator(MAP.filtersLabel)).toHaveText('All days');
+});
+
+// any trip (ADR-20261128-progressive-disclosure): with one day picked, the other days' pins stay on the map, quieter and
+// under the day's own; the list and its count keep to the day
+test("with a day picked, the other days' pins stay drawn, quieter", async ({ page }) => {
+	await page.addInitScript(stubMapLibre);
+	await mapStyleRoute(page);
+	await openTrip(page);
+	await show(page, MAP.stage);
+	await expect(page.locator('#mapbox .lpin').first()).toBeAttached();
+	await page.locator(MAP.filters).click();
+	const day = page.locator(MAP.filtersSheet).locator('[data-filter]:not([data-filter="all"])').first();
+	const id = await day.getAttribute('data-filter');
+	await day.click();
+	await expect(page.locator(MAP.filtersSheet)).toBeHidden();
+	const quiet = page.locator('#mapbox .lpin.lpin-quiet');
+	test.skip(!(await quiet.count()), 'every pin of this trip belongs to the picked day');
+	const look = await quiet.evaluateAll(
+		(ps, d) =>
+			ps.map((p) => ({
+				shown: getComputedStyle(p).display !== 'none',
+				opacity: +getComputedStyle(p.querySelector('svg') || p).opacity, // the pin's picture: MapLibre owns the marker's
+				ofDay: (p.dataset.days || '').split(' ').includes(d),
+			})),
+		id,
+	);
+	expect(
+		look.every((x) => x.shown && x.opacity < 1 && !x.ofDay),
+		'drawn, quieter, and none of the picked day',
+	).toBe(true);
+	// the day's own pins stay at full strength
+	const own = page.locator(`#mapbox .lpin:not(.lpin-quiet)[data-days~="${id}"]`).first();
+	if (await own.count()) expect(await own.evaluate((p) => +getComputedStyle(p.querySelector('svg') || p).opacity)).toBe(1);
 });
 
 test('in full screen the results lie over the map too', async ({ page }) => {
