@@ -435,7 +435,7 @@ itself is the planner's: it's in the trip's data, and nobody makes one on the pa
   transit card's top-up.
 - **Tax refund:** the tag (with the minimum spend) on shops that qualify, in the add sheet and the shop box, and a
   **Tax refund** tile in Today's bookings (the shop box links to it). Its sheet leads with the minimum spend and the
-  deadline, then the rules in short; the shops' **coupons**, each with its offer, its tiers, its last day and its
+  deadline, then the rules in short; the shops' **coupons**, each with its offer, its tiers, its last day (or "No end date shown" when the coupon prints none) and its
   barcode image full width (tap it: full screen on white, sharp, for the cashier to scan; ✕ or Back closes it), one past
   its last day greyed and folded to "Expired"; **how it works**, step by step; **to a card or in cash**; and **at the
   airport**, where the customs kiosk and the cash machine are and when, with the customs Wi-Fi and a Copy button for its

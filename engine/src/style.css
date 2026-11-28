@@ -8926,8 +8926,11 @@ details.pay[open] > summary > .chev {
 }
 /* full screen for the cashier: pure white whatever the theme (no glass, no dark tint: color-scheme only light), the
    whole coupon on the screen and centred (the full-size image scaled by CSS only); a landscape coupon on a phone held
-   upright turns a quarter turn to fill the long edge (.is-turned, 22-events.js); zoomed by a double tap it reads upright
-   and scrolls, one image pixel to one screen pixel; pinch zoom stays on. Nothing moves: no transition to reduce */
+   upright turns a quarter turn to fill the long edge (.is-turned). A double tap zooms in around the tap, still turned,
+   and the box scrolls over the whole coupon in every direction (.is-zoomed). The stage and the image get their sizes
+   in pixels from 22-events.js (Tax.couponView); the stage, margin auto in a flex box, is centred while it fits and
+   starts at the box's edge once it doesn't, so no part is ever out of reach. Pinch zoom stays on. Nothing moves: no
+   transition to reduce */
 dialog.coupon-view {
 	position: fixed;
 	inset: 0;
@@ -8946,49 +8949,41 @@ dialog.coupon-view::backdrop {
 	background: #fff;
 }
 .cv-scroll {
-	--cv-top: calc(env(safe-area-inset-top) + 68px);
-	--cv-bottom: calc(env(safe-area-inset-bottom) + 44px);
 	position: absolute;
 	inset: 0;
-	display: grid;
-	place-items: center;
+	display: flex;
 	overflow: auto;
-	padding: var(--cv-top) 12px var(--cv-bottom);
+	padding: calc(env(safe-area-inset-top) + 68px) 12px calc(env(safe-area-inset-bottom) + 44px);
 	touch-action: manipulation;
+	overscroll-behavior: contain;
 }
-.cv-scroll img {
-	display: block;
-	max-width: 100%;
-	max-height: calc(100dvh - var(--cv-top) - var(--cv-bottom));
-	width: auto;
-	height: auto;
-	cursor: zoom-in;
-}
-/* turned: centred on the screen, its long side along the screen's height, clear of the ✕ and the hint */
-.cv-scroll.is-turned {
+.cv-stage {
+	position: relative;
+	flex: none;
+	margin: auto;
 	overflow: hidden;
 }
-.cv-scroll.is-turned img {
+.cv-stage img {
 	position: absolute;
-	top: calc((100dvh + var(--cv-top) - var(--cv-bottom)) / 2);
+	top: 50%;
 	left: 50%;
-	max-width: calc(100dvh - var(--cv-top) - var(--cv-bottom));
-	max-height: calc(100vw - 24px);
+	display: block;
+	max-width: none;
+	transform: translate(-50%, -50%);
+	cursor: zoom-in;
+}
+.cv-scroll.is-turned .cv-stage img {
 	transform: translate(-50%, -50%) rotate(90deg);
 }
-.cv-scroll.is-zoomed {
-	display: block;
-}
-.cv-scroll.is-zoomed img {
-	max-width: none;
-	max-height: none;
-	height: auto;
+.cv-scroll.is-zoomed .cv-stage img {
 	cursor: zoom-out;
 }
 .cv-tip {
 	position: fixed;
-	inset: auto 12px calc(env(safe-area-inset-bottom) + 12px);
+	inset: auto 12px calc(env(safe-area-inset-bottom) + 8px);
 	margin: 0;
+	padding: 4px 0;
+	background: #fff; /* a zoomed coupon scrolls under it */
 	text-align: center;
 	font-size: var(--fs-sm);
 	font-weight: 650;

@@ -359,7 +359,7 @@ export function checkTrip(trip) {
 	// travel insurance (optional): a closed list of fields, and never an ID number, an address or a birth date, since the
 	// page is shared with the whole group (ADR-20261128-budget-paid-insurance)
 	// the tourist tax refund (ADR-20261128-tax-refund): the old h, list, shops, note, and the optional steps, methods,
-	// airport (its rows and the customs Wi-Fi), deadline, coupons and src. A coupon's `until` is a date, its id a word,
+	// airport (its rows and the customs Wi-Fi), deadline, coupons and src. A coupon's `until`, when given, is a date, its id a word,
 	// its place one of the trip's places or shop lists; its image is checked against the folder (taxImagesMissing)
 	const { TAX } = trip;
 	if (TAX != null) {
@@ -403,7 +403,8 @@ export function checkTrip(trip) {
 				if (!nameOK(c.shop)) bad(`${w}: shop must be [zh, en] or a name`);
 				if (!isLabel(c.h)) bad(`${w}: h must be [zh, en]`);
 				if (c.items != null && !labels(c.items)) bad(`${w}: items must be a list of [zh, en]`);
-				if (!/^\d{4}-\d\d-\d\d$/.test(c.until || '')) bad(`${w}: until must be its last day, YYYY-MM-DD`);
+				// optional: a coupon that prints no end date has none, and the trip never makes one up
+				if (c.until != null && !/^\d{4}-\d\d-\d\d$/.test(c.until)) bad(`${w}: until, when given, must be its last day, YYYY-MM-DD`);
 				if (c.img != null && !/^[a-z0-9][a-z0-9_-]*(\/[a-z0-9][a-z0-9_-]*)*$/i.test(c.img)) bad(`${w}: img must be a key like tax/coupon-shop`);
 				if (c.rules != null && !(isLabel(c.rules) || labels(c.rules))) bad(`${w}: rules must be [zh, en] or a list of them`);
 				if (c.place != null && !(PLACES[c.place] || lists.has(c.place))) bad(`${w}: place "${c.place}" is not a place or a shop list`);

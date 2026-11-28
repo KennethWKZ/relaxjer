@@ -73,8 +73,21 @@ test('the contract catches a broken tax refund section', () => {
 	trip.TAX.airport.wifi = { pass: 'x' }; // no network name
 	trip.TAX.methods[0].items = 'cards';
 	const problems = checkTrip(trip).join('\n');
-	for (const want of ['until must be its last day', 'the same id twice', 'place "nowhere"', 'TAX.steps', 'TAX.airport.wifi', 'TAX.methods[0]'])
+	for (const want of [
+		'until, when given, must be its last day',
+		'the same id twice',
+		'place "nowhere"',
+		'TAX.steps',
+		'TAX.airport.wifi',
+		'TAX.methods[0]',
+	])
 		assert.ok(problems.includes(want), `${want}\nin:\n${problems}`);
+});
+
+test('a coupon may leave out its last day: one that prints no end date has none', () => {
+	const trip = loadTrip(DEMO_TRIP);
+	delete trip.TAX.coupons[0].until;
+	assert.ok(!checkTrip(trip).some((p) => p.startsWith('TAX.coupons')), checkTrip(trip).join('\n'));
 });
 
 test('the contract catches a broken refill.json', () => {

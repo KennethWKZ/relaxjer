@@ -3,7 +3,7 @@ id: ADR-20261128-tax-refund
 date: 2026-11-28
 title: 'The Tax Refund Is a Tile in Today with Its Steps, the Airport and Shop Coupons Shown Full Size for the Scanner'
 domain: trip-data
-status: accepted
+status: amended
 decision: 'TAX gains steps, methods, airport (rows, wifi), deadline, coupons (until, img), src; a tile in Today opens them; coupon images go in at full size.'
 tags: [engine, design]
 ---
@@ -78,3 +78,15 @@ after its last day. Asked for by Kenneth on 2026-11-28.
 ## Read when
 
 You're changing the tax refund, Today's bookings, a coupon or how a trip image goes into the page.
+
+## Amendment 2026-11-28
+
+A zoomed coupon keeps its turn: a barcode strip turned along an upright phone stays turned when a double tap zooms in,
+around the tapped point, and the coupon then scrolls in every direction to each of its edges, so the whole barcode is in
+reach at any zoom. The first build turned it back upright and centred it in a box that cut off its left half (Kenneth's
+report). The layout is one pure function, `Tax.couponView` (fit, zoom, turn), and the page sizes the coupon in pixels
+from it.
+
+A coupon's `until` is optional. Some coupons print no end date, and the trip must not make one up: without `until` a
+coupon never expires and shows 没写有效期 / No end date shown where its last day would be. The contract checks `until`
+only when it is given.

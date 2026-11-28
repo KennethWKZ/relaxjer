@@ -871,10 +871,42 @@ test('Tax: a coupon is good through its last day, and the trip’s coupons split
 	assert.deepEqual(Tax.couponsOn(undefined, '2027-03-06'), { good: [], gone: [] });
 });
 
+test('Tax: a coupon with no last day never expires, however late the day', () => {
+	const satu = { id: 'no-end', shop: 'x', h: ['x', 'x'] };
+	assert.equal(Tax.expired(satu.until, '2099-12-31'), false);
+	assert.deepEqual(Tax.couponsOn([satu], '2099-12-31'), { good: [satu], gone: [] });
+	assert.equal(Tax.expired('', '2027-03-06'), false, 'an empty one is no date either');
+});
+
 test('Tax: the coupon viewer turns a landscape coupon on a portrait screen, and nothing else', () => {
 	assert.equal(Tax.turnFor(1080, 600, 390, 844), true, 'a barcode strip on a phone held upright');
 	assert.equal(Tax.turnFor(1100, 1540, 390, 844), false, 'a store flyer stays upright');
 	assert.equal(Tax.turnFor(1080, 600, 844, 390), false, 'the phone is already sideways');
 	assert.equal(Tax.turnFor(800, 800, 390, 844), false, 'a square one');
 	assert.equal(Tax.turnFor(1080, 600, 1280, 800), false, 'a desktop');
+});
+
+test('Tax: the coupon viewer fits the whole coupon, and a zoom doubles it without dropping the turn', () => {
+	const strip = { imgW: 1080, imgH: 600, boxW: 366, boxH: 732, viewW: 390, viewH: 844, dpr: 3 };
+	const fit = Tax.couponView(strip);
+	assert.equal(fit.turned, true);
+	assert.ok(Math.abs(fit.scale - 366 / 600) < 1e-9, 'turned, its short side fills the width');
+	assert.ok(fit.w <= 366 + 1e-9 && fit.h <= 732 + 1e-9, 'the whole coupon on the screen');
+	assert.ok(Math.abs(fit.w - 366) < 1e-9 && Math.abs(fit.h - 1080 * fit.scale) < 1e-9, 'turned: the long side runs down the screen');
+	const zoom = Tax.couponView({ ...strip, zoomed: true });
+	assert.equal(zoom.turned, true, 'zoomed in, it stays turned');
+	assert.ok(Math.abs(zoom.scale - fit.scale * 2) < 1e-9, 'twice the fit');
+	assert.ok(Math.abs(zoom.iw - 1080 * zoom.scale) < 1e-9 && Math.abs(zoom.w - zoom.ih) < 1e-9);
+	// a desktop zooms to one image pixel to one screen pixel when that is more than twice the fit
+	const desk = Tax.couponView({ imgW: 6000, imgH: 3200, boxW: 1256, boxH: 688, viewW: 1280, viewH: 800, dpr: 2, zoomed: true });
+	assert.equal(desk.turned, false);
+	assert.equal(desk.scale, 0.5);
+	// a small coupon is never blown up to fit; a zoom still doubles it
+	assert.equal(Tax.couponView({ imgW: 300, imgH: 400, boxW: 366, boxH: 732, viewW: 390, viewH: 844 }).scale, 1);
+	assert.equal(Tax.couponView({ imgW: 300, imgH: 400, boxW: 366, boxH: 732, viewW: 390, viewH: 844, zoomed: true }).scale, 2);
+	assert.deepEqual(
+		Tax.couponView({ imgW: 0, imgH: 0, boxW: 366, boxH: 732, viewW: 390, viewH: 844 }),
+		{ turned: false, scale: 0, w: 0, h: 0, iw: 0, ih: 0 },
+		'not loaded yet',
+	);
 });

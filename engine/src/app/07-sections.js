@@ -568,7 +568,8 @@ function taxSum() {
 }
 function couponHTML(c, gone) {
 	const shop = esc(lbl(c.shop));
-	const until = c.until ? `<span class="coupon-until">${esc(Z(`${dateLabel(c.until)} 前有效`, `until ${dateLabel(c.until)}`))}</span>` : '';
+	// a coupon that prints no end date never runs out, and says so rather than show a made-up one
+	const until = `<span class="coupon-until">${esc(c.until ? Z(`${dateLabel(c.until)} 前有效`, `until ${dateLabel(c.until)}`) : Z('没写有效期', 'No end date shown'))}</span>`;
 	const rules = !c.rules ? '' : Array.isArray(c.rules[0]) ? list(c.rules) : `<p class="note">${fmt(c.rules)}</p>`;
 	const img =
 		c.img && COUPON_FILES[c.img]

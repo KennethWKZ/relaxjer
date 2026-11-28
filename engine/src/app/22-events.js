@@ -1069,31 +1069,48 @@ function openCoupon(img) {
 		});
 	}
 	d.setAttribute('aria-label', img.alt);
-	d.innerHTML = `<button type="button" class="icon-btn cv-x" data-close aria-label="${Z('关闭', 'Close')}">${icon('x')}</button><div class="cv-scroll"><img alt="${esc(img.alt)}"></div><p class="cv-tip">${Z('把屏幕调亮，扫得比较快', 'Turn the brightness up for a quicker scan')}</p>`;
+	d.innerHTML = `<button type="button" class="icon-btn cv-x" data-close aria-label="${Z('关闭', 'Close')}">${icon('x')}</button><div class="cv-scroll"><div class="cv-stage"><img alt="${esc(img.alt)}"></div></div><p class="cv-tip">${Z('把屏幕调亮，扫得比较快', 'Turn the brightness up for a quicker scan')}</p>`;
 	const box = d.querySelector('.cv-scroll');
-	const big = box.querySelector('img');
-	const turn = () =>
-		box.classList.toggle(
-			'is-turned',
-			!box.classList.contains('is-zoomed') && Tax.turnFor(big.naturalWidth, big.naturalHeight, innerWidth, innerHeight),
-		);
-	big.addEventListener('load', turn);
-	addEventListener('resize', turn);
-	d.addEventListener('close', () => removeEventListener('resize', turn), { once: true });
+	const stage = box.querySelector('.cv-stage');
+	const big = stage.querySelector('img');
+	let zoomed = false;
+	// sizes in pixels (Tax.couponView): the stage takes the coupon's place on the screen, turned already, so the box
+	// scrolls over all of it in both directions; the image sits in its middle, turned a quarter turn when it should be
+	const lay = () => {
+		const cs = getComputedStyle(box);
+		const v = Tax.couponView({
+			imgW: big.naturalWidth,
+			imgH: big.naturalHeight,
+			boxW: box.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight),
+			boxH: box.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom),
+			viewW: innerWidth,
+			viewH: innerHeight,
+			dpr: window.devicePixelRatio,
+			zoomed,
+		});
+		box.classList.toggle('is-turned', v.turned);
+		box.classList.toggle('is-zoomed', zoomed);
+		stage.style.width = `${v.w}px`;
+		stage.style.height = `${v.h}px`;
+		big.style.width = `${v.iw}px`;
+		big.style.height = `${v.ih}px`;
+	};
+	big.addEventListener('load', lay);
+	addEventListener('resize', lay);
+	d.addEventListener('close', () => removeEventListener('resize', lay), { once: true });
 	big.src = img.currentSrc || img.src;
-	if (big.complete) turn();
+	if (big.complete) lay();
+	// a double tap zooms in around the tapped point, turned or not, and back out to the whole coupon
 	const zoom = (x, y) => {
-		const on = !box.classList.contains('is-zoomed');
-		box.classList.remove('is-turned'); // zoomed, it reads upright and scrolls; zoomed out, it turns again if it should
-		const r = big.getBoundingClientRect();
-		box.classList.toggle('is-zoomed', on);
-		big.style.width = on ? `${Math.max(big.naturalWidth / (window.devicePixelRatio || 1), Math.min(r.width, innerWidth) * 2)}px` : '';
-		if (!on) return turn();
-		// keep the tapped point under the finger
-		const n = big.getBoundingClientRect();
-		const b = box.getBoundingClientRect();
-		box.scrollLeft = Math.max(0, ((x - r.left) / r.width) * n.width - (x - b.left));
-		box.scrollTop = Math.max(0, ((y - r.top) / r.height) * n.height - (y - b.top));
+		const r = stage.getBoundingClientRect();
+		const fx = Math.min(1, Math.max(0, (x - r.left) / r.width));
+		const fy = Math.min(1, Math.max(0, (y - r.top) / r.height));
+		zoomed = !zoomed;
+		lay();
+		if (!zoomed) return box.scrollTo(0, 0);
+		const n = stage.getBoundingClientRect();
+		box.scrollLeft += n.left + fx * n.width - x;
+		box.scrollTop += n.top + fy * n.height - y;
 	};
 	let last = 0;
 	let lx = 0;
