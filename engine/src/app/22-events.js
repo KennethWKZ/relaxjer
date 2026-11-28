@@ -233,6 +233,8 @@ document.addEventListener('click', (e) => {
 	if (t.matches('[data-driver]')) return openDriver(t.dataset.driver);
 	if (t.matches('[data-native]')) return copy(t.dataset.native, Z(`已复制：${t.dataset.native}`, `Copied: ${t.dataset.native}`));
 	if (t.id === 'drv-copy') return copy(t.dataset.text, Z('地址已复制', 'Address copied'));
+	if (t.matches('[data-copy-text]')) return copy(t.dataset.copyText, Z(`已复制：${t.dataset.copyText}`, `Copied: ${t.dataset.copyText}`));
+	if (t.matches('[data-coupon]')) return openCoupon(t.querySelector('img'));
 	if (t.matches('[data-close]')) {
 		closeDialog(t.closest('dialog'));
 		return;
@@ -1036,3 +1038,73 @@ $('#q').addEventListener('focus', () => {
 	if (searchState.q) $('#results').dataset.state = 'open';
 });
 window.addEventListener('resize', () => measureBar());
+/* a tax-refund coupon full screen, for the cashier's scanner (ADR-20261128-tax-refund): pure white, the whole coupon on
+   the screen from the full-size image (scaled by CSS only, never a smaller copy), a landscape coupon turned a quarter
+   turn on a phone held upright so it fills the long edge (Tax.turnFor); a double tap zooms in where it lands (one image
+   pixel to one screen pixel, or twice the fit) and back, and pinch zoom works. The screen stays awake while it's open
+   (Wake Lock, where the browser has it). A page can't set the brightness or lock the orientation, so it asks for the
+   first and turns the image instead of the phone. ✕, Escape and Back close it */
+let couponLock = null;
+const couponWake = () => {
+	if (!navigator.wakeLock || !$('#couponView') || !$('#couponView').open || document.visibilityState !== 'visible') return;
+	navigator.wakeLock
+		.request('screen')
+		.then((l) => {
+			couponLock = l;
+		})
+		.catch(() => {});
+};
+document.addEventListener('visibilitychange', couponWake); // the lock goes when the page is hidden: take it again
+function openCoupon(img) {
+	if (!img) return;
+	let d = $('#couponView');
+	if (!d) {
+		d = document.createElement('dialog');
+		d.id = 'couponView';
+		d.className = 'coupon-view';
+		document.body.append(d);
+		d.addEventListener('close', () => {
+			if (couponLock) couponLock.release().catch(() => {});
+			couponLock = null;
+		});
+	}
+	d.setAttribute('aria-label', img.alt);
+	d.innerHTML = `<button type="button" class="icon-btn cv-x" data-close aria-label="${Z('关闭', 'Close')}">${icon('x')}</button><div class="cv-scroll"><img alt="${esc(img.alt)}"></div><p class="cv-tip">${Z('把屏幕调亮，扫得比较快', 'Turn the brightness up for a quicker scan')}</p>`;
+	const box = d.querySelector('.cv-scroll');
+	const big = box.querySelector('img');
+	const turn = () =>
+		box.classList.toggle(
+			'is-turned',
+			!box.classList.contains('is-zoomed') && Tax.turnFor(big.naturalWidth, big.naturalHeight, innerWidth, innerHeight),
+		);
+	big.addEventListener('load', turn);
+	addEventListener('resize', turn);
+	d.addEventListener('close', () => removeEventListener('resize', turn), { once: true });
+	big.src = img.currentSrc || img.src;
+	if (big.complete) turn();
+	const zoom = (x, y) => {
+		const on = !box.classList.contains('is-zoomed');
+		box.classList.remove('is-turned'); // zoomed, it reads upright and scrolls; zoomed out, it turns again if it should
+		const r = big.getBoundingClientRect();
+		box.classList.toggle('is-zoomed', on);
+		big.style.width = on ? `${Math.max(big.naturalWidth / (window.devicePixelRatio || 1), Math.min(r.width, innerWidth) * 2)}px` : '';
+		if (!on) return turn();
+		// keep the tapped point under the finger
+		const n = big.getBoundingClientRect();
+		const b = box.getBoundingClientRect();
+		box.scrollLeft = Math.max(0, ((x - r.left) / r.width) * n.width - (x - b.left));
+		box.scrollTop = Math.max(0, ((y - r.top) / r.height) * n.height - (y - b.top));
+	};
+	let last = 0;
+	let lx = 0;
+	let ly = 0;
+	big.addEventListener('pointerup', (e) => {
+		const now = Date.now();
+		if (now - last < 350 && Math.hypot(e.clientX - lx, e.clientY - ly) < 30) {
+			last = 0;
+			zoom(e.clientX, e.clientY);
+		} else [last, lx, ly] = [now, e.clientX, e.clientY];
+	});
+	openDialog(d);
+	whenSettled(couponWake);
+}

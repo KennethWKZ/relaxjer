@@ -181,7 +181,26 @@ const wish = [...(readJSON('src/wish-a.json', { items: [] }).items || []), ...(r
 // large Chinese face, so only the glyphs the page letters go into the page)
 const ctx = {};
 vm.createContext(ctx);
-vm.runInContext(data + ';this.DAYS=DAYS;this.PRINCIPLE=PRINCIPLE;this.TRIP=TRIP;', ctx);
+vm.runInContext(data + ';this.DAYS=DAYS;this.PRINCIPLE=PRINCIPLE;this.TRIP=TRIP;this.TAX=typeof TAX==="undefined"?undefined:TAX;', ctx);
+// the tax refund's shop coupons (TAX.coupons[].img, ADR-20261128-tax-refund): each a trip image (img/<key>.webp, .png,
+// .jpg or .svg) put in the page at its full size, never the lighter copy, so the cashier's scanner reads its barcode.
+// They count apart from the photos in the summary line; a missing one is left out with a warning (the contract fails it)
+const COUPON_TYPES = { webp: 'image/webp', png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', svg: 'image/svg+xml' };
+const coupons = {};
+for (const c of (ctx.TAX && Array.isArray(ctx.TAX.coupons) ? ctx.TAX.coupons : []).filter((x) => x && x.img)) {
+	const key = String(c.img);
+	if (!/^[a-z0-9][a-z0-9_-]*(\/[a-z0-9][a-z0-9_-]*)*$/i.test(key)) {
+		console.warn(`! TAX coupon ${c.id}: img "${key}" must be a key like tax/coupon-shop (letters, digits, - _ /)`);
+		continue;
+	}
+	const ext = Object.keys(COUPON_TYPES).find((e) => fs.existsSync(path.join(trip, 'img', `${key}.${e}`)));
+	if (!ext) {
+		console.warn(`! TAX coupon ${c.id}: no img/${key}.webp (or .png, .jpg, .svg) in the trip`);
+		continue;
+	}
+	const bytes = fs.readFileSync(path.join(trip, 'img', `${key}.${ext}`));
+	coupons[key] = { file: `img/${key}.${ext}`, data: `data:${COUPON_TYPES[ext]};base64,${bytes.toString('base64')}`, kb: bytes.length / 1024 };
+}
 // the trip's name on the page, the home screen and the KML; the shell's {{brand}} / {{dates}} are filled from it
 const { brand, description } = ctx.TRIP;
 // the header's short name, for a phone whose header can't fit the whole brand beside its buttons (09-main-render.js)
@@ -423,7 +442,7 @@ const worldCSS = (world ? world.css : '') + previewCSS;
 const scripts = (
 	imgMap,
 	kmlB64,
-) => `<script>window.CREDITS=${safe(credits)};window.GEO=${safe(geo)};window.EXTRA=${safe(extra)};window.WISH=${safe(wish)};window.SHARE_URL=${safe(shareUrl)};window.APP_ICONS=${safe(APP_ICONS)};${WORLD_ART ? `window.WORLD_ART=${safe(WORLD_ART)};` : ''}${WORLD_ACTORS ? `window.WORLD_ACTORS=${safe(WORLD_ACTORS)};` : ''}window.GMAPS=${safe(gmaps)};window.SYNC=${safe(sync)};window.DEMO_CLOCK=${safe(demoClock)};window.FORECAST=${safe(forecast)};window.DRINKS=${safe(drinks)};window.TOILETS=${safe(toilets)};window.REFILL=${safe(refill)};window.MRT=${safe(mrt)};window.YB=${safe(transit.yb)};window.BUS=${safe(transit.bus)};window.SHOPS=${safe(shops)};window.KML_B64=${safe(kmlB64 || '')};${imgMap ? `window.IMG=${imgMap ? 'null' : 'null'};` : ''}</script>
+) => `<script>window.CREDITS=${safe(credits)};window.GEO=${safe(geo)};window.EXTRA=${safe(extra)};window.WISH=${safe(wish)};window.SHARE_URL=${safe(shareUrl)};window.APP_ICONS=${safe(APP_ICONS)};${WORLD_ART ? `window.WORLD_ART=${safe(WORLD_ART)};` : ''}${WORLD_ACTORS ? `window.WORLD_ACTORS=${safe(WORLD_ACTORS)};` : ''}window.GMAPS=${safe(gmaps)};window.SYNC=${safe(sync)};window.DEMO_CLOCK=${safe(demoClock)};window.FORECAST=${safe(forecast)};window.DRINKS=${safe(drinks)};window.TOILETS=${safe(toilets)};window.REFILL=${safe(refill)};window.COUPON_FILES=${safe(Object.fromEntries(Object.entries(coupons).map(([k, v]) => [k, v.file])))};window.MRT=${safe(mrt)};window.YB=${safe(transit.yb)};window.BUS=${safe(transit.bus)};window.SHOPS=${safe(shops)};window.KML_B64=${safe(kmlB64 || '')};${imgMap ? `window.IMG=${imgMap ? 'null' : 'null'};` : ''}</script>
 <script>${data}</script>
 <script>${app}</script>`;
 
@@ -441,6 +460,7 @@ const writePages = (kmlB64) => {
 			const f = fs.existsSync(lite) ? lite : path.join(trip, 'img', `${k}.webp`); // scripts/imglite.py: 720 px, lighter
 			if (fs.existsSync(f)) imgMap[k] = `data:image/webp;base64,${fs.readFileSync(f).toString('base64')}`;
 		}
+	for (const [k, v] of Object.entries(coupons)) imgMap[k] = v.data;
 	const draft = `<!doctype html>
 <html lang="zh-Hans"${worldAttr}>
 <head>
@@ -475,7 +495,13 @@ ${scripts(imgMap, kmlB64)}
 };
 const { artifact, standalone, kb } = writePages('');
 console.log(
-	`${preview ? 'PREVIEW (not for publishing) · ' : ''}google key ${gmaps ? 'yes' : 'no'} · group sync ${sync ? `yes (${sync.approval ? 'approval, ' : ''}planner code ${sync.planner ? 'set' : 'not set'})` : 'no'}${demoClock ? ` · demo clock ${demoClock}` : ''}${skyMode !== 'off' ? ` · sky ${skyMode}` : ''} · artifact ${kb(artifact)} · standalone ${kb(standalone)} · photos ${credits.length} · geo ${geo ? 'yes' : 'no'} · food ${extra.food?.length || 0} · tickets ${extra.tickets?.length || 0} · wish ${wish.length} · refill ${refill.spots.length} · brush glyphs ${brush.size} (${fontCSS ? 'font in the page' : 'system Kaiti'})${drawnIcon.size ? ` · icon drawn (${world.name}${iconMark ? ` + ${iconMark}` : ''})` : ''}`,
+	`${preview ? 'PREVIEW (not for publishing) · ' : ''}google key ${gmaps ? 'yes' : 'no'} · group sync ${sync ? `yes (${sync.approval ? 'approval, ' : ''}planner code ${sync.planner ? 'set' : 'not set'})` : 'no'}${demoClock ? ` · demo clock ${demoClock}` : ''}${skyMode !== 'off' ? ` · sky ${skyMode}` : ''} · artifact ${kb(artifact)} · standalone ${kb(standalone)} · photos ${credits.length}${
+		Object.keys(coupons).length
+			? ` · coupons ${Object.keys(coupons).length} (${Object.values(coupons)
+					.reduce((n, v) => n + v.kb, 0)
+					.toFixed(0)} KB)`
+			: ''
+	} · geo ${geo ? 'yes' : 'no'} · food ${extra.food?.length || 0} · tickets ${extra.tickets?.length || 0} · wish ${wish.length} · refill ${refill.spots.length} · brush glyphs ${brush.size} (${fontCSS ? 'font in the page' : 'system Kaiti'})${drawnIcon.size ? ` · icon drawn (${world.name}${iconMark ? ` + ${iconMark}` : ''})` : ''}`,
 );
 
 // 3) Google My Maps export (KML): one combined file + one file per layer

@@ -8698,3 +8698,311 @@ details.pay[open] > summary > .chev {
 		transition: none;
 	}
 }
+
+/* the tourist tax refund (ADR-20261128-tax-refund): a sheet from Today's bookings. Its lead says the minimum spend and the
+   deadline; then the coupons, how it works in numbered steps, card or cash, and the airport's places and Wi-Fi */
+.tax-go {
+	margin-top: 10px;
+}
+.tax-go .wg-n {
+	margin-left: 6px;
+}
+.tax-lead {
+	display: grid;
+	gap: 6px;
+	padding: 12px 14px;
+	border-radius: var(--r-md);
+	background: var(--paper-2);
+}
+.tax-key,
+.tax-line {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	margin: 0;
+	font-size: var(--fs-sm);
+	font-weight: 650;
+}
+.tax-key svg.i,
+.tax-line svg.i {
+	flex: none;
+	margin-top: 2px;
+	color: var(--ink-3);
+}
+.tax-h {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin: 22px 0 8px;
+	font-size: var(--fs-md);
+	font-weight: 750;
+}
+.tax-h svg.i {
+	color: var(--ink-2);
+}
+.tax-steps {
+	display: grid;
+	gap: 10px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	counter-reset: tax-step;
+}
+.tax-steps > li {
+	display: grid;
+	grid-template-columns: 28px minmax(0, 1fr);
+	gap: 10px;
+	align-items: start;
+	counter-increment: tax-step;
+}
+.tax-steps > li::before {
+	content: counter(tax-step);
+	display: grid;
+	place-items: center;
+	width: 28px;
+	height: 28px;
+	border-radius: 999px;
+	background: var(--ink);
+	color: var(--paper);
+	font-size: var(--fs-sm);
+	font-weight: 800;
+	font-variant-numeric: tabular-nums;
+}
+.tax-places {
+	display: grid;
+	gap: 8px;
+}
+.tax-place,
+.tax-wifi {
+	display: grid;
+	gap: 6px;
+	padding: 12px 14px;
+	border: 1px solid var(--rule);
+	border-radius: var(--r-md);
+	background: var(--paper);
+}
+.tax-wifi {
+	margin-top: 8px;
+}
+.tax-what {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin: 0;
+}
+.tax-wf {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	align-items: center;
+	gap: 2px 8px;
+	margin: 0;
+	font-size: var(--fs-sm);
+}
+.tax-wf > span {
+	grid-column: 1 / -1;
+	color: var(--ink-2);
+	font-weight: 650;
+}
+.tax-wf code {
+	overflow-wrap: anywhere;
+	font-size: 1rem;
+	font-weight: 750;
+}
+.tax-copy {
+	min-height: 44px;
+}
+/* a shop coupon: its shop and last day, the offer, its tiers, the barcode image full width on white (a tap: full
+   screen), its rules. One past its last day folds to one greyed row, Expired */
+.coupons {
+	display: grid;
+	gap: 10px;
+}
+.coupon {
+	display: grid;
+	gap: 8px;
+	padding: 14px;
+	border: 1px solid var(--rule);
+	border-radius: 14px;
+	background: var(--paper);
+}
+.coupon-shop {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 4px 8px;
+	margin: 0;
+}
+.coupon-shop svg.i {
+	color: var(--ink-2);
+}
+.coupon-until {
+	margin-left: auto;
+	font-size: var(--fs-sm);
+	font-weight: 700;
+	color: var(--ink-2);
+}
+.coupon-h {
+	margin: 0;
+	font-weight: 750;
+}
+.coupon-tiers {
+	display: grid;
+	gap: 2px;
+	margin: 0;
+	padding-left: 1.2em;
+	font-size: var(--fs-sm);
+	font-weight: 650;
+}
+.coupon-img {
+	display: block;
+	width: 100%;
+	padding: 0;
+	border: 1px solid var(--rule);
+	border-radius: 10px;
+	background: #fff;
+	overflow: hidden;
+	cursor: zoom-in;
+}
+.coupon-img img {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+.coupon-tip {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin: 0;
+}
+.coupon.is-gone {
+	padding: 0;
+	background: var(--paper-2);
+}
+.coupon.is-gone > summary {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	min-height: 48px;
+	padding: 0 14px;
+	cursor: pointer;
+	list-style: none;
+	color: var(--ink-2);
+}
+.coupon.is-gone > summary::-webkit-details-marker {
+	display: none;
+}
+.coupon.is-gone > summary .chev {
+	width: 20px;
+	height: 20px;
+	margin-left: 4px;
+	color: var(--ink-3);
+	transition: rotate 200ms var(--ease-out);
+}
+.coupon.is-gone[open] > summary .chev {
+	rotate: 180deg;
+}
+.coupon.is-gone > summary .coupon-shop {
+	flex: 1;
+	min-width: 0;
+	flex-wrap: nowrap;
+}
+.coupon-badge {
+	margin-left: auto;
+	padding: 2px 8px;
+	border-radius: 7px;
+	background: var(--paper-3);
+	font-size: var(--fs-sm);
+	font-weight: 750;
+	color: var(--ink-2);
+}
+.coupon-b {
+	display: grid;
+	gap: 8px;
+	padding: 0 14px 14px;
+	opacity: 0.6;
+}
+.coupon.is-gone .coupon-img img {
+	filter: grayscale(1);
+}
+/* full screen for the cashier: pure white whatever the theme (no glass, no dark tint: color-scheme only light), the
+   whole coupon on the screen and centred (the full-size image scaled by CSS only); a landscape coupon on a phone held
+   upright turns a quarter turn to fill the long edge (.is-turned, 22-events.js); zoomed by a double tap it reads upright
+   and scrolls, one image pixel to one screen pixel; pinch zoom stays on. Nothing moves: no transition to reduce */
+dialog.coupon-view {
+	position: fixed;
+	inset: 0;
+	width: 100vw;
+	max-width: none;
+	height: 100dvh;
+	max-height: none;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: #fff;
+	color: #15161a;
+	color-scheme: only light;
+}
+dialog.coupon-view::backdrop {
+	background: #fff;
+}
+.cv-scroll {
+	--cv-top: calc(env(safe-area-inset-top) + 68px);
+	--cv-bottom: calc(env(safe-area-inset-bottom) + 44px);
+	position: absolute;
+	inset: 0;
+	display: grid;
+	place-items: center;
+	overflow: auto;
+	padding: var(--cv-top) 12px var(--cv-bottom);
+	touch-action: manipulation;
+}
+.cv-scroll img {
+	display: block;
+	max-width: 100%;
+	max-height: calc(100dvh - var(--cv-top) - var(--cv-bottom));
+	width: auto;
+	height: auto;
+	cursor: zoom-in;
+}
+/* turned: centred on the screen, its long side along the screen's height, clear of the ✕ and the hint */
+.cv-scroll.is-turned {
+	overflow: hidden;
+}
+.cv-scroll.is-turned img {
+	position: absolute;
+	top: calc((100dvh + var(--cv-top) - var(--cv-bottom)) / 2);
+	left: 50%;
+	max-width: calc(100dvh - var(--cv-top) - var(--cv-bottom));
+	max-height: calc(100vw - 24px);
+	transform: translate(-50%, -50%) rotate(90deg);
+}
+.cv-scroll.is-zoomed {
+	display: block;
+}
+.cv-scroll.is-zoomed img {
+	max-width: none;
+	max-height: none;
+	height: auto;
+	cursor: zoom-out;
+}
+.cv-tip {
+	position: fixed;
+	inset: auto 12px calc(env(safe-area-inset-bottom) + 12px);
+	margin: 0;
+	text-align: center;
+	font-size: var(--fs-sm);
+	font-weight: 650;
+	color: #464a53;
+	pointer-events: none;
+}
+.cv-x {
+	position: fixed;
+	top: calc(env(safe-area-inset-top) + 12px);
+	right: 12px;
+	z-index: 1;
+	width: 44px;
+	height: 44px;
+	border-radius: 12px;
+	background: #f3f4f7;
+	color: #15161a;
+}

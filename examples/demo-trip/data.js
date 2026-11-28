@@ -1112,13 +1112,82 @@ const WEATHER = {
 
 const TAX = {
 	h: ['外国旅客退税', 'Tourist tax refund'],
+	// the rules in short; the minimum spend comes from the country pack, and the sheet leads with it
 	list: [
-		['同一天同一家店买满 NT$2,000', 'Spend NT$2,000+ in one shop on one day'],
 		['找有退税标志的店', 'Look for the tax-refund sign'],
 		['机场出境前领退税', 'Claim at the airport before security'],
 	],
 	shops: ['百货公司大多可以退税。', 'Most department stores offer it.'],
 	note: ['示范规则，出发前再查。', 'Demo rules; check before you go.'],
+	// the how-to, step by step (ADR-20261128-tax-refund); synthetic, like the rest of the demo
+	steps: [
+		['结账时出示护照，说要退税', 'At the till, show your passport and ask for the tax refund'],
+		['收好收据和退税单（上面有二维码）', 'Keep the receipt and the refund form (it has a QR code)'],
+		['到机场先办退税，再托运行李', 'At the airport, claim before you check your bags in'],
+		['选退到信用卡或领现金', 'Choose a refund to your card, or cash'],
+		['拿到退款或收据', 'Get the money, or the slip for your card'],
+	],
+	methods: [
+		{
+			h: ['退到信用卡', 'To a card'],
+			items: [
+				['大多数卡都可以', 'Most cards work'],
+				['约 2–4 周入账', 'Arrives in about 2–4 weeks'],
+			],
+			note: ['示范：以柜台说明为准。', 'Demo: the counter has the final word.'],
+		},
+		{
+			h: ['在机场领现金', 'Cash at the airport'],
+			items: [
+				['安检后的柜台领', 'At the counter after security'],
+				['当场拿到', 'Paid on the spot'],
+			],
+		},
+	],
+	airport: {
+		h: ['机场的退税点', 'Refund points at the airport'],
+		rows: [
+			{
+				what: ['退税机', 'Refund kiosk'],
+				where: ['出境大厅，托运柜台旁（示范）', 'Departure hall, by the check-in counters (demo)'],
+				when: ['托运行李之前', 'Before you check your bags in'],
+			},
+			{
+				what: ['现金柜台', 'Cash counter'],
+				where: ['安检后，登机口附近（示范）', 'After security, near the gates (demo)'],
+				note: ['示范地点，出发前查机场网站。', 'A demo place; check the airport site before you go.'],
+			},
+		],
+		wifi: { ssid: 'Demo-Airport-Free', note: ['示范 Wi-Fi，不用密码。', 'A demo network, no password.'] },
+	},
+	deadline: ['示范：买了 90 天内出境才能退', 'Demo: leave within 90 days of buying to claim'],
+	// a shop's coupon: its offer, its tiers and its barcode image (img/tax/coupon-demo.svg, made up), until its last day
+	coupons: [
+		{
+			id: 'demo-store',
+			shop: ['示范百货（示範）', 'Demo Department Store (demo)'],
+			h: ['外国旅客优惠，可以和退税一起用', 'A tourist discount, on top of the tax refund'],
+			items: [
+				['满 NT$3,000 打 95 折', '5% off from NT$3,000'],
+				['满 NT$10,000 打 93 折', '7% off from NT$10,000'],
+			],
+			until: '2027-03-31',
+			img: 'tax/coupon-demo',
+			rules: [
+				['结账前出示这张券和护照', 'Show this coupon and your passport before you pay'],
+				['特价品不适用', 'Not on sale items'],
+			],
+		},
+		{
+			id: 'demo-old',
+			shop: ['示范药妆（示範）', 'Demo Drugstore (demo)'],
+			h: ['冬季优惠', 'A winter discount'],
+			items: [['满 NT$2,000 打 95 折', '5% off from NT$2,000']],
+			until: '2027-03-01',
+			img: 'tax/coupon-demo',
+		},
+	],
+	src: ['示范资料：编的，不是真的规定', 'Demo data: made up, not real rules'],
 };
 
 const FLIGHTS = {

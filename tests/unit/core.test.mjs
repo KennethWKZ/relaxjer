@@ -12,6 +12,7 @@ import * as Way from '../../engine/src/core/way.mjs';
 import * as Wish from '../../engine/src/core/wish.mjs';
 import * as Rating from '../../engine/src/core/rating.mjs';
 import * as Refill from '../../engine/src/core/refill.mjs';
+import * as Tax from '../../engine/src/core/tax.mjs';
 
 test('Time: clock parsing and formatting', () => {
 	assert.equal(Time.clockMinutes('09:05'), 545);
@@ -849,4 +850,31 @@ test('Money: the budget by kind adds up to the view’s totals, biggest first', 
 	);
 	close(tr.share, (tr.paid + (tr.todo[0] + tr.todo[1]) / 2) / all);
 	assert.deepEqual(Money.budgetByKind([]), []);
+});
+
+test('Tax: a coupon is good through its last day, and the trip’s coupons split into good and gone', () => {
+	assert.equal(Tax.expired('2027-03-31', '2027-03-31'), false, 'its last day still counts');
+	assert.equal(Tax.expired('2027-03-31', '2027-04-01'), true);
+	assert.equal(Tax.expired(undefined, '2027-04-01'), false, 'no last day: never runs out');
+	assert.equal(Tax.expired('2027-03-31', null), false, 'no day to judge by');
+	const coupons = [{ id: 'a', until: '2027-03-31' }, { id: 'b', until: '2027-03-01' }, { id: 'c' }, { id: 'd', until: '2027-02-10' }];
+	const on = Tax.couponsOn(coupons, '2027-03-06');
+	assert.deepEqual(
+		on.good.map((c) => c.id),
+		['a', 'c'],
+	);
+	assert.deepEqual(
+		on.gone.map((c) => c.id),
+		['b', 'd'],
+		'in the trip’s order',
+	);
+	assert.deepEqual(Tax.couponsOn(undefined, '2027-03-06'), { good: [], gone: [] });
+});
+
+test('Tax: the coupon viewer turns a landscape coupon on a portrait screen, and nothing else', () => {
+	assert.equal(Tax.turnFor(1080, 600, 390, 844), true, 'a barcode strip on a phone held upright');
+	assert.equal(Tax.turnFor(1100, 1540, 390, 844), false, 'a store flyer stays upright');
+	assert.equal(Tax.turnFor(1080, 600, 844, 390), false, 'the phone is already sideways');
+	assert.equal(Tax.turnFor(800, 800, 390, 844), false, 'a square one');
+	assert.equal(Tax.turnFor(1080, 600, 1280, 800), false, 'a desktop');
 });

@@ -5,7 +5,17 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { DEMO_TRIP, DEMO_TRIPS, ROOT } from '../support/stage.mjs';
-import { checkRefill, checkTrip, loadTrip, OPTIONAL_GLOBALS, pointsOutside, readJSON, REQUIRED, wishProblems } from '../support/trip-contract.mjs';
+import {
+	checkRefill,
+	checkTrip,
+	loadTrip,
+	OPTIONAL_GLOBALS,
+	pointsOutside,
+	readJSON,
+	REQUIRED,
+	taxImagesMissing,
+	wishProblems,
+} from '../support/trip-contract.mjs';
 
 const dirs = process.env.TRIP_DIR ? [path.resolve(process.env.TRIP_DIR)] : DEMO_TRIPS;
 
@@ -51,6 +61,20 @@ test('the contract catches a broken trip', () => {
 		'TRIP.pax missing',
 	])
 		assert.match(problems, new RegExp(want));
+});
+
+test('the contract catches a broken tax refund section', () => {
+	const trip = loadTrip(DEMO_TRIP);
+	assert.ok(trip.TAX.coupons.length >= 2, 'the demo has coupons');
+	trip.TAX.coupons[0].until = '31 Mar'; // a date
+	trip.TAX.coupons[1].id = trip.TAX.coupons[0].id; // the same id twice
+	trip.TAX.coupons[1].place = 'nowhere';
+	trip.TAX.steps = ['one language'];
+	trip.TAX.airport.wifi = { pass: 'x' }; // no network name
+	trip.TAX.methods[0].items = 'cards';
+	const problems = checkTrip(trip).join('\n');
+	for (const want of ['until must be its last day', 'the same id twice', 'place "nowhere"', 'TAX.steps', 'TAX.airport.wifi', 'TAX.methods[0]'])
+		assert.ok(problems.includes(want), `${want}\nin:\n${problems}`);
 });
 
 test('the contract catches a broken refill.json', () => {
@@ -105,6 +129,10 @@ for (const dir of dirs) {
 
 	test('refill.json, when the trip has one, follows the spot shape' + at, () => {
 		assert.deepEqual(checkRefill(readJSON(dir, 'refill.json')), []);
+	});
+
+	test("every tax refund coupon's image is in the trip's img folder" + at, () => {
+		assert.deepEqual(taxImagesMissing(dir), []);
 	});
 
 	test('every pin sits inside the map' + at, () => {

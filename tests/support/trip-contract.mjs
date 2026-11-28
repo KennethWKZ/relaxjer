@@ -358,6 +358,58 @@ export function checkTrip(trip) {
 	});
 	// travel insurance (optional): a closed list of fields, and never an ID number, an address or a birth date, since the
 	// page is shared with the whole group (ADR-20261128-budget-paid-insurance)
+	// the tourist tax refund (ADR-20261128-tax-refund): the old h, list, shops, note, and the optional steps, methods,
+	// airport (its rows and the customs Wi-Fi), deadline, coupons and src. A coupon's `until` is a date, its id a word,
+	// its place one of the trip's places or shop lists; its image is checked against the folder (taxImagesMissing)
+	const { TAX } = trip;
+	if (TAX != null) {
+		const labels = (v) => Array.isArray(v) && v.every(isLabel);
+		const nameOK = (v) => isLabel(v) || (typeof v === 'string' && !!v.trim());
+		if (TAX.steps != null && !labels(TAX.steps)) bad('TAX.steps: a list of [zh, en]');
+		if (TAX.deadline != null && !isLabel(TAX.deadline)) bad('TAX.deadline: [zh, en]');
+		if (TAX.src != null && !isLabel(TAX.src)) bad('TAX.src: [zh, en]');
+		if (TAX.methods != null)
+			(Array.isArray(TAX.methods) ? TAX.methods : [null]).forEach((m, i) => {
+				if (!m || !isLabel(m.h) || !labels(m.items || [])) bad(`TAX.methods[${i}]: { h: [zh, en], items: [[zh, en], …], note? }`);
+				else if (m.note != null && !isLabel(m.note)) bad(`TAX.methods[${i}].note: [zh, en]`);
+			});
+		if (TAX.airport != null) {
+			const A = TAX.airport;
+			if (A.h != null && !isLabel(A.h)) bad('TAX.airport.h: [zh, en]');
+			(Array.isArray(A.rows) ? A.rows : [null]).forEach((r, i) => {
+				if (!r || !isLabel(r.what) || !isLabel(r.where)) bad(`TAX.airport.rows[${i}]: { what, where, when?, note? }, each [zh, en]`);
+				else for (const k of ['when', 'note']) if (r[k] != null && !isLabel(r[k])) bad(`TAX.airport.rows[${i}].${k}: [zh, en]`);
+			});
+			if (
+				A.wifi != null &&
+				!(
+					typeof A.wifi.ssid === 'string' &&
+					A.wifi.ssid.trim() &&
+					(A.wifi.pass == null || typeof A.wifi.pass === 'string') &&
+					(A.wifi.note == null || isLabel(A.wifi.note))
+				)
+			)
+				bad('TAX.airport.wifi: { ssid, pass?, note? }');
+		}
+		if (TAX.coupons != null) {
+			const ids = new Set();
+			const lists = new Set([...(trip.SHOPLISTS || []), ...(trip.SNOW ? [trip.SNOW] : [])].map((l) => l && l.id).filter(Boolean));
+			(Array.isArray(TAX.coupons) ? TAX.coupons : [null]).forEach((c, i) => {
+				const w = `TAX.coupons[${i}]`;
+				if (!c || typeof c !== 'object') return bad(`${w}: a coupon object`);
+				if (!/^[a-z0-9][a-z0-9-]*$/.test(c.id || '')) bad(`${w}: id must be a word (a-z, 0-9, -)`);
+				else if (ids.has(c.id)) bad(`${w}: the same id twice`);
+				ids.add(c.id);
+				if (!nameOK(c.shop)) bad(`${w}: shop must be [zh, en] or a name`);
+				if (!isLabel(c.h)) bad(`${w}: h must be [zh, en]`);
+				if (c.items != null && !labels(c.items)) bad(`${w}: items must be a list of [zh, en]`);
+				if (!/^\d{4}-\d\d-\d\d$/.test(c.until || '')) bad(`${w}: until must be its last day, YYYY-MM-DD`);
+				if (c.img != null && !/^[a-z0-9][a-z0-9_-]*(\/[a-z0-9][a-z0-9_-]*)*$/i.test(c.img)) bad(`${w}: img must be a key like tax/coupon-shop`);
+				if (c.rules != null && !(isLabel(c.rules) || labels(c.rules))) bad(`${w}: rules must be [zh, en] or a list of them`);
+				if (c.place != null && !(PLACES[c.place] || lists.has(c.place))) bad(`${w}: place "${c.place}" is not a place or a shop list`);
+			});
+		}
+	}
 	const { INSURANCE } = trip;
 	if (INSURANCE != null) {
 		const PERSONAL = /^(ic|nric|mykad|id|idno|id_?number|passport\w*|dob|birth\w*|address\w*|addr|ssn|national_?id)$/i;
@@ -472,4 +524,14 @@ export function checkRefill(data) {
 		}
 	});
 	return bad;
+}
+
+/** the tax refund coupons' images the trip names but its img/ folder lacks (ADR-20261128-tax-refund) */
+export function taxImagesMissing(dir) {
+	const { TAX } = loadTrip(dir);
+	const coupons = TAX && Array.isArray(TAX.coupons) ? TAX.coupons : [];
+	// copied into this realm: the trip's arrays come from the vm it was read in
+	return Array.from(coupons)
+		.filter((c) => c && c.img && !['webp', 'png', 'jpg', 'jpeg', 'svg'].some((e) => fs.existsSync(path.join(dir, 'img', `${c.img}.${e}`))))
+		.map((c) => `TAX.coupons ${c.id}: no img/${c.img}.webp (or .png, .jpg, .svg)`);
 }

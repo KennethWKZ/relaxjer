@@ -433,8 +433,13 @@ itself is the planner's: it's in the trip's data, and nobody makes one on the pa
   with no payment yet shows its estimate total first, as before.
 - **Cash and cards:** how much shared cash and each person's share of it, what it's for, where cards work, and the
   transit card's top-up.
-- **Tax refund:** the tag (with the minimum spend) on shops that qualify, in the add sheet and the shop box; the
-  rules fold out in the shop box.
+- **Tax refund:** the tag (with the minimum spend) on shops that qualify, in the add sheet and the shop box, and a
+  **Tax refund** tile in Today's bookings (the shop box links to it). Its sheet leads with the minimum spend and the
+  deadline, then the rules in short; the shops' **coupons**, each with its offer, its tiers, its last day and its
+  barcode image full width (tap it: full screen on white, sharp, for the cashier to scan; ✕ or Back closes it), one past
+  its last day greyed and folded to "Expired"; **how it works**, step by step; **to a card or in cash**; and **at the
+  airport**, where the customs kiosk and the cash machine are and when, with the customs Wi-Fi and a Copy button for its
+  name and password. The tile's number is how many coupons are still good.
 
 ## Before you go
 
@@ -591,6 +596,7 @@ Everything above that isn't listed here is on every page. The fields are in
 | A card's one-line summary, the option chosen                                               | worked out from each card; `sum` on a card for the planner's own words, `pick` on a `decide` card for the chosen option                                                                                                                  |
 | The currency button, Amounts and rate                                                      | `TRIP.currency`: a `home` currency that isn't the trip's own `sym`, and a `rate`                                                                                                                                                         |
 | Tax refund tag and rules                                                                   | the country pack (`TRIP.destination`), `shops.json`, and `TAX`                                                                                                                                                                           |
+| The Tax refund tile, its steps, card or cash, the airport, coupons                         | `TAX` (`steps`, `methods`, `airport`, `deadline`, `coupons` with images in `img/`, `src`); the minimum spend from the country pack                                                                                                       |
 | Lucky draw, drink guide                                                                    | the country pack, and `ENTRY.lucky` for the draw                                                                                                                                                                                         |
 | Metro name, transit card, taxi meter, bike share, toilet tip                               | the city pack (`TRIP.region`); the transit card also `AIRPORT.transitCard` / `MONEY.transitCard`                                                                                                                                         |
 | The local words, one tap to copy                                                           | the country pack's `native`, with each place's `trad` and `roma` (a stop's own `native`, `roma`; a food, drink or wishlist entry's `name_trad`, `name_roma`)                                                                             |

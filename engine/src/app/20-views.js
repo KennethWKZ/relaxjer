@@ -206,8 +206,11 @@ function partOpen(d, target) {
 	if (!d) return;
 	const btns = $$(`[data-part="${d.id}"]`);
 	lazyFill(d); // built the first time it opens (06-render-blocks.js)
-	// a sheet that holds one folded card (a single ticket) opens it: the summary button was the tap that asked for it
-	const folds = [...d.querySelectorAll('.bsheet-body details')].filter((x) => !x.parentElement.closest('details'));
+	// a sheet that holds one folded card (a single ticket) opens it: the summary button was the tap that asked for it.
+	// Not one folded because it's past (an expired coupon, data-keep-shut): that fold is the point
+	const folds = [...d.querySelectorAll('.bsheet-body details')].filter(
+		(x) => !x.parentElement.closest('details') && !x.hasAttribute('data-keep-shut'),
+	);
 	if (folds.length === 1) folds[0].open = true;
 	openDialog(d);
 	whenSettled(() => {

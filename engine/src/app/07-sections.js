@@ -88,6 +88,16 @@ function topParts() {
 		go('entry', 'passport', ['入境', 'Entry'], '#entry'),
 		go('checklist', 'check', ['清单', 'Checklist'], '#checklist'),
 		go('budget', 'money', ['预算', 'Budget'], '#budget'),
+		hasTax() && {
+			key: 'tax',
+			icon: 'receipt',
+			h: TAX.h || ['退税', 'Tax refund'],
+			t: ['退税', 'Tax refund'],
+			n: taxCoupons().good.length,
+			sum: taxSum(),
+			body: taxSheetHTML(),
+			fill: () => taxSheetHTML(), // drawn when it opens: the coupons' images arrive after the first draw (imgLoad)
+		},
 		insPolicies().length && {
 			key: 'ins',
 			icon: 'shield',
@@ -530,11 +540,96 @@ function freeIdeasHTML() {
       ${grp('star', Z('想去清单', 'Wishlist'), cnt(wish), wish)}${grp('flag', Z('备选景点', 'Optional sights'), cnt(opt), opt)}${shopGroups.map(({ l, rows }) => grp(l.icon, L(l.group), cnt(rows), rows)).join('')}
       <p class="xsmall muted">${Z('也可以在「地图」搜任何地方（包括 Google），点＋加入。', 'Or search anything on the map (Google too) and tap ＋.')}</p></div>`;
 }
-// tourist tax refund: the rules in five lines + which of our shops have it
+// tourist tax refund, under the shopping ideas: one row into its sheet in Today's bookings, where all of it lives
 const taxHTML = () =>
-	typeof TAX === 'undefined'
-		? ''
-		: `<details class="more idea-g tax"><summary>${icon('money')}<span>${esc(L(TAX.h))}</span>${trsMin() ? `<span class="wg-n">${trsMin()}+</span>` : ''}${icon('chev', 'chev')}</summary><div class="more-body">${list(TAX.list)}<p class="small">${fmt(TAX.shops)}</p><p class="xsmall muted">${fmt(TAX.note)}</p></div></details>`;
+	hasTax()
+		? `<a class="mlink tax-go" href="#top-p-tax">${icon('receipt')}<span>${esc(L(TAX.h || ['退税', 'Tax refund']))}</span>${trsMin() ? `<span class="wg-n">${trsMin()}+</span>` : ''}${icon('chev-r')}</a>`
+		: '';
+/* the tourist tax refund (TAX; ADR-20261128-tax-refund): a tile in Today's bookings opens it. The rules in short with the
+   pack's minimum spend and the deadline; the shop coupons, each with its barcode full width (a tap opens it full screen
+   on white for the cashier's scanner; one past its last day greys and folds to Expired); how it works, step by step;
+   to a card or in cash; and where things are at the airport, with the customs Wi-Fi. A trip with only h, list, shops and
+   note keeps those */
+function hasTax() {
+	return typeof TAX !== 'undefined' && !!TAX && typeof TAX === 'object';
+}
+const taxCoupons = () => Tax.couponsOn(hasTax() ? TAX.coupons : [], tpNow().date);
+const COUPON_FILES = window.COUPON_FILES || {};
+const couponSrc = (key) => (IMG ? IMG[key] || BLANK : IMG_LATE ? BLANK : COUPON_FILES[key] || '');
+const lbl = (v) => (Array.isArray(v) ? L(v) : String(v || '')); // a [zh, en] label, or a name that's the same in both
+function taxSum() {
+	const n = taxCoupons().good.length;
+	return [
+		trsMin() && Z(`同店同日满 ${sumB(trsMin())}`, `${sumB(trsMin())}+ in one shop, one day`),
+		n && Z(`${n} 张优惠券`, `${n} coupon${n > 1 ? 's' : ''}`),
+	]
+		.filter(Boolean)
+		.join(' · ');
+}
+function couponHTML(c, gone) {
+	const shop = esc(lbl(c.shop));
+	const until = c.until ? `<span class="coupon-until">${esc(Z(`${dateLabel(c.until)} 前有效`, `until ${dateLabel(c.until)}`))}</span>` : '';
+	const rules = !c.rules ? '' : Array.isArray(c.rules[0]) ? list(c.rules) : `<p class="note">${fmt(c.rules)}</p>`;
+	const img =
+		c.img && COUPON_FILES[c.img]
+			? `<button type="button" class="coupon-img" data-coupon="${esc(c.img)}" aria-label="${esc(Z(`${lbl(c.shop)}的优惠券：全屏给店员扫`, `${lbl(c.shop)} coupon: full screen for the cashier`))}"><img src="${couponSrc(c.img)}" data-img="${esc(c.img)}" alt="${esc(Z(`${lbl(c.shop)}优惠券和条码`, `${lbl(c.shop)} coupon and its barcode`))}" decoding="async"></button><p class="xsmall muted coupon-tip">${icon('expand')}<span>${Z('点图片全屏，给店员扫条码', 'Tap it for full screen, for the cashier to scan')}</span></p>`
+			: '';
+	const where = c.place && PLACES[c.place] ? `<div class="links-row">${placeLinks(c.place, { noDriver: true })}</div>` : '';
+	const body = `<p class="coupon-h">${fmt(c.h)}</p>${c.items && c.items.length ? `<ul class="coupon-tiers">${c.items.map((x) => `<li>${fmt(x)}</li>`).join('')}</ul>` : ''}${img}${rules}${where}`;
+	return gone
+		? `<details class="coupon is-gone" data-coupon-id="${esc(c.id)}" data-keep-shut><summary><span class="coupon-shop">${icon('ticket')}<b>${shop}</b></span><span class="coupon-badge">${Z('已过期', 'Expired')}</span>${icon('chev', 'chev')}</summary><div class="coupon-b">${body}</div></details>`
+		: `<article class="coupon" data-coupon-id="${esc(c.id)}"><p class="coupon-shop">${icon('ticket')}<b>${shop}</b>${until}</p>${body}</article>`;
+}
+function taxSheetHTML() {
+	const T = TAX;
+	const { good, gone } = taxCoupons();
+	const sec = (ic, h, body) => (body ? `<h4 class="tax-h">${icon(ic)}<span>${esc(h)}</span></h4>${body}` : '');
+	const ar = T.airport && typeof T.airport === 'object' ? T.airport : null;
+	const wifi = ar && ar.wifi && ar.wifi.ssid ? ar.wifi : null;
+	const copyBtn = (text, what) =>
+		`<button type="button" class="mlink tax-copy" data-copy-text="${esc(text)}" aria-label="${esc(Z(`复制${what}`, `Copy the ${what}`))}">${icon('copy')}<span>${Z('复制', 'Copy')}</span></button>`;
+	const places =
+		ar && Array.isArray(ar.rows) && ar.rows.length
+			? `<div class="tax-places">${ar.rows
+					.map(
+						(r) =>
+							`<div class="tax-place"><p class="tax-what"><b>${fmt(r.what)}</b></p>${r.where ? `<p class="tax-line">${icon('pin')}<span>${fmt(r.where)}</span></p>` : ''}${r.when ? `<p class="tax-line">${icon('clock')}<span>${fmt(r.when)}</span></p>` : ''}${r.note ? `<p class="note">${fmt(r.note)}</p>` : ''}</div>`,
+					)
+					.join('')}</div>`
+			: '';
+	const wf = wifi
+		? `<div class="tax-wifi"><p class="tax-what">${icon('wifi')}<b>${Z('海关 Wi-Fi', 'Customs Wi-Fi')}</b></p><p class="tax-wf"><span>${Z('名称', 'Network')}</span><code>${esc(wifi.ssid)}</code>${copyBtn(wifi.ssid, Z('名称', 'network name'))}</p>${wifi.pass ? `<p class="tax-wf"><span>${Z('密码', 'Password')}</span><code>${esc(wifi.pass)}</code>${copyBtn(wifi.pass, Z('密码', 'password'))}</p>` : ''}${wifi.note ? `<p class="note">${fmt(wifi.note)}</p>` : ''}</div>`
+		: '';
+	return [
+		trsMin() || T.deadline
+			? `<div class="tax-lead">${trsMin() ? `<p class="tax-key">${icon('money')}<span>${Z(`同一天、同一家店满 <b>${trsMin()}</b>`, `<b>${trsMin()}</b> or more in one shop, on one day`)}</span></p>` : ''}${T.deadline ? `<p class="tax-key">${icon('calendar')}<span>${fmt(T.deadline)}</span></p>` : ''}</div>`
+			: '',
+		Array.isArray(T.list) && T.list.length ? list(T.list) : '',
+		sec(
+			'ticket',
+			Z('优惠券', 'Coupons'),
+			good.length || gone.length
+				? `<div class="coupons">${good.map((c) => couponHTML(c, false)).join('')}${gone.map((c) => couponHTML(c, true)).join('')}</div>`
+				: '',
+		),
+		sec(
+			'list',
+			Z('怎么退', 'How it works'),
+			Array.isArray(T.steps) && T.steps.length ? `<ol class="tax-steps">${T.steps.map((x) => `<li>${fmt(x)}</li>`).join('')}</ol>` : '',
+		),
+		sec(
+			'card',
+			Z('退到卡，还是领现金', 'To a card, or in cash'),
+			Array.isArray(T.methods) && T.methods.length
+				? `<div class="tiers">${T.methods.map((m) => `<div class="tier"><p class="tier-h">${fmt(m.h)}</p>${list(m.items || [])}${m.note ? `<p class="note">${fmt(m.note)}</p>` : ''}</div>`).join('')}</div>`
+				: '',
+		),
+		sec('plane', ar && ar.h ? lbl(ar.h) : Z('在机场', 'At the airport'), places + wf),
+		T.shops ? `<p class="small">${fmt(T.shops)}</p>` : '',
+		T.note ? `<p class="xsmall muted">${fmt(T.note)}</p>` : '',
+		T.src ? `<p class="xsmall muted">${icon('info')} ${fmt(T.src)}</p>` : '',
+	].join('');
+}
 // which days suit coming back with bags of shopping
 function shopDaysHTML() {
 	const dl = (id) => {

@@ -206,7 +206,7 @@ Positions and hours aren't written here: the data refresh puts them in `geo.json
 | `PRINCIPLE`    | `{ wish, p }`                                                                                                                                                          | the trip's brushed motto and its rules                                                                                                                   |
 | `BUDGET`       | `excludes`, `rows` (below), `total`, `totalMin`, `totalMax` (an estimate-only budget), `split`, `suggest`, `pool`, `poolText`, `airportNote`, `chartNote`              | the Budget view: what's been paid and what's still to come (below), the chart by day, the group pot                                                      |
 | `MONEY`        | `cash: { amt, uses }`, `card`, `transitCard`                                                                                                                           | the cash-and-cards block                                                                                                                                 |
-| `TAX`          | `h`, `list`, `shops`, `note`                                                                                                                                           | the tourist tax refund card (the minimum spend comes from the pack)                                                                                      |
+| `TAX`          | `h`, `list`, `shops`, `note`; optional `steps`, `methods`, `airport`, `deadline`, `coupons`, `src` ([the tax refund](#the-tax-refund-tax))                             | the Tax refund tile in Today's bookings and its sheet (the minimum spend comes from the pack)                                                            |
 | `WEATHER`      | `sites`, `lede`, `when: [{ d, t, v }]`, `items`, `outfits: [{ h, main, note, day }]`                                                                                   | the Weather section; the forecast itself comes from `forecast.json`                                                                                      |
 | `FLIGHTS`      | `out` and `ret`: `no`, `dep`, `arr`, `date`, `ret.plan` (below); `from`, `to` and `dur` are notes the page doesn't show                                                | the delay editor, the flight-tied times, the day roles                                                                                                   |
 | `ENTRY`        | `sites`, `sources`, `rules: [{ h, p, site }]`, `lucky: { sites, name, period, deadline, who, how, unsure }`                                                            | the Entry section; `lucky` is a visitor programme (Taiwan's lucky draw, with the pack's calculator)                                                      |
@@ -242,6 +242,29 @@ row is one of four shapes:
   number, shown only when the row is opened.
 - `excludes` keeps what's truly outside the plan (shopping); flights and lodging can be rows. A budget of estimate rows
   only keeps `total`, `totalMin` and `totalMax`, and the contract checks they add up.
+
+### The tax refund (`TAX`)
+
+A tile in Today's bookings opens it ([ADR-20261128-tax-refund](decisions/ADR-20261128-tax-refund.md)); the minimum spend
+comes from the country pack (`taxRefund.min`). Every field is optional but `h`; an old `TAX` (`h`, `list`, `shops`,
+`note`) keeps working.
+
+| Field           | Holds                                                                                                                                                                                                                                                                                           |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `h`             | its heading, `[zh, en]`                                                                                                                                                                                                                                                                         |
+| `list`          | the rules in short, `[[zh, en], …]`                                                                                                                                                                                                                                                             |
+| `steps`         | how it works, in order, `[[zh, en], …]` (show the passport and pay the taxed price, keep the receipt's QR code, card or cash, customs at the airport before check-in, the refund)                                                                                                               |
+| `methods`       | `[{ h, items, note? }]`: to a card, cash at the airport, each with its rules (which cards, registration, how long)                                                                                                                                                                              |
+| `airport`       | `{ h?, rows: [{ what, where, when?, note? }], wifi?: { ssid, pass?, note? } }`: the customs kiosk, the cash machine and where they are; the customs Wi-Fi with a Copy button for its name and password                                                                                          |
+| `deadline`      | `[zh, en]`: how long after buying the group can claim                                                                                                                                                                                                                                           |
+| `coupons`       | `[{ id, shop, h, items?, until, img?, rules?, place? }]`: a shop's coupon: `id` a word, `shop` `[zh, en]` or a name, `items` its tiers, `until` its last day (YYYY-MM-DD; after it, it greys and folds to Expired), `img` a trip image key, `rules`, `place` a `PLACES` key or a shop list's id |
+| `src`           | `[zh, en]`: where it comes from, with dates                                                                                                                                                                                                                                                     |
+| `shops`, `note` | which shops offer it; a closing note                                                                                                                                                                                                                                                            |
+
+A coupon's `img` is a key under the trip's `img/` folder, such as `'tax/coupon-store'` for `img/tax/coupon-store.webp`
+(or `.png`, `.jpg`, `.svg`). The build puts it in the page at its full size, never a lighter copy, so the cashier's
+scanner reads its barcode; tapped, it opens full screen on white (a landscape one turned to fill an upright phone), and a double tap zooms in. The contract checks
+the image is there. A coupon image is a few hundred KB; the build's summary counts coupons apart from the photos.
 
 ### Travel insurance (`INSURANCE`)
 

@@ -1,5 +1,5 @@
 ---
-total_decisions: 46
+total_decisions: 47
 last_updated: 2026-11-28
 ---
 
@@ -44,6 +44,7 @@ A trip's data and the pipeline that refreshes it: the fields, the contract and t
 | [ADR-20261126-own-leg-minutes](decisions/ADR-20261126-own-leg-minutes.md)             | 2026-11-26 | accepted | A route leg may end with the trip's own minutes, shown only when Google has no time for it; Japan's transit is never asked.                            |
 | [ADR-20261127-decide-option-route](decisions/ADR-20261127-decide-option-route.md)     | 2026-11-27 | accepted | A decide option may carry its own route; its legs are stored as <day>:<k>:<i> in geo.json, apart from the day's, and drawn on its card.                |
 | [ADR-20261128-budget-paid-insurance](decisions/ADR-20261128-budget-paid-insurance.md) | 2026-11-28 | amended  | Budget rows can be paid (date, where, ref), in the home currency, in parts, or price TBD; the glance is the paid total. INSURANCE: a tile, no IDs.     |
+| [ADR-20261128-tax-refund](decisions/ADR-20261128-tax-refund.md)                       | 2026-11-28 | accepted | TAX gains steps, methods, airport (rows, wifi), deadline, coupons (until, img), src; a tile in Today opens them; coupon images go in at full size.     |
 | [ADR-20261128-water-refill](decisions/ADR-20261128-water-refill.md)                   | 2026-11-28 | accepted | refill.json: OSM drinking water plus trip-local refill-*.json, merged by a free step; a pill per stop, a map kind, near me; winter hides outdoor taps. |
 
 ## sync
